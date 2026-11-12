@@ -1,0 +1,64 @@
+{
+  "senders": [
+    { "id": "us", "name": "United States", "label": "US", "short": "the US", "currency": "USD", "demonym": "US", "iso2": "US" },
+    { "id": "uk", "name": "United Kingdom", "label": "UK", "short": "the UK", "currency": "GBP", "demonym": "UK", "iso2": "GB" },
+    { "id": "canada", "name": "Canada", "label": "Canada", "short": "Canada", "currency": "CAD", "demonym": "Canadian", "iso2": "CA" },
+    { "id": "australia", "name": "Australia", "label": "Australia", "short": "Australia", "currency": "AUD", "demonym": "Australian", "iso2": "AU" }
+  ],
+  "receivers": [
+    {
+      "id": "nigeria", "name": "Nigeria", "currency": "NGN", "iso2": "NG",
+      "payout": {
+        "bank": "Any Nigerian bank account",
+        "mobile": "Wallets such as OPay and PalmPay",
+        "cash": "Collect at agent locations"
+      },
+      "note": ""
+    },
+    {
+      "id": "ghana", "name": "Ghana", "currency": "GHS", "iso2": "GH",
+      "payout": {
+        "mobile": "MTN MoMo, Telecel Cash, AT Money",
+        "bank": "Ghanaian bank accounts",
+        "cash": "Collect at agent locations"
+      },
+      "note": ""
+    },
+    {
+      "id": "kenya", "name": "Kenya", "currency": "KES", "iso2": "KE",
+      "payout": {
+        "mobile": "M-Pesa, Airtel Money",
+        "bank": "Kenyan bank accounts",
+        "cash": "Collect at agent locations"
+      },
+      "note": ""
+    },
+    {
+      "id": "uganda", "name": "Uganda", "currency": "UGX", "iso2": "UG",
+      "payout": {
+        "mobile": "MTN MoMo, Airtel Money",
+        "bank": "Ugandan bank accounts",
+        "cash": "Collect at agent locations"
+      },
+      "note": ""
+    },
+    {
+      "id": "zambia", "name": "Zambia", "currency": "ZMW", "iso2": "ZM",
+      "payout": {
+        "mobile": "MTN MoMo, Airtel Money, Zamtel Kwacha",
+        "bank": "Zambian bank accounts",
+        "cash": "Collect at agent locations"
+      },
+      "note": ""
+    },
+    {
+      "id": "zimbabwe", "name": "Zimbabwe", "currency": "USD", "iso2": "ZW",
+      "payout": {
+        "mobile": "Wallets such as EcoCash",
+        "bank": "Zimbabwean bank accounts",
+        "cash": "Collect at agent locations"
+      },
+      "note": "Most transfers to Zimbabwe are paid out in US dollars, so amounts here are shown in USD."
+    }
+  ]
+}

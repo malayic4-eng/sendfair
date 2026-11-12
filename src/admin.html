@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>SendFair Rate Desk</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+:root{--bg:#f3f6f1;--surface:#fff;--ink:#12201a;--muted:#56655d;--line:#d6dfd8;--accent:#0b6b4c;--accent-ink:#fff;--warn:#9a4b00;--warn-soft:#fde8d4;--ok-soft:#dcefe5;--gold-soft:#fbefd2;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1511;--surface:#142019;--ink:#e6efe9;--muted:#9db0a5;--line:#26372e;--accent:#3fd39a;--accent-ink:#062418;--warn:#f5a35c;--warn-soft:#3b2412;--ok-soft:#163a2b;--gold-soft:#3a2f12;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left,0px))}
+h1{font-size:1.5rem;margin:0 0 4px}h2{font-size:1.1rem;margin:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px;margin-top:16px;min-width:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+label{display:grid;gap:4px;font-size:.8rem;font-weight:600;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;min-height:36px}
+input.n{font-family:"IBM Plex Mono",ui-monospace,monospace;width:110px}input.s{width:96px}input.m{width:140px}
+textarea{width:100%;min-height:220px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.85rem}
+button{font:600 .88rem Inter,sans-serif;border-radius:8px;padding:8px 13px;cursor:pointer;border:1px solid var(--accent);background:transparent;color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink)}button.link{border:0;padding:4px 6px;font-weight:500;text-decoration:underline}
+.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:1180px}
+th,td{text-align:left;padding:7px 5px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+td.p{font-weight:700;white-space:nowrap}.feed{font:500 .74rem "IBM Plex Mono",monospace;color:var(--muted);display:flex;gap:4px;align-items:center;margin-top:4px}
+.chk{display:inline-flex;gap:4px;align-items:center;margin-right:6px;font-weight:500;color:var(--ink);font-size:.85rem}
+.flag{font-size:.76rem;padding:2px 6px;border-radius:6px;white-space:nowrap}.flag.w{background:var(--warn-soft);color:var(--warn)}.flag.o{background:var(--ok-soft);color:var(--accent)}
+tr.checked td{background:color-mix(in srgb,var(--ok-soft) 45%,transparent)}
+.muted{color:var(--muted);font-size:.86rem}#status{font-weight:600}
+.progress{display:flex;gap:4px;flex-wrap:wrap}.progress button{font:500 .72rem "IBM Plex Mono",monospace;padding:3px 7px;border-radius:6px;border:1px solid var(--line);color:var(--ink)}
+.progress button.done{background:var(--ok-soft);color:var(--accent);border-color:transparent}.progress button.part{background:var(--gold-soft)}.progress button.pri{font-weight:600}
+.err{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:.88rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>SendFair Rate Desk</h1>
+<p class="muted">For each route, open each provider's calculator for the reference amount and type what they show. Typing <b>They get</b> works out the rate for you. Rows you edit are ticked as checked today; untouched rows keep their old check time, so the site can show which quotes are out of date.</p>
+
+<div class="card">
+  <h2>1. Settings</h2>
+  <p class="muted">Saved only in this browser. The token needs "Contents: read and write" on your site repository. Never share it.</p>
+  <div class="row">
+    <label for="gh-owner">GitHub username<input id="gh-owner" placeholder="your-username"></label>
+    <label for="gh-repo">Repository<input id="gh-repo" placeholder="sendfair"></label>
+    <label for="gh-branch">Branch<input id="gh-branch" value="main"></label>
+    <label for="gh-token">Access token<input id="gh-token" type="password" placeholder="github_pat_..." autocomplete="off"></label>
+    <label for="stats-key">Stats key (optional)<input id="stats-key" type="password" autocomplete="off"></label>
+    <button id="save-settings" type="button">Save settings</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>2. Today's quotes</h2>
+  <div class="progress" id="progress" aria-label="Routes checked today"></div>
+  <p class="muted">Green: every quote checked today. Yellow: some checked. Bold: daily routes.</p>
+  <div class="row">
+    <label for="route">Route<select id="route"></select></label>
+    <label for="ref">Reference amount<input id="ref" class="n" inputmode="decimal"></label>
+    <span class="muted" id="mid"></span>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th scope="col">Provider</th><th scope="col">They get</th><th scope="col">Rate</th><th scope="col">Fixed fee</th><th scope="col">% fee</th><th scope="col">Receive by</th><th scope="col">Speed</th><th scope="col">Variant</th><th scope="col">Note</th><th scope="col">Checked today</th><th scope="col">Check</th><th scope="col"></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <div class="row"><label for="add-prov">Add a provider to this route<select id="add-prov"></select></label><button id="add-btn" type="button">Add</button></div>
+  <div id="route-err" class="err" hidden></div>
+  <div class="row"><button class="primary" id="save-route" type="button">Save this route</button><button id="next-route" type="button">Save and go to next route</button></div>
+  <p class="muted">Providers left empty are dropped from this route when you save, so tomorrow's list is shorter. Add them back any time.</p>
+</div>
+
+<div class="card">
+  <h2>3. Publish</h2>
+  <p class="muted">Publishing updates the live site within a minute or two. Download gives you the file to upload by hand on GitHub instead.</p>
+  <div class="row"><button class="primary" id="publish" type="button">Publish to live site</button><button id="download" type="button">Download quotes.json</button></div>
+  <p id="status" aria-live="polite"></p>
+</div>
+
+<div class="card">
+  <h2>4. Today's post</h2>
+  <p class="muted">Ready-made message for your WhatsApp groups, Facebook groups and channel, built from the quotes checked in the last day.</p>
+  <div class="row"><label for="post-scope">Routes<select id="post-scope"><option value="priority">Daily routes</option><option value="all">All routes</option></select></label><button id="post-make" type="button">Write post</button><button id="post-copy" type="button">Copy</button></div>
+  <label for="post">Post text<textarea id="post"></textarea></label>
+</div>
+
+<div class="card">
+  <h2>5. Clicks this month</h2>
+  <p class="muted">Needs click tracking switched on and your stats key saved above.</p>
+  <div class="row"><button id="clicks-load" type="button">Load clicks</button></div>
+  <div class="tablewrap" id="clicks"></div>
+</div>
+</div>
+
+<script src="../assets/rank.js"></script>
+<script>
+(function(){
+"use strict";
+var R=window.SFRank,esc=R.esc,$=function(id){return document.getElementById(id)};
+var S={site:null,corridors:null,providers:[],pmap:{},quotes:{updatedAt:null,coverage:{},quotes:{}},mid:null,feed:null,rows:[],order:[]};
+var store={get:function(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function status(t,bad){$("status").textContent=t;$("status").style.color=bad?"var(--warn)":"var(--accent)"}
+function getJSON(p){return fetch(p,{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error(p);return r.json()})}
+function isToday(iso){return !!iso&&iso.slice(0,10)===new Date().toISOString().slice(0,10)}
+function info(k){var a=k.split("-");return{s:S.corridors.senders.filter(function(x){return x.id===a[0]})[0],r:S.corridors.receivers.filter(function(x){return x.id===a[1]})[0]}}
+function midFor(k){var i=info(k);return R.midRate(S.mid,i.s.currency,i.r.currency)}
+function num(v){var n=parseFloat(String(v).replace(/,/g,""));return isFinite(n)?n:NaN}
+
+/* settings */
+var g=store.get("sf-gh",{});["owner","repo","branch","token"].forEach(function(f){if(g[f])$("gh-"+f).value=g[f]});
+if(store.get("sf-stats","")) $("stats-key").value=store.get("sf-stats","");
+$("save-settings").onclick=function(){store.set("sf-gh",{owner:$("gh-owner").value.trim(),repo:$("gh-repo").value.trim(),branch:$("gh-branch").value.trim()||"main",token:$("gh-token").value.trim()});store.set("sf-stats",$("stats-key").value.trim());status("Settings saved in this browser.")};
+
+/* routes */
+function buildOrder(){
+  var all=[];S.corridors.senders.forEach(function(s){S.corridors.receivers.forEach(function(r){all.push(s.id+"-"+r.id)})});
+  var pri=(S.site.priorityRoutes||[]).filter(function(k){return all.indexOf(k)>-1});
+  S.order=pri.concat(all.filter(function(k){return pri.indexOf(k)===-1}));
+  var label=function(k){var i=info(k);return esc(i.s.name+" → "+i.r.name+" ("+i.s.currency+"→"+i.r.currency+")")};
+  $("route").innerHTML='<optgroup label="Check every day">'+pri.map(function(k){return '<option value="'+k+'">'+label(k)+"</option>"}).join("")+'</optgroup><optgroup label="Check every 2 days">'+
+    S.order.slice(pri.length).map(function(k){return '<option value="'+k+'">'+label(k)+"</option>"}).join("")+"</optgroup>";
+}
+function routeState(k){var l=S.quotes.quotes[k]||[];if(!l.length)return"";var n=l.filter(function(q){return isToday(q.checkedAt)}).length;return n===l.length?"done":n?"part":""}
+function renderProgress(){
+  var pri=S.site.priorityRoutes||[];
+  $("progress").innerHTML=S.order.map(function(k){return '<button type="button" class="'+routeState(k)+(pri.indexOf(k)>-1?" pri":"")+'" data-k="'+k+'">'+k+"</button>"}).join("");
+  Array.prototype.forEach.call($("progress").children,function(b){b.onclick=function(){$("route").value=b.getAttribute("data-k");loadRoute()}});
+}
+
+/* table */
+function loadRoute(){
+  var k=$("route").value,i=info(k),list=S.quotes.quotes[k]||[],cov=S.quotes.coverage[k]||[];
+  var ref=list.length&&list[0].refAmount?list[0].refAmount:(S.site.defaultAmounts||{})[i.s.currency]||300;
+  $("ref").value=ref;
+  S.rows=list.map(function(q){return{provider:q.provider,variant:q.variant||"",rate:q.rate,feeFixed:q.feeFixed!=null?q.feeFixed:(q.fee||0),feePct:q.feePct||0,payout:(q.payout||[]).slice(),speed:q.speed||"",note:q.note||"",checked:false,prev:q.checkedAt||null}});
+  var have=S.rows.map(function(r){return r.provider});
+  var extra=(cov.length?cov:(list.length?[]:S.providers.map(function(p){return p.id})));
+  extra.forEach(function(id){if(have.indexOf(id)===-1&&S.pmap[id])S.rows.push(blank(id))});
+  var mid=midFor(k);
+  $("mid").textContent=mid&&i.s.currency!==i.r.currency?("Mid-market: 1 "+i.s.currency+" = "+R.rateStr(mid)+" "+i.r.currency):(i.s.currency===i.r.currency?"Same currency: rate is normally 1, compare fees.":"Mid-market rate not loaded yet.");
+  $("route-err").hidden=true;
+  renderRows();
+}
+function blank(id){return{provider:id,variant:"",rate:"",feeFixed:"",feePct:"",payout:[],speed:"",note:"",checked:false,prev:null}}
+function renderRows(){
+  var k=$("route").value,ref=num($("ref").value),feed=S.feed&&S.feed.routes&&S.feed.routes[k]||{};
+  $("rows").innerHTML=S.rows.map(function(r,ix){
+    var p=S.pmap[r.provider]||{name:r.provider},f=feed[r.provider];
+    var cb=function(v,l){return '<label class="chk"><input type="checkbox" data-i="'+ix+'" data-f="payout" value="'+v+'"'+(r.payout.indexOf(v)>-1?" checked":"")+">"+l+"</label>"};
+    var get=r.rate&&ref?Math.round(num(r.rate)*ref*100)/100:"";
+    return '<tr class="'+(r.checked?"checked":"")+'"><td class="p">'+esc(p.name)+(r.prev?'<div class="muted">last '+esc(R.ago(r.prev,Date.now()))+"</div>":"")+
+      (f?'<div class="feed">Feed: '+esc(R.rateStr(f.rate))+" · fee "+esc(f.fee)+' <button class="link" type="button" data-use="'+ix+'">Use</button></div>':"")+"</td>"+
+      '<td><input class="n" data-i="'+ix+'" data-f="get" inputmode="decimal" value="'+esc(get)+'" aria-label="'+esc(p.name)+' they get"></td>'+
+      '<td><input class="n" data-i="'+ix+'" data-f="rate" inputmode="decimal" value="'+esc(r.rate)+'" aria-label="'+esc(p.name)+' rate"></td>'+
+      '<td><input class="n s" data-i="'+ix+'" data-f="feeFixed" inputmode="decimal" value="'+esc(r.feeFixed)+'" aria-label="'+esc(p.name)+' fixed fee"></td>'+
+      '<td><input class="n s" data-i="'+ix+'" data-f="feePct" inputmode="decimal" value="'+esc(r.feePct)+'" aria-label="'+esc(p.name)+' percent fee"></td>'+
+      "<td>"+cb("mobile","Mobile")+cb("bank","Bank")+cb("cash","Cash")+"</td>"+
+      '<td><input class="s" data-i="'+ix+'" data-f="speed" value="'+esc(r.speed)+'" placeholder="Minutes" aria-label="'+esc(p.name)+' speed"></td>'+
+      '<td><input class="s" data-i="'+ix+'" data-f="variant" value="'+esc(r.variant)+'" placeholder="optional" aria-label="'+esc(p.name)+' variant"></td>'+
+      '<td><input class="m" data-i="'+ix+'" data-f="note" value="'+esc(r.note)+'" aria-label="'+esc(p.name)+' note"></td>'+
+      '<td><label class="chk"><input type="checkbox" data-i="'+ix+'" data-f="checked"'+(r.checked?" checked":"")+"> Yes</label></td>"+
+      '<td class="flag-cell" data-i="'+ix+'"></td>'+
+      '<td><button class="link" type="button" data-variant="'+ix+'">+ variant</button><button class="link" type="button" data-remove="'+ix+'">Remove</button></td></tr>';
+  }).join("");
+  var used=S.rows.map(function(r){return r.provider});
+  $("add-prov").innerHTML=S.providers.map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.name)+(used.indexOf(p.id)>-1?" (another variant)":"")+"</option>"}).join("");
+  flags();
+}
+function flags(){
+  var mid=midFor($("route").value);
+  Array.prototype.forEach.call(document.querySelectorAll(".flag-cell"),function(td){
+    var r=S.rows[+td.getAttribute("data-i")],rate=num(r.rate);
+    if(!(rate>0)||!mid){td.innerHTML="";return}
+    var gap=(rate/mid-1)*100;
+    td.innerHTML=gap>2?'<span class="flag w">'+gap.toFixed(1)+'% above market: typo?</span>':gap<-12?'<span class="flag w">'+Math.abs(gap).toFixed(1)+'% below market: check</span>':'<span class="flag o">'+(gap<0?"−":"+")+Math.abs(gap).toFixed(1)+"%</span>";
+  });
+}
+$("rows").addEventListener("input",function(e){
+  var el=e.target,ix=el.getAttribute("data-i"),f=el.getAttribute("data-f");if(ix==null)return;
+  var r=S.rows[+ix],ref=num($("ref").value),tr=el.closest("tr");
+  if(f==="payout"){r.payout=Array.prototype.filter.call(tr.querySelectorAll('[data-f="payout"]'),function(c){return c.checked}).map(function(c){return c.value})}
+  else if(f==="checked"){r.checked=el.checked;tr.className=r.checked?"checked":"";return}
+  else if(f==="get"){var gv=num(el.value);if(gv>0&&ref>0){r.rate=+(gv/ref).toFixed(gv/ref>=100?2:6);tr.querySelector('[data-f="rate"]').value=r.rate}}
+  else if(f==="rate"){r.rate=el.value;var gi=tr.querySelector('[data-f="get"]');gi.value=num(el.value)>0&&ref>0?Math.round(num(el.value)*ref*100)/100:""}
+  else r[f]=el.value;
+  r.checked=true;tr.className="checked";tr.querySelector('[data-f="checked"]').checked=true;flags();
+});
+$("rows").addEventListener("click",function(e){
+  var t=e.target;
+  if(t.hasAttribute("data-use")){var ix=+t.getAttribute("data-use"),f=S.feed.routes[$("route").value][S.rows[ix].provider];S.rows[ix].rate=f.rate;S.rows[ix].feeFixed=f.fee;S.rows[ix].checked=true;renderRows()}
+  if(t.hasAttribute("data-variant")){var r=S.rows[+t.getAttribute("data-variant")],b=blank(r.provider);S.rows.splice(+t.getAttribute("data-variant")+1,0,b);renderRows()}
+  if(t.hasAttribute("data-remove")){S.rows.splice(+t.getAttribute("data-remove"),1);renderRows()}
+});
+$("ref").addEventListener("input",renderRows);
+$("add-btn").onclick=function(){S.rows.push(blank($("add-prov").value));renderRows()};
+$("route").onchange=loadRoute;
+
+function saveRoute(){
+  var k=$("route").value,now=new Date().toISOString(),ref=num($("ref").value),problems=[],list=[],cov=[];
+  S.rows.forEach(function(r){
+    var rate=num(r.rate);if(!(rate>0))return;
+    var name=(S.pmap[r.provider]||{}).name||r.provider;
+    if(!r.payout.length)problems.push(name+(r.variant?" ("+r.variant+")":"")+": tick at least one way to receive.");
+    var q={provider:r.provider,rate:rate,feeFixed:num(r.feeFixed)||0,feePct:num(r.feePct)||0,payout:r.payout.slice(),speed:String(r.speed).trim(),note:String(r.note).trim(),refAmount:ref>0?ref:undefined,checkedAt:r.checked?now:r.prev};
+    if(String(r.variant).trim())q.variant=String(r.variant).trim();
+    if(!q.checkedAt)problems.push(name+": tick 'Checked today' or the quote will not show.");
+    list.push(q);if(cov.indexOf(r.provider)===-1)cov.push(r.provider);
+  });
+  if(problems.length){$("route-err").innerHTML=problems.map(esc).join("<br>");$("route-err").hidden=false;return false}
+  $("route-err").hidden=true;
+  S.quotes.quotes[k]=list;S.quotes.coverage=S.quotes.coverage||{};S.quotes.coverage[k]=cov;S.quotes.updatedAt=now;
+  store.set("sf-draft",S.quotes);renderProgress();loadRoute();
+  status("Saved "+list.length+" quotes for "+k+". Publish when you're done.");return true;
+}
+$("save-route").onclick=saveRoute;
+$("next-route").onclick=function(){if(!saveRoute())return;var i=S.order.indexOf($("route").value);if(i<S.order.length-1){$("route").value=S.order[i+1];loadRoute()}};
+
+/* publish */
+$("download").onclick=function(){
+  var blob=new Blob([JSON.stringify(S.quotes,null,2)+"\n"],{type:"application/json"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="quotes.json";document.body.appendChild(a);a.click();a.remove();
+  status("Downloaded. Upload it to data/quotes.json in your GitHub repository.");
+};
+function b64(str){return btoa(unescape(encodeURIComponent(str)))}
+$("publish").onclick=function(){
+  var g=store.get("sf-gh",{});if(!g.owner||!g.repo||!g.token){status("Add your GitHub username, repository and token in step 1 first.",true);return}
+  var url="https://api.github.com/repos/"+encodeURIComponent(g.owner)+"/"+encodeURIComponent(g.repo)+"/contents/data/quotes.json",h={"Authorization":"Bearer "+g.token,"Accept":"application/vnd.github+json"};
+  status("Publishing...");
+  fetch(url+"?ref="+encodeURIComponent(g.branch||"main"),{headers:h}).then(function(r){return r.ok?r.json():{}}).then(function(cur){
+    return fetch(url,{method:"PUT",headers:h,body:JSON.stringify({message:"Update quotes "+new Date().toISOString().slice(0,16).replace("T"," "),content:b64(JSON.stringify(S.quotes,null,2)+"\n"),branch:g.branch||"main",sha:cur.sha})});
+  }).then(function(r){
+    if(r.ok){store.set("sf-draft",null);status("Published. The live site updates within a minute or two.")}
+    else return r.json().then(function(e){status("GitHub refused the update: "+(e.message||r.status)+". Check the token has write access to this repository.",true)});
+  }).catch(function(){status("Could not reach GitHub. Check your connection, or use Download instead.",true)});
+};
+
+/* post */
+$("post-make").onclick=function(){
+  var keys=$("post-scope").value==="priority"?(S.site.priorityRoutes||[]):S.order,lines=[],d=new Date();
+  keys.forEach(function(k){
+    var i=info(k);if(!i.s||!i.r)return;var amt=(S.site.defaultAmounts||{})[i.s.currency]||300;
+    var rows=R.rank({list:S.quotes.quotes[k]||[],providers:S.pmap,amount:amt,payout:"all",mid:midFor(k),now:Date.now(),staleH:24,hideH:24});
+    if(rows[0])lines.push(i.s.label+" → "+i.r.name+" ("+R.money(amt,i.s.currency,0).replace(/ /g," ")+"): "+rows[0].p.name+", "+R.money(rows[0].gets,i.r.currency).replace(/ /g," "));
+  });
+  $("post").value=lines.length?("SendFair rates today, "+d.getDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]+"\nMost money home for a typical transfer:\n\n"+lines.join("\n")+"\n\nCompare your own amount: "+S.site.siteUrl):"No routes have quotes checked in the last 24 hours yet.";
+};
+$("post-copy").onclick=function(){var t=$("post");try{navigator.clipboard.writeText(t.value).then(function(){status("Post copied.")},function(){t.select();status("Press Ctrl+C (or Cmd+C) to copy.")})}catch(e){t.select()}};
+
+/* clicks */
+$("clicks-load").onclick=function(){
+  var key=store.get("sf-stats","");if(!key){$("clicks").innerHTML='<p class="muted">Save your stats key in step 1 first.</p>';return}
+  fetch("../api/stats?key="+encodeURIComponent(key)).then(function(r){return r.ok?r.json():r.json().then(function(e){throw new Error(e.error||r.status)})}).then(function(d){
+    var rows=(d.clicks||[]).sort(function(a,b){return b.count-a.count});
+    $("clicks").innerHTML=rows.length?'<table style="min-width:0"><thead><tr><th scope="col">Route</th><th scope="col">Provider</th><th scope="col">Clicks</th></tr></thead><tbody>'+rows.map(function(x){return"<tr><td>"+esc(x.route)+"</td><td>"+esc((S.pmap[x.provider]||{}).name||x.provider)+"</td><td>"+x.count+"</td></tr>"}).join("")+"</tbody></table>":'<p class="muted">No clicks recorded for '+esc(d.month)+" yet.</p>";
+  }).catch(function(e){$("clicks").innerHTML='<p class="muted">Could not load clicks: '+esc(e.message)+". Check click tracking is switched on and the stats key matches.</p>"});
+};
+
+/* start */
+Promise.all([getJSON("../data/site.json"),getJSON("../data/corridors.json"),getJSON("../data/providers.json"),getJSON("../data/quotes.json"),getJSON("../data/midmarket.json").catch(function(){return null}),getJSON("../data/wise-feed.json").catch(function(){return null})]).then(function(r){
+  S.site=r[0];S.corridors=r[1];S.providers=r[2].providers;S.providers.forEach(function(p){S.pmap[p.id]=p});
+  S.quotes=r[3]&&r[3].quotes?r[3]:{updatedAt:null,coverage:{},quotes:{}};S.quotes.coverage=S.quotes.coverage||{};S.mid=r[4];S.feed=r[5];
+  var draft=store.get("sf-draft",null);
+  if(draft&&draft.quotes&&draft.updatedAt&&(!S.quotes.updatedAt||draft.updatedAt>S.quotes.updatedAt)){S.quotes=draft;status("Restored your unpublished changes from this browser.")}
+  buildOrder();renderProgress();loadRoute();
+}).catch(function(){status("Could not load site data. Open this page from your live site address.",true)});
+})();
+</script>
+</body>
+</html>

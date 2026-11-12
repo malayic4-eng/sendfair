@@ -1,0 +1,38 @@
+name: Update reference rates
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      WISE_API_TOKEN: ${{ secrets.WISE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Fetch mid-market rates
+        run: node scripts/fetch-midmarket.mjs
+      - name: Fetch Wise comparison feed (only if WISE_API_TOKEN secret is set)
+        if: ${{ env.WISE_API_TOKEN != '' }}
+        run: node scripts/fetch-wise-feed.mjs
+      - name: Commit if changed
+        run: |
+          git add data/midmarket.json
+          if [ -f data/wise-feed.json ]; then git add data/wise-feed.json; fi
+          if git diff --cached --quiet; then
+            echo "No change"
+          else
+            git config user.name "sendfair-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git commit -m "Update reference rates"
+            git pull --rebase
+            git push
+          fi
