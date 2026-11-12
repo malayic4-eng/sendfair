@@ -1,0 +1,16 @@
+// Cloudflare Workers settings for SendFair. Cloudflare reads this on every deploy.
+{
+  "name": "sendfair",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-06-01",
+  // Builds the 30 pages into dist/ before each deploy.
+  "build": { "command": "node scripts/build.mjs" },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  },
+  // Storage for delivery reports and click counts (namespace "sendfair").
+  "kv_namespaces": [{ "binding": "SENDFAIR_KV", "id": "4184f9d4de9440119baf9408cecc938a" }],
+  "observability": { "enabled": true }
+}

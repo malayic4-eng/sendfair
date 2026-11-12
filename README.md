@@ -16,7 +16,7 @@ Hosting is free (Cloudflare Pages). The only running cost is the domain, about $
 | `data/midmarket.json` | Market reference rates, updated automatically |
 | `data/corridors.json` | Countries, currencies and ways to receive |
 | `src/` | Styles, fonts, the ranking engine (`rank.js`), page script, Rate Desk (`admin.html`), share images (`og/`) |
-| `functions/` | Small server functions for delivery reports, click counting and click stats |
+| `functions/`, `src/worker.js`, `wrangler.jsonc` | Small server functions for delivery reports, click counting and click stats, and Cloudflare's deploy settings |
 | `scripts/` | Site build, rate fetchers |
 | `tools/make-og.py` | Regenerates share images if you ever add countries |
 | `.github/workflows/` | Automatic reference-rate updates |
@@ -35,12 +35,11 @@ Check `sendfair.co`, `sendfair.africa` or `getsendfair.com` at Namecheap or Clou
 4. **Settings → Actions → General → Workflow permissions** → **Read and write permissions** → Save.
 5. **Actions → Update reference rates → Run workflow** once.
 
-### 3. Publish with Cloudflare Pages
+### 3. Publish with Cloudflare (Workers)
 1. Free account at dash.cloudflare.com.
-2. **Workers & Pages → Create → Pages → Connect to Git** → pick `sendfair`.
-3. Framework preset **None**, build command `node scripts/build.mjs`, output directory `dist`.
-4. Deploy. You get a free `sendfair.pages.dev` address.
-5. **Custom domains** → add your domain and follow the DNS steps.
+2. **Workers & Pages → Create application → Import a repository** → pick `sendfair` → **Deploy**. All settings (build step, pages folder, storage) come from `wrangler.jsonc`, so leave the build fields as they are.
+3. You get a free `sendfair.<your-name>.workers.dev` address.
+4. Your domain: open the `sendfair` Worker → **Settings → Domains & Routes → Add → Custom domain**.
 
 Every change in the repository (including each Rate Desk publish) rebuilds the site. If a data file ever has a mistake, the build stops with a plain list of what to fix, and the previous version stays live.
 
@@ -93,15 +92,15 @@ Create a free list on MailerLite or Buttondown. Put its form action URL in `news
 ## Optional features (switch on when ready)
 
 ### Delivery-time reports and click tracking
-Both need a free Cloudflare KV store:
-1. Cloudflare → **Storage & Databases → KV → Create** → name it `sendfair`.
-2. Your Pages project → **Settings → Bindings → Add → KV namespace**: variable name `SENDFAIR_KV`, namespace `sendfair`. Save and redeploy.
-3. For click stats: **Settings → Variables and secrets → Add** → `STATS_KEY` = a long random password. Put the same value in the Rate Desk's "Stats key".
-4. In `config.json` set `"reportsEnabled": true` and/or `"trackClicks": true`. Commit.
+Both are switched on and already connected to the `sendfair` storage space (see `wrangler.jsonc`).
 
-Reports: visitors pick a service and how long it took. After 3 reports in two months, the route shows "Usually arrives: …" for that service. One report per visitor per service per day; IP addresses are never stored.
+To see click counts in the Rate Desk: open the `sendfair` Worker → **Settings → Variables and Secrets → Add** → type **Secret**, name `STATS_KEY`, value a long random password. Put the same value in the Rate Desk's "Stats key".
 
-Clicks: "Go to" buttons pass through `/go/…`, which counts the click and forwards to your affiliate link. See counts in the Rate Desk under **Clicks this month**.
+Reports: visitors pick a service and how long it took. After 3 reports in two months, the route shows "Usually arrives: ..." for that service. One report per visitor per service per day; IP addresses are never stored.
+
+Clicks: "Go to" buttons pass through `/go/...`, which counts the click and forwards to your affiliate link.
+
+To switch either off, set `reportsEnabled` or `trackClicks` to `false` in `config.json`.
 
 ### Wise comparison feed (saves typing)
 If you get a Wise API token (Wise account → Settings → API tokens), add it in GitHub → **Settings → Secrets and variables → Actions → New repository secret** named `WISE_API_TOKEN`. Every 6 hours the workflow saves Wise's collected quotes for many providers, and the Rate Desk shows them as **Feed** suggestions with a **Use** button. Always compare with the provider's own calculator before accepting. This part could only be tested once a token exists; if the first run shows errors in the Actions log, send them to me.
