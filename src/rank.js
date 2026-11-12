@@ -98,7 +98,7 @@
   }
 
   function renderRow(x, i, c) {
-    var top = i === 0 && !x.stale;
+    var top = i === 0 && !x.stale && c.rows.length > 1;
     var chips = (x.q.payout || []).map(function (m) { return '<span class="chip">' + LABEL[m] + "</span>"; }).join("");
     if (top) chips = '<span class="chip best">Most money home</span>' + chips;
     if (x.stale) chips += '<span class="chip stale">Not rechecked today</span>';
@@ -166,7 +166,7 @@
     var top = c.rows.filter(function (x) { return !x.stale; })[0];
     if (top) {
       return "Sending " + money(c.amount, c.s.currency, 0) + " to " + c.r.name + "? Today " + top.p.name + " delivers " + money(top.gets, c.r.currency) +
-        ", the most of " + c.rows.length + " services checked. Compare your amount: " + url;
+        (c.rows.length > 1 ? ", the most of " + c.rows.length + " services checked" : "") + ". Compare your amount: " + url;
     }
     return "Compare what actually arrives when you send money from " + c.s.short + " to " + c.r.name + ": " + url;
   }

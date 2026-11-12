@@ -58,6 +58,11 @@ let midmarket = read("data/midmarket.json");
   if (p.length) fail(p);
 })();
 
+// Hand-checked corrections for currencies where the free feed is off (ignored after 72 hours).
+try {
+  const ov = JSON.parse(fs.readFileSync(path.join(ROOT, "data/mid-overrides.json"), "utf8"));
+  if (ov && ov.rates && NOW - new Date(ov.updatedAt).getTime() < 72 * 3600000 && midmarket.rates) Object.assign(midmarket.rates, ov.rates);
+} catch {}
 const providers = Object.fromEntries(providersFile.providers.map((x) => [x.id, x]));
 const esc = R.esc;
 const plain = (s) => String(s).replace(/ /g, " ");
