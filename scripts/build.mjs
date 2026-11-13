@@ -154,7 +154,7 @@ function head({ title, description, canonical, prefix, jsonld = [], noindex = fa
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Figtree:wght@300..900&display=swap">`
     : `<link rel="preload" href="${prefix}assets/fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${prefix}assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="${prefix}assets/fonts.css">`;
+<link rel="stylesheet" href="${prefix}assets/fonts.css?v=${V.fonts}">`;
   const ogImg = hasOg ? `<meta property="og:image" content="${site}/og/${og}.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">` : `<meta name="twitter:card" content="summary">`;
   return `<title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
@@ -172,7 +172,7 @@ ${ogImg}
 <link rel="icon" href="${prefix}favicon-48.png" sizes="48x48" type="image/png">
 <link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png">
 ${fonts}
-<link rel="stylesheet" href="${prefix}assets/style.css">
+<link rel="stylesheet" href="${prefix}assets/style.css?v=${V.css}">
 ${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j)}</script>`).join("\n")}
 ${ads}${cfa}${impact}`;
 }
@@ -292,7 +292,7 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
       trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO },
     ...(init || {})
   };
-  const scripts = `<script>window.SF=${JSON.stringify(sf)};</script><script src="${prefix}assets/rank.js" defer></script><script src="${prefix}assets/app.js" defer></script>`;
+  const scripts = `<script>window.SF=${JSON.stringify(sf)};</script><script src="${prefix}assets/rank.js?v=${V.rank}" defer></script><script src="${prefix}assets/app.js?v=${V.app}" defer></script>`;
   const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og });
   const bodyStr = `${header(prefix)}\n<main>${body}</main>\n${footer(prefix)}\n${scripts}`;
   if (bodyOnly) return `${headStr}\n${bodyStr}`;
@@ -309,6 +309,12 @@ function copyDir(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
   for (const f of fs.readdirSync(src)) fs.copyFileSync(path.join(src, f), path.join(dst, f));
 }
+
+// ---------- asset versions ----------
+// Each page asks for style.css?v=<hash> etc., so browsers fetch new files as soon as they change.
+import crypto from "node:crypto";
+const ver = (f) => crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, "src", f))).digest("hex").slice(0, 10);
+const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css") };
 
 // ---------- SEO helpers ----------
 const CURNAME = { GBP: "British pounds", USD: "US dollars", CAD: "Canadian dollars", AUD: "Australian dollars", KES: "Kenyan shillings", NGN: "Nigerian naira", GHS: "Ghanaian cedis", UGX: "Ugandan shillings", ZMW: "Zambian kwacha" };
@@ -603,7 +609,7 @@ write("404.html", page({ prefix: "/", canonical: null, title: `Page not found ·
 
 // Rate Desk (never indexed)
 fs.mkdirSync(path.join(OUT, "admin"), { recursive: true });
-fs.copyFileSync(path.join(ROOT, "src/admin.html"), path.join(OUT, "admin/index.html"));
+fs.writeFileSync(path.join(OUT, "admin/index.html"), fs.readFileSync(path.join(ROOT, "src/admin.html"), "utf8").replace(/assets\/fonts\.css(?!\?)/g, `assets/fonts.css?v=${V.fonts}`).replace(/assets\/rank\.js(?!\?)/g, `assets/rank.js?v=${V.rank}`));
 
 // SEO and hosting files
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${site}/${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
@@ -617,6 +623,20 @@ write("_headers", `/*
   Cache-Control: public, max-age=300
 /assets/fonts/*
   Cache-Control: public, max-age=31536000, immutable
+/assets/*.css
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*.js
+  Cache-Control: public, max-age=31536000, immutable
+/*.html
+  Cache-Control: no-cache
+/
+  Cache-Control: no-cache
+/send-money/*
+  Cache-Control: no-cache
+/send-money-to/*
+  Cache-Control: no-cache
+/providers/*
+  Cache-Control: no-cache
 /admin/*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
