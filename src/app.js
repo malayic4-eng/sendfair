@@ -47,7 +47,7 @@
   }
 
   function fillSelects() {
-    var opt = function (x) { return '<option value="' + x.id + '">' + R.esc(x.name) + " (" + x.currency + ")</option>"; };
+    var opt = function (x) { return '<option value="' + x.id + '">' + R.esc(x.label || x.name) + " (" + x.currency + ")</option>"; };
     $("sf-from").innerHTML = S.corridors.senders.map(opt).join("");
     $("sf-to").innerHTML = S.corridors.receivers.map(opt).join("");
     var last = store.get("sf-last") || {};
@@ -102,9 +102,9 @@
   function renderPhone(c) {
     if (!$("sf-notif")) return;
     var h = R.homeTime(c.r.id, Date.now());
-    $("sf-ph-city").textContent = h.city;
-    $("sf-ph-time").textContent = h.time;
-    $("sf-ph-date").textContent = h.date;
+    if ($("sf-ph-city")) $("sf-ph-city").textContent = h.city;
+    if ($("sf-ph-time")) $("sf-ph-time").textContent = h.time;
+    if ($("sf-ph-date")) $("sf-ph-date").textContent = h.date;
     var n = R.notice(c);
     $("sf-ph-title").textContent = n.title;
     $("sf-ph-text").innerHTML = n.text;

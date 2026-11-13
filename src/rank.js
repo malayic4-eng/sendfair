@@ -102,34 +102,51 @@
     return "";
   }
 
-  function renderRow(x, i, c) {
+  // One compact line per service, so the whole ranking fits on screen. Notes become numbered footnotes under the table.
+  var SHORT = { mobile: "Mobile money", bank: "Bank", cash: "Cash pickup" };
+  function renderRow(x, i, c, fn) {
     var top = i === 0 && !x.stale && c.rows.length > 1;
-    var chips = (x.q.payout || []).map(function (m) { return '<span class="chip">' + LABEL[m] + "</span>"; }).join("");
-    if (top) chips = '<span class="chip best">Most money home</span>' + chips;
-    if (x.stale) chips += '<span class="chip stale">Not rechecked today</span>';
+    var costTxt = x.cost == null ? "" : (x.cost <= 0 ? "At mid-market or better" : fixed(x.cost * 100, 1) + "% cost vs mid-market");
+    var how = (x.q.payout || []).map(function (m) { return SHORT[m]; }).join(", ");
+    var checked = x.q.checkedAt ? "checked " + (c.timeStyle === "absolute" ? absTime(x.q.checkedAt) : ago(x.q.checkedAt, c.now)) : "";
     var rep = c.reports && c.reports[x.p.id];
-    if (rep && rep.n >= 3) chips += '<span class="chip">Usually arrives: ' + esc(rep.typical) + " (" + rep.n + " reports)</span>";
-    var costTxt = x.cost == null ? "" : (x.cost <= 0 ? "At or above the mid-market rate" : fixed(x.cost * 100, 1) + "% total cost vs mid-market");
-    var sub = "Rate " + rateStr(x.ev.rate) + DOT + feeStr(x.q, c.s.currency) + (x.q.speed ? DOT + esc(x.q.speed) : "");
-    var checked = x.q.checkedAt ? "Checked " + (c.timeStyle === "absolute" ? absTime(x.q.checkedAt) : ago(x.q.checkedAt, c.now)) : "";
-    var extra = [checked, x.q.note ? esc(x.q.note) : ""].filter(Boolean).join(DOT);
+    var bits = ["Rate " + rateStr(x.ev.rate), feeStr(x.q, c.s.currency)];
+    var extra = [];
+    if (x.q.speed) extra.push(esc(x.q.speed));
+    if (how) extra.push(how);
+    if (rep && rep.n >= 3) extra.push("usually arrives " + esc(rep.typical));
+    if (checked && !x.stale) extra.push(checked);
+    if (extra.length) bits.push('<span class="xtra">' + extra.join(DOT) + "</span>");
+    if (x.stale) bits.push('<span class="stale-txt">not rechecked today</span>');
+    var mark = fn ? ' <a class="fn" href="#sf-fn-' + fn + '" aria-label="Note ' + fn + '">' + fn + "</a>" : "";
     return '<article class="result' + (top ? " best" : "") + (x.stale ? " is-stale" : "") + '">' +
       '<div class="rank">' + (i + 1) + "</div>" +
-      '<div class="prov"><div class="prov-name">' + esc(x.p.name) + (x.q.variant ? ' <span class="variant">' + esc(x.q.variant) + "</span>" : "") + "</div>" +
-      '<div class="prov-sub num">' + sub + '</div><div class="chips">' + chips + "</div>" +
-      (extra ? '<div class="prov-sub">' + extra + "</div>" : "") + "</div>" +
-      '<div class="gets"><span class="gets-label">They get</span><span class="gets-value num">' + moneyHtml(x.gets, c.r.currency) + '</span><span class="gets-cost">' + costTxt + "</span></div>" +
-      '<div class="go-cell"><a class="go" href="' + esc(c.hrefFor(x.p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener">Go to ' + esc(x.p.name) + "</a></div>" +
+      '<div class="prov"><div class="prov-name"><span>' + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant">' + esc(x.q.variant) + "</span>" : "") +
+      (top ? '<span class="chip best">Most money home</span>' : "") + mark + "</div>" +
+      '<div class="prov-sub num">' + bits.join('<span class="dot">' + DOT + "</span>") + "</div></div>" +
+      '<div class="gets"><span class="gets-value num">' + moneyHtml(x.gets, c.r.currency) + '</span><span class="gets-cost">' + costTxt + "</span></div>" +
+      '<div class="go-cell"><a class="go" href="' + esc(c.hrefFor(x.p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener" aria-label="Go to ' + esc(x.p.name) + '">Go<span class="go-name"> to ' + esc(x.p.name) + "</span></a></div>" +
       "</article>";
   }
 
   function renderResults(c) {
-    var html = '<p class="disclose">Some providers pay us a commission when you sign up. It never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>';
-    if (!(c.amount > 0)) return html + '<div class="empty"><strong>Enter the amount you plan to pay.</strong></div>';
+    var html = "";
+    if (!(c.amount > 0)) return '<div class="empty"><strong>Enter the amount you plan to pay.</strong></div>';
     var warn = refWarning(c.rows, c.amount, c.s.currency);
-    if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
     if (c.rows.length) {
-      html += '<div class="results">' + c.rows.map(function (x, i) { return renderRow(x, i, c); }).join("") + "</div>";
+      var notes = [], idx = {};
+      var rows = c.rows.map(function (x, i) {
+        var n = 0;
+        if (x.q.note) {
+          if (!idx[x.q.note]) { notes.push({ who: x.p.name, text: x.q.note }); idx[x.q.note] = notes.length; }
+          n = idx[x.q.note];
+        }
+        return renderRow(x, i, c, n);
+      }).join("");
+      html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>They get</span><span></span></div>' + rows + "</div>";
+      if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
+      html += '<div class="below"><p class="disclose">Ranked by the amount that arrives. Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +
+        (notes.length ? '<ol class="notes">' + notes.map(function (n, k) { return '<li id="sf-fn-' + (k + 1) + '"><strong>' + esc(n.who) + ":</strong> " + esc(n.text) + "</li>"; }).join("") + "</ol>" : "") + "</div>";
     } else if (c.payout && c.payout !== "all" && c.anyQuotes) {
       html += '<div class="empty"><strong>None of today\'s checked services pay out by ' + LABEL[c.payout].toLowerCase() + " on this route.</strong><span>Choose another way to receive, or check back later today.</span></div>";
     } else {
