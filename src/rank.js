@@ -145,6 +145,8 @@
   var SHORT = { mobile: "Mobile money", bank: "Bank", cash: "Cash pickup" };
   function renderRow(x, i, c, fn) {
     var top = !x.stale && x.pos === 1 && c.rows.length > 1;
+    var pid = "sf-more-" + x.p.id + (x.q.variant ? "-" + String(x.q.variant).toLowerCase().replace(/[^a-z0-9]+/g, "-") : "");
+    var open = !!(c.open && c.open[pid]);
     var costTxt = x.cost == null ? "" : (x.cost <= 0 ? "At mid-market or better" : fixed(x.cost * 100, 1) + "% cost vs mid-market");
     var how = (x.q.payout || []).map(function (m) { return SHORT[m]; }).join(", ");
     var checked = x.q.checkedAt ? "checked " + (c.timeStyle === "absolute" ? absTime(x.q.checkedAt) : ago(x.q.checkedAt, c.now)) : "";
@@ -161,12 +163,56 @@
     return '<article class="result' + (top ? " best" : "") + (x.stale ? " is-stale" : "") + '">' +
       '<div class="rank"' + (x.tied ? ' title="Tied"' : "") + ">" + (x.pos || i + 1) + (x.tied ? "=" : "") + "</div>" +
       '<div class="prov"><div class="prov-name"><span class="avatar" aria-hidden="true" style="background:' + hue(x.p.id) + '">' + initials(x.p.name) + "</span><span>" + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant">' + esc(x.q.variant) + "</span>" : "") +
-      (top ? '<span class="chip best">' + (x.tied ? "Joint best" : "Most money home") + "</span>" : "") + mark + "</div>" +
+      (top ? '<span class="chip best">' + (x.tied ? "Joint best" : "Most money home") + "</span>" : "") + mark +
+      (x.p.rating ? '<a class="tp" href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener" title="Trustpilot: ' + x.p.rating.score + " out of 5 from " + fixed(x.p.rating.reviews, 0) + ' reviews"><span aria-hidden="true">★</span> ' + x.p.rating.score + "</a>" : "") +
+      '<button type="button" class="more-btn" aria-expanded="' + open + '" aria-controls="' + pid + '"><span class="more-txt">Details</span><span aria-hidden="true" class="chev">▾</span></button>' + "</div>" +
       '<div class="prov-sub num">' + bits.join('<span class="dot">' + DOT + "</span>") + "</div></div>" +
       '<div class="gets"><span class="gets-value num">' + moneyHtml(x.gets, c.r.currency) + "</span>" +
       (top && c.low && x.gets - c.low.gets >= 1 ? '<span class="gets-save num">' + esc(money(x.gets - c.low.gets, c.r.currency)) + " more than the lowest</span>" : '<span class="gets-cost">' + costTxt + "</span>") + "</div>" +
       '<div class="go-cell"><a class="go" href="' + esc(c.hrefFor(x.p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener" aria-label="Go to ' + esc(x.p.name) + '">Go<span class="go-name"> to ' + esc(x.p.name) + "</span></a></div>" +
+      details(x, c, pid, open) +
       "</article>";
+  }
+
+  // The "Details" panel: how the amount is worked out, ways to receive and pay, speed, rating, notes.
+  function details(x, c, pid, open) {
+    var cur = c.s.currency, f = feeParts(x.q);
+    var maths = money(c.amount, cur, 2) + " you pay" +
+      (x.ev.fee > 0.004 ? " − " + money(x.ev.fee, cur, 2) + " fee" + (f.pct && f.fixed ? " (" + fixed(f.pct, 2) + "% + " + money(f.fixed, cur, 2) + ")" : "") : ", no fee") +
+      " = " + money(x.ev.sent, cur, 2) + " converted at " + rateStr(x.ev.rate) + " = " + money(x.gets, c.r.currency, 2);
+    var items = [
+      ["How it adds up", esc(maths)],
+      ["They can receive by", esc((x.q.payout || []).map(function (m) { return LABEL[m]; }).join(", ") || "Not stated")],
+      ["Delivery time", esc(x.q.speed || "Not shown by the provider for this route")],
+      ["Ways to pay", esc((x.p.payIn || []).join(", ") || "See the provider's site") + ((x.p.payIn || []).some(function (m) { return /credit/i.test(m); }) ? ". Card payments can cost more; the rate above assumes the provider's standard method." : "")],
+      ["Rating", x.p.rating ? '<a href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener">Trustpilot ' + x.p.rating.score + "/5</a> (" + esc(x.p.rating.label) + ", " + fixed(x.p.rating.reviews, 0) + " reviews)" : "Not rated yet"],
+      ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + esc(money(Number(x.q.refAmount) || c.amount, cur, 0)) : ""]
+    ];
+    if (x.q.note) items.push(["Note", esc(x.q.note)]);
+    return '<div class="more" id="' + pid + '"' + (open ? "" : " hidden") + '><dl>' + items.filter(function (it) { return it[1]; }).map(function (it) { return "<div><dt>" + it[0] + "</dt><dd>" + it[1] + "</dd></div>"; }).join("") + "</dl></div>";
+  }
+
+  // Quick picks above the ranking: best service per way of receiving, and the fastest where speeds are known.
+  function picks(c) {
+    var all = (c.allRows || c.rows).filter(function (x) { return !x.stale; });
+    if (all.length < 2) return "";
+    var out = [];
+    ["mobile", "bank", "cash"].forEach(function (m) {
+      var best = all.filter(function (x) { return (x.q.payout || []).indexOf(m) > -1; })[0];
+      if (best) out.push('<button type="button" class="pick" data-payout="' + m + '" title="Show only ' + LABEL[m].toLowerCase() + ' services"><span class="pick-k">Best by ' + LABEL[m].toLowerCase() + '</span><span class="pick-v">' + esc(best.p.name) + ' <span class="pick-n num">' + esc(fixed(best.gets, best.gets >= 1000 ? 0 : 2)) + "</span></span></button>");
+    });
+    var fast = all.filter(function (x) { return /minute|instant|second/i.test(x.q.speed || ""); })[0];
+    if (fast) out.push('<span class="pick"><span class="pick-k">Fastest</span><span class="pick-v">' + esc(fast.p.name) + ' <span class="pick-n">' + esc(fast.q.speed) + "</span></span></span>");
+    return out.join("");
+  }
+
+  // Tiny line chart of the mid-market rate over recent days (needs 3+ days).
+  function spark(hist) {
+    var pts = (hist || []).filter(function (h) { return h.mid; });
+    if (pts.length < 3) return "";
+    var v = pts.map(function (h) { return h.mid; }), lo = Math.min.apply(null, v), hi = Math.max.apply(null, v), w = 84, h = 18;
+    var d = v.map(function (y, i) { return (i ? "L" : "M") + (i * w / (v.length - 1)).toFixed(1) + " " + (hi === lo ? h / 2 : h - 2 - (y - lo) / (hi - lo) * (h - 4)).toFixed(1); }).join(" ");
+    return ' <svg class="spark" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="Mid-market rate over the last ' + v.length + ' days"><path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
   }
 
   function renderResults(c) {
@@ -226,7 +272,7 @@
         trend = Math.abs(ch) < 0.0005 ? ' <span class="trend">no change' + since + "</span>"
           : ' <span class="trend ' + (ch > 0 ? "up" : "down") + '" title="' + (ch > 0 ? "More " + c.r.currency + " per " + c.s.currency : "Fewer " + c.r.currency + " per " + c.s.currency) + '">' + (ch > 0 ? "▲ " : "▼ ") + fixed(Math.abs(ch) * 100, 1) + "%" + since + "</span>";
       }
-      bits.push('Mid-market: <strong class="num">1 ' + c.s.currency + " = " + rateStr(c.mid) + " " + c.r.currency + "</strong>" + trend);
+      bits.push('Mid-market: <strong class="num">1 ' + c.s.currency + " = " + rateStr(c.mid) + " " + c.r.currency + "</strong>" + trend + spark(c.hist));
     }
     var t = function (iso) { return c.timeStyle === "absolute" ? absTime(iso) : ago(iso, c.now); };
     if (c.midUpdated && c.s.currency !== c.r.currency) bits.push("Market rate from " + t(c.midUpdated));
@@ -255,7 +301,7 @@
     var how = c.payout && c.payout !== "all" ? c.payout : (top.q.payout || [])[0] || "mobile";
     var amt = "<b>" + esc(money(top.gets, c.r.currency, 2)) + "</b>";
     var lead = leaders(c.rows);
-    var by = lead.length > 1 ? " Sent from " + esc(c.s.short) + ". " + esc(names(lead)) + " tie for the most today."
+    var by = lead.length > 1 ? " " + (lead.length === 2 ? esc(names(lead)) + " tie" : lead.length + " services tie") + " for the most today."
       : " Sent from " + esc(c.s.short) + " with " + esc(top.p.name) + ".";
     var text = how === "cash" ? amt + " is ready to collect." + by : "You have received " + amt + "." + by;
     var n = c.rows.length;
@@ -282,6 +328,6 @@
   }
 
   var api = { LABEL: LABEL, esc: esc, money: money, rateStr: rateStr, midRate: midRate, ageHours: ageHours, ago: ago, absTime: absTime,
-    evaluate: evaluate, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText, notice: notice, moneyHtml: moneyHtml, homeTime: homeTime, leaders: leaders, names: names };
+    evaluate: evaluate, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText, notice: notice, moneyHtml: moneyHtml, homeTime: homeTime, leaders: leaders, names: names, picks: picks, spark: spark };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.SFRank = api;
 })(typeof window !== "undefined" ? window : this);

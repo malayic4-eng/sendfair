@@ -7,6 +7,14 @@
   var root = SF.root || "";
   var S = { corridors: null, providers: {}, quotes: {}, coverage: {}, quotesUpdated: null, mid: null, reports: {}, payout: "all" };
   var $ = function (id) { return document.getElementById(id); };
+
+  // Exchange-rate pages: simple converter at the mid-market rate.
+  var conv = $("sf-conv");
+  if (conv) {
+    var cin = $("sf-conv-in"), cout = $("sf-conv-mid"), mid = parseFloat(conv.getAttribute("data-mid")), to = conv.getAttribute("data-to");
+    var upd = function () { var v = parseFloat(cin.value); cout.textContent = v > 0 ? to + " " + (v * mid).toLocaleString("en", { maximumFractionDigits: v * mid >= 1000 ? 0 : 2, minimumFractionDigits: v * mid >= 1000 ? 0 : 2 }) : "–"; };
+    cin.addEventListener("input", upd);
+  }
   if (!$("sf-results") || !R) return;
 
   var store = {
@@ -68,10 +76,13 @@
     var amount = parseFloat($("sf-amount").value);
     var mid = R.midRate(S.mid, s.currency, r.currency);
     var list = S.quotes[k] || [];
-    var rows = R.rank({ list: list, providers: S.providers, amount: amount, payout: S.payout, mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72 });
+    var opts = { list: list, providers: S.providers, amount: amount, payout: S.payout, mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72 };
+    var rows = R.rank(opts);
+    var allRows = S.payout === "all" ? rows : R.rank(Object.assign({}, opts, { payout: "all" }));
+    var hist = Object.keys((S.history || {}).days || {}).sort().map(function (d) { var e = S.history.days[d][k] || {}; return { d: d, mid: e.mid, best: e.best }; }).filter(function (e) { return e.mid || e.best; });
     var coverage = S.coverage[k] && S.coverage[k].length ? S.coverage[k] : Object.keys(S.providers);
     return {
-      s: s, r: r, key: k, amount: amount, payout: S.payout, mid: mid, rows: rows, now: Date.now(), timeStyle: "relative",
+      s: s, r: r, key: k, amount: amount, payout: S.payout, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
       anyQuotes: list.length > 0, reports: S.reports, hrefFor: hrefFor, disclosureHref: SF.disclosureHref || "#",
       checkList: coverage.map(function (id) { return S.providers[id]; }).filter(Boolean),
       avgPct: (cfg.regionalAverageCost || {}).percent || 8.46, avgLabel: (cfg.regionalAverageCost || {}).label || "",
@@ -97,6 +108,7 @@
     $("sf-note").textContent = c.r.note || "";
     $("sf-note").hidden = !c.r.note;
     $("sf-results").innerHTML = R.renderResults(c);
+    if ($("sf-picks")) $("sf-picks").innerHTML = R.picks(c);
     var wa = $("sf-wa");
     if (wa) {
       var url = SF.pageUrl || (SF.siteUrl + "/send-money/" + c.s.id + "-to-" + c.r.id + "/");
@@ -153,6 +165,17 @@
     $("sf-from").addEventListener("change", onRouteChange);
     $("sf-to").addEventListener("change", onRouteChange);
     $("sf-amount").addEventListener("input", render);
+    S.open = {};
+    document.addEventListener("click", function (e) {
+      var mb = e.target.closest && e.target.closest(".more-btn");
+      if (mb) {
+        var id = mb.getAttribute("aria-controls"), panel = document.getElementById(id), on = mb.getAttribute("aria-expanded") !== "true";
+        mb.setAttribute("aria-expanded", String(on)); if (panel) panel.hidden = !on; S.open[id] = on;
+        return;
+      }
+      var pk = e.target.closest && e.target.closest(".pick[data-payout]");
+      if (pk) { setPayout(pk.getAttribute("data-payout")); render(); }
+    });
     var quick = $("sf-quick");
     if (quick) quick.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-amt]"); if (!btn) return;
@@ -170,6 +193,26 @@
       try {
         navigator.clipboard.writeText(url).then(done, function () { $("sf-share-msg").textContent = url; });
       } catch (e) { $("sf-share-msg").textContent = url; }
+    });
+
+    // Rate alert on route pages: saved through /api/alert; a confirmation email follows.
+    var af = $("sf-alert-route");
+    if (af) af.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var msg = $("sf-alert-msg"), btn = af.querySelector("button");
+      var body = { route: af.getAttribute("data-route"), email: af.email.value.trim(), amount: parseFloat(af.amount.value), target: parseFloat(af.target.value) };
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.email)) { msg.textContent = "Enter a valid email address."; af.email.focus(); return; }
+      if (!(body.amount > 0) || !(body.target > 0)) { msg.textContent = "Enter both amounts."; return; }
+      btn.disabled = true; msg.textContent = "Saving…";
+      fetch(root + "api/alert", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (x) {
+          btn.disabled = false;
+          if (!x.ok) { msg.textContent = x.d.error || "Could not save your alert. Try again."; return; }
+          msg.textContent = x.d.pending ? "Saved. We'll send a confirmation email to " + body.email + " within a day; click it to switch the alert on." : "Check your email: click the link we sent to " + body.email + " to switch the alert on.";
+          af.email.value = "";
+        })
+        .catch(function () { btn.disabled = false; msg.textContent = "Could not save your alert. Check your connection and try again."; });
     });
 
     var alertForm = $("sf-alert-form");
@@ -199,7 +242,7 @@
     });
   }
 
-  Promise.all([getJSON("data/corridors.json"), getJSON("data/providers.json"), getJSON("data/quotes.json"), loadMid()])
+  Promise.all([getJSON("data/corridors.json"), getJSON("data/providers.json"), getJSON("data/quotes.json"), loadMid(), getJSON("data/history.json").catch(function () { return { days: {} }; })])
     .then(function (res) {
       S.corridors = res[0];
       res[1].providers.forEach(function (p) { S.providers[p.id] = p; });
@@ -207,6 +250,7 @@
       S.coverage = res[2].coverage || {};
       S.quotesUpdated = res[2].updatedAt;
       S.mid = res[3];
+      S.history = res[4];
       fillSelects();
       bind();
       return loadReports();

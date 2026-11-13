@@ -1,17 +1,105 @@
 {
-  "_howto": "Paste your affiliate link into affiliateUrl once a program approves you. Leave it empty to link to the provider's homepage.",
-  "providers": [
-    { "id": "wise", "name": "Wise", "website": "https://wise.com", "affiliateUrl": "" },
-    { "id": "worldremit", "name": "WorldRemit", "website": "https://www.worldremit.com", "affiliateUrl": "" },
-    { "id": "remitly", "name": "Remitly", "website": "https://www.remitly.com", "affiliateUrl": "" },
-    { "id": "sendwave", "name": "Sendwave", "website": "https://www.sendwave.com", "affiliateUrl": "" },
-    { "id": "lemfi", "name": "LemFi", "website": "https://lemfi.com", "affiliateUrl": "" },
-    { "id": "taptapsend", "name": "Taptap Send", "website": "https://www.taptapsend.com", "affiliateUrl": "" },
-    { "id": "afriex", "name": "Afriex", "website": "https://www.afriex.com", "affiliateUrl": "" },
-    { "id": "nala", "name": "NALA", "website": "https://www.nala.com", "affiliateUrl": "" },
-    { "id": "africhange", "name": "Africhange", "website": "https://www.africhange.com", "affiliateUrl": "" },
-    { "id": "mukuru", "name": "Mukuru", "website": "https://www.mukuru.com", "affiliateUrl": "" },
-    { "id": "westernunion", "name": "Western Union", "website": "https://www.westernunion.com", "affiliateUrl": "" },
-    { "id": "moneygram", "name": "MoneyGram", "website": "https://www.moneygram.com", "affiliateUrl": "" }
-  ]
+ "_howto": "Paste your affiliate link into affiliateUrl once a program approves you. Leave it empty to link to the provider's homepage.",
+ "providers": [
+  {
+   "id": "wise",
+   "name": "Wise",
+   "website": "https://wise.com",
+   "affiliateUrl": "",
+   "payIn": [
+    "Bank transfer",
+    "Debit card",
+    "Credit card",
+    "Apple Pay / Google Pay"
+   ]
+  },
+  {
+   "id": "worldremit",
+   "name": "WorldRemit",
+   "website": "https://www.worldremit.com",
+   "affiliateUrl": "",
+   "payIn": [
+    "Debit or credit card",
+    "Bank transfer",
+    "Apple Pay / Google Pay"
+   ]
+  },
+  {
+   "id": "remitly",
+   "name": "Remitly",
+   "website": "https://www.remitly.com",
+   "affiliateUrl": "",
+   "payIn": [
+    "Bank account",
+    "Debit card",
+    "Credit card"
+   ]
+  },
+  {
+   "id": "sendwave",
+   "name": "Sendwave",
+   "website": "https://www.sendwave.com",
+   "affiliateUrl": "",
+   "payIn": [
+    "Debit card"
+   ]
+  },
+  {
+   "id": "lemfi",
+   "name": "LemFi",
+   "website": "https://lemfi.com",
+   "affiliateUrl": ""
+  },
+  {
+   "id": "taptapsend",
+   "name": "Taptap Send",
+   "website": "https://www.taptapsend.com",
+   "affiliateUrl": "",
+   "payIn": [
+    "Debit card"
+   ]
+  },
+  {
+   "id": "afriex",
+   "name": "Afriex",
+   "website": "https://www.afriex.com",
+   "affiliateUrl": ""
+  },
+  {
+   "id": "nala",
+   "name": "NALA",
+   "website": "https://www.nala.com",
+   "affiliateUrl": ""
+  },
+  {
+   "id": "africhange",
+   "name": "Africhange",
+   "website": "https://www.africhange.com",
+   "affiliateUrl": ""
+  },
+  {
+   "id": "mukuru",
+   "name": "Mukuru",
+   "website": "https://www.mukuru.com",
+   "affiliateUrl": ""
+  },
+  {
+   "id": "westernunion",
+   "name": "Western Union",
+   "website": "https://www.westernunion.com",
+   "affiliateUrl": "",
+   "payIn": [
+    "Bank transfer",
+    "Debit card",
+    "Credit card",
+    "Cash at an agent"
+   ]
+  },
+  {
+   "id": "moneygram",
+   "name": "MoneyGram",
+   "website": "https://www.moneygram.com",
+   "affiliateUrl": ""
+  }
+ ]
 }

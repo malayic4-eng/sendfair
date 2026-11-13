@@ -19,5 +19,7 @@
   ],
   // Storage for delivery reports and click counts (namespace "sendfair").
   "kv_namespaces": [{ "binding": "SENDFAIR_KV", "id": "4184f9d4de9440119baf9408cecc938a" }],
+  // Rate alerts run after the morning (09:37) and evening (19:37) Nairobi rate checks.
+  "triggers": { "crons": ["30 8 * * *", "30 18 * * *"] },
   "observability": { "enabled": true }
 }

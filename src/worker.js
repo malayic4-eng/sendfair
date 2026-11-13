@@ -5,6 +5,7 @@ import * as report from "../functions/api/report.js";
 import * as reports from "../functions/api/reports.js";
 import * as stats from "../functions/api/stats.js";
 import * as go from "../functions/go/[provider].js";
+import * as alert from "../functions/api/alert.js";
 
 export default {
   async fetch(request, env, ctx) {
@@ -31,11 +32,19 @@ export default {
     if (path === "/api/report") return request.method === "POST" ? report.onRequestPost(context) : report.onRequest(context);
     if (path === "/api/reports" && request.method === "GET") return reports.onRequestGet(context);
     if (path === "/api/stats" && request.method === "GET") return stats.onRequestGet(context);
+    if (path === "/api/alert") return request.method === "POST" ? alert.onRequestPost(context) : new Response("Use POST.", { status: 405 });
+    if (path === "/api/alert/confirm") return alert.onConfirm(context);
+    if (path === "/api/alert/stop") return alert.onStop(context);
+    if (path === "/api/alerts" && request.method === "GET") return alert.onStats(context);
     const m = path.match(/^\/go\/([^/]+)$/);
     if (m && request.method === "GET") {
       context.params.provider = decodeURIComponent(m[1]);
       return go.onRequestGet(context);
     }
     return env.ASSETS.fetch(request);
+  },
+  // Daily, after the morning and evening rate checks: confirmation emails and rate alerts.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(alert.runAlerts(env).then((r) => console.log("alerts", JSON.stringify(r))));
   }
 };
