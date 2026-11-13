@@ -18,6 +18,11 @@
     var d = digits == null ? (Math.abs(value) >= 1000 ? 0 : 2) : digits;
     return currency + " " + fixed(value, d);
   }
+  // Amount with the currency code set smaller, for the big figures.
+  function moneyHtml(value, currency, digits) {
+    var d = digits == null ? (Math.abs(value) >= 1000 ? 0 : 2) : digits;
+    return '<span class="cur">' + currency + "</span>" + fixed(value, d);
+  }
   function rateStr(rate) { return fixed(rate, rate >= 100 ? 2 : 4); }
   function midRate(mid, src, tgt) {
     if (src === tgt) return 1;
@@ -113,7 +118,7 @@
       '<div class="prov"><div class="prov-name">' + esc(x.p.name) + (x.q.variant ? ' <span class="variant">' + esc(x.q.variant) + "</span>" : "") + "</div>" +
       '<div class="prov-sub num">' + sub + '</div><div class="chips">' + chips + "</div>" +
       (extra ? '<div class="prov-sub">' + extra + "</div>" : "") + "</div>" +
-      '<div class="gets"><span class="gets-label">They get</span><span class="gets-value num">' + money(x.gets, c.r.currency) + '</span><span class="gets-cost">' + costTxt + "</span></div>" +
+      '<div class="gets"><span class="gets-label">They get</span><span class="gets-value num">' + moneyHtml(x.gets, c.r.currency) + '</span><span class="gets-cost">' + costTxt + "</span></div>" +
       '<div class="go-cell"><a class="go" href="' + esc(c.hrefFor(x.p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener">Go to ' + esc(x.p.name) + "</a></div>" +
       "</article>";
   }
@@ -142,9 +147,9 @@
       var top = c.rows.filter(function (x) { return !x.stale; })[0];
       var gain = top ? top.gets - avg : 0;
       html += '<div class="benchmark">' +
-        '<div class="bench"><span class="k">At the mid-market rate, no fees</span><span class="v num">' + money(perfect, c.r.currency) + '</span><span class="s">The ceiling. No service beats this for long.</span></div>' +
-        '<div class="bench"><span class="k">At the regional average cost (' + pct + '%)</span><span class="v num">' + money(avg, c.r.currency) + '</span><span class="s">' + esc(c.avgLabel) + "</span></div>" +
-        (gain > 0 ? '<div class="bench"><span class="k">Best option vs the average</span><span class="v num">+' + money(gain, c.r.currency) + '</span><span class="s">Extra that reaches home on this transfer.</span></div>' : "") +
+        '<div class="bench"><span class="k">At the mid-market rate, no fees</span><span class="v num">' + moneyHtml(perfect, c.r.currency) + '</span><span class="s">The ceiling. No service beats this for long.</span></div>' +
+        '<div class="bench"><span class="k">At the regional average cost (' + pct + '%)</span><span class="v num">' + moneyHtml(avg, c.r.currency) + '</span><span class="s">' + esc(c.avgLabel) + "</span></div>" +
+        (gain > 0 ? '<div class="bench"><span class="k">Best option vs the average</span><span class="v num gain">' + moneyHtml(gain, c.r.currency).replace("</span>", "</span>+") + '</span><span class="s">Extra that reaches home on this transfer.</span></div>' : "") +
         "</div>";
     }
     return html;
@@ -157,6 +162,34 @@
     if (c.midUpdated && c.s.currency !== c.r.currency) bits.push("Market rate from " + t(c.midUpdated));
     if (c.quotesUpdated) bits.push("Quotes updated " + t(c.quotesUpdated));
     return bits.map(function (b) { return "<span>" + b + "</span>"; }).join("");
+  }
+
+  // Local time in the family's city, for the phone's lock screen.
+  var HOME = { nigeria: ["Lagos", "Africa/Lagos"], ghana: ["Accra", "Africa/Accra"], kenya: ["Nairobi", "Africa/Nairobi"],
+    uganda: ["Kampala", "Africa/Kampala"], zambia: ["Lusaka", "Africa/Lusaka"], zimbabwe: ["Harare", "Africa/Harare"] };
+  function homeTime(id, now) {
+    var h = HOME[id] || ["", "UTC"], d = new Date(now), time = "", date = "";
+    try {
+      time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: h[1] });
+      date = d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: h[1] });
+    } catch (e) {}
+    return { city: h[0], time: time, date: date };
+  }
+
+  // The phone notification in the page header: what the family would see for today's best option.
+  var NOTICE_TITLE = { mobile: "Mobile money", bank: "Bank alert", cash: "Cash pickup" };
+  function notice(c) {
+    var top = c.rows.filter(function (x) { return !x.stale; })[0];
+    if (!(c.amount > 0)) return { title: "SendFair", text: "Enter the amount you plan to pay to see what arrives.", cap: "" };
+    if (!top) return { title: "SendFair", text: "Today\u2019s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked.", cap: "" };
+    var how = c.payout && c.payout !== "all" ? c.payout : (top.q.payout || [])[0] || "mobile";
+    var amt = "<b>" + esc(money(top.gets, c.r.currency, 2)) + "</b>";
+    var by = " Sent from " + esc(c.s.short) + " with " + esc(top.p.name) + ".";
+    var text = how === "cash" ? amt + " is ready to collect." + by : "You have received " + amt + "." + by;
+    var n = c.rows.length;
+    var cap = "Today\u2019s best for " + esc(money(c.amount, c.s.currency, 0)) + " from " + esc(c.s.short) + " to " + esc(c.r.name) +
+      (n > 1 ? ", out of " + n + " services checked." : ".");
+    return { title: NOTICE_TITLE[how] || "Mobile money", text: text, cap: cap.replace(/\u00a0/g, " ") };
   }
 
   function shareText(c, url) {
@@ -172,6 +205,6 @@
   }
 
   var api = { LABEL: LABEL, esc: esc, money: money, rateStr: rateStr, midRate: midRate, ageHours: ageHours, ago: ago, absTime: absTime,
-    evaluate: evaluate, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText };
+    evaluate: evaluate, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText, notice: notice, moneyHtml: moneyHtml, homeTime: homeTime };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.SFRank = api;
 })(typeof window !== "undefined" ? window : this);

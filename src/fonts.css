@@ -1,9 +1,4 @@
-/* Self-hosted fonts (SIL Open Font License). No requests to Google from the live site. */
-@font-face { font-family: "Inter"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/inter-latin-400-normal.woff2") format("woff2"); }
-@font-face { font-family: "Inter"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/inter-latin-500-normal.woff2") format("woff2"); }
-@font-face { font-family: "Inter"; font-weight: 600; font-style: normal; font-display: swap; src: url("fonts/inter-latin-600-normal.woff2") format("woff2"); }
-@font-face { font-family: "Inter"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/inter-latin-700-normal.woff2") format("woff2"); }
-@font-face { font-family: "Bricolage Grotesque"; font-weight: 600; font-style: normal; font-display: swap; src: url("fonts/bricolage-grotesque-latin-600-normal.woff2") format("woff2"); }
-@font-face { font-family: "Bricolage Grotesque"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/bricolage-grotesque-latin-700-normal.woff2") format("woff2"); }
-@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
-@font-face { font-family: "IBM Plex Mono"; font-weight: 600; font-style: normal; font-display: swap; src: url("fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2"); }
+/* Self-hosted fonts (SIL Open Font License). No requests to Google from the live site.
+   Bricolage Grotesque (headings and amounts, variable weight and optical size) and Figtree (text). */
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 200 800; font-style: normal; font-display: swap; src: url("fonts/bricolage-grotesque-latin-opsz-normal.woff2") format("woff2-variations"), url("fonts/bricolage-grotesque-latin-opsz-normal.woff2") format("woff2"); }
+@font-face { font-family: "Figtree"; font-weight: 300 900; font-style: normal; font-display: swap; src: url("fonts/figtree-latin-wght-normal.woff2") format("woff2-variations"), url("fonts/figtree-latin-wght-normal.woff2") format("woff2"); }

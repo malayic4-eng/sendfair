@@ -94,6 +94,29 @@
       wa.setAttribute("data-url", url);
     }
     fillReportProviders(c);
+    renderPhone(c);
+  }
+
+  // Lock-screen phone in the header: the family's local time and what today's best option delivers.
+  var lastNotice = null;
+  function renderPhone(c) {
+    if (!$("sf-notif")) return;
+    var h = R.homeTime(c.r.id, Date.now());
+    $("sf-ph-city").textContent = h.city;
+    $("sf-ph-time").textContent = h.time;
+    $("sf-ph-date").textContent = h.date;
+    var n = R.notice(c);
+    $("sf-ph-title").textContent = n.title;
+    $("sf-ph-text").innerHTML = n.text;
+    $("sf-ph-cap").innerHTML = n.cap;
+    var sig = n.title + n.text;
+    if (lastNotice !== null && sig !== lastNotice) {
+      var el = $("sf-notif");
+      el.classList.remove("is-new");
+      void el.offsetWidth;
+      el.classList.add("is-new");
+    }
+    lastNotice = sig;
   }
 
   function fillReportProviders(c) {

@@ -120,8 +120,9 @@ const hrefFor = (prefix) => (p, k) => (config.trackClicks && !DEMO ? `${prefix}g
 const hasOg = fs.existsSync(path.join(ROOT, "src/og"));
 const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 
-const logo = `<svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--accent)"/><path d="M8 19c3-7 10-9 15-6" stroke="var(--accent-ink)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M20 10.5l3.4 2.6-3 3" stroke="var(--accent-ink)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="22.5" r="2.3" fill="var(--gold)"/></svg>`;
-const favicon = "data:image/svg+xml," + encodeURIComponent(logo.replace(/var\(--accent\)/g, "#0b6b4c").replace(/var\(--accent-ink\)/g, "#fff").replace(/var\(--gold\)/g, "#f2c14e"));
+const logo = `<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15.5" fill="#f6b52b"/><path d="M8 19.5c3-7 10-9 15-6" stroke="#1b2470" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M19.8 10.6l3.6 2.8-3.1 3.2" stroke="#1b2470" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="23" r="2.4" fill="#1b2470"/></svg>`;
+const favicon = "data:image/svg+xml," + encodeURIComponent(logo);
+const wallet = `<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18v3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="8" width="16" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="16" cy="13.5" r="1.4" fill="currentColor"/></svg>`;
 
 function routeContext(s, r, prefix, amount) {
   const k = `${s.id}-${r.id}`;
@@ -142,8 +143,9 @@ function head({ title, description, canonical, prefix, jsonld = [], noindex = fa
   const cfa = config.cfAnalyticsToken && !DEMO ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${esc(config.cfAnalyticsToken)}"}'></script>` : "";
   const fonts = PREVIEW
     ? `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap">`
-    : `<link rel="preload" href="${prefix}assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Figtree:wght@300..900&display=swap">`
+    : `<link rel="preload" href="${prefix}assets/fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="${prefix}assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${prefix}assets/fonts.css">`;
   const ogImg = hasOg ? `<meta property="og:image" content="${site}/og/${og}.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">` : `<meta name="twitter:card" content="summary">`;
   return `<title>${esc(title)}</title>
@@ -157,7 +159,7 @@ ${canonical != null ? `<link rel="canonical" href="${site}/${canonical}">` : ""}
 <meta property="og:type" content="website">
 ${canonical != null ? `<meta property="og:url" content="${site}/${canonical}">` : ""}
 ${ogImg}
-<meta name="theme-color" content="#0b6b4c">
+<meta name="theme-color" content="#1b2470">
 <link rel="icon" href="${favicon}">
 ${fonts}
 <link rel="stylesheet" href="${prefix}assets/style.css">
@@ -168,31 +170,47 @@ ${ads}${cfa}`;
 function header(prefix) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
-<a class="brand" href="${link(prefix, "")}">${logo}<span>Send<b>Fair</b></span></a>
-<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">Countries</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a></nav>
+<a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
+<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a></nav>
 </div></header>`;
 }
 
 function footer(prefix) {
   return `<footer class="site-footer"><div class="wrap">
+<a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
 <nav aria-label="Footer"><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a></nav>
 <p>SendFair compares money transfer services. We do not send, hold or exchange money. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
-<p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)} &middot; <span class="num">${esc(config.contactEmail)}</span></p>
+<p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
 </div></footer>`;
 }
 
-function tool({ heading, sub, eyebrow, ctx }) {
-  return `<section class="hero"><div class="wrap">
-<div style="display:grid;gap:12px"><span class="eyebrow">${eyebrow}</span><h1>${heading}</h1><p class="lede">${sub}</p></div>
+function phone(ctx) {
+  const n = R.notice(ctx);
+  const home = R.homeTime(ctx.r.id, NOW);
+  return `<figure class="phone" id="sf-phone">
+<div class="phone-body"><div class="phone-screen">
+  <div class="lock" aria-hidden="true"><span class="lock-city" id="sf-ph-city">${esc(home.city)}</span><span class="lock-time" id="sf-ph-time">${home.time}</span><span class="lock-date" id="sf-ph-date">${home.date}</span></div>
+  <div class="notif" id="sf-notif"><span class="notif-icon">${wallet}</span><div class="notif-main"><div class="notif-head"><strong id="sf-ph-title">${n.title}</strong><span>now</span></div><p id="sf-ph-text">${n.text}</p></div></div>
+</div></div>
+<figcaption id="sf-ph-cap">${n.cap}</figcaption>
+</figure>`;
+}
+
+function tool({ heading, sub, proof, ctx }) {
+  return `<section class="hero"><div class="wrap hero-grid">
+<div class="hero-copy"><h1>${heading}</h1><p class="lede">${sub}</p>${proof ? `<p class="proof">${proof}</p>` : ""}</div>
+${phone(ctx)}
+</div></section>
+<section class="sheet"><div class="wrap">
 <div class="tool">
   <div class="tool-row">
     <div class="field"><label for="sf-from">Sending from</label><select id="sf-from">${corridors.senders.map((s) => `<option value="${s.id}"${s.id === ctx.s.id ? " selected" : ""}>${esc(s.name)} (${s.currency})</option>`).join("")}</select></div>
     <div class="field"><label for="sf-to">Sending to</label><select id="sf-to">${corridors.receivers.map((r) => `<option value="${r.id}"${r.id === ctx.r.id ? " selected" : ""}>${esc(r.name)} (${r.currency})</option>`).join("")}</select></div>
     <div class="field"><label for="sf-amount">You pay in total</label><div class="amount-wrap"><span id="sf-cur">${ctx.s.currency}</span><input id="sf-amount" type="number" inputmode="decimal" min="1" step="any" value="${ctx.amount}"></div></div>
   </div>
-  <div class="payout-row"><span class="field"><span class="label" id="sf-payout-label">They receive by</span></span><div class="payout-tabs" role="group" aria-labelledby="sf-payout-label">
-    <button type="button" data-payout="all" aria-pressed="true">Any</button><button type="button" data-payout="mobile" aria-pressed="false">Mobile money</button><button type="button" data-payout="bank" aria-pressed="false">Bank</button><button type="button" data-payout="cash" aria-pressed="false">Cash pickup</button>
+  <div class="payout-row"><span class="label" id="sf-payout-label">They receive by</span><div class="payout-tabs" role="group" aria-labelledby="sf-payout-label">
+    <button type="button" data-payout="all" aria-pressed="true">Any way</button><button type="button" data-payout="mobile" aria-pressed="false">Mobile money</button><button type="button" data-payout="bank" aria-pressed="false">Bank</button><button type="button" data-payout="cash" aria-pressed="false">Cash pickup</button>
   </div></div>
   <div class="tool-meta" id="sf-meta">${R.metaLine(ctx)}</div>
   <p class="note" id="sf-note"${ctx.r.note ? "" : " hidden"}>${esc(ctx.r.note)}</p>
@@ -211,7 +229,7 @@ function reportSection(ctx) {
   if (!config.reportsEnabled && !DEMO) return "";
   return `<section class="block"><div class="wrap"><form class="report" id="sf-report">
 <div class="section-head"><h2>Sent money on this route recently?</h2><p class="lede">Tell other senders how long it took to arrive. It takes five seconds and we never ask who you are.</p></div>
-<label for="sf-rep-provider" class="eyebrow">Service you used</label>
+<label for="sf-rep-provider" class="label">Service you used</label>
 <select id="sf-rep-provider"><option value="">Choose the service you used</option>${(ctx.checkList || []).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select>
 <fieldset><legend>How long until the money arrived?</legend>
 <label class="opt"><input type="radio" name="sf-rep-bucket" value="under1h"> Under 1 hour</label>
@@ -226,9 +244,9 @@ function reportSection(ctx) {
 function alerts() {
   let body;
   if (DEMO) {
-    body = `<form id="sf-alert-form" data-demo="1"><label for="sf-email" class="eyebrow" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form><p id="sf-alert-msg" aria-live="polite"></p>`;
+    body = `<form id="sf-alert-form" data-demo="1"><label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form><p id="sf-alert-msg" aria-live="polite"></p>`;
   } else if (config.newsletterFormAction) {
-    body = `<form id="sf-alert-form" action="${esc(config.newsletterFormAction)}" method="post"><label for="sf-email" class="eyebrow" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form>`;
+    body = `<form id="sf-alert-form" action="${esc(config.newsletterFormAction)}" method="post"><label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form>`;
   } else if (config.whatsappChannelUrl) {
     body = `<div><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>`;
   } else return "";
@@ -236,9 +254,20 @@ function alerts() {
 }
 
 function corridorGrid(prefix) {
+  const col = (s) => {
+    const amount = config.defaultAmounts[s.currency];
+    const rows = corridors.receivers.map((r) => {
+      const c = routeContext(s, r, prefix, amount);
+      const top = c.rows.find((x) => !x.stale);
+      return `<li><a href="${link(prefix, corridorPath(s, r))}"><span class="b-country">${esc(r.name)}</span>${top
+        ? `<span class="b-amt num">${R.moneyHtml(top.gets, r.currency)}</span><span class="b-prov">with ${esc(top.p.name)}</span>`
+        : `<span class="b-amt b-wait">Being checked</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
+    }).join("");
+    return `<div class="board-col"><h3>From ${esc(s.short)}</h3><p class="board-sub">Best result for <span class="num">${esc(R.money(amount, s.currency, 0))}</span></p><ul>${rows}</ul></div>`;
+  };
   return `<section class="block" id="corridors"><div class="wrap">
-<div class="section-head"><h2>Pick your route</h2><p class="lede">Each route has its own page with today's ranking and the ways your family can receive the money.</p></div>
-<div class="corridor-groups">${corridors.senders.map((s) => `<div class="corridor-group"><h3>From ${esc(s.short)}</h3><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, corridorPath(s, r))}"><span>${esc(r.name)}</span><span>${s.currency} &rarr; ${r.currency}</span></a></li>`).join("")}</ul></div>`).join("")}</div>
+<div class="section-head"><h2>Today's best on every route</h2><p class="lede">What arrives for a typical transfer, from the service that delivers the most. Open a route to compare every service and enter your own amount.</p></div>
+<div class="board">${corridors.senders.map(col).join("")}</div>
 </div></section>`;
 }
 
@@ -288,6 +317,11 @@ const S0 = corridors.senders.find((s) => s.id === "uk") || corridors.senders[0];
 const R0 = corridors.receivers.find((r) => r.id === "kenya") || corridors.receivers[0];
 
 // Home
+const quotedRoutes = Object.keys(quotesFile.quotes || {}).filter((k) => (quotesFile.quotes[k] || []).length).length;
+const quotedProviders = new Set(Object.values(quotesFile.quotes || {}).flat().map((q) => q.provider).filter((id) => providers[id])).size;
+const homeProof = quotedProviders > 1
+  ? `${quotedProviders} services compared on ${quotedRoutes} routes, checked by hand. Commissions never change the order.`
+  : "Rates checked by hand. Commissions never change the order.";
 const homeCtx = routeContext(S0, R0, "", config.defaultAmounts[S0.currency]);
 write("index.html", page({
   prefix: "", canonical: "", bodyOnly: PREVIEW, og: "home",
@@ -296,11 +330,11 @@ write("index.html", page({
   jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/" }],
   body: tool({
     ctx: homeCtx,
-    eyebrow: "Money transfer comparison &middot; 24 routes &middot; checked by hand",
-    heading: "See what lands at home before you send.",
-    sub: "Enter what you plan to pay. We rank transfer services by the amount your family actually receives, after fees and the exchange-rate markup."
+    heading: "Send more home.",
+    sub: "We compare money transfer services and rank them by what your family actually receives, after the fee and the exchange-rate markup.",
+    proof: homeProof
   }) + corridorGrid("") + `
-<section class="block"><div class="wrap">
+<section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
 <ol class="steps">
 <li><h3>We check each provider</h3><p>We record the rate and fee each service quotes on every route, how the money can be received, and when we checked.</p></li>
@@ -333,7 +367,6 @@ for (const s of corridors.senders) {
     ];
     const body = tool({
       ctx,
-      eyebrow: `${s.currency} &rarr; ${r.currency}`,
       heading: `Send money from ${esc(s.short)} to ${esc(r.name)}`,
       sub: `Today's ranking of transfer services by how much arrives in ${esc(r.name)}. Change the amount or the way they receive to see your own numbers.`
     }) + reportSection(ctx) + `
@@ -344,8 +377,7 @@ ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
 <h2>Common questions</h2>
 <div>${faqs.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>
 <h2>Other routes</h2>
-<p>${corridors.receivers.filter((x) => x.id !== r.id).map((x) => `<a href="${link(prefix, corridorPath(s, x))}">${esc(s.label)} to ${esc(x.name)}</a>`).join(" &middot; ")}</p>
-<p>${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a>`).join(" &middot; ")}</p>
+<ul class="route-links">${corridors.receivers.filter((x) => x.id !== r.id).map((x) => `<li><a href="${link(prefix, corridorPath(s, x))}">${esc(s.label)} to ${esc(x.name)}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
 </div></div></section>` + alerts();
     write(rel + "index.html", page({
       prefix, canonical: rel, title, description, og: slug(s, r),
@@ -379,7 +411,7 @@ const trust = {
 <p>Sending money home is one of the most regular bills in a diaspora household, and one of the least transparent. A transfer that says "zero fees" can still lose several percent in the exchange rate.</p>
 <p>SendFair shows one number clearly: how much actually lands at home. We cover the routes most used by Africans in the United States, the United Kingdom, Canada and Australia sending to Nigeria, Ghana, Kenya, Uganda, Zambia and Zimbabwe.</p>
 <p>The site is run independently from Nairobi, Kenya. We are not owned by any transfer company.</p>
-<h2>Contact</h2><p>Corrections, partnership enquiries and provider updates: <span class="num">${esc(config.contactEmail)}</span></p>`],
+<h2>Contact</h2><p>Corrections, partnership enquiries and provider updates: <span class="email">${esc(config.contactEmail)}</span></p>`],
   "methodology/": ["How we rank", "How SendFair collects rates and ranks money transfer services.", `
 <h1>How we rank</h1>
 <h2>What we collect</h2>
@@ -409,7 +441,7 @@ const trust = {
 <h2>Your rights</h2>
 <p>If you are in the UK or Europe, data protection law gives you the right to ask what we hold about you, to have it corrected or deleted, and to object to its use. You can also complain to your data protection authority (the ICO in the UK). In practice we hold very little: usually only your email address, if you signed up for alerts.</p>
 <h2>Links to providers</h2><p>When you follow a link to a transfer service, that service's own privacy policy applies.</p>
-<h2>Contact</h2><p>For any privacy request: <span class="num">${esc(config.contactEmail)}</span></p>`],
+<h2>Contact</h2><p>For any privacy request: <span class="email">${esc(config.contactEmail)}</span></p>`],
   "terms/": ["Terms of use", "Terms for using SendFair.", `
 <h1>Terms of use</h1>
 <p>Last updated ${today}.</p>
@@ -419,11 +451,11 @@ const trust = {
 <p>Provider names belong to their owners. Their appearance here does not mean they endorse SendFair.</p>`]
 };
 for (const [rel, [title, desc, html]] of Object.entries(trust)) {
-  write(rel + "index.html", page({ prefix: "../", canonical: rel, title: `${title} · ${config.siteName}`, description: desc, body: `<section class="block"><div class="wrap"><div class="prose">${html}</div></div></section>` }));
+  write(rel + "index.html", page({ prefix: "../", canonical: rel, title: `${title} · ${config.siteName}`, description: desc, body: `<section class="block page"><div class="wrap"><article class="prose">${html}</article></div></section>` }));
   urls.push(rel);
 }
 
-write("404.html", page({ prefix: "/", canonical: null, title: `Page not found · ${config.siteName}`, description: "Page not found.", noindex: true, body: `<section class="block"><div class="wrap"><div class="prose"><h1>That page isn't here</h1><p><a href="/">Go to the comparison</a></p></div></div></section>` }));
+write("404.html", page({ prefix: "/", canonical: null, title: `Page not found · ${config.siteName}`, description: "Page not found.", noindex: true, body: `<section class="block page"><div class="wrap"><article class="prose"><h1>That page isn't here</h1><p>The link may be old or mistyped. Today's rankings are one click away.</p><p><a class="btn" href="/">Compare transfers</a></p></article></div></section>` }));
 
 // Rate Desk (never indexed)
 fs.mkdirSync(path.join(OUT, "admin"), { recursive: true });

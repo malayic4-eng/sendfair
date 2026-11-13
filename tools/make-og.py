@@ -14,33 +14,29 @@ OUT = ROOT / "src" / "og"
 OUT.mkdir(parents=True, exist_ok=True)
 
 TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
-@font-face{font-family:B;font-weight:700;src:url(%(b7)s)}
-@font-face{font-family:I;font-weight:500;src:url(%(i5)s)}
-@font-face{font-family:I;font-weight:700;src:url(%(i7)s)}
-@font-face{font-family:M;font-weight:600;src:url(%(m6)s)}
+@font-face{font-family:B;font-weight:200 800;src:url(%(b)s)}
+@font-face{font-family:F;font-weight:300 900;src:url(%(f)s)}
 *{margin:0;box-sizing:border-box}
-body{width:1200px;height:630px;background:#f3f6f1;color:#12201a;font-family:I,sans-serif;padding:64px 72px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
-.brand{display:flex;align-items:center;gap:16px;font:700 40px B,sans-serif}.brand b{color:#0b6b4c}
-.k{font:600 26px M,monospace;color:#56655d;letter-spacing:.06em}
-h1{font:700 92px/1.02 B,sans-serif;letter-spacing:-.02em;max-width:980px}
-.sub{font:500 32px I,sans-serif;color:#3d4c44;max-width:900px}
-.foot{display:flex;justify-content:space-between;align-items:end}
-.pill{background:#0b6b4c;color:#fff;font:700 28px I,sans-serif;padding:16px 28px;border-radius:999px}
-.arc{position:absolute;right:-120px;top:-140px;width:520px;height:520px;border-radius:50%%;border:46px solid #dcefe5}
-.dot{position:absolute;right:120px;top:300px;width:56px;height:56px;border-radius:50%%;background:#f2c14e}
-</style></head><body><div class="arc"></div><div class="dot"></div>
-<div class="brand"><svg width="56" height="56" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#0b6b4c"/><path d="M8 19c3-7 10-9 15-6" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M20 10.5l3.4 2.6-3 3" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="22.5" r="2.3" fill="#f2c14e"/></svg><span>Send<b>Fair</b></span></div>
+body{width:1200px;height:630px;color:#f3f4fa;font-family:F,sans-serif;padding:64px 72px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;
+background:radial-gradient(circle at 104%% 112%%,transparent 0 16%%,rgba(246,181,43,.22) 16%% 17.2%%,transparent 17.2%% 25%%,rgba(246,181,43,.15) 25%% 26.2%%,transparent 26.2%% 34%%,rgba(246,181,43,.09) 34%% 35.2%%,transparent 35.2%%),radial-gradient(rgba(255,255,255,.07) 1.6px,transparent 2px) 0 0/22px 22px,#1b2470}
+.brand{display:flex;align-items:center;gap:16px;font:760 42px B,sans-serif;letter-spacing:-.02em}
+.k{font:600 28px F,sans-serif;color:#b3b8e0}
+h1{font:760 96px/1 B,sans-serif;letter-spacing:-.03em;max-width:1000px}
+.sub{font:500 32px/1.35 F,sans-serif;color:#b3b8e0;max-width:860px}
+.pill{align-self:flex-start;background:#f6b52b;color:#2b1d00;font:700 30px F,sans-serif;padding:16px 30px;border-radius:999px}
+</style></head><body>
+<div class="brand"><svg width="60" height="60" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15.5" fill="#f6b52b"/><path d="M8 19.5c3-7 10-9 15-6" stroke="#1b2470" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M19.8 10.6l3.6 2.8-3.1 3.2" stroke="#1b2470" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="23" r="2.4" fill="#1b2470"/></svg><span>SendFair</span></div>
 <div style="display:grid;gap:22px"><div class="k">%(kicker)s</div><h1>%(title)s</h1><div class="sub">%(sub)s</div></div>
-<div class="foot"><div class="pill">See what lands at home</div></div>
+<div class="pill">See what lands at home</div>
 </body></html>"""
 
-FACES = {"b7": font("bricolage-grotesque-latin-700-normal.woff2"), "i5": font("inter-latin-500-normal.woff2"), "i7": font("inter-latin-700-normal.woff2"), "m6": font("ibm-plex-mono-latin-600-normal.woff2")}
+FACES = {"b": font("bricolage-grotesque-latin-opsz-normal.woff2"), "f": font("figtree-latin-wght-normal.woff2")}
 
 async def main():
-    jobs = [("home", "24 routes · checked by hand", "Compare money transfers to Africa", "Ranked by what your family actually receives, after fees and exchange-rate markup.")]
+    jobs = [("home", "Money transfers to Africa, compared", "Send more home.", "Ranked by what your family actually receives, after the fee and the exchange-rate markup.")]
     for s in corr["senders"]:
         for r in corr["receivers"]:
-            jobs.append((f"{s['id']}-to-{r['id']}", f"{s['currency']} → {r['currency']}", f"{s['label']} to {r['name']}", "Today's rates compared by how much actually arrives."))
+            jobs.append((f"{s['id']}-to-{r['id']}", f"{s['currency']} to {r['currency']}", f"{s['label']} to {r['name']}", "Today's transfer services ranked by how much actually arrives."))
     async with async_playwright() as p:
         exe = sys.argv[1] if len(sys.argv) > 1 else None
         b = await p.chromium.launch(executable_path=exe, args=["--no-sandbox"]) if exe else await p.chromium.launch()
