@@ -8,8 +8,15 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    // Lets the script below send www.sendfair.africa visitors to sendfair.africa.
+    "run_worker_first": true
   },
+  // The site's own address. www is forwarded to the main address.
+  "routes": [
+    { "pattern": "sendfair.africa", "custom_domain": true },
+    { "pattern": "www.sendfair.africa", "custom_domain": true }
+  ],
   // Storage for delivery reports and click counts (namespace "sendfair").
   "kv_namespaces": [{ "binding": "SENDFAIR_KV", "id": "4184f9d4de9440119baf9408cecc938a" }],
   "observability": { "enabled": true }

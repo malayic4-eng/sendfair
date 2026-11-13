@@ -1,6 +1,6 @@
 // Cloudflare Worker entry for SendFair.
-// Static pages and data are served from dist/ by Workers static assets; this script only runs for
-// paths with no file: /api/report, /api/reports, /api/stats and /go/<provider>. The handlers live in functions/.
+// Static pages and data are served from dist/ by Workers static assets. This script runs first so it can
+// forward www to the main address, then handles /api/report, /api/reports, /api/stats and /go/<provider>. The handlers live in functions/.
 import * as report from "../functions/api/report.js";
 import * as reports from "../functions/api/reports.js";
 import * as stats from "../functions/api/stats.js";
@@ -9,6 +9,10 @@ import * as go from "../functions/go/[provider].js";
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.hostname === "www.sendfair.africa") {
+      url.hostname = "sendfair.africa";
+      return Response.redirect(url.toString(), 301);
+    }
     const context = { request, env, params: {}, waitUntil: (p) => ctx.waitUntil(p) };
     const path = url.pathname.replace(/\/+$/, "");
 
