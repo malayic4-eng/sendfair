@@ -12,10 +12,25 @@
   "reportsEnabled": true,
   "staleAfterHours": 36,
   "hideAfterHours": 72,
-  "priorityRoutes": ["uk-nigeria", "us-nigeria", "canada-nigeria", "uk-kenya", "us-kenya", "uk-ghana", "us-ghana", "uk-zimbabwe"],
+  "priorityRoutes": [
+    "uk-nigeria",
+    "us-nigeria",
+    "canada-nigeria",
+    "uk-kenya",
+    "us-kenya",
+    "uk-ghana",
+    "us-ghana",
+    "uk-zimbabwe"
+  ],
   "regionalAverageCost": {
     "percent": 8.46,
     "label": "World Bank average cost of sending money to Sub-Saharan Africa (Q3 2025)"
   },
-  "defaultAmounts": { "USD": 300, "GBP": 250, "CAD": 400, "AUD": 450 }
+  "defaultAmounts": {
+    "USD": 300,
+    "GBP": 250,
+    "CAD": 400,
+    "AUD": 450
+  },
+  "impactScriptId": "A8203446-e866-4f4e-b1d2-c666d8ad98641"
 }
