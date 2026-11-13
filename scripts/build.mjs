@@ -61,7 +61,12 @@ let midmarket = read("data/midmarket.json");
 // Hand-checked corrections for currencies where the free feed is off (kept for up to 7 days, since the free feed is further off).
 try {
   const ov = JSON.parse(fs.readFileSync(path.join(ROOT, "data/mid-overrides.json"), "utf8"));
-  if (ov && ov.rates && NOW - new Date(ov.updatedAt).getTime() < 7 * 24 * 3600000 && midmarket.rates) Object.assign(midmarket.rates, ov.rates);
+  if (ov && ov.rates && NOW - new Date(ov.updatedAt).getTime() < 7 * 24 * 3600000 && midmarket.rates) {
+    Object.assign(midmarket.rates, ov.rates);
+    if (!midmarket.updatedAt || new Date(ov.updatedAt) > new Date(midmarket.updatedAt)) midmarket.updatedAt = ov.updatedAt;
+    // The previous check's rates, for the "since yesterday" trend next to the market rate.
+    if (ov.previous && ov.previous.rates) midmarket.previous = { updatedAt: ov.previous.updatedAt, rates: Object.assign({ USD: 1 }, ov.previous.rates) };
+  }
 } catch {}
 const providers = Object.fromEntries(providersFile.providers.map((x) => [x.id, x]));
 const esc = R.esc;
@@ -132,7 +137,7 @@ function routeContext(s, r, prefix, amount) {
   const rows = R.rank({ list, providers, amount, payout: "all", mid, now: NOW, staleH, hideH });
   const cov = coverage[k] && coverage[k].length ? coverage[k] : Object.keys(providers);
   return {
-    s, r, key: k, amount, payout: "all", mid, rows, now: NOW, timeStyle: "absolute", anyQuotes: list.length > 0, reports: demoReports ? demoReports.routes[k] : {},
+    s, r, key: k, amount, payout: "all", mid, rows, now: NOW, midPrev: midmarket.previous ? R.midRate(midmarket.previous, s.currency, r.currency) : null, midPrevAt: midmarket.previous && midmarket.previous.updatedAt, timeStyle: "absolute", anyQuotes: list.length > 0, reports: demoReports ? demoReports.routes[k] : {},
     hrefFor: hrefFor(prefix), disclosureHref: link(prefix, "disclosure/"), checkList: cov.map((id) => providers[id]).filter(Boolean),
     avgPct: config.regionalAverageCost.percent, avgLabel: config.regionalAverageCost.label,
     midUpdated: midmarket && midmarket.updatedAt, quotesUpdated: quotesFile.updatedAt
@@ -215,7 +220,7 @@ ${phone(ctx)}
   <div class="controls">
     <div class="field"><label for="sf-from">Sending from</label><select id="sf-from">${corridors.senders.map((s) => `<option value="${s.id}"${s.id === ctx.s.id ? " selected" : ""}>${esc(s.label)} (${s.currency})</option>`).join("")}</select></div>
     <div class="field"><label for="sf-to">Sending to</label><select id="sf-to">${corridors.receivers.map((r) => `<option value="${r.id}"${r.id === ctx.r.id ? " selected" : ""}>${esc(r.name)} (${r.currency})</option>`).join("")}</select></div>
-    <div class="field"><label for="sf-amount">You pay in total</label><div class="amount-wrap"><span id="sf-cur">${ctx.s.currency}</span><input id="sf-amount" type="number" inputmode="decimal" min="1" step="any" value="${ctx.amount}"></div></div>
+    <div class="field amount-field"><label for="sf-amount">You pay in total</label><div class="amount-wrap"><span id="sf-cur">${ctx.s.currency}</span><input id="sf-amount" type="number" inputmode="decimal" min="1" step="any" value="${ctx.amount}"><span class="quick" id="sf-quick" role="group" aria-label="Common amounts">${(STEP_AMOUNTS[ctx.s.currency] || []).map((a) => `<button type="button" data-amt="${a}" aria-pressed="${a === ctx.amount}">${a >= 1000 ? a / 1000 + "k" : a}</button>`).join("")}</span></div></div>
     <div class="field payout-field"><span class="label" id="sf-payout-label">They receive by</span><div class="payout-tabs" role="group" aria-labelledby="sf-payout-label">
       <button type="button" data-payout="all" aria-pressed="true">Any</button><button type="button" data-payout="mobile" aria-pressed="false">Mobile<span class="lg"> money</span></button><button type="button" data-payout="bank" aria-pressed="false">Bank</button><button type="button" data-payout="cash" aria-pressed="false">Cash</button>
     </div></div>
@@ -283,7 +288,7 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
     routeUrl: link(prefix, "send-money/{from}-to-{to}/"),
-    config: { defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost,
+    config: { quickAmounts: STEP_AMOUNTS, defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost,
       trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO },
     ...(init || {})
   };

@@ -75,11 +75,21 @@
       anyQuotes: list.length > 0, reports: S.reports, hrefFor: hrefFor, disclosureHref: SF.disclosureHref || "#",
       checkList: coverage.map(function (id) { return S.providers[id]; }).filter(Boolean),
       avgPct: (cfg.regionalAverageCost || {}).percent || 8.46, avgLabel: (cfg.regionalAverageCost || {}).label || "",
-      midUpdated: S.mid && S.mid.updatedAt, quotesUpdated: S.quotesUpdated
+      midUpdated: S.mid && S.mid.updatedAt, quotesUpdated: S.quotesUpdated,
+      midPrev: S.mid && S.mid.previous ? R.midRate(S.mid.previous, s.currency, r.currency) : null, midPrevAt: S.mid && S.mid.previous && S.mid.previous.updatedAt
     };
   }
 
+  // One-tap common amounts next to the amount box, in the sending currency.
+  function renderQuick() {
+    var box = $("sf-quick"); if (!box) return;
+    var list = (cfg.quickAmounts || {})[sender().currency] || [];
+    var cur = parseFloat($("sf-amount").value);
+    box.innerHTML = list.map(function (a) { return '<button type="button" data-amt="' + a + '" aria-pressed="' + (a === cur) + '">' + (a >= 1000 ? a / 1000 + "k" : a) + "</button>"; }).join("");
+  }
+
   function render() {
+    renderQuick();
     var c = context();
     $("sf-cur").textContent = c.s.currency;
     store.set("sf-last", { from: c.s.id, to: c.r.id, amount: c.amount, currency: c.s.currency, payout: S.payout });
@@ -143,6 +153,12 @@
     $("sf-from").addEventListener("change", onRouteChange);
     $("sf-to").addEventListener("change", onRouteChange);
     $("sf-amount").addEventListener("input", render);
+    var quick = $("sf-quick");
+    if (quick) quick.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-amt]"); if (!btn) return;
+      $("sf-amount").value = btn.getAttribute("data-amt");
+      render();
+    });
     document.querySelectorAll("[data-payout]").forEach(function (b) {
       b.addEventListener("click", function () { setPayout(b.getAttribute("data-payout")); render(); });
     });

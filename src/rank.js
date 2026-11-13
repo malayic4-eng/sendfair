@@ -124,6 +124,23 @@
     return "";
   }
 
+  // Initials badge per service (our own colours, not the providers' logos).
+  var HUES = ["#3b46b8", "#0a7a5c", "#8a3c8f", "#b0522a", "#5f6b1f", "#2f6f9f", "#9a3651", "#6b4fb3"];
+  function initials(name) {
+    var w = String(name).replace(/[^A-Za-z ]/g, "").split(/\s+/).filter(Boolean);
+    return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] || "?").slice(0, 2)).toUpperCase();
+  }
+  function hue(id) { var h = 0; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0; return HUES[h % HUES.length]; }
+  // Notes that say the same thing for most services are summed up once under the table instead of as footnotes.
+  var GENERAL_NOTE = /^(Standard rate;|Fee read at two amounts)/;
+  // Where senders can check a provider's licence, by sending country.
+  var REGISTER = {
+    uk: ["the FCA register", "https://register.fca.org.uk/"],
+    us: ["FinCEN's MSB search", "https://www.fincen.gov/msb-registrant-search"],
+    canada: ["FINTRAC's MSB registry", "https://fintrac-canafe.canada.ca/msb-esm/reg-eng"],
+    australia: ["AUSTRAC's remittance register", "https://www.austrac.gov.au/remittance-sector-register-and-remittance-registration-actions"]
+  };
+
   // One compact line per service, so the whole ranking fits on screen. Notes become numbered footnotes under the table.
   var SHORT = { mobile: "Mobile money", bank: "Bank", cash: "Cash pickup" };
   function renderRow(x, i, c, fn) {
@@ -143,10 +160,11 @@
     var mark = fn ? ' <a class="fn" href="#sf-fn-' + fn + '" aria-label="Note ' + fn + '">' + fn + "</a>" : "";
     return '<article class="result' + (top ? " best" : "") + (x.stale ? " is-stale" : "") + '">' +
       '<div class="rank"' + (x.tied ? ' title="Tied"' : "") + ">" + (x.pos || i + 1) + (x.tied ? "=" : "") + "</div>" +
-      '<div class="prov"><div class="prov-name"><span>' + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant">' + esc(x.q.variant) + "</span>" : "") +
+      '<div class="prov"><div class="prov-name"><span class="avatar" aria-hidden="true" style="background:' + hue(x.p.id) + '">' + initials(x.p.name) + "</span><span>" + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant">' + esc(x.q.variant) + "</span>" : "") +
       (top ? '<span class="chip best">' + (x.tied ? "Joint best" : "Most money home") + "</span>" : "") + mark + "</div>" +
       '<div class="prov-sub num">' + bits.join('<span class="dot">' + DOT + "</span>") + "</div></div>" +
-      '<div class="gets"><span class="gets-value num">' + moneyHtml(x.gets, c.r.currency) + '</span><span class="gets-cost">' + costTxt + "</span></div>" +
+      '<div class="gets"><span class="gets-value num">' + moneyHtml(x.gets, c.r.currency) + "</span>" +
+      (top && c.low && x.gets - c.low.gets >= 1 ? '<span class="gets-save num">' + esc(money(x.gets - c.low.gets, c.r.currency)) + " more than the lowest</span>" : '<span class="gets-cost">' + costTxt + "</span>") + "</div>" +
       '<div class="go-cell"><a class="go" href="' + esc(c.hrefFor(x.p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener" aria-label="Go to ' + esc(x.p.name) + '">Go<span class="go-name"> to ' + esc(x.p.name) + "</span></a></div>" +
       "</article>";
   }
@@ -157,9 +175,11 @@
     var warn = refWarning(c.rows, c.amount, c.s.currency);
     if (c.rows.length) {
       var notes = [], idx = {};
+      var fresh = c.rows.filter(function (x) { return !x.stale; });
+      c.low = fresh.length > 1 ? fresh[fresh.length - 1] : null;
       var rows = c.rows.map(function (x, i) {
         var n = 0;
-        if (x.q.note) {
+        if (x.q.note && !GENERAL_NOTE.test(x.q.note)) {
           if (!idx[x.q.note]) { notes.push({ who: x.p.name, text: x.q.note }); idx[x.q.note] = notes.length; }
           n = idx[x.q.note];
         }
@@ -167,7 +187,9 @@
       }).join("");
       html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>They get</span><span></span></div>' + rows + "</div>";
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
-      html += '<div class="below"><p class="disclose">Ranked by the amount that arrives. Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +
+      var reg = REGISTER[c.s.id];
+      html += '<div class="below"><p class="disclose">Ranked by the amount that arrives, using standard rates (first-transfer offers are left out). Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +
+        (reg ? '<p class="disclose">Before you send, check the service is licensed on <a href="' + reg[1] + '" target="_blank" rel="noopener">' + reg[0] + "</a>.</p>" : "") +
         (notes.length ? '<ol class="notes">' + notes.map(function (n, k) { return '<li id="sf-fn-' + (k + 1) + '"><strong>' + esc(n.who) + ":</strong> " + esc(n.text) + "</li>"; }).join("") + "</ol>" : "") + "</div>";
     } else if (c.payout && c.payout !== "all" && c.anyQuotes) {
       html += '<div class="empty"><strong>None of today\'s checked services pay out by ' + LABEL[c.payout].toLowerCase() + " on this route.</strong><span>Choose another way to receive, or check back later today.</span></div>";
@@ -196,7 +218,16 @@
 
   function metaLine(c) {
     var bits = [];
-    if (c.mid && c.s.currency !== c.r.currency) bits.push('Mid-market: <strong class="num">1 ' + c.s.currency + " = " + rateStr(c.mid) + " " + c.r.currency + "</strong>");
+    if (c.mid && c.s.currency !== c.r.currency) {
+      var trend = "";
+      if (c.midPrev) {
+        var ch = c.mid / c.midPrev - 1;
+        var since = c.midPrevAt ? " vs " + (c.timeStyle === "absolute" ? absTime(c.midPrevAt) : ago(c.midPrevAt, c.now)) : "";
+        trend = Math.abs(ch) < 0.0005 ? ' <span class="trend">no change' + since + "</span>"
+          : ' <span class="trend ' + (ch > 0 ? "up" : "down") + '" title="' + (ch > 0 ? "More " + c.r.currency + " per " + c.s.currency : "Fewer " + c.r.currency + " per " + c.s.currency) + '">' + (ch > 0 ? "▲ " : "▼ ") + fixed(Math.abs(ch) * 100, 1) + "%" + since + "</span>";
+      }
+      bits.push('Mid-market: <strong class="num">1 ' + c.s.currency + " = " + rateStr(c.mid) + " " + c.r.currency + "</strong>" + trend);
+    }
     var t = function (iso) { return c.timeStyle === "absolute" ? absTime(iso) : ago(iso, c.now); };
     if (c.midUpdated && c.s.currency !== c.r.currency) bits.push("Market rate from " + t(c.midUpdated));
     if (c.quotesUpdated) bits.push("Quotes updated " + t(c.quotesUpdated));
