@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-13T06:38:00Z",
+  "updatedAt": "2026-11-13T07:03:00Z",
   "coverage": {
     "us-nigeria": [
       "wise",
@@ -314,16 +314,16 @@
     "us-nigeria": [
       {
         "provider": "wise",
-        "rate": 1402.0,
+        "rate": 1406.0,
         "feeFixed": 0,
-        "feePct": 1.02,
+        "feePct": 1.04,
         "payout": [
           "bank"
         ],
         "speed": "",
         "note": "Wise converts at the mid-market rate; fee shown is approximate",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:20:00Z"
+        "checkedAt": "2026-11-13T06:38:00Z"
       },
       {
         "provider": "remitly",
@@ -338,7 +338,7 @@
         "speed": "",
         "note": "Standard rate; new-customer offers not included",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:12:00Z"
+        "checkedAt": "2026-11-13T06:42:00Z"
       },
       {
         "provider": "sendwave",
@@ -351,7 +351,7 @@
         "speed": "",
         "note": "Standard rate; intro offers not included",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:36:00Z"
+        "checkedAt": "2026-11-13T06:59:00Z"
       },
       {
         "provider": "taptapsend",
@@ -366,7 +366,7 @@
         "speed": "",
         "note": "",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:38:00Z"
+        "checkedAt": "2026-11-13T07:03:00Z"
       }
     ],
     "us-ghana": [
@@ -382,7 +382,7 @@
         "speed": "",
         "note": "Wise converts at the mid-market rate; fee shown is approximate",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:20:00Z"
+        "checkedAt": "2026-11-13T06:38:00Z"
       },
       {
         "provider": "remitly",
@@ -397,7 +397,7 @@
         "speed": "",
         "note": "Standard rate; new-customer offers not included",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:12:00Z"
+        "checkedAt": "2026-11-13T06:42:00Z"
       },
       {
         "provider": "westernunion",
@@ -424,7 +424,7 @@
         "speed": "",
         "note": "Standard rate; intro offers not included",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:36:00Z"
+        "checkedAt": "2026-11-13T06:59:00Z"
       },
       {
         "provider": "taptapsend",
@@ -438,13 +438,41 @@
         "speed": "",
         "note": "",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:38:00Z"
+        "checkedAt": "2026-11-13T07:03:00Z"
+      },
+      {
+        "provider": "worldremit",
+        "variant": "Bank",
+        "rate": 11.72,
+        "feeFixed": 0,
+        "feePct": 0,
+        "payout": [
+          "bank"
+        ],
+        "speed": "Within 2 working days",
+        "note": "",
+        "refAmount": 300,
+        "checkedAt": "2026-11-13T06:52:00Z"
+      },
+      {
+        "provider": "worldremit",
+        "variant": "Mobile money",
+        "rate": 11.72,
+        "feeFixed": 0,
+        "feePct": 0,
+        "payout": [
+          "mobile"
+        ],
+        "speed": "Within 1 hour",
+        "note": "",
+        "refAmount": 300,
+        "checkedAt": "2026-11-13T06:52:00Z"
       }
     ],
     "us-kenya": [
       {
         "provider": "wise",
-        "rate": 129.95,
+        "rate": 130.0,
         "feeFixed": 0,
         "feePct": 1.96,
         "payout": [
@@ -454,7 +482,7 @@
         "speed": "",
         "note": "Wise converts at the mid-market rate; fee shown is approximate",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:20:00Z"
+        "checkedAt": "2026-11-13T06:38:00Z"
       },
       {
         "provider": "remitly",
@@ -469,7 +497,7 @@
         "speed": "",
         "note": "Standard rate; new-customer offers not included",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:12:00Z"
+        "checkedAt": "2026-11-13T06:42:00Z"
       },
       {
         "provider": "westernunion",
@@ -497,7 +525,7 @@
         "speed": "",
         "note": "Standard rate; intro offers not included",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:36:00Z"
+        "checkedAt": "2026-11-13T06:59:00Z"
       },
       {
         "provider": "taptapsend",
@@ -511,7 +539,21 @@
         "speed": "",
         "note": "",
         "refAmount": 300,
-        "checkedAt": "2026-11-13T06:38:00Z"
+        "checkedAt": "2026-11-13T07:03:00Z"
+      },
+      {
+        "provider": "worldremit",
+        "variant": "Card deposit",
+        "rate": 128.601,
+        "feeFixed": 0,
+        "feePct": 0,
+        "payout": [
+          "bank"
+        ],
+        "speed": "Within 1 hour",
+        "note": "",
+        "refAmount": 300,
+        "checkedAt": "2026-11-13T06:52:00Z"
       }
     ],
     "us-uganda": [
@@ -588,16 +630,16 @@
     "uk-nigeria": [
       {
         "provider": "wise",
-        "rate": 1854.71,
+        "rate": 1859.65,
         "feeFixed": 0,
-        "feePct": 0.79,
+        "feePct": 0.8,
         "payout": [
           "bank"
         ],
         "speed": "",
         "note": "Wise converts at the mid-market rate; fee shown is approximate",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:20:00Z"
+        "checkedAt": "2026-11-13T06:38:00Z"
       },
       {
         "provider": "remitly",
@@ -612,7 +654,7 @@
         "speed": "",
         "note": "Standard rate; new-customer offers not included",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:12:00Z"
+        "checkedAt": "2026-11-13T06:42:00Z"
       },
       {
         "provider": "worldremit",
@@ -626,7 +668,7 @@
         "speed": "Within 2 working days",
         "note": "",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:28:00Z"
+        "checkedAt": "2026-11-13T06:52:00Z"
       },
       {
         "provider": "westernunion",
@@ -653,7 +695,7 @@
         "speed": "",
         "note": "Standard rate; intro offers not included",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:36:00Z"
+        "checkedAt": "2026-11-13T06:59:00Z"
       },
       {
         "provider": "taptapsend",
@@ -668,13 +710,13 @@
         "speed": "",
         "note": "",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:38:00Z"
+        "checkedAt": "2026-11-13T07:03:00Z"
       }
     ],
     "uk-ghana": [
       {
         "provider": "wise",
-        "rate": 15.5044,
+        "rate": 15.5026,
         "feeFixed": 0,
         "feePct": 1.77,
         "payout": [
@@ -684,7 +726,7 @@
         "speed": "",
         "note": "Wise converts at the mid-market rate; fee shown is approximate",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:20:00Z"
+        "checkedAt": "2026-11-13T06:38:00Z"
       },
       {
         "provider": "remitly",
@@ -699,7 +741,7 @@
         "speed": "",
         "note": "Standard rate; new-customer offers not included",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:12:00Z"
+        "checkedAt": "2026-11-13T06:42:00Z"
       },
       {
         "provider": "worldremit",
@@ -713,7 +755,7 @@
         "speed": "Within 2 working days",
         "note": "",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:28:00Z"
+        "checkedAt": "2026-11-13T06:52:00Z"
       },
       {
         "provider": "westernunion",
@@ -740,7 +782,7 @@
         "speed": "",
         "note": "Standard rate; intro offers not included",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:36:00Z"
+        "checkedAt": "2026-11-13T06:59:00Z"
       },
       {
         "provider": "taptapsend",
@@ -754,15 +796,29 @@
         "speed": "",
         "note": "",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:38:00Z"
+        "checkedAt": "2026-11-13T07:03:00Z"
+      },
+      {
+        "provider": "worldremit",
+        "variant": "Mobile money",
+        "rate": 15.58,
+        "feeFixed": 0,
+        "feePct": 0,
+        "payout": [
+          "mobile"
+        ],
+        "speed": "Within 1 hour",
+        "note": "",
+        "refAmount": 250,
+        "checkedAt": "2026-11-13T06:52:00Z"
       }
     ],
     "uk-kenya": [
       {
         "provider": "wise",
-        "rate": 171.911,
+        "rate": 171.945,
         "feeFixed": 0,
-        "feePct": 1.74,
+        "feePct": 1.73,
         "payout": [
           "mobile",
           "bank"
@@ -770,7 +826,7 @@
         "speed": "",
         "note": "Wise converts at the mid-market rate; fee shown is approximate",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:20:00Z"
+        "checkedAt": "2026-11-13T06:38:00Z"
       },
       {
         "provider": "remitly",
@@ -785,7 +841,7 @@
         "speed": "",
         "note": "Standard rate; new-customer offers not included",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:12:00Z"
+        "checkedAt": "2026-11-13T06:42:00Z"
       },
       {
         "provider": "worldremit",
@@ -799,7 +855,7 @@
         "speed": "Within 1 hour",
         "note": "",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:28:00Z"
+        "checkedAt": "2026-11-13T06:52:00Z"
       },
       {
         "provider": "westernunion",
@@ -827,7 +883,7 @@
         "speed": "",
         "note": "Standard rate; intro offers not included",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:36:00Z"
+        "checkedAt": "2026-11-13T06:59:00Z"
       },
       {
         "provider": "taptapsend",
@@ -841,7 +897,7 @@
         "speed": "",
         "note": "",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:38:00Z"
+        "checkedAt": "2026-11-13T07:03:00Z"
       }
     ],
     "uk-uganda": [
@@ -918,16 +974,16 @@
     "canada-nigeria": [
       {
         "provider": "wise",
-        "rate": 983.066,
+        "rate": 985.802,
         "feeFixed": 0,
-        "feePct": 1.2,
+        "feePct": 1.21,
         "payout": [
           "bank"
         ],
         "speed": "",
         "note": "Wise converts at the mid-market rate; fee shown is approximate",
         "refAmount": 400,
-        "checkedAt": "2026-11-13T06:20:00Z"
+        "checkedAt": "2026-11-13T06:38:00Z"
       },
       {
         "provider": "remitly",
@@ -942,7 +998,7 @@
         "speed": "",
         "note": "Standard rate; new-customer offers not included",
         "refAmount": 400,
-        "checkedAt": "2026-11-13T06:12:00Z"
+        "checkedAt": "2026-11-13T06:42:00Z"
       },
       {
         "provider": "westernunion",
@@ -969,7 +1025,7 @@
         "speed": "",
         "note": "Standard rate; intro offers not included",
         "refAmount": 400,
-        "checkedAt": "2026-11-13T06:36:00Z"
+        "checkedAt": "2026-11-13T06:59:00Z"
       },
       {
         "provider": "taptapsend",
@@ -984,7 +1040,21 @@
         "speed": "",
         "note": "",
         "refAmount": 400,
-        "checkedAt": "2026-11-13T06:38:00Z"
+        "checkedAt": "2026-11-13T07:03:00Z"
+      },
+      {
+        "provider": "worldremit",
+        "variant": "Bank",
+        "rate": 964.9431,
+        "feeFixed": 0,
+        "feePct": 0,
+        "payout": [
+          "bank"
+        ],
+        "speed": "Within 2 working days",
+        "note": "",
+        "refAmount": 400,
+        "checkedAt": "2026-11-13T06:52:00Z"
       }
     ],
     "canada-ghana": [
@@ -1607,7 +1677,21 @@
         "speed": "",
         "note": "Standard rate; intro offers not included",
         "refAmount": 250,
-        "checkedAt": "2026-11-13T06:36:00Z"
+        "checkedAt": "2026-11-13T06:59:00Z"
+      },
+      {
+        "provider": "worldremit",
+        "variant": "Card deposit",
+        "rate": 1.3052,
+        "feeFixed": 0,
+        "feePct": 0,
+        "payout": [
+          "bank"
+        ],
+        "speed": "Within 1 hour",
+        "note": "",
+        "refAmount": 250,
+        "checkedAt": "2026-11-13T06:52:00Z"
       }
     ],
     "us-zimbabwe": [
