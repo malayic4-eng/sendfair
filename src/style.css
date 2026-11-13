@@ -34,26 +34,6 @@
   --wrap: 1120px;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --page: #0b0e27; --band: #1b2470; --band-deep: #111853; --on-band: #eceefb; --on-band-muted: #a9aedb; --band-line: rgba(255,255,255,.12);
-    --paper: #0b0e27; --surface: #131840; --ink: #eceefb; --muted: #a3a8cf; --line: #252b5a; --line-strong: #343b74;
-    --indigo: #161d5c; --indigo-deep: #0e1342; --on-indigo: #eceefb; --on-indigo-muted: #a9aedb;
-    --marigold: #f8c254; --marigold-ink: #2b1d00; --marigold-soft: #23296a;
-    --leaf: #4fd19f; --leaf-soft: #113428; --link: #c3c8ff; --btn: #f8c254; --btn-ink: #2b1d00; --warn: #f5a35c; --warn-soft: #3a2413;
-    --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 30px 60px -30px rgba(0, 0, 0, .7);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --page: #0b0e27; --band: #1b2470; --band-deep: #111853; --on-band: #eceefb; --on-band-muted: #a9aedb; --band-line: rgba(255,255,255,.12);
-  --paper: #0b0e27; --surface: #131840; --ink: #eceefb; --muted: #a3a8cf; --line: #252b5a; --line-strong: #343b74;
-  --indigo: #161d5c; --indigo-deep: #0e1342; --on-indigo: #eceefb; --on-indigo-muted: #a9aedb;
-  --marigold: #f8c254; --marigold-ink: #2b1d00; --marigold-soft: #23296a;
-  --leaf: #4fd19f; --leaf-soft: #113428; --link: #c3c8ff; --btn: #f8c254; --btn-ink: #2b1d00; --warn: #f5a35c; --warn-soft: #3a2413;
-  --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 30px 60px -30px rgba(0, 0, 0, .7);
-  color-scheme: dark;
-}
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
@@ -262,8 +242,6 @@ section.block + section.block { border-top: 1px solid var(--line); }
 .b-wait { font: 600 .84rem var(--font-body); color: var(--muted); }
 .b-prov { grid-column: 1 / -1; font-size: .8rem; color: var(--muted); }
 .board a:hover .b-country { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
-:root[data-theme="dark"] .board a:hover .b-country { color: var(--marigold); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .board a:hover .b-country { color: var(--marigold); } }
 
 /* How it works: a real sequence */
 .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; counter-reset: s; }

@@ -175,7 +175,7 @@ ${canonical != null ? `<link rel="canonical" href="${site}/${canonical}">` : ""}
 <meta property="og:type" content="website">
 ${canonical != null ? `<meta property="og:url" content="${site}/${canonical}">` : ""}
 ${ogImg}
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0b0e27" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light"><meta name="theme-color" content="#ffffff">
 <link rel="icon" href="${prefix}favicon.svg" type="image/svg+xml">
 <link rel="icon" href="${prefix}favicon-48.png" sizes="48x48" type="image/png">
 <link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png">
