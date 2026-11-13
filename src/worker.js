@@ -7,6 +7,37 @@ import * as stats from "../functions/api/stats.js";
 import * as go from "../functions/go/[provider].js";
 import * as alert from "../functions/api/alert.js";
 
+// Each service's own icon, as published on its website, fetched once by this Worker (via Google's
+// favicon service) and cached at Cloudflare. Visitors' browsers only ever talk to sendfair.africa.
+const LOGO_DOMAINS = {
+  wise: "wise.com", remitly: "remitly.com", worldremit: "worldremit.com", sendwave: "sendwave.com",
+  taptapsend: "taptapsend.com", westernunion: "westernunion.com", lemfi: "lemfi.com", afriex: "afriex.com",
+  nala: "nala.money", africhange: "africhange.com", mukuru: "mukuru.com", moneygram: "moneygram.com"
+};
+async function logo(id, request, ctx) {
+  const domain = LOGO_DOMAINS[id];
+  if (!domain) return new Response("Not found", { status: 404 });
+  const cache = caches.default;
+  const key = new Request(new URL(request.url).origin + "/logos/" + id + ".png?v=2");
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  let res = null;
+  for (const src of [`https://www.google.com/s2/favicons?domain=${domain}&sz=128`, `https://icons.duckduckgo.com/ip3/${domain}.ico`]) {
+    try {
+      const r = await fetch(src, { cf: { cacheTtl: 2592000, cacheEverything: true } });
+      if (r.ok) { res = r; break; }
+    } catch (e) {}
+  }
+  if (!res) return new Response("Not found", { status: 404, headers: { "Cache-Control": "public, max-age=3600" } });
+  const out = new Response(res.body, { headers: {
+    "Content-Type": res.headers.get("Content-Type") || "image/png",
+    "Cache-Control": "public, max-age=604800, s-maxage=2592000",
+    "X-Robots-Tag": "noindex"
+  } });
+  ctx.waitUntil(cache.put(key, out.clone()));
+  return out;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -28,6 +59,8 @@ export default {
     }
     const context = { request, env, params: {}, waitUntil: (p) => ctx.waitUntil(p) };
     const path = url.pathname.replace(/\/+$/, "");
+    const lm = path.match(/^\/logos\/([a-z]+)\.png$/);
+    if (lm) return logo(lm[1], request, ctx);
 
     if (path === "/api/report") return request.method === "POST" ? report.onRequestPost(context) : report.onRequest(context);
     if (path === "/api/reports" && request.method === "GET") return reports.onRequestGet(context);

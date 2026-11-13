@@ -124,7 +124,8 @@
     return "";
   }
 
-  // Initials badge per service (our own colours, not the providers' logos).
+  // Badge per service: the service's own icon (served from /logos/), with coloured initials underneath
+  // that show if the icon can't load.
   var HUES = ["#3b46b8", "#0a7a5c", "#8a3c8f", "#b0522a", "#5f6b1f", "#2f6f9f", "#9a3651", "#6b4fb3"];
   function initials(name) {
     var w = String(name).replace(/[^A-Za-z ]/g, "").split(/\s+/).filter(Boolean);
@@ -162,7 +163,7 @@
     var mark = fn ? ' <a class="fn" href="#sf-fn-' + fn + '" aria-label="Note ' + fn + '">' + fn + "</a>" : "";
     return '<article class="result' + (top ? " best" : "") + (x.stale ? " is-stale" : "") + '">' +
       '<div class="rank"' + (x.tied ? ' title="Tied"' : "") + ">" + (x.pos || i + 1) + (x.tied ? "=" : "") + "</div>" +
-      '<div class="prov"><div class="prov-name"><span class="avatar" aria-hidden="true" style="background:' + hue(x.p.id) + '">' + initials(x.p.name) + "</span><span>" + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant">' + esc(x.q.variant) + "</span>" : "") +
+      '<div class="prov"><div class="prov-name"><span class="avatar" aria-hidden="true" style="background:' + hue(x.p.id) + '">' + initials(x.p.name) + '<img src="/logos/' + esc(x.p.id) + '.png" alt="" width="22" height="22" loading="lazy" decoding="async" onerror="this.remove()"></span><span>' + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant">' + esc(x.q.variant) + "</span>" : "") +
       (top ? '<span class="chip best">' + (x.tied ? "Joint best" : "Most money home") + "</span>" : "") + mark +
       (x.p.rating ? '<a class="tp" href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener" title="Trustpilot: ' + x.p.rating.score + " out of 5 from " + fixed(x.p.rating.reviews, 0) + ' reviews"><span aria-hidden="true">★</span> ' + x.p.rating.score + "</a>" : "") +
       '<button type="button" class="more-btn" aria-expanded="' + open + '" aria-controls="' + pid + '"><span class="more-txt">Details</span><span aria-hidden="true" class="chev">▾</span></button>' + "</div>" +
