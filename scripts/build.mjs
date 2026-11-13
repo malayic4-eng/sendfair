@@ -58,10 +58,10 @@ let midmarket = read("data/midmarket.json");
   if (p.length) fail(p);
 })();
 
-// Hand-checked corrections for currencies where the free feed is off (ignored after 72 hours).
+// Hand-checked corrections for currencies where the free feed is off (kept for up to 7 days, since the free feed is further off).
 try {
   const ov = JSON.parse(fs.readFileSync(path.join(ROOT, "data/mid-overrides.json"), "utf8"));
-  if (ov && ov.rates && NOW - new Date(ov.updatedAt).getTime() < 72 * 3600000 && midmarket.rates) Object.assign(midmarket.rates, ov.rates);
+  if (ov && ov.rates && NOW - new Date(ov.updatedAt).getTime() < 7 * 24 * 3600000 && midmarket.rates) Object.assign(midmarket.rates, ov.rates);
 } catch {}
 const providers = Object.fromEntries(providersFile.providers.map((x) => [x.id, x]));
 const esc = R.esc;
@@ -266,9 +266,9 @@ function corridorGrid(prefix) {
     const amount = config.defaultAmounts[s.currency];
     const rows = corridors.receivers.map((r) => {
       const c = routeContext(s, r, prefix, amount);
-      const top = c.rows.find((x) => !x.stale);
+      const top = c.rows.find((x) => !x.stale), lead = R.leaders(c.rows);
       return `<li><a href="${link(prefix, corridorPath(s, r))}"><span class="b-country">${esc(r.name)}</span>${top
-        ? `<span class="b-amt num">${R.moneyHtml(top.gets, r.currency)}</span><span class="b-prov">with ${esc(top.p.name)}</span>`
+        ? `<span class="b-amt num">${R.moneyHtml(top.gets, r.currency)}</span><span class="b-prov">${lead.length > 1 ? `${lead.length}-way tie: ${esc(lead.map((x) => x.p.name).join(", "))}` : `with ${esc(top.p.name)}`}</span>`
         : `<span class="b-amt b-wait">Being checked</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
     }).join("");
     return `<div class="board-col"><h3>From ${esc(s.short)}</h3><p class="board-sub">Best result for <span class="num">${esc(R.money(amount, s.currency, 0))}</span></p><ul>${rows}</ul></div>`;
@@ -394,21 +394,22 @@ for (const s of corridors.senders) {
     const rel = corridorPath(s, r), prefix = "../../";
     const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]);
     const fresh = ctx.rows.filter((x) => !x.stale);
-    const top = fresh[0], last = fresh[fresh.length - 1];
+    const top = fresh[0], last = fresh[fresh.length - 1], lead = R.leaders(ctx.rows);
+    const who = lead.length > 1 ? `${R.names(lead)} tie for the most` : top ? `${top.p.name} delivers the most` : "";
     const names = [...new Set(ctx.rows.map((x) => x.p.name))];
     const nets = networks(r);
     const rCur = CURNAME[r.currency] || r.currency, sCur = CURNAME[s.currency] || s.currency;
     const amt = plain(R.money(ctx.amount, s.currency, 0));
     const title = cap(`Send money from ${s.short} to ${r.name}: best ${s.currency} to ${r.currency} rate today`);
     const description = top
-      ? `${top.p.name} delivers the most today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 4))} by what arrives in ${r.name}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}.`
+      ? `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 4))} by what arrives in ${r.name}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}.`
       : `Compare money transfer services from ${s.short} to ${r.name} by what actually arrives in ${rCur}, after fees and the exchange-rate markup. Rates checked by hand.`;
     const lede = `Compare ${esc(names.length ? joinList(names.slice(0, 6)) : "transfer services")} by how many ${esc(rCur)} arrive in ${esc(r.name)}${nets.length ? `, by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Checked by hand, ${esc(dateLong)}.`;
     const mobileProv = [...new Set(fresh.filter((x) => (x.q.payout || []).includes("mobile")).map((x) => x.p.name))];
     const midTxt = ctx.mid ? `1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}` : "";
-    const summary = top ? `<p>On ${esc(dateLong)}, <strong>${esc(top.p.name)}</strong> delivers the most from ${esc(s.short)} to ${esc(r.name)}: <strong>${esc(plain(R.money(top.gets, r.currency)))}</strong> for ${esc(amt)}, at a rate of ${R.rateStr(top.ev.rate)} with ${esc(R.feeStr(top.q, s.currency).toLowerCase())}.${last && last !== top ? ` The lowest of the ${fresh.length} services we checked, ${esc(last.p.name)}, delivers ${esc(plain(R.money(last.gets, r.currency)))}, so choosing well is worth ${esc(plain(R.money(top.gets - last.gets, r.currency)))} on this one transfer.` : ""}${midTxt ? ` The mid-market rate is ${esc(midTxt)}.` : ""}</p>` : "";
+    const summary = top ? `<p>On ${esc(dateLong)}, ${lead.length > 1 ? `<strong>${esc(R.names(lead))}</strong> tie for the most` : `<strong>${esc(top.p.name)}</strong> delivers the most`} from ${esc(s.short)} to ${esc(r.name)}: <strong>${esc(plain(R.money(top.gets, r.currency)))}</strong> for ${esc(amt)}${lead.length > 1 ? "" : `, at a rate of ${R.rateStr(top.ev.rate)} with ${esc(R.feeStr(top.q, s.currency).toLowerCase())}`}.${last && last !== top ? ` The lowest of the ${fresh.length} services we checked, ${esc(last.p.name)}, delivers ${esc(plain(R.money(last.gets, r.currency)))}, so choosing well is worth ${esc(plain(R.money(top.gets - last.gets, r.currency)))} on this one transfer.` : ""}${midTxt ? ` The mid-market rate is ${esc(midTxt)}.` : ""}</p>` : "";
     const faqs = [
-      [`What is the cheapest way to send money from ${s.short} to ${r.name} today?`, top ? `Today ${top.p.name} delivers the most: ${plain(R.money(top.gets, r.currency))} for ${amt}, after its fee and exchange-rate margin. The order changes from day to day, so check the ranking on this page before each transfer.` : `It changes from day to day. The ranking on this page shows which service delivers the most ${rCur} for the amount you enter, after the transfer fee and the exchange-rate markup.`],
+      [`What is the cheapest way to send money from ${s.short} to ${r.name} today?`, top ? `Today ${who}: ${plain(R.money(top.gets, r.currency))} for ${amt}, after fees and exchange-rate margins. The order changes from day to day, so check the ranking on this page before each transfer.` : `It changes from day to day. The ranking on this page shows which service delivers the most ${rCur} for the amount you enter, after the transfer fee and the exchange-rate markup.`],
       ...(ctx.mid ? [[`What is the ${s.currency} to ${r.currency} exchange rate today?`, `The mid-market rate is ${midTxt}.${top ? ` The best rate a transfer service offers today is ${R.rateStr(Math.max(...fresh.map((x) => x.ev.rate)))}, but the fee matters too, which is why we rank by the amount that arrives.` : ""}`]] : []),
       ...(ctx.mid ? [[`How much is ${amt} in ${rCur}?`, `At the mid-market rate, ${amt} is ${plain(R.money(ctx.amount * ctx.mid, r.currency))}.${top ? ` After fees and margins, the best transfer service today delivers ${plain(R.money(top.gets, r.currency))}.` : ""}`]] : []),
       ...(nets.length ? [[`Can I send money from ${s.short} to ${nets[0]} in ${r.name}?`, mobileProv.length ? `Yes. Of the services we checked today, ${joinList(mobileProv)} pay out to mobile money in ${r.name}${nets.length > 1 ? `, which covers ${joinList(nets)}` : ""}. Choose "Mobile money" above the ranking to compare only those.` : `Several services pay out to mobile money in ${r.name}. Choose "Mobile money" above the ranking to see which ones were checked today.`]] : []),
@@ -443,12 +444,13 @@ ${faqBlock(faqs)}
 <h2>Other routes</h2>
 <ul class="route-links">${corridors.receivers.filter((x) => x.id !== r.id).map((x) => `<li><a href="${link(prefix, corridorPath(s, x))}">${esc(s.label)} to ${esc(x.name)}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
 </div></div></section>` + reportSection(ctx) + alerts();
+    // A route with no fresh quotes stays reachable but is kept out of search results and the sitemap until it is filled.
     write(rel + "index.html", page({
-      prefix, canonical: rel, title, description, og: slug(s, r),
+      prefix, canonical: rel, title, description, og: slug(s, r), noindex: !top,
       jsonld: [faqLd(faqs), crumbs(trail)],
       init: { from: s.id, to: r.id, pageUrl: `${site}/${rel}` }, body
     }));
-    urls.push(rel);
+    if (top) urls.push(rel);
   }
 }
 
@@ -458,11 +460,11 @@ for (const r of corridors.receivers) {
   const nets = networks(r), rCur = CURNAME[r.currency] || r.currency;
   const lines = corridors.senders.map((s) => {
     const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]);
-    return { s, ctx, top: ctx.rows.find((x) => !x.stale) };
+    return { s, ctx, top: ctx.rows.find((x) => !x.stale), lead: R.leaders(ctx.rows) };
   });
   const names = [...new Set(lines.flatMap((l) => l.ctx.rows.map((x) => x.p.name)))];
   const faqs = [
-    [`What is the cheapest way to send money to ${r.name}?`, `It depends on where you send from and how much. Today: ${lines.filter((l) => l.top).map((l) => `from ${l.s.short}, ${l.top.p.name} (${plain(R.money(l.top.gets, r.currency))} for ${plain(R.money(l.ctx.amount, l.s.currency, 0))})`).join("; ") || "rates are being checked"}.`],
+    [`What is the cheapest way to send money to ${r.name}?`, `It depends on where you send from and how much. Today: ${lines.filter((l) => l.top).map((l) => `from ${l.s.short}, ${l.lead.length > 1 ? R.names(l.lead) + " (tied)" : l.top.p.name} (${plain(R.money(l.top.gets, r.currency))} for ${plain(R.money(l.ctx.amount, l.s.currency, 0))})`).join("; ") || "rates are being checked"}.`],
     [`How can people in ${r.name} receive money from abroad?`, Object.entries(r.payout).map(([k, v]) => `${R.LABEL[k]}: ${v}`).join(". ") + "."],
     [`Which services send money to ${r.name}?`, names.length ? `We compare ${joinList(names)} on routes to ${r.name}, ranked by the amount that arrives.` : `Several international services send to ${r.name}; we are checking today's rates.`]
   ];
@@ -473,7 +475,7 @@ ${crumbNav(prefix, trail)}
 <p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Canada and Australia, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, checked by hand ${esc(dateLong)}.</p>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">Sending from</th><th scope="col">You pay</th><th scope="col">Best today</th><th scope="col" class="num">They get</th><th scope="col"></th></tr></thead>
-<tbody>${lines.map((l) => `<tr><th scope="row">${esc(l.s.name)}</th><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td>${l.top ? esc(l.top.p.name) : "Being checked"}</td><td class="num top">${l.top ? esc(plain(R.money(l.top.gets, r.currency))) : "–"}</td><td><a href="${link(prefix, corridorPath(l.s, r))}">Compare all</a></td></tr>`).join("")}</tbody>
+<tbody>${lines.map((l) => `<tr><th scope="row">${esc(l.s.name)}</th><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td>${l.top ? esc(l.lead.length > 1 ? l.lead.map((x) => x.p.name).join(", ") + " (tie)" : l.top.p.name) : "Being checked"}</td><td class="num top">${l.top ? esc(plain(R.money(l.top.gets, r.currency))) : "–"}</td><td><a href="${link(prefix, corridorPath(l.s, r))}">Compare all</a></td></tr>`).join("")}</tbody>
 </table></div>
 <h2>Ways to receive money in ${esc(r.name)}</h2>
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
@@ -497,7 +499,7 @@ for (const p of providersWithQuotes()) {
   for (const s of corridors.senders) for (const r of corridors.receivers) {
     const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]);
     const i = ctx.rows.findIndex((x) => x.p.id === p.id);
-    if (i >= 0) lines.push({ s, r, ctx, x: ctx.rows[i], pos: i + 1, of: ctx.rows.length });
+    if (i >= 0) lines.push({ s, r, ctx, x: ctx.rows[i], pos: ctx.rows[i].pos || i + 1, of: ctx.rows.length });
   }
   const firsts = lines.filter((l) => l.pos === 1 && !l.x.stale).length;
   const countries = [...new Set(lines.map((l) => l.r.name))];
@@ -513,7 +515,7 @@ ${crumbNav(prefix, trail)}
 <p class="lede">${esc(p.name)}'s exchange rates and fees on ${lines.length} routes to ${esc(joinList(countries))}, checked by hand ${esc(dateLong)}, and how it ranks against other services on each route. Today it delivers the most on ${firsts} of ${lines.length} routes.</p>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">Route</th><th scope="col">Rate</th><th scope="col">Fee</th><th scope="col">You pay</th><th scope="col" class="num">They get</th><th scope="col">Rank</th></tr></thead>
-<tbody>${lines.map((l) => `<tr><th scope="row"><a href="${link(prefix, corridorPath(l.s, l.r))}">${esc(l.s.label)} to ${esc(l.r.name)}</a></th><td class="num">${R.rateStr(l.x.ev.rate)}</td><td>${esc(R.feeStr(l.x.q, l.s.currency).replace(/^Fee /, ""))}</td><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td class="num${l.pos === 1 ? " top" : ""}">${esc(plain(R.money(l.x.gets, l.r.currency)))}</td><td>${l.x.stale ? "Not rechecked" : `${ordinal(l.pos)} of ${l.of}`}</td></tr>`).join("")}</tbody>
+<tbody>${lines.map((l) => `<tr><th scope="row"><a href="${link(prefix, corridorPath(l.s, l.r))}">${esc(l.s.label)} to ${esc(l.r.name)}</a></th><td class="num">${R.rateStr(l.x.ev.rate)}</td><td>${esc(R.feeStr(l.x.q, l.s.currency).replace(/^Fee /, ""))}</td><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td class="num${l.pos === 1 ? " top" : ""}">${esc(plain(R.money(l.x.gets, l.r.currency)))}</td><td>${l.x.stale ? "Not rechecked" : `${l.x.tied ? "Joint " : ""}${ordinal(l.pos)} of ${l.of}`}</td></tr>`).join("")}</tbody>
 </table></div>
 ${notes.length ? `<p class="note">${notes.map(esc).join(" ")}</p>` : ""}
 <p><a class="btn" href="${esc(hrefFor(prefix)(p, "provider-page"))}" target="_blank" rel="sponsored nofollow noopener">Go to ${esc(p.name)}</a></p>

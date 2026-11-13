@@ -85,10 +85,32 @@
       var cur = best[q.provider];
       if (!cur || (cur.stale && !row.stale) || (cur.stale === row.stale && row.gets > cur.gets)) best[q.provider] = row;
     });
-    return Object.keys(best).map(function (k) { return best[k]; }).sort(function (a, b) {
+    // Amounts that look the same on screen count as a tie: tied services share a position.
+    // Within a tie, the lower fee comes first, then the name, so the order is stable and explainable.
+    var shown = function (v) { return Math.round(v * (Math.abs(v) >= 1000 ? 1 : 100)); };
+    var rows = Object.keys(best).map(function (k) { return best[k]; }).sort(function (a, b) {
       if (a.stale !== b.stale) return a.stale ? 1 : -1;
-      return b.gets - a.gets;
+      if (shown(a.gets) !== shown(b.gets)) return b.gets - a.gets;
+      if (a.ev.fee !== b.ev.fee) return a.ev.fee - b.ev.fee;
+      return a.p.name < b.p.name ? -1 : 1;
     });
+    rows.forEach(function (x, i) {
+      var prev = rows[i - 1];
+      x.pos = prev && prev.stale === x.stale && shown(prev.gets) === shown(x.gets) ? prev.pos : i + 1;
+    });
+    rows.forEach(function (x) {
+      x.tied = rows.filter(function (y) { return y.stale === x.stale && y.pos === x.pos; }).length > 1;
+    });
+    return rows;
+  }
+  // Services that share the top spot today (fresh quotes only).
+  function leaders(rows) {
+    var fresh = rows.filter(function (x) { return !x.stale; });
+    return fresh.length ? fresh.filter(function (x) { return x.pos === fresh[0].pos; }) : [];
+  }
+  function names(list) {
+    var n = list.map(function (x) { return x.p.name; });
+    return n.length > 1 ? n.slice(0, -1).join(", ") + " and " + n[n.length - 1] : n.join("");
   }
 
   function refWarning(rows, amount, cur) {
@@ -105,7 +127,7 @@
   // One compact line per service, so the whole ranking fits on screen. Notes become numbered footnotes under the table.
   var SHORT = { mobile: "Mobile money", bank: "Bank", cash: "Cash pickup" };
   function renderRow(x, i, c, fn) {
-    var top = i === 0 && !x.stale && c.rows.length > 1;
+    var top = !x.stale && x.pos === 1 && c.rows.length > 1;
     var costTxt = x.cost == null ? "" : (x.cost <= 0 ? "At mid-market or better" : fixed(x.cost * 100, 1) + "% cost vs mid-market");
     var how = (x.q.payout || []).map(function (m) { return SHORT[m]; }).join(", ");
     var checked = x.q.checkedAt ? "checked " + (c.timeStyle === "absolute" ? absTime(x.q.checkedAt) : ago(x.q.checkedAt, c.now)) : "";
@@ -120,9 +142,9 @@
     if (x.stale) bits.push('<span class="stale-txt">not rechecked today</span>');
     var mark = fn ? ' <a class="fn" href="#sf-fn-' + fn + '" aria-label="Note ' + fn + '">' + fn + "</a>" : "";
     return '<article class="result' + (top ? " best" : "") + (x.stale ? " is-stale" : "") + '">' +
-      '<div class="rank">' + (i + 1) + "</div>" +
+      '<div class="rank"' + (x.tied ? ' title="Tied"' : "") + ">" + (x.pos || i + 1) + (x.tied ? "=" : "") + "</div>" +
       '<div class="prov"><div class="prov-name"><span>' + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant">' + esc(x.q.variant) + "</span>" : "") +
-      (top ? '<span class="chip best">Most money home</span>' : "") + mark + "</div>" +
+      (top ? '<span class="chip best">' + (x.tied ? "Joint best" : "Most money home") + "</span>" : "") + mark + "</div>" +
       '<div class="prov-sub num">' + bits.join('<span class="dot">' + DOT + "</span>") + "</div></div>" +
       '<div class="gets"><span class="gets-value num">' + moneyHtml(x.gets, c.r.currency) + '</span><span class="gets-cost">' + costTxt + "</span></div>" +
       '<div class="go-cell"><a class="go" href="' + esc(c.hrefFor(x.p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener" aria-label="Go to ' + esc(x.p.name) + '">Go<span class="go-name"> to ' + esc(x.p.name) + "</span></a></div>" +
@@ -201,7 +223,9 @@
     if (!top) return { title: "SendFair", text: "Today\u2019s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked.", cap: "" };
     var how = c.payout && c.payout !== "all" ? c.payout : (top.q.payout || [])[0] || "mobile";
     var amt = "<b>" + esc(money(top.gets, c.r.currency, 2)) + "</b>";
-    var by = " Sent from " + esc(c.s.short) + " with " + esc(top.p.name) + ".";
+    var lead = leaders(c.rows);
+    var by = lead.length > 1 ? " Sent from " + esc(c.s.short) + ". " + esc(names(lead)) + " tie for the most today."
+      : " Sent from " + esc(c.s.short) + " with " + esc(top.p.name) + ".";
     var text = how === "cash" ? amt + " is ready to collect." + by : "You have received " + amt + "." + by;
     var n = c.rows.length;
     var cap = "Today\u2019s best for " + esc(money(c.amount, c.s.currency, 0)) + " from " + esc(c.s.short) + " to " + esc(c.r.name) +
@@ -214,6 +238,11 @@
   }
   function shareRaw(c, url) {
     var top = c.rows.filter(function (x) { return !x.stale; })[0];
+    var lead = leaders(c.rows);
+    if (top && lead.length > 1) {
+      return "Sending " + money(c.amount, c.s.currency, 0) + " to " + c.r.name + "? Today " + names(lead) + " tie at " + money(top.gets, c.r.currency) +
+        ", the most of " + c.rows.length + " services checked. Compare your amount: " + url;
+    }
     if (top) {
       return "Sending " + money(c.amount, c.s.currency, 0) + " to " + c.r.name + "? Today " + top.p.name + " delivers " + money(top.gets, c.r.currency) +
         (c.rows.length > 1 ? ", the most of " + c.rows.length + " services checked" : "") + ". Compare your amount: " + url;
@@ -222,6 +251,6 @@
   }
 
   var api = { LABEL: LABEL, esc: esc, money: money, rateStr: rateStr, midRate: midRate, ageHours: ageHours, ago: ago, absTime: absTime,
-    evaluate: evaluate, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText, notice: notice, moneyHtml: moneyHtml, homeTime: homeTime };
+    evaluate: evaluate, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText, notice: notice, moneyHtml: moneyHtml, homeTime: homeTime, leaders: leaders, names: names };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.SFRank = api;
 })(typeof window !== "undefined" ? window : this);

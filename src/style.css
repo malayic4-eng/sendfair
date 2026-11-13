@@ -332,13 +332,14 @@ details p { margin-top: 10px; color: var(--muted); }
   .payout-tabs button { flex: 1; padding: 6px 2px; font-size: .78rem; }
   .lg { display: none; }
   .results-head { display: none; }
-  .result { grid-template-columns: 14px minmax(0, 1fr) auto auto; gap: 8px; padding: 5px 6px; min-height: 48px; }
+  .result { grid-template-columns: 20px minmax(0, 1fr) auto auto; gap: 8px; padding: 5px 6px; min-height: 48px; }
   .result.best { margin-top: 0; }
   .chip.best { display: none; }
   .xtra, .xtra + .dot, .prov-sub .dot:has(+ .xtra) { display: none; }
   .gets-value { font-size: 1.12rem; }
   .gets-cost { display: none; }
-  .go { padding: 5px 11px; font-size: .78rem; }
+  .go { padding: 0 14px; font-size: .82rem; min-height: 44px; min-width: 48px; display: inline-flex; align-items: center; justify-content: center; }
+  .fn { min-width: 22px; height: 22px; font-size: .72rem; }
   .prov-name { font-size: .93rem; }
   .prov-sub { font-size: .72rem; }
   .payout-list li { grid-template-columns: minmax(0, 1fr); gap: 2px; }

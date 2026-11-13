@@ -13,6 +13,18 @@ export default {
       url.hostname = "sendfair.africa";
       return Response.redirect(url.toString(), 301);
     }
+    // The Rate Desk is private: it asks for a password set in Cloudflare as the secret ADMIN_PASSWORD.
+    if (/^\/admin(\/|$)/.test(url.pathname)) {
+      const denied = (msg) => new Response(msg, { status: 401, headers: { "WWW-Authenticate": 'Basic realm="SendFair Rate Desk", charset="UTF-8"', "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
+      if (!env.ADMIN_PASSWORD) return denied("The Rate Desk is locked. Add the secret ADMIN_PASSWORD in Cloudflare to open it.");
+      const auth = request.headers.get("Authorization") || "";
+      let pass = "";
+      try { pass = auth.startsWith("Basic ") ? atob(auth.slice(6)).split(":").slice(1).join(":") : ""; } catch (e) {}
+      const a = new TextEncoder().encode(pass), b = new TextEncoder().encode(env.ADMIN_PASSWORD);
+      let same = a.length === b.length;
+      for (let i = 0; i < b.length; i++) same = same && a[i] === b[i];
+      if (!same) return denied("Password needed for the Rate Desk.");
+    }
     const context = { request, env, params: {}, waitUntil: (p) => ctx.waitUntil(p) };
     const path = url.pathname.replace(/\/+$/, "");
 
