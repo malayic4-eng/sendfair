@@ -5,7 +5,7 @@
   var R = window.SFRank;
   var cfg = SF.config || {};
   var root = SF.root || "";
-  var S = { corridors: null, providers: {}, quotes: {}, coverage: {}, quotesUpdated: null, mid: null, reports: {}, payout: "all" };
+  var S = { corridors: null, providers: {}, quotes: {}, coverage: {}, quotesUpdated: null, mid: null, reports: {}, payout: "all", mode: "pay" };
   var $ = function (id) { return document.getElementById(id); };
 
   // Exchange-rate pages: simple converter at the mid-market rate.
@@ -73,16 +73,19 @@
 
   function context() {
     var s = sender(), r = receiver(), k = key();
-    var amount = parseFloat($("sf-amount").value);
+    var entered = parseFloat($("sf-amount").value);
+    var target = S.mode === "get" ? (entered > 0 ? entered : 0) : undefined;
+    var amount = target === undefined ? entered : NaN;
     var mid = R.midRate(S.mid, s.currency, r.currency);
     var list = S.quotes[k] || [];
-    var opts = { list: list, providers: S.providers, amount: amount, payout: S.payout, mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72 };
+    var opts = { list: list, providers: S.providers, amount: amount, target: target, payout: S.payout, mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72 };
     var rows = R.rank(opts);
     var allRows = S.payout === "all" ? rows : R.rank(Object.assign({}, opts, { payout: "all" }));
     var hist = Object.keys((S.history || {}).days || {}).sort().map(function (d) { var e = S.history.days[d][k] || {}; return { d: d, mid: e.mid, best: e.best }; }).filter(function (e) { return e.mid || e.best; });
+    if (target !== undefined) { var top0 = rows.filter(function (x) { return !x.stale; })[0]; amount = top0 ? top0.pay : NaN; }
     var coverage = S.coverage[k] && S.coverage[k].length ? S.coverage[k] : Object.keys(S.providers);
     return {
-      s: s, r: r, key: k, amount: amount, payout: S.payout, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
+      s: s, r: r, key: k, amount: amount, target: target, payout: S.payout, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
       anyQuotes: list.length > 0, reports: S.reports, hrefFor: hrefFor, disclosureHref: SF.disclosureHref || "#",
       checkList: coverage.map(function (id) { return S.providers[id]; }).filter(Boolean),
       avgPct: (cfg.regionalAverageCost || {}).percent || 8.46, avgLabel: (cfg.regionalAverageCost || {}).label || "",
@@ -94,6 +97,7 @@
   // One-tap common amounts next to the amount box, in the sending currency.
   function renderQuick() {
     var box = $("sf-quick"); if (!box) return;
+    box.hidden = S.mode === "get";
     var list = (cfg.quickAmounts || {})[sender().currency] || [];
     var cur = parseFloat($("sf-amount").value);
     box.innerHTML = list.map(function (a) { return '<button type="button" data-amt="' + a + '" aria-pressed="' + (a === cur) + '">' + (a >= 1000 ? a / 1000 + "k" : a) + "</button>"; }).join("");
@@ -102,8 +106,16 @@
   function render() {
     renderQuick();
     var c = context();
+    var get = S.mode === "get";
     $("sf-cur").textContent = c.s.currency;
-    store.set("sf-last", { from: c.s.id, to: c.r.id, amount: c.amount, currency: c.s.currency, payout: S.payout });
+    var mb = $("sf-mode");
+    if (mb) {
+      mb.innerHTML = (get ? "Get" : "Pay") + ' <span class="mode-cur">' + (get ? c.r.currency : c.s.currency) + '</span><span class="mode-ic" aria-hidden="true">⇄</span>';
+      mb.setAttribute("aria-label", (get ? "Amount they receive, in " + c.r.currency : "Amount you pay, in " + c.s.currency) + ". Switch to " + (get ? "the amount you pay" : "the amount they need"));
+      var lab = $("sf-amount-label"); if (lab) lab.textContent = get ? "They need to receive" : "You pay in total";
+      $("sf-amount").closest(".amount-wrap").classList.toggle("is-get", get);
+    }
+    if (!get) store.set("sf-last", { from: c.s.id, to: c.r.id, amount: c.amount, currency: c.s.currency, payout: S.payout });
     $("sf-meta").innerHTML = R.metaLine(c);
     $("sf-note").textContent = c.r.note || "";
     $("sf-note").hidden = !c.r.note;
@@ -166,6 +178,16 @@
     $("sf-to").addEventListener("change", onRouteChange);
     $("sf-amount").addEventListener("input", render);
     S.open = {};
+    // Switch between "you pay" and "they need to receive": the amount carries over at today's best rate.
+    var modeBtn = $("sf-mode");
+    if (modeBtn) modeBtn.addEventListener("click", function () {
+      var c = context(), v;
+      if (S.mode === "get") { S.mode = "pay"; v = c.amount; }
+      else { S.mode = "get"; var top = c.rows.filter(function (x) { return !x.stale; })[0]; v = top ? top.gets : (c.mid ? c.amount * c.mid : 0); }
+      if (v > 0) $("sf-amount").value = v >= 1000 ? Math.round(v / 100) * 100 : Math.round(v);
+      render();
+      $("sf-amount").focus();
+    });
     document.addEventListener("click", function (e) {
       var mb = e.target.closest && e.target.closest(".more-btn");
       if (mb) {

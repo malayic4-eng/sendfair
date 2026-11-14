@@ -178,7 +178,7 @@ ${ogImg}
 <meta name="color-scheme" content="light"><meta name="theme-color" content="#ffffff">
 <link rel="icon" href="${prefix}favicon.svg" type="image/svg+xml">
 <link rel="icon" href="${prefix}favicon-48.png" sizes="48x48" type="image/png">
-<link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png">
+<link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png"><link rel="manifest" href="${prefix}manifest.webmanifest">
 ${fonts}
 <link rel="stylesheet" href="${prefix}assets/style.css?v=${V.css}">
 ${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j)}</script>`).join("\n")}
@@ -202,7 +202,7 @@ function footer(prefix) {
 <div><h3>Services</h3><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
 <div><h3>Exchange rates</h3><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "CAD-NGN", "AUD-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
 </div>
-<nav aria-label="Footer"><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a></nav>
+<nav aria-label="Footer"><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services. We do not send, hold or exchange money. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
@@ -229,7 +229,7 @@ function tool({ heading, sub, ctx, after = "" }) {
   <div class="controls">
     <div class="field"><label for="sf-from">Sending from</label><select id="sf-from">${corridors.senders.map((s) => `<option value="${s.id}"${s.id === ctx.s.id ? " selected" : ""}>${esc(s.label)} (${s.currency})</option>`).join("")}</select></div>
     <div class="field"><label for="sf-to">Sending to</label><select id="sf-to">${corridors.receivers.map((r) => `<option value="${r.id}"${r.id === ctx.r.id ? " selected" : ""}>${esc(r.name)} (${r.currency})</option>`).join("")}</select></div>
-    <div class="field amount-field"><label for="sf-amount">You pay in total</label><div class="amount-wrap"><span id="sf-cur">${ctx.s.currency}</span><input id="sf-amount" type="number" inputmode="decimal" min="1" step="any" value="${ctx.amount}"><span class="quick" id="sf-quick" role="group" aria-label="Common amounts">${(STEP_AMOUNTS[ctx.s.currency] || []).map((a) => `<button type="button" data-amt="${a}" aria-pressed="${a === ctx.amount}">${a >= 1000 ? a / 1000 + "k" : a}</button>`).join("")}</span></div></div>
+    <div class="field amount-field"><label for="sf-amount" id="sf-amount-label">You pay in total</label><div class="amount-wrap"><button type="button" id="sf-mode" class="mode-btn" title="Switch between the amount you pay and the amount they need">Pay <span class="mode-cur">${ctx.s.currency}</span><span class="mode-ic" aria-hidden="true">⇄</span></button><span id="sf-cur" hidden>${ctx.s.currency}</span><input id="sf-amount" type="number" inputmode="decimal" min="1" step="any" value="${ctx.amount}"><span class="quick" id="sf-quick" role="group" aria-label="Common amounts">${(STEP_AMOUNTS[ctx.s.currency] || []).map((a) => `<button type="button" data-amt="${a}" aria-pressed="${a === ctx.amount}">${a >= 1000 ? a / 1000 + "k" : a}</button>`).join("")}</span></div></div>
     <div class="field payout-field"><span class="label" id="sf-payout-label">They receive by</span><div class="payout-tabs" role="group" aria-labelledby="sf-payout-label">
       <button type="button" data-payout="all" aria-pressed="true">Any</button><button type="button" data-payout="mobile" aria-pressed="false">Mobile<span class="lg"> money</span></button><button type="button" data-payout="bank" aria-pressed="false">Bank</button><button type="button" data-payout="cash" aria-pressed="false">Cash</button>
     </div></div>
@@ -307,7 +307,8 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
       trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO },
     ...(init || {})
   };
-  const scripts = `<script>window.SF=${JSON.stringify(sf)};</script><script src="${prefix}assets/rank.js?v=${V.rank}" defer></script><script src="${prefix}assets/app.js?v=${V.app}" defer></script>`;
+  const scripts = `<script>window.SF=${JSON.stringify(sf)};</script><script src="${prefix}assets/rank.js?v=${V.rank}" defer></script><script src="${prefix}assets/app.js?v=${V.app}" defer></script>` +
+    (PREVIEW || DEMO ? "" : `<script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})});addEventListener("beforeinstallprompt",function(e){e.preventDefault();var b=document.getElementById("sf-install");if(!b)return;b.hidden=false;b.onclick=function(){b.hidden=true;e.prompt();};});</script>`);
   const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og });
   const bodyStr = `${header(prefix)}\n<main>${body}</main>\n${footer(prefix)}\n${scripts}`;
   if (bodyOnly) return `${headStr}\n${bodyStr}`;
@@ -480,7 +481,7 @@ write("index.html", page({
 <section class="block"><div class="wrap"><div class="section-head"><h2>Send money to</h2></div>
 <ul class="route-links big">${corridors.receivers.map((r) => `<li><a href="${link("", hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul>
 <div class="section-head" style="margin-top:32px"><h2>Services we compare</h2></div>
-<ul class="route-links big">${providersWithQuotes().map((p) => `<li><a href="${link("", provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul>
+<ul class="route-links big">${providersWithQuotes().map((p) => `<li><a class="with-badge" href="${link("", provPath(p))}">${R.badge(p)}${esc(p.name)} review</a></li>`).join("")}</ul>
 <div class="section-head" style="margin-top:32px"><h2>Head to head</h2></div>
 <ul class="route-links">${vsPairs().map(([a, b]) => `<li><a href="${link("", vsPath(a, b))}">${esc(a.name)} vs ${esc(b.name)}</a></li>`).join("")}</ul>
 <div class="section-head" style="margin-top:32px"><h2>Exchange rates today</h2></div>
@@ -646,7 +647,7 @@ for (const p of providersWithQuotes()) {
   const others = providersWithQuotes().filter((o) => o.id !== p.id);
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
-<h1>${esc(p.name)} review: rates, fees and ratings for Africa</h1>
+<h1 class="with-badge">${R.badge(p, "b-lg")}<span>${esc(p.name)} review: rates, fees and ratings for Africa</span></h1>
 <p class="lede">How ${esc(p.name)} compares on ${lines.length} routes to ${esc(joinList(countries))}, using rates checked by hand on ${esc(dateLong)}.</p>
 <div class="facts">
   <div><span class="k">Customer rating</span><span class="v">${ratingLine(p)}</span></div>
@@ -700,7 +701,7 @@ for (const [A, B] of vsPairs()) {
 ${crumbNav(prefix, trail)}
 <h1>${esc(A.name)} vs ${esc(B.name)}: which sends more to Africa?</h1>
 <p class="lede">${esc(verdict)}</p>
-<div class="vs-cards">${[A, B].map((P) => `<div class="vs-card"><h2>${esc(P.name)}</h2><dl>
+<div class="vs-cards">${[A, B].map((P) => `<div class="vs-card"><h2 class="with-badge">${R.badge(P, "b-md")}${esc(P.name)}</h2><dl>
 <div><dt>Delivers more</dt><dd>${P === A ? winsA : winsB} of ${rows.length} shared routes</dd></div>
 <div><dt>Rating</dt><dd>${ratingLine(P)}</dd></div>
 <div><dt>Ways to pay</dt><dd>${esc(joinList(P.payIn || []) || "See provider")}</dd></div></dl>
@@ -776,6 +777,7 @@ const privacyItems = [
   config.impactScriptId ? `<li><strong>Affiliate tracking.</strong> Our pages load a script from Impact, an affiliate network some providers use. It records when a page is viewed and when you follow a link to a provider, so the provider can credit us if you sign up. It does not change the ranking.</li>` : "",
   config.cfAnalyticsToken ? `<li><strong>Visit statistics.</strong> We use Cloudflare Web Analytics, which counts visits without cookies and without building a profile of you.</li>` : "",
   config.adsenseClient ? `<li><strong>Advertising.</strong> Some pages show ads from Google. Visitors in the UK and Europe are asked for consent before Google uses cookies for personalised ads. You can change your choice at any time from the privacy link Google adds to the page, and manage ads at adssettings.google.com.</li>` : "",
+  `<li><strong>Offline copies and logos.</strong> Your browser keeps a copy of the pages you open on SendFair so they still load without a connection; this stays on your device. Service logos are fetched by our server from each provider's public website, so your browser only ever connects to sendfair.africa for them.</li>`,
   `<li><strong>Hosting.</strong> The site is hosted by Cloudflare, which processes basic technical data (such as IP address) to deliver pages and protect against abuse.</li>`
 ].filter(Boolean).join("");
 
@@ -829,6 +831,7 @@ for (const [rel, [title, desc, html]] of Object.entries(trust)) {
   urls.push(rel);
 }
 
+write("offline.html", page({ prefix: "/", canonical: null, title: `You're offline · ${config.siteName}`, description: "No connection.", noindex: true, body: `<section class="block page"><div class="wrap"><article class="prose"><h1>You're offline</h1><p>SendFair needs a connection to show today's rates. Pages you opened recently still work; this one wasn't saved yet.</p><p><a class="btn" href="/">Try again</a></p></article></div></section>` }));
 write("404.html", page({ prefix: "/", canonical: null, title: `Page not found · ${config.siteName}`, description: "Page not found.", noindex: true, body: `<section class="block page"><div class="wrap"><article class="prose"><h1>That page isn't here</h1><p>The link may be old or mistyped. Today's rankings are one click away.</p><p><a class="btn" href="/">Compare transfers</a></p></article></div></section>` }));
 
 // Rate Desk (never indexed)
@@ -838,6 +841,18 @@ fs.writeFileSync(path.join(OUT, "admin/index.html"), fs.readFileSync(path.join(R
 // SEO and hosting files
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${site}/${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
 write("robots.txt", `User-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nSitemap: ${site}/sitemap.xml\n`);
+// Installable app: the manifest and a small service worker that keeps the last pages viewed for offline use.
+write("manifest.webmanifest", JSON.stringify({
+  name: "SendFair: compare money transfers to Africa", short_name: "SendFair",
+  description: "See which service delivers the most money home today.",
+  start_url: "/?source=app", scope: "/", display: "standalone", background_color: "#ffffff", theme_color: "#ffffff",
+  icons: [
+    { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+    { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+    { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+  ]
+}, null, 2));
+if (!PREVIEW) write("sw.js", fs.readFileSync(path.join(ROOT, "src/sw.js"), "utf8").replace("__VERSION__", V.css + V.app + V.rank));
 write("_headers", `/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
@@ -861,6 +876,15 @@ write("_headers", `/*
   Cache-Control: no-cache
 /providers/*
   Cache-Control: no-cache
+/compare/*
+  Cache-Control: no-cache
+/rates/*
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=86400
 /admin/*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store

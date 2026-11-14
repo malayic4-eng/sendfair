@@ -111,7 +111,7 @@ p { margin: 0; }
 .field select:hover, .field input:hover { border-color: var(--line-strong); }
 .field select:focus, .field input:focus { border-color: var(--link); outline: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--link) 18%, transparent); }
 .amount-wrap { position: relative; }
-.amount-wrap input { padding-left: 52px; font: 760 1.15rem var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.amount-wrap input { padding-left: 104px; font: 760 1.15rem var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 #sf-cur { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font: 700 .8rem var(--font-body); color: var(--muted); }
 .payout-tabs { display: flex; gap: 2px; background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px; padding: 3px; min-height: 44px; align-items: center; }
 .payout-tabs button {
@@ -125,6 +125,12 @@ p { margin: 0; }
 .trend { font-weight: 650; white-space: nowrap; }
 .trend.up { color: var(--leaf); }
 .trend.down { color: var(--warn); }
+.mode-btn { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 4px; height: calc(100% - 12px); padding: 0 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: 650 .74rem var(--font-body); cursor: pointer; white-space: nowrap; }
+.mode-btn:hover { border-color: var(--line-strong); color: var(--ink); }
+.mode-cur { color: var(--ink); font-weight: 750; }
+.mode-ic { color: var(--link); font-size: .85rem; }
+.amount-wrap.is-get .mode-btn { background: var(--marigold-soft); border-color: var(--marigold); color: var(--ink); }
+.amount-wrap.is-get input { padding-right: 14px; }
 .quick { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: flex; gap: 3px; }
 .amount-wrap input { padding-right: 150px; }
 .amount-wrap input::-webkit-outer-spin-button, .amount-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -184,7 +190,14 @@ button.pick:hover { border-color: var(--line-strong); }
 .trustbar strong { color: var(--ink); }
 .spark { vertical-align: middle; color: var(--link); margin-left: 4px; }
 
-.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #ffffff; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(21, 27, 69, .08); }
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #ffffff; border-radius: inherit; }
+.avatar:has(img) { box-shadow: 0 0 0 1px var(--line); }
+.with-badge { display: inline-flex; align-items: center; gap: 10px; }
+.route-links .with-badge { gap: 8px; }
+h1.with-badge { display: flex; align-items: flex-start; gap: 14px; }
+h1.with-badge > span:last-child { min-width: 0; }
+.avatar.b-md { width: 30px; height: 30px; border-radius: 9px; line-height: 30px; font-size: .75rem; }
+.avatar.b-lg { width: 48px; height: 48px; border-radius: 13px; line-height: 48px; font-size: 1rem; margin-top: .12em; }
 .avatar { position: relative; overflow: hidden; width: 22px; height: 22px; border-radius: 7px; color: #fff; font: 800 .62rem/22px var(--font-body); text-align: center; letter-spacing: .02em; flex: none; }
 .go {
   display: inline-block; text-align: center; text-decoration: none; white-space: nowrap;
@@ -414,7 +427,8 @@ details p { margin-top: 10px; color: var(--muted); }
   .amount-wrap input { padding-right: 168px; }
   .quick button { padding: 5px 9px; font-size: .78rem; }
   .field select, .field input { min-height: 40px; padding: 6px 10px; font-size: .92rem; }
-  .amount-wrap input { padding-left: 46px; font-size: 1.05rem; }
+  .amount-wrap input { padding-left: 96px; font-size: 1.05rem; }
+  .mode-btn { padding: 0 7px; font-size: .7rem; }
   #sf-cur { left: 11px; }
   .payout-tabs { min-height: 40px; padding: 2px; }
   .payout-tabs button { flex: 1; padding: 6px 2px; font-size: .78rem; }
@@ -455,3 +469,6 @@ details p { margin-top: 10px; color: var(--muted); }
   .notif.is-new { animation: arrive .5s cubic-bezier(.2, .9, .25, 1.15) both; }
   @keyframes arrive { from { opacity: 0; transform: translateY(-14px) scale(.96); } to { opacity: 1; transform: none; } }
 }
+.install-btn { font: inherit; color: var(--link); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+.install-btn:hover { border-color: var(--line-strong); }
+[hidden] { display: none !important; }
