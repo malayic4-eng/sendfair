@@ -374,15 +374,15 @@ const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fon
 
 // ---------- SEO helpers ----------
 const joinList = (a) => a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : a.join("");
-const CURNAME = { GBP: "British pounds", USD: "US dollars", CAD: "Canadian dollars", AUD: "Australian dollars", AED: "UAE dirhams", SAR: "Saudi riyals", QAR: "Qatari riyals", KWD: "Kuwaiti dinars", BHD: "Bahraini dinars", OMR: "Omani rials", KES: "Kenyan shillings", NGN: "Nigerian naira", GHS: "Ghanaian cedis", UGX: "Ugandan shillings", ZMW: "Zambian kwacha" };
-const STEP_AMOUNTS = { GBP: [100, 250, 500, 1000], USD: [100, 300, 500, 1000], CAD: [200, 400, 1000, 2000], AUD: [200, 450, 1000, 2000],
+const CURNAME = { GBP: "British pounds", USD: "US dollars", CAD: "Canadian dollars", AUD: "Australian dollars", AED: "UAE dirhams", SAR: "Saudi riyals", QAR: "Qatari riyals", KWD: "Kuwaiti dinars", BHD: "Bahraini dinars", OMR: "Omani rials", EUR: "euros", EGP: "Egyptian pounds", MAD: "Moroccan dirhams", XOF: "West African CFA francs", XAF: "Central African CFA francs", ETB: "Ethiopian birr", ZAR: "South African rand", TZS: "Tanzanian shillings", RWF: "Rwandan francs", KES: "Kenyan shillings", NGN: "Nigerian naira", GHS: "Ghanaian cedis", UGX: "Ugandan shillings", ZMW: "Zambian kwacha" };
+const STEP_AMOUNTS = { GBP: [100, 250, 500, 1000], EUR: [100, 300, 500, 1000], USD: [100, 300, 500, 1000], CAD: [200, 400, 1000, 2000], AUD: [200, 450, 1000, 2000],
   AED: [500, 1000, 2000, 5000], SAR: [500, 1000, 2000, 5000], QAR: [500, 1000, 2000, 5000], KWD: [50, 100, 200, 500], BHD: [50, 100, 200, 500], OMR: [50, 100, 200, 500] };
 const REGION_IDS = ["west", "gulf"];
 const GULF_GUIDE = ((corridors.regions || {}).gulf || {}).guide || "send-money-from-the-gulf/";
 const gulfSenders = corridors.senders.filter((x) => x.region === "gulf");
 const allSendersText = joinList(corridors.senders.filter((x) => x.region !== "gulf").map((x) => x.label)) + (gulfSenders.length ? " and the Gulf" : "");
 const regulatorText = (list) => joinList([...new Set(list.map((x) => REGULATOR[x.id]).filter(Boolean))]);
-const REGULATOR = { uk: "the FCA (UK)", us: "FinCEN (US)", canada: "FINTRAC (Canada)", australia: "AUSTRAC (Australia)", uae: "the Central Bank of the UAE", saudi: "the Saudi Central Bank (SAMA)", qatar: "Qatar Central Bank", kuwait: "the Central Bank of Kuwait", bahrain: "the Central Bank of Bahrain", oman: "the Central Bank of Oman" };
+const REGULATOR = { uk: "the FCA (UK)", us: "FinCEN (US)", canada: "FINTRAC (Canada)", australia: "AUSTRAC (Australia)", europe: "your country's financial regulator (for example ACPR in France, BaFin in Germany, Banca d'Italia or Banco de España)", uae: "the Central Bank of the UAE", saudi: "the Saudi Central Bank (SAMA)", qatar: "Qatar Central Bank", kuwait: "the Central Bank of Kuwait", bahrain: "the Central Bank of Bahrain", oman: "the Central Bank of Oman" };
 const dateLong = new Date(quotesFile.updatedAt || NOW).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const hubPath = (r) => `send-money-to/${r.id}/`;
 const provPath = (p) => `providers/${p.id}/`;
@@ -401,6 +401,17 @@ const TIPS = {
   ghana: ["Mobile money wallets (MTN MoMo, Telecel Cash, AT Money) must be registered to the recipient; their verification level sets how much they can receive.", "Check the registered name the provider shows before you confirm."],
   uganda: ["MTN Mobile Money and Airtel Money wallets have daily and balance limits set by how fully the account is registered. For large amounts, send to a bank account.", "Enter the number in +256 format and check the registered name before you confirm."],
   zambia: ["MTN, Airtel and Zamtel wallets have limits that depend on registration level; banks suit larger amounts.", "Check the registered name the provider shows before you confirm."],
+  egypt: ["Banks and wallets such as Vodafone Cash need the recipient's name exactly as on their national ID.", "Egypt has had official and parallel exchange rates; only use licensed services, which pay at the official rate."],
+  morocco: ["Cash pickup at Wafacash, Cash Plus and the post office is very common; the recipient needs their national ID card (CIN).", "For bank deposits you need the 24-digit RIB account number."],
+  senegal: ["Wave and Orange Money are the most used wallets; check the number is registered in the recipient's name.", "Money arrives in West African CFA francs, which are pegged to the euro, so the rate from Europe barely moves."],
+  ivorycoast: ["Wave, Orange Money and MTN MoMo are the main wallets; wallet limits depend on how fully the account is registered.", "The CFA franc is pegged to the euro, so services compete on fees and margins rather than market moves."],
+  mali: ["Orange Money is the most widespread wallet; cash pickup remains common outside Bamako.", "The CFA franc is pegged to the euro."],
+  cameroon: ["MTN MoMo and Orange Money are the main wallets; enter the number in +237 format.", "Money arrives in Central African CFA francs, pegged to the euro."],
+  ethiopia: ["Ethiopia moved to a market exchange rate in 2024; compare carefully, as rates can differ a lot between services.", "telebirr and bank accounts are the most common ways to receive."],
+  southafrica: ["Most transfers go to bank accounts; some services also pay out at retailers like Shoprite.", "Large or repeated transfers may need the recipient to explain the source of funds to their bank."],
+  tanzania: ["M-Pesa, Tigo Pesa and Airtel Money wallets have limits set by registration level; enter the number in +255 format.", "Check the registered name the provider shows before you confirm."],
+  drc: ["Most services pay out in US dollars, by mobile money or cash pickup.", "For cash pickup, the name must match the recipient's ID exactly."],
+  rwanda: ["MTN MoMo and Airtel Money are the main wallets; enter the number in +250 format.", "Check the registered name the provider shows before you confirm."],
   zimbabwe: ["Money arrives in US dollars, by cash pickup or mobile wallet such as EcoCash, depending on the service.", "For cash pickup, the name must match the recipient's ID exactly."]
 };
 const TIPS_ALL = [
@@ -413,7 +424,7 @@ const TIPS_ALL = [
 
 // Tips that depend on where the money is sent from.
 const TIPS_FROM = {
-  west: ["Sending money to family is generally not taxed for the sender in the UK, US, Canada or Australia, though very large gifts can have reporting rules. Check with a tax adviser if unsure."],
+  west: ["Sending money to family is generally not taxed for the sender in the UK, US, Europe, Canada or Australia, though very large gifts can have reporting rules. Check with a tax adviser if unsure."],
   gulf: [
     "Gulf states do not tax money you send home, but VAT is added to the transfer fee in some: 5% in the UAE and Oman, 10% in Bahrain and 15% in Saudi Arabia. Fees shown here include it.",
     "Use only a service licensed by the country's central bank. Informal hawala agents are cheap until something goes wrong: there is no receipt, no refund and, in the UAE and elsewhere, operating unregistered is a crime.",
@@ -520,7 +531,7 @@ const homeCtx = routeContext(S0, R0, "", config.defaultAmounts[S0.currency]);
 write("index.html", page({
   prefix: "", canonical: "", bodyOnly: PREVIEW, og: "home",
   title: PREVIEW ? config.siteName : `Compare money transfers to Africa: best rates today | ${config.siteName}`,
-  description: `See which service delivers the most to ${joinList(corridors.receivers.map((r) => r.name))}, from the UK, US, Canada, Australia and the Gulf. Rates checked by hand.`,
+  description: `See which service delivers the most money to ${corridors.receivers.length} African countries, including Nigeria, Kenya, Ghana, Egypt and Morocco, from the UK, US, Europe, Canada, Australia and the Gulf.`,
   jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/" },
     { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail, areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) }],
   body: tool({
@@ -598,7 +609,7 @@ ${alertForm(ctx)}
 <h2>How to send money from ${esc(s.short)} to ${esc(r.name)}</h2>
 <ol class="howto">
 <li><strong>Compare today's options.</strong> Enter the amount you will pay above. The service at the top delivers the most ${esc(rCur)} after its fee and exchange-rate margin.</li>
-<li><strong>Open an account with the provider.</strong> ${s.region === "gulf" ? `Services in ${esc(s.short)} must check your identity, so have your ${esc(s.idDoc || "residence ID")} ready. At an exchange house branch you can do this at the counter; apps check it on your phone.` : "UK, US, Canadian and Australian providers must check your identity, so have photo ID ready."} Your first transfer may take longer while this is done.</li>
+<li><strong>Open an account with the provider.</strong> ${s.region === "gulf" ? `Services in ${esc(s.short)} must check your identity, so have your ${esc(s.idDoc || "residence ID")} ready. At an exchange house branch you can do this at the counter; apps check it on your phone.` : "Providers must check your identity, so have photo ID ready."} Your first transfer may take longer while this is done.</li>
 <li><strong>Add your recipient.</strong> For mobile money${nets.length ? ` (${esc(joinList(nets))})` : ""}, you need their phone number registered for the wallet. For a bank deposit, their account number and bank. For cash pickup, their full name exactly as on their ID.</li>
 <li><strong>Pay and track the transfer.</strong> ${s.region === "gulf" ? "Pay by bank transfer, debit card, wallet balance or cash at a branch, depending on the service." : "Bank transfers are often cheapest to pay with; cards can add a fee."} Check the final amount on the provider's screen before you confirm.</li>
 </ol>
@@ -641,7 +652,7 @@ for (const r of corridors.receivers) {
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>Send money to ${esc(r.name)}</h1>
-<p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Canada, Australia and the Gulf states, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, checked by hand ${esc(dateLong)}.</p>
+<p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Europe, Canada, Australia and the Gulf states, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, checked by hand ${esc(dateLong)}.</p>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">Sending from</th><th scope="col">You pay</th><th scope="col">Best today</th><th scope="col" class="num">They get</th><th scope="col"></th></tr></thead>
 <tbody>${lines.filter((l) => l.s.region !== "gulf" || lines.some((m) => m.s.region === "gulf" && m.ctx.anyQuotes)).map((l, i, arr) => `${i && l.s.region !== arr[i - 1].s.region ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}<tr><th scope="row">${esc(l.s.name)}</th><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td>${l.top ? esc(l.lead.length > 1 ? l.lead.map((x) => x.p.name).join(", ") + " (tie)" : l.top.p.name) : "Being checked"}</td><td class="num top">${l.top ? esc(plain(R.money(l.top.gets, r.currency))) : "–"}</td><td><a href="${link(prefix, corridorPath(l.s, r))}">Compare all</a></td></tr>`).join("")}${lines.some((m) => m.s.region === "gulf") && !lines.some((m) => m.s.region === "gulf" && m.ctx.anyQuotes) ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf: rates are being added · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}</tbody>
@@ -914,7 +925,7 @@ ${gulfSenders.map((x) => `<h3>From ${esc(x.short)}</h3><ul class="route-links">$
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: "gulf",
     title: `Send money from the Gulf to Africa: every way compared`,
-    description: `Compare ways to send money from the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman to ${joinList(corridors.receivers.map((r) => r.name))}: exchange houses, bank remittance services, wallets, apps and cash networks, ranked by what arrives.`,
+    description: `Compare ways to send money from the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman to Africa: exchange houses, bank remittance services, wallets, apps and cash networks, ranked by what arrives.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   urls.push(rel);
 }
@@ -939,7 +950,7 @@ const trust = {
   "about/": ["About SendFair", "Who runs SendFair and why it exists.", `
 <h1>About SendFair</h1>
 <p>Sending money home is one of the most regular bills in a diaspora household, and one of the least transparent. A transfer that says "zero fees" can still lose several percent in the exchange rate.</p>
-<p>SendFair shows one number clearly: how much actually lands at home. We cover the routes most used by Africans in the United States, the United Kingdom, Canada and Australia, and by the many who work in the Gulf (the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman), sending to Nigeria, Ghana, Kenya, Uganda, Zambia and Zimbabwe.</p>
+<p>SendFair shows one number clearly: how much actually lands at home. We cover the routes most used by Africans in the United States, the United Kingdom, Europe, Canada and Australia, and by the many who work in the Gulf (the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman), sending to ${esc(joinList(corridors.receivers.map((r) => r.name)))}.</p>
 <p>The site is run independently from Nairobi, Kenya. We are not owned by any transfer company.</p>
 <h2>How the numbers are made</h2>
 <p>Every quote is read by hand from the provider's own public calculator or app, for a typical amount on each route, and saved with the time it was checked. Busy routes are checked every day and quieter ones at least every two days. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>

@@ -162,6 +162,7 @@
     uk: ["the FCA register", "https://register.fca.org.uk/"],
     us: ["FinCEN's MSB search", "https://www.fincen.gov/msb-registrant-search"],
     canada: ["FINTRAC's MSB registry", "https://fintrac-canafe.canada.ca/msb-esm/reg-eng"],
+    europe: ["the EBA register of payment institutions", "https://euclid.eba.europa.eu/register/pir/search"],
     australia: ["AUSTRAC's remittance register", "https://www.austrac.gov.au/remittance-sector-register-and-remittance-registration-actions"],
     uae: ["the Central Bank of the UAE", "https://www.centralbank.ae/", "by"],
     saudi: ["the Saudi Central Bank (SAMA)", "https://www.sama.gov.sa/", "by"],
@@ -335,7 +336,10 @@
 
   // Local time in the family's city, for the phone's lock screen.
   var HOME = { nigeria: ["Lagos", "Africa/Lagos"], ghana: ["Accra", "Africa/Accra"], kenya: ["Nairobi", "Africa/Nairobi"],
-    uganda: ["Kampala", "Africa/Kampala"], zambia: ["Lusaka", "Africa/Lusaka"], zimbabwe: ["Harare", "Africa/Harare"] };
+    uganda: ["Kampala", "Africa/Kampala"], zambia: ["Lusaka", "Africa/Lusaka"], zimbabwe: ["Harare", "Africa/Harare"],
+    egypt: ["Cairo", "Africa/Cairo"], morocco: ["Casablanca", "Africa/Casablanca"], senegal: ["Dakar", "Africa/Dakar"], ivorycoast: ["Abidjan", "Africa/Abidjan"],
+    mali: ["Bamako", "Africa/Bamako"], cameroon: ["Douala", "Africa/Douala"], ethiopia: ["Addis Ababa", "Africa/Addis_Ababa"], southafrica: ["Johannesburg", "Africa/Johannesburg"],
+    tanzania: ["Dar es Salaam", "Africa/Dar_es_Salaam"], drc: ["Kinshasa", "Africa/Kinshasa"], rwanda: ["Kigali", "Africa/Kigali"] };
   function homeTime(id, now) {
     var h = HOME[id] || ["", "UTC"], d = new Date(now), time = "", date = "";
     try {

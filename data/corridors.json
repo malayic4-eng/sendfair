@@ -1,201 +1,341 @@
 {
-  "senders": [
-    {
-      "id": "us",
-      "name": "United States",
-      "label": "US",
-      "short": "the US",
-      "currency": "USD",
-      "demonym": "US",
-      "iso2": "US",
-      "region": "west"
-    },
-    {
-      "id": "uk",
-      "name": "United Kingdom",
-      "label": "UK",
-      "short": "the UK",
-      "currency": "GBP",
-      "demonym": "UK",
-      "iso2": "GB",
-      "region": "west"
-    },
-    {
-      "id": "canada",
-      "name": "Canada",
-      "label": "Canada",
-      "short": "Canada",
-      "currency": "CAD",
-      "demonym": "Canadian",
-      "iso2": "CA",
-      "region": "west"
-    },
-    {
-      "id": "australia",
-      "name": "Australia",
-      "label": "Australia",
-      "short": "Australia",
-      "currency": "AUD",
-      "demonym": "Australian",
-      "iso2": "AU",
-      "region": "west"
-    },
-    {
-      "id": "uae",
-      "name": "United Arab Emirates",
-      "label": "UAE",
-      "short": "the UAE",
-      "currency": "AED",
-      "demonym": "UAE",
-      "iso2": "AE",
-      "region": "gulf",
-      "idDoc": "Emirates ID",
-      "vat": 5
-    },
-    {
-      "id": "saudi",
-      "name": "Saudi Arabia",
-      "label": "Saudi Arabia",
-      "short": "Saudi Arabia",
-      "currency": "SAR",
-      "demonym": "Saudi",
-      "iso2": "SA",
-      "region": "gulf",
-      "idDoc": "Iqama (residence permit)",
-      "vat": 15
-    },
-    {
-      "id": "qatar",
-      "name": "Qatar",
-      "label": "Qatar",
-      "short": "Qatar",
-      "currency": "QAR",
-      "demonym": "Qatari",
-      "iso2": "QA",
-      "region": "gulf",
-      "idDoc": "Qatar ID",
-      "vat": 0
-    },
-    {
-      "id": "kuwait",
-      "name": "Kuwait",
-      "label": "Kuwait",
-      "short": "Kuwait",
-      "currency": "KWD",
-      "demonym": "Kuwaiti",
-      "iso2": "KW",
-      "region": "gulf",
-      "idDoc": "Civil ID",
-      "vat": 0
-    },
-    {
-      "id": "bahrain",
-      "name": "Bahrain",
-      "label": "Bahrain",
-      "short": "Bahrain",
-      "currency": "BHD",
-      "demonym": "Bahraini",
-      "iso2": "BH",
-      "region": "gulf",
-      "idDoc": "CPR card",
-      "vat": 10
-    },
-    {
-      "id": "oman",
-      "name": "Oman",
-      "label": "Oman",
-      "short": "Oman",
-      "currency": "OMR",
-      "demonym": "Omani",
-      "iso2": "OM",
-      "region": "gulf",
-      "idDoc": "resident card",
-      "vat": 5
-    }
-  ],
-  "receivers": [
-    {
-      "id": "nigeria",
-      "name": "Nigeria",
-      "currency": "NGN",
-      "iso2": "NG",
-      "payout": {
-        "bank": "Any Nigerian bank account",
-        "mobile": "Wallets such as OPay and PalmPay",
-        "cash": "Collect at agent locations"
-      },
-      "note": ""
-    },
-    {
-      "id": "ghana",
-      "name": "Ghana",
-      "currency": "GHS",
-      "iso2": "GH",
-      "payout": {
-        "mobile": "MTN MoMo, Telecel Cash, AT Money",
-        "bank": "Ghanaian bank accounts",
-        "cash": "Collect at agent locations"
-      },
-      "note": ""
-    },
-    {
-      "id": "kenya",
-      "name": "Kenya",
-      "currency": "KES",
-      "iso2": "KE",
-      "payout": {
-        "mobile": "M-Pesa, Airtel Money",
-        "bank": "Kenyan bank accounts",
-        "cash": "Collect at agent locations"
-      },
-      "note": ""
-    },
-    {
-      "id": "uganda",
-      "name": "Uganda",
-      "currency": "UGX",
-      "iso2": "UG",
-      "payout": {
-        "mobile": "MTN MoMo, Airtel Money",
-        "bank": "Ugandan bank accounts",
-        "cash": "Collect at agent locations"
-      },
-      "note": ""
-    },
-    {
-      "id": "zambia",
-      "name": "Zambia",
-      "currency": "ZMW",
-      "iso2": "ZM",
-      "payout": {
-        "mobile": "MTN MoMo, Airtel Money, Zamtel Kwacha",
-        "bank": "Zambian bank accounts",
-        "cash": "Collect at agent locations"
-      },
-      "note": ""
-    },
-    {
-      "id": "zimbabwe",
-      "name": "Zimbabwe",
-      "currency": "USD",
-      "iso2": "ZW",
-      "payout": {
-        "mobile": "Wallets such as EcoCash",
-        "bank": "Zimbabwean bank accounts",
-        "cash": "Collect at agent locations"
-      },
-      "note": "Most transfers to Zimbabwe are paid out in US dollars, so amounts here are shown in USD."
-    }
-  ],
-  "regions": {
-    "west": {
-      "name": "the UK, US, Canada and Australia",
-      "heading": "From the UK, US, Canada and Australia"
-    },
-    "gulf": {
-      "name": "the Gulf",
-      "heading": "From the Gulf",
-      "guide": "send-money-from-the-gulf/"
-    }
+ "senders": [
+  {
+   "id": "us",
+   "name": "United States",
+   "label": "US",
+   "short": "the US",
+   "currency": "USD",
+   "demonym": "US",
+   "iso2": "US",
+   "region": "west"
+  },
+  {
+   "id": "uk",
+   "name": "United Kingdom",
+   "label": "UK",
+   "short": "the UK",
+   "currency": "GBP",
+   "demonym": "UK",
+   "iso2": "GB",
+   "region": "west"
+  },
+  {
+   "id": "canada",
+   "name": "Canada",
+   "label": "Canada",
+   "short": "Canada",
+   "currency": "CAD",
+   "demonym": "Canadian",
+   "iso2": "CA",
+   "region": "west"
+  },
+  {
+   "id": "australia",
+   "name": "Australia",
+   "label": "Australia",
+   "short": "Australia",
+   "currency": "AUD",
+   "demonym": "Australian",
+   "iso2": "AU",
+   "region": "west"
+  },
+  {
+   "id": "europe",
+   "name": "Europe (euro countries)",
+   "label": "Europe",
+   "short": "Europe",
+   "currency": "EUR",
+   "demonym": "European",
+   "iso2": "EU",
+   "region": "west"
+  },
+  {
+   "id": "uae",
+   "name": "United Arab Emirates",
+   "label": "UAE",
+   "short": "the UAE",
+   "currency": "AED",
+   "demonym": "UAE",
+   "iso2": "AE",
+   "region": "gulf",
+   "idDoc": "Emirates ID",
+   "vat": 5
+  },
+  {
+   "id": "saudi",
+   "name": "Saudi Arabia",
+   "label": "Saudi Arabia",
+   "short": "Saudi Arabia",
+   "currency": "SAR",
+   "demonym": "Saudi",
+   "iso2": "SA",
+   "region": "gulf",
+   "idDoc": "Iqama (residence permit)",
+   "vat": 15
+  },
+  {
+   "id": "qatar",
+   "name": "Qatar",
+   "label": "Qatar",
+   "short": "Qatar",
+   "currency": "QAR",
+   "demonym": "Qatari",
+   "iso2": "QA",
+   "region": "gulf",
+   "idDoc": "Qatar ID",
+   "vat": 0
+  },
+  {
+   "id": "kuwait",
+   "name": "Kuwait",
+   "label": "Kuwait",
+   "short": "Kuwait",
+   "currency": "KWD",
+   "demonym": "Kuwaiti",
+   "iso2": "KW",
+   "region": "gulf",
+   "idDoc": "Civil ID",
+   "vat": 0
+  },
+  {
+   "id": "bahrain",
+   "name": "Bahrain",
+   "label": "Bahrain",
+   "short": "Bahrain",
+   "currency": "BHD",
+   "demonym": "Bahraini",
+   "iso2": "BH",
+   "region": "gulf",
+   "idDoc": "CPR card",
+   "vat": 10
+  },
+  {
+   "id": "oman",
+   "name": "Oman",
+   "label": "Oman",
+   "short": "Oman",
+   "currency": "OMR",
+   "demonym": "Omani",
+   "iso2": "OM",
+   "region": "gulf",
+   "idDoc": "resident card",
+   "vat": 5
   }
+ ],
+ "receivers": [
+  {
+   "id": "nigeria",
+   "name": "Nigeria",
+   "currency": "NGN",
+   "iso2": "NG",
+   "payout": {
+    "bank": "Any Nigerian bank account",
+    "mobile": "Wallets such as OPay and PalmPay",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "ghana",
+   "name": "Ghana",
+   "currency": "GHS",
+   "iso2": "GH",
+   "payout": {
+    "mobile": "MTN MoMo, Telecel Cash, AT Money",
+    "bank": "Ghanaian bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "kenya",
+   "name": "Kenya",
+   "currency": "KES",
+   "iso2": "KE",
+   "payout": {
+    "mobile": "M-Pesa, Airtel Money",
+    "bank": "Kenyan bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "uganda",
+   "name": "Uganda",
+   "currency": "UGX",
+   "iso2": "UG",
+   "payout": {
+    "mobile": "MTN MoMo, Airtel Money",
+    "bank": "Ugandan bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "zambia",
+   "name": "Zambia",
+   "currency": "ZMW",
+   "iso2": "ZM",
+   "payout": {
+    "mobile": "MTN MoMo, Airtel Money, Zamtel Kwacha",
+    "bank": "Zambian bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "zimbabwe",
+   "name": "Zimbabwe",
+   "currency": "USD",
+   "iso2": "ZW",
+   "payout": {
+    "mobile": "Wallets such as EcoCash",
+    "bank": "Zimbabwean bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": "Most transfers to Zimbabwe are paid out in US dollars, so amounts here are shown in USD."
+  },
+  {
+   "id": "egypt",
+   "name": "Egypt",
+   "currency": "EGP",
+   "iso2": "EG",
+   "payout": {
+    "mobile": "Vodafone Cash, Orange Cash, InstaPay-linked wallets",
+    "bank": "Egyptian bank accounts",
+    "cash": "Collect at bank branches and agents"
+   },
+   "note": ""
+  },
+  {
+   "id": "morocco",
+   "name": "Morocco",
+   "currency": "MAD",
+   "iso2": "MA",
+   "payout": {
+    "bank": "Moroccan bank accounts",
+    "cash": "Collect at agents such as Wafacash, Cash Plus and post offices"
+   },
+   "note": ""
+  },
+  {
+   "id": "senegal",
+   "name": "Senegal",
+   "currency": "XOF",
+   "iso2": "SN",
+   "payout": {
+    "mobile": "Wave, Orange Money, Free Money",
+    "bank": "Senegalese bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "ivorycoast",
+   "name": "Côte d'Ivoire",
+   "currency": "XOF",
+   "iso2": "CI",
+   "payout": {
+    "mobile": "Wave, Orange Money, MTN MoMo, Moov Money",
+    "bank": "Ivorian bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "mali",
+   "name": "Mali",
+   "currency": "XOF",
+   "iso2": "ML",
+   "payout": {
+    "mobile": "Orange Money, Moov Money, Wave",
+    "bank": "Malian bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "cameroon",
+   "name": "Cameroon",
+   "currency": "XAF",
+   "iso2": "CM",
+   "payout": {
+    "mobile": "MTN MoMo, Orange Money",
+    "bank": "Cameroonian bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "ethiopia",
+   "name": "Ethiopia",
+   "currency": "ETB",
+   "iso2": "ET",
+   "payout": {
+    "mobile": "telebirr, M-Pesa Ethiopia",
+    "bank": "Ethiopian bank accounts",
+    "cash": "Collect at bank branches"
+   },
+   "note": ""
+  },
+  {
+   "id": "southafrica",
+   "name": "South Africa",
+   "currency": "ZAR",
+   "iso2": "ZA",
+   "payout": {
+    "bank": "South African bank accounts",
+    "cash": "Collect at retailers such as Shoprite and Pick n Pay, and agents"
+   },
+   "note": ""
+  },
+  {
+   "id": "tanzania",
+   "name": "Tanzania",
+   "currency": "TZS",
+   "iso2": "TZ",
+   "payout": {
+    "mobile": "M-Pesa, Tigo Pesa (Mixx by Yas), Airtel Money, HaloPesa",
+    "bank": "Tanzanian bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  },
+  {
+   "id": "drc",
+   "name": "DR Congo",
+   "currency": "USD",
+   "iso2": "CD",
+   "payout": {
+    "mobile": "M-Pesa, Orange Money, Airtel Money",
+    "bank": "Congolese bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": "Money usually arrives in US dollars, which are widely used alongside the Congolese franc."
+  },
+  {
+   "id": "rwanda",
+   "name": "Rwanda",
+   "currency": "RWF",
+   "iso2": "RW",
+   "payout": {
+    "mobile": "MTN MoMo, Airtel Money",
+    "bank": "Rwandan bank accounts",
+    "cash": "Collect at agent locations"
+   },
+   "note": ""
+  }
+ ],
+ "regions": {
+  "west": {
+   "name": "the UK, US, Europe, Canada and Australia",
+   "heading": "From the UK, US, Europe, Canada and Australia"
+  },
+  "gulf": {
+   "name": "the Gulf",
+   "heading": "From the Gulf",
+   "guide": "send-money-from-the-gulf/"
+  }
+ }
 }
