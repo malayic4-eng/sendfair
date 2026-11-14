@@ -259,7 +259,7 @@ function tool({ heading, sub, ctx, after = "" }) {
 </div>
 <ul class="trustbar" aria-label="Why you can trust these rankings">
   <li><strong>Independent.</strong> Run from Nairobi; no provider owns us.</li>
-  <li><strong>Checked by hand</strong> every morning, with an evening backup check.</li>
+  <li><strong>Checked by hand.</strong> Busy routes daily, others every two days; each row shows when.</li>
   <li><strong>Standard rates only.</strong> No paid placements; commissions never change the order.</li>
   <li><strong>Ratings shown</strong> from Trustpilot, so you see what customers say.</li>
 </ul>
@@ -308,14 +308,14 @@ function corridorGrid(prefix) {
       const top = c.rows.find((x) => !x.stale), lead = R.leaders(c.rows);
       return `<li><a href="${link(prefix, corridorPath(s, r))}"><span class="b-country">${esc(r.name)}</span>${top
         ? `<span class="b-amt num">${R.moneyHtml(top.gets, r.currency)}</span><span class="b-prov">${lead.length > 1 ? `${lead.length}-way tie: ${esc(lead.map((x) => x.p.name).join(", "))}` : `with ${esc(top.p.name)}`}</span>`
-        : `<span class="b-amt b-wait">Being checked</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
+        : `<span class="b-amt b-wait">${c.anyQuotes ? "Being rechecked" : "Coming soon"}</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
     }).join("");
     return `<div class="board-col"><h3>From ${esc(s.short)}</h3><p class="board-sub">Best result for <span class="num">${esc(R.money(amount, s.currency, 0))}</span></p><ul>${rows}</ul></div>`;
   };
   const groups = REGION_IDS.map((id) => ({ id, reg: (corridors.regions || {})[id] || {}, list: corridors.senders.filter((s) => (s.region || "west") === id) })).filter((g) => g.list.length);
   return `<section class="block" id="corridors"><div class="wrap">
 <div class="section-head"><h2>Today's best on every route</h2><p class="lede">What arrives for a typical transfer, from the service that delivers the most. Open a route to compare every service and enter your own amount.</p></div>
-${groups.map((g) => `${groups.length > 1 ? `<div class="board-group" id="from-${g.id}"><h3>${esc(g.reg.heading || "")}</h3>${g.reg.guide ? `<a href="${link(prefix, g.reg.guide)}">Compare exchange houses, apps, banks and wallets</a>` : ""}</div>` : ""}<div class="board${g.list.length % 3 === 0 && g.list.length > 4 ? " board-3" : ""}">${g.list.map(col).join("")}</div>`).join("")}
+${groups.map((g) => !g.list.some((s) => corridors.receivers.some((r) => (quotes[`${s.id}-${r.id}`] || []).length)) ? `<div class="board-group" id="from-${g.id}"><h3>${esc(g.reg.heading || "")}</h3>${g.reg.guide ? `<a href="${link(prefix, g.reg.guide)}">How exchange houses, apps, banks and wallets compare</a>` : ""}</div><p class="board-soon">Rates from ${esc(joinList(g.list.map((s) => s.short)))} are being added. Until then, <a href="${link(prefix, g.reg.guide || GULF_GUIDE)}">the guide</a> explains each way of sending and what a fair deal looks like.</p>` : `${groups.length > 1 ? `<div class="board-group" id="from-${g.id}"><h3>${esc(g.reg.heading || "")}</h3>${g.reg.guide ? `<a href="${link(prefix, g.reg.guide)}">Compare exchange houses, apps, banks and wallets</a>` : ""}</div>` : ""}<div class="board${g.list.length % 3 === 0 && g.list.length > 4 ? " board-3" : ""}">${g.list.map(col).join("")}</div>`).join("")}
 </div></section>`;
 }
 
@@ -543,7 +543,7 @@ for (const s of corridors.senders) {
     const description = top
       ? `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 4))} by what arrives in ${r.name}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}.`
       : `Compare money transfer services from ${s.short} to ${r.name} by what actually arrives in ${rCur}, after fees and the exchange-rate markup. Rates checked by hand.`;
-    const lede = `Compare ${names.length > 1 ? names.length + " services" : "transfer services"} by how many ${esc(rCur)} arrive${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Checked by hand, ${esc(dateLong)}.`;
+    const lede = `Compare ${names.length > 1 ? names.length + " services" : "transfer services"} by how many ${esc(rCur)} arrive${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. ${top ? `Checked by hand, ${esc(dateLong)}.` : "Quotes for this route are being added."}`;
     const mobileProv = [...new Set(fresh.filter((x) => (x.q.payout || []).includes("mobile")).map((x) => x.p.name))];
     const midTxt = ctx.mid ? `1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}` : "";
     const summary = top ? `<p>On ${esc(dateLong)}, ${lead.length > 1 ? `<strong>${esc(R.names(lead))}</strong> tie for the most` : `<strong>${esc(top.p.name)}</strong> delivers the most`} from ${esc(s.short)} to ${esc(r.name)}: <strong>${esc(plain(R.money(top.gets, r.currency)))}</strong> for ${esc(amt)}${lead.length > 1 ? "" : `, at a rate of ${R.rateStr(top.ev.rate)} with ${esc(R.feeStr(top.q, s.currency).replace(/^Fee /, "a fee of ").replace(/^No fee$/, "no fee"))}`}.${last && last !== top ? ` The lowest of the ${fresh.length} services we checked, ${esc(last.p.name)}, delivers ${esc(plain(R.money(last.gets, r.currency)))}, so choosing well is worth ${esc(plain(R.money(top.gets - last.gets, r.currency)))} on this one transfer.` : ""}${midTxt ? ` The mid-market rate is ${esc(midTxt)}.` : ""}</p>` : "";
@@ -623,7 +623,7 @@ ${crumbNav(prefix, trail)}
 <p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Canada, Australia and the Gulf states, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, checked by hand ${esc(dateLong)}.</p>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">Sending from</th><th scope="col">You pay</th><th scope="col">Best today</th><th scope="col" class="num">They get</th><th scope="col"></th></tr></thead>
-<tbody>${lines.map((l, i) => `${i && l.s.region !== lines[i - 1].s.region ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}<tr><th scope="row">${esc(l.s.name)}</th><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td>${l.top ? esc(l.lead.length > 1 ? l.lead.map((x) => x.p.name).join(", ") + " (tie)" : l.top.p.name) : "Being checked"}</td><td class="num top">${l.top ? esc(plain(R.money(l.top.gets, r.currency))) : "–"}</td><td><a href="${link(prefix, corridorPath(l.s, r))}">Compare all</a></td></tr>`).join("")}</tbody>
+<tbody>${lines.filter((l) => l.s.region !== "gulf" || lines.some((m) => m.s.region === "gulf" && m.ctx.anyQuotes)).map((l, i, arr) => `${i && l.s.region !== arr[i - 1].s.region ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}<tr><th scope="row">${esc(l.s.name)}</th><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td>${l.top ? esc(l.lead.length > 1 ? l.lead.map((x) => x.p.name).join(", ") + " (tie)" : l.top.p.name) : "Being checked"}</td><td class="num top">${l.top ? esc(plain(R.money(l.top.gets, r.currency))) : "–"}</td><td><a href="${link(prefix, corridorPath(l.s, r))}">Compare all</a></td></tr>`).join("")}${lines.some((m) => m.s.region === "gulf") && !lines.some((m) => m.s.region === "gulf" && m.ctx.anyQuotes) ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf: rates are being added · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}</tbody>
 </table></div>
 <h2>Ways to receive money in ${esc(r.name)}</h2>
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
@@ -747,7 +747,7 @@ ${crumbNav(prefix, trail)}
 <h2>Route by route</h2>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">Route</th><th scope="col">You pay</th><th scope="col" class="num">${esc(A.name)}</th><th scope="col" class="num">${esc(B.name)}</th><th scope="col" class="num">Difference</th></tr></thead>
-<tbody>${rows.map((x) => `<tr><th scope="row"><a href="${link(prefix, corridorPath(x.s, x.r))}">${esc(x.s.label)} to ${esc(x.r.name)}</a></th><td class="num">${esc(plain(R.money(x.ctx.amount, x.s.currency, 0)))}</td><td class="num${Math.round(x.a.gets) > Math.round(x.b.gets) ? " top" : ""}">${esc(plain(R.money(x.a.gets, x.r.currency)))}</td><td class="num${Math.round(x.b.gets) > Math.round(x.a.gets) ? " top" : ""}">${esc(plain(R.money(x.b.gets, x.r.currency)))}</td><td class="num">${Math.round(x.a.gets) === Math.round(x.b.gets) ? "Tie" : esc(plain(R.money(Math.abs(x.a.gets - x.b.gets), x.r.currency)))}</td></tr>`).join("")}</tbody>
+<tbody>${rows.map((x) => `<tr><th scope="row"><a href="${link(prefix, corridorPath(x.s, x.r))}">${esc(x.s.label)} to ${esc(x.r.name)}</a></th><td class="num">${esc(plain(R.money(x.ctx.amount, x.s.currency, 0)))}</td><td class="num${Math.round(x.a.gets) > Math.round(x.b.gets) ? " top" : ""}">${esc(plain(R.money(x.a.gets, x.r.currency)))}</td><td class="num${Math.round(x.b.gets) > Math.round(x.a.gets) ? " top" : ""}">${esc(plain(R.money(x.b.gets, x.r.currency)))}</td><td class="num">${Math.round(x.a.gets) === Math.round(x.b.gets) ? "Tie" : esc(plain(R.money(Math.abs(x.a.gets - x.b.gets), x.r.currency, Math.max(x.a.gets, x.b.gets) >= 1000 ? 0 : 2)))}</td></tr>`).join("")}</tbody>
 </table></div>
 <p class="note">Amounts are what arrives for a typical transfer, after fees and exchange-rate margins. The higher figure on each route is in bold. Other services may beat both: open a route to see the full ranking.</p>
 <h2>Questions</h2>
@@ -768,6 +768,8 @@ for (const { s, r } of ratePairs) {
   const fresh = ctx.rows.filter((x) => !x.stale);
   const sCur = CURNAME[s.currency] || s.currency, rCur = CURNAME[r.currency] || r.currency;
   const amts = [1, ...(STEP_AMOUNTS[s.currency] || [])];
+  // Several sending countries can share a currency pair; the page has data if any of them does.
+  const pairHasData = fresh.length > 0;
   const bestAt = (a) => { let b = null; for (const x of fresh) { const ev = R.evaluate(x.q, a); if (ev && (!b || ev.gets > b.gets)) b = { gets: ev.gets, p: x.p }; } return b; };
   const trail = [[config.siteName, ""], [`${s.currency} to ${r.currency}`, rel]];
   const faqs = [
@@ -778,7 +780,7 @@ for (const { s, r } of ratePairs) {
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>${esc(s.currency)} to ${esc(r.currency)} today: 1 ${esc(s.currency)} = ${R.rateStr(ctx.mid)} ${esc(r.currency)}</h1>
-<p class="lede">The mid-market rate for ${esc(sCur)} to ${esc(rCur)}, and what actually arrives in ${esc(r.name)} when you send money from ${esc(s.short)} with the best service we checked on ${esc(dateLong)}.</p>
+<p class="lede">The mid-market rate for ${esc(sCur)} to ${esc(rCur)}${pairHasData ? `, and what actually arrives in ${esc(r.name)} when you send money from ${esc(s.short)} with the best service we checked on ${esc(dateLong)}` : `. Transfer quotes from ${esc(s.short)} to ${esc(r.name)} are being added`}.</p>
 <div class="converter" id="sf-conv" data-mid="${ctx.mid}" data-from="${s.currency}" data-to="${r.currency}">
   <label>Amount in ${esc(s.currency)} <input type="number" inputmode="decimal" min="0" step="any" value="${config.defaultAmounts[s.currency]}" id="sf-conv-in"></label>
   <div class="conv-out"><span class="k">At the mid-market rate</span><span class="v num" id="sf-conv-mid">${esc(plain(R.money(config.defaultAmounts[s.currency] * ctx.mid, r.currency)))}</span></div>
@@ -787,7 +789,7 @@ ${crumbNav(prefix, trail)}
 <h2>What arrives in ${esc(r.name)} today</h2>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">You send</th><th scope="col" class="num">At mid-market</th><th scope="col" class="num">Best service gives</th><th scope="col">Service</th></tr></thead>
-<tbody>${amts.map((a) => { const b = bestAt(a); return `<tr><th scope="row">${esc(plain(R.money(a, s.currency, a < 10 ? 2 : 0)))}</th><td class="num">${esc(plain(R.money(a * ctx.mid, r.currency)))}</td><td class="num top">${b ? esc(plain(R.money(b.gets, r.currency))) : "–"}</td><td>${b ? esc(b.p.name) : "Being checked"}</td></tr>`; }).join("")}</tbody>
+<tbody>${amts.map((a) => { const b = bestAt(a); return `<tr><th scope="row">${esc(plain(R.money(a, s.currency, a < 10 ? 2 : 0)))}</th><td class="num">${esc(plain(R.money(a * ctx.mid, r.currency)))}</td><td class="num top">${b ? esc(plain(R.money(b.gets, r.currency))) : "–"}</td><td>${b ? esc(b.p.name) : "Coming soon"}</td></tr>`; }).join("")}</tbody>
 </table></div>
 <p class="note">"Best service gives" is for sending from ${esc(s.short)}, after fees and margins, using rates checked for ${esc(plain(R.money(ctx.amount, s.currency, 0)))}. For 1 ${esc(s.currency)}, a fixed fee can outweigh the transfer.</p>
 <h2>${esc(s.currency)} to ${esc(r.currency)} rate history</h2>
@@ -797,11 +799,11 @@ ${faqBlock(faqs)}
 <h2>Send money from ${esc(s.short)} to ${esc(r.name)}</h2>
 <p><a class="btn" href="${link(prefix, corridorPath(s, r))}">Compare all services for ${esc(s.label)} to ${esc(r.name)}</a></p>
 </div></div></section>`;
-  write(rel + "index.html", page({ prefix, canonical: rel, og: slug(s, r),
+  write(rel + "index.html", page({ prefix, canonical: rel, og: slug(s, r), noindex: !pairHasData,
     title: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency} | ${sCur} to ${rCur}`,
     description: `${sCur} to ${rCur} rate today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}. Converter, what arrives with the best transfer service, and rate history.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
-  urls.push(rel);
+  if (pairHasData) urls.push(rel);
 }
 
 // Gulf guide: every Gulf route at a glance, and how the ways of sending compare (exchange houses, banks, wallets, apps, cash networks).
@@ -844,7 +846,7 @@ ${crumbNav(prefix, trail)}
 <h2 id="best">Today's best from each Gulf country</h2>
 <div class="table-wrap"><table class="rates-table gulf-grid">
 <thead><tr><th scope="col">From</th>${corridors.receivers.map((r) => `<th scope="col" class="num">${esc(r.name)}</th>`).join("")}</tr></thead>
-<tbody>${grid.map((g) => `<tr><th scope="row">${esc(g.s.label)}<span class="sub">${esc(plain(R.money(config.defaultAmounts[g.s.currency], g.s.currency, 0)))}</span></th>${g.cells.map((c) => `<td class="num"><a href="${link(prefix, corridorPath(g.s, c.r))}">${c.top ? `${esc(plain(R.money(c.top.gets, c.r.currency)))}<span class="sub">${esc(c.lead.length > 1 ? c.lead.length + "-way tie" : c.top.p.name)}</span>` : `Being checked<span class="sub">${esc(g.s.currency)} to ${esc(c.r.currency)}</span>`}</a></td>`).join("")}</tr>`).join("")}</tbody>
+<tbody>${grid.map((g) => `<tr><th scope="row">${esc(g.s.label)}<span class="sub">${esc(plain(R.money(config.defaultAmounts[g.s.currency], g.s.currency, 0)))}</span></th>${g.cells.map((c) => `<td class="num"><a href="${link(prefix, corridorPath(g.s, c.r))}">${c.top ? `${esc(plain(R.money(c.top.gets, c.r.currency)))}<span class="sub">${esc(c.lead.length > 1 ? c.lead.length + "-way tie" : c.top.p.name)}</span>` : `${c.ctx.anyQuotes ? "Being rechecked" : "Coming soon"}<span class="sub">${esc(g.s.currency)} to ${esc(c.r.currency)}</span>`}</a></td>`).join("")}</tr>`).join("")}</tbody>
 </table></div>
 <p class="note">Most that arrives for the amount shown, after fees (including VAT) and exchange-rate margins. Tap a cell to compare every service on that route.</p>
 <h2 id="ways">How the ways of sending compare</h2>
@@ -899,6 +901,12 @@ const trust = {
 <p>Sending money home is one of the most regular bills in a diaspora household, and one of the least transparent. A transfer that says "zero fees" can still lose several percent in the exchange rate.</p>
 <p>SendFair shows one number clearly: how much actually lands at home. We cover the routes most used by Africans in the United States, the United Kingdom, Canada and Australia, and by the many who work in the Gulf (the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman), sending to Nigeria, Ghana, Kenya, Uganda, Zambia and Zimbabwe.</p>
 <p>The site is run independently from Nairobi, Kenya. We are not owned by any transfer company.</p>
+<h2>How the numbers are made</h2>
+<p>Every quote is read by hand from the provider's own public calculator or app, for a typical amount on each route, and saved with the time it was checked. Busy routes are checked every day and quieter ones at least every two days. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
+<h2>Editorial independence</h2>
+<p>Services are ranked only by how much your family receives. Some providers pay us a referral commission, but no provider can pay to appear, to rank higher or to have a quote removed, and services that pay us nothing are listed on the same terms. See <a href="${link("../", "disclosure/")}">how we make money</a>.</p>
+<h2>Corrections</h2>
+<p>If a figure here doesn't match what a provider shows you, tell us with the route, the amount and a screenshot if you can. We recheck it and fix the page, usually the same day.</p>
 <h2>Contact</h2><p>Corrections, partnership enquiries and provider updates: <span class="email">${esc(config.contactEmail)}</span></p>`],
   "methodology/": ["How we rank", "How SendFair collects rates and ranks money transfer services.", `
 <h1>How we rank</h1>

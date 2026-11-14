@@ -172,12 +172,14 @@
     var how = (x.q.payout || []).map(function (m) { return SHORT[m]; }).join(", ");
     var checked = x.q.checkedAt ? "checked " + (c.timeStyle === "absolute" ? absTime(x.q.checkedAt) : ago(x.q.checkedAt, c.now)) : "";
     var rep = c.reports && c.reports[x.p.id];
-    var bits = ["Rate " + rateStr(x.ev.rate), feeStr(x.q, c.s.currency)];
+    var bits = (x.q.variant ? ['<span class="variant-sub">' + esc(x.q.variant) + "</span>"] : []).concat(["Rate " + rateStr(x.ev.rate), feeStr(x.q, c.s.currency)]);
     var extra = [];
     if (x.q.speed) extra.push(esc(x.q.speed));
     if (how) extra.push(how);
     if (rep && rep.n >= 3) extra.push("usually arrives " + esc(rep.typical));
     if (checked && !x.stale) extra.push(checked);
+    var ref = Number(x.q.refAmount) || 0, shownAmt = x.pay || c.amount;
+    if (ref && shownAmt > 0 && Math.abs(shownAmt - ref) / ref > 0.15) bits.push('<span class="ref-txt" title="The rate and fee were read for this amount; they can differ for yours">checked for ' + esc(money(ref, c.s.currency, 0)) + "</span>");
     if (extra.length) bits.push('<span class="xtra">' + extra.join(DOT) + "</span>");
     if (x.stale) bits.push('<span class="stale-txt">not rechecked today</span>');
     var mark = fn ? ' <a class="fn" href="#sf-fn-' + fn + '" aria-label="Note ' + fn + '">' + fn + "</a>" : "";
@@ -267,8 +269,8 @@
       var list = (c.checkList || []).map(function (p) {
         return '<a href="' + esc(c.hrefFor(p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener">' + esc(p.name) + "</a>";
       }).join(DOT);
-      html += '<div class="empty"><strong>Today\'s quotes for ' + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked.</strong>" +
-        "<span>We check every provider by hand each day." + (c.mid ? " Until then, the figures below show what a fair deal looks like, so you can judge any quote you get." : "") + "</span>" +
+      html += '<div class="empty"><strong>' + (c.anyQuotes ? "Today\'s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked." : "We haven\'t published quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " yet.") + "</strong>" +
+        "<span>" + (c.anyQuotes ? "The last check is too old to rank, so we have hidden it until it is rechecked." : "This route is being added. Until it is, compare the services below yourself.") + (c.mid ? " The figures below show what a fair deal looks like, so you can judge any quote you get." : "") + "</span>" +
         (list ? '<span class="checklist">Services to check on this route: ' + list + "</span>" : "") + "</div>";
     }
     if (c.mid && c.target) {
@@ -287,7 +289,8 @@
       var top = c.rows.filter(function (x) { return !x.stale; })[0];
       var gain = top ? top.gets - avg : 0;
       html += '<div class="benchmark">' +
-        '<div class="bench"><span class="k">At the mid-market rate, no fees</span><span class="v num">' + moneyHtml(perfect, c.r.currency) + '</span><span class="s">The ceiling. No service beats this for long.</span></div>' +
+        '<div class="bench"><span class="k">At the mid-market rate, no fees</span><span class="v num">' + moneyHtml(perfect, c.r.currency) + '</span><span class="s">' +
+          (top && top.gets > perfect ? esc(top.p.name) + " beats the mid-market rate today. That is usually a promotional or subsidised rate, so check it on their screen before you pay." : "Converting at the market rate with no fee. Services rarely beat this.") + "</span></div>" +
         '<div class="bench"><span class="k">At the regional average cost (' + pct + '%)</span><span class="v num">' + moneyHtml(avg, c.r.currency) + '</span><span class="s">' + esc(c.avgLabel) + "</span></div>" +
         (gain > 0 ? '<div class="bench"><span class="k">Best option vs the average</span><span class="v num gain">' + moneyHtml(gain, c.r.currency).replace("</span>", "</span>+") + '</span><span class="s">Extra that reaches home on this transfer.</span></div>' : "") +
         "</div>";
@@ -309,7 +312,13 @@
     }
     var t = function (iso) { return c.timeStyle === "absolute" ? absTime(iso) : ago(iso, c.now); };
     if (c.midUpdated && c.s.currency !== c.r.currency) bits.push("Market rate from " + t(c.midUpdated));
-    if (c.quotesUpdated) bits.push("Quotes updated " + t(c.quotesUpdated));
+    var times = (c.allRows || c.rows || []).filter(function (x) { return !x.stale && x.q.checkedAt; }).map(function (x) { return x.q.checkedAt; }).sort();
+    if (times.length) {
+      var oldest = times[0], newest = times[times.length - 1];
+      var span = c.timeStyle === "absolute" ? absTime(oldest) + (newest !== oldest ? " to " + (newest.slice(0, 10) === oldest.slice(0, 10) ? absTime(newest).replace(/^\d+ \w+, /, "") : absTime(newest)) : "")
+        : (Math.round(ageHours(oldest, c.now)) === Math.round(ageHours(newest, c.now)) ? ago(oldest, c.now) : ago(newest, c.now).replace(/ ago$/, "") + " to " + ago(oldest, c.now));
+      bits.push("Quotes checked " + span);
+    }
     return bits.map(function (b) { return "<span>" + b + "</span>"; }).join("");
   }
 
@@ -330,7 +339,7 @@
   function notice(c) {
     var top = c.rows.filter(function (x) { return !x.stale; })[0];
     if (!(c.amount > 0) && !(c.target > 0)) return { title: "SendFair", text: "Enter an amount to see what arrives.", cap: "" };
-    if (!top) return { title: "SendFair", text: "Today\u2019s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked.", cap: "" };
+    if (!top) return { title: "SendFair", text: c.anyQuotes ? "Today\u2019s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked." : "Quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are coming soon.", cap: "" };
     var how = c.payout && c.payout !== "all" ? c.payout : (top.q.payout || [])[0] || "mobile";
     var amt = "<b>" + esc(money(top.gets, c.r.currency, 2)) + "</b>";
     var lead = leaders(c.rows);

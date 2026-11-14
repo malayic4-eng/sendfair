@@ -155,6 +155,9 @@ p { margin: 0; }
 .prov-name { font: 720 1rem/1.3 var(--font-display); letter-spacing: -0.005em; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .prov-sub { font-size: .77rem; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.35; }
 .stale-txt { color: var(--warn); font-weight: 650; }
+.ref-txt { color: var(--warn); font-weight: 600; }
+.variant-sub, .variant-sub + .dot { display: none; }
+.board-soon { font-size: .9rem; color: var(--muted); margin: 6px 0 18px; }
 .chip { font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); color: var(--muted); font-family: var(--font-body); letter-spacing: 0; }
 .chip.best { background: var(--marigold); color: var(--marigold-ink); border-color: transparent; }
 .fn { font: 700 .66rem var(--font-body); color: var(--muted); text-decoration: none; border: 1px solid var(--line-strong); border-radius: 999px; min-width: 17px; height: 17px; display: inline-grid; place-items: center; padding: 0 4px; }
@@ -443,9 +446,14 @@ details p { margin-top: 10px; color: var(--muted); }
   .picks { display: flex; flex-wrap: nowrap; overflow-x: auto; margin: 0 -2px; padding-bottom: 2px; scrollbar-width: none; }
   .pick { flex: none; padding: 3px 9px; }
   .result .fn { display: none; }
-  .prov-name { flex-wrap: nowrap; min-width: 0; }
-  .prov-name > span:not(.avatar):not(.chip) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-  .variant { flex: none; font-size: .64rem; padding: 0 4px; }
+  .prov-name { flex-wrap: nowrap; min-width: 0; align-items: flex-start; }
+  /* Names wrap onto a second line rather than being cut off; the variant moves to the line below. */
+  .prov-name > span:not(.avatar):not(.chip) { flex: 0 1 auto; min-width: 0; line-height: 1.2; overflow-wrap: normal; word-break: normal; hyphens: none; }
+  .prov-name .more-btn { padding: 2px 0 2px 2px; }
+  .prov-name > .variant { display: none; }
+  .variant-sub, .variant-sub + .dot { display: inline; }
+  .variant-sub { font-weight: 650; color: var(--ink); }
+  .ref-txt { white-space: nowrap; }
   .result .tp { display: none; }
   .more-txt { display: none; }
   .tp { padding: 0 5px; font-size: .68rem; }
