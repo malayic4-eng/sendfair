@@ -240,7 +240,7 @@ function footer(prefix) {
 <nav aria-label="Footer"><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services. We do not send, hold or exchange money. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
-<p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
+<p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${config.businessName ? `, a ${esc(config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
 </div></footer>`;
 }
 
@@ -533,7 +533,8 @@ write("index.html", page({
   title: PREVIEW ? config.siteName : `Compare money transfers to Africa: best rates today | ${config.siteName}`,
   description: `See which service delivers the most money to ${corridors.receivers.length} African countries, including Nigeria, Kenya, Ghana, Egypt and Morocco, from the UK, US, Europe, Canada, Australia and the Gulf.`,
   jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/" },
-    { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail, areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) }],
+    { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail,
+      ...(config.businessName ? { legalName: config.businessName } : {}), ...(config.founderName ? { founder: { "@type": "Person", name: config.founderName } } : {}), areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) }],
   body: tool({
     ctx: homeCtx,
     heading: "Send more home.",
@@ -951,7 +952,9 @@ const trust = {
 <h1>About SendFair</h1>
 <p>Sending money home is one of the most regular bills in a diaspora household, and one of the least transparent. A transfer that says "zero fees" can still lose several percent in the exchange rate.</p>
 <p>SendFair shows one number clearly: how much actually lands at home. We cover the routes most used by Africans in the United States, the United Kingdom, Europe, Canada and Australia, and by the many who work in the Gulf (the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman), sending to ${esc(joinList(corridors.receivers.map((r) => r.name)))}.</p>
-<p>The site is run independently from Nairobi, Kenya. We are not owned by any transfer company.</p>
+<p>SendFair is run by ${esc(config.businessName || "")}${config.founderName ? `, founded by ${esc(config.founderName)}` : ""}, independently from Nairobi, Kenya. We are not owned by any transfer company.</p>
+<h2>Who's behind SendFair</h2>
+<p>SendFair was founded by ${esc(config.founderName || "")} to make the true cost of sending money home easy to compare. ${esc(config.businessName || "")} runs the site, checks the rates and handles corrections.</p>
 <h2>How the numbers are made</h2>
 <p>Quotes for the big providers are updated automatically every 30 minutes from Wise's comparison data; the rest are read by hand from each provider's own calculator or app, for a typical amount on each route. Every quote is saved with the time it was checked. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
 <h2>Editorial independence</h2>
