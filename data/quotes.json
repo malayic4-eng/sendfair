@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-11-14T07:34:35Z",
+ "updatedAt": "2026-11-14T07:49:40Z",
  "coverage": {
   "us-nigeria": [
    "wise",
@@ -363,7 +363,7 @@
      "cash"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off); standard rate and fee recorded.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off); standard rate and fee recorded.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:30:00Z"
    },
@@ -377,7 +377,7 @@
      "bank"
     ],
     "speed": "Same banking day",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off); standard rate and fee recorded.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off); standard rate and fee recorded.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:29:40Z"
    },
@@ -448,7 +448,7 @@
      "cash"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 11.3898.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 11.3898.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:30:23Z"
    },
@@ -462,7 +462,7 @@
      "bank"
     ],
     "speed": "0-4 Business days",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off); standard rate and fee recorded.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off); standard rate and fee recorded.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:30:39Z"
    },
@@ -577,7 +577,7 @@
      "cash"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 128.7049.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 128.7049.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:29:04Z"
    },
@@ -591,7 +591,7 @@
      "bank"
     ],
     "speed": "Real Time",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 129.3549. Bank-account (ACH) funding fee 1.99 but 0-4 business days. Real time applies to Equity Bank.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 129.3549. Bank-account (ACH) funding fee 1.99 but 0-4 business days. Real time applies to Equity Bank.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:27:57Z"
    },
@@ -605,7 +605,7 @@
      "mobile"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 129.3549.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 129.3549.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:29:16Z"
    },
@@ -705,7 +705,7 @@
      "cash"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 4013.2693.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 4013.2693.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:31:23Z"
    },
@@ -719,7 +719,7 @@
      "bank"
     ],
     "speed": "0-4 Business days",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off); standard rate and fee recorded.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off); standard rate and fee recorded.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:31:18Z"
    },
@@ -733,7 +733,7 @@
      "mobile"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off); standard rate and fee recorded.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off); standard rate and fee recorded.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:31:05Z"
    },
@@ -1260,6 +1260,34 @@
     "checkedAt": "2026-11-14T07:22:28Z"
    },
    {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 976.3777,
+    "feeFixed": 7.9,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:38:57Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 941.9545,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:38:32Z"
+   },
+   {
     "provider": "wise",
     "rate": 982.762997,
     "feeFixed": 4.73,
@@ -1273,23 +1301,8 @@
     "checkedAt": "2026-11-14T07:19:00Z"
    },
    {
-    "provider": "westernunion",
-    "rate": 984.0892,
-    "feeFixed": 8.0,
-    "feePct": 0,
-    "payout": [
-     "cash",
-     "bank"
-    ],
-    "speed": "",
-    "note": "From Western Union's online converter; may vary by payment and payout method",
-    "refAmount": 100,
-    "checkedAt": "2026-11-13T06:33:00Z"
-   },
-   {
     "provider": "worldremit",
-    "variant": "Bank",
-    "rate": 964.9431,
+    "rate": 959.6096,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -1298,7 +1311,7 @@
     "speed": "Within 2 working days",
     "note": "",
     "refAmount": 400,
-    "checkedAt": "2026-11-13T06:52:00Z"
+    "checkedAt": "2026-11-14T07:31:40Z"
    }
   ],
   "canada-ghana": [
@@ -1345,6 +1358,48 @@
     "checkedAt": "2026-11-14T07:22:30Z"
    },
    {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 8.0528,
+    "feeFixed": 7.9,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:35:40Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 8.061,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:35:03Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 8.061,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:36:09Z"
+   },
+   {
     "provider": "wise",
     "rate": 8.211831,
     "feeFixed": 7.99,
@@ -1359,18 +1414,32 @@
     "checkedAt": "2026-11-14T07:19:00Z"
    },
    {
-    "provider": "westernunion",
-    "rate": 8.0587,
+    "provider": "worldremit",
+    "variant": "Bank transfer",
+    "rate": 8.1991,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Within 2 working days",
+    "note": "",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:32:00Z"
+   },
+   {
+    "provider": "worldremit",
+    "variant": "Mobile money",
+    "rate": 8.1991,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
-     "cash",
-     "bank"
+     "mobile"
     ],
-    "speed": "",
-    "note": "From Western Union's online converter; may vary by payment and payout method",
-    "refAmount": 100,
-    "checkedAt": "2026-11-13T06:33:00Z"
+    "speed": "Within 1 hour",
+    "note": "",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:32:30Z"
    }
   ],
   "canada-kenya": [
@@ -1418,6 +1487,48 @@
     "checkedAt": "2026-11-14T07:22:52Z"
    },
    {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 89.2504,
+    "feeFixed": 7.9,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:37:37Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 90.1611,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Fee shown as 0.00 CAD with no struck-through standard fee; site also shows a first-transfer 0 CAD fee promo, so standard fee may differ. Rate labelled 'Special rate' (best-rate badge; no other standard rate shown).",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:37:08Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 90.1611,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Fee shown as 0.00 CAD with no struck-through standard fee; site also shows a first-transfer 0 CAD fee promo, so standard fee may differ.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:38:00Z"
+   },
+   {
     "provider": "wise",
     "rate": 91.126829,
     "feeFixed": 8.37,
@@ -1432,18 +1543,17 @@
     "checkedAt": "2026-11-14T07:19:00Z"
    },
    {
-    "provider": "westernunion",
-    "rate": 90.177,
+    "provider": "worldremit",
+    "rate": 89.9709,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
-     "cash",
-     "bank"
+     "mobile"
     ],
-    "speed": "",
-    "note": "From Western Union's online converter; may vary by payment and payout method",
-    "refAmount": 100,
-    "checkedAt": "2026-11-13T06:33:00Z"
+    "speed": "Within 5 minutes",
+    "note": "Mobile money (M-Pesa); only payout method offered from Canada",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:32:50Z"
    }
   ],
   "canada-uganda": [
@@ -1490,6 +1600,48 @@
     "checkedAt": "2026-11-14T07:22:54Z"
    },
    {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 2794.1245,
+    "feeFixed": 7.9,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:39:59Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 2849.9724,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Fee shown as 0.00 CAD with no struck-through standard fee; site also shows a first-transfer 0 CAD fee promo, so standard fee may differ. Rate labelled 'Special rate' (best-rate badge; no other standard rate shown).",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:39:26Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 2849.9724,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Fee shown as 0.00 CAD with no struck-through standard fee; site also shows a first-transfer 0 CAD fee promo, so standard fee may differ.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:40:24Z"
+   },
+   {
     "provider": "wise",
     "rate": 2885.679537,
     "feeFixed": 9.44,
@@ -1503,21 +1655,35 @@
     "checkedAt": "2026-11-14T07:19:00Z"
    },
    {
-    "provider": "westernunion",
-    "rate": 2835.0833,
+    "provider": "worldremit",
+    "rate": 2809.2586,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
-     "cash",
-     "bank"
+     "mobile"
     ],
-    "speed": "",
-    "note": "From Western Union's online converter; may vary by payment and payout method",
-    "refAmount": 100,
-    "checkedAt": "2026-11-13T06:33:00Z"
+    "speed": "Within 5 minutes",
+    "note": "",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:33:10Z"
    }
   ],
   "australia-nigeria": [
+   {
+    "provider": "remitly",
+    "rate": 918.2,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate (welcome rate 959.52 applies to first AUD 500 for new customers). No fees on all transfers.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:34:05Z"
+   },
    {
     "provider": "taptapsend",
     "rate": 951.0,
@@ -1532,6 +1698,34 @@
     "checkedAt": "2026-11-14T07:23:19Z"
    },
    {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 889.6004,
+    "feeFixed": 7.0,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:45:09Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 931.9169,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded. Rate labelled 'Best rate'.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:44:50Z"
+   },
+   {
     "provider": "wise",
     "rate": 950.016996,
     "feeFixed": 3.43,
@@ -1543,10 +1737,12 @@
     "note": "Fee read at the reference amount from Wise's calculator",
     "refAmount": 450,
     "checkedAt": "2026-11-14T07:19:00Z"
-   },
+   }
+  ],
+  "australia-ghana": [
    {
     "provider": "remitly",
-    "rate": 917.63,
+    "rate": 7.8941,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -1555,26 +1751,10 @@
      "cash"
     ],
     "speed": "",
-    "note": "Standard rate; new-customer offers not included",
+    "note": "Everyday rate at AUD 450. Fee AUD 1.99 below AUD 300, AUD 0 at AUD 300+. New customers also get an AUD 5 first-transfer discount (not included).",
     "refAmount": 450,
-    "checkedAt": "2026-11-13T06:12:00Z"
+    "checkedAt": "2026-11-14T07:35:20Z"
    },
-   {
-    "provider": "westernunion",
-    "rate": 934.0743,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "cash",
-     "bank"
-    ],
-    "speed": "",
-    "note": "From Western Union's online converter; may vary by payment and payout method",
-    "refAmount": 500,
-    "checkedAt": "2026-11-13T06:33:00Z"
-   }
-  ],
-  "australia-ghana": [
    {
     "provider": "taptapsend",
     "rate": 7.987,
@@ -1588,6 +1768,48 @@
     "note": "No transfer fees shown",
     "refAmount": 450,
     "checkedAt": "2026-11-14T07:23:21Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 7.9639,
+    "feeFixed": 7.0,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:45:52Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 7.9639,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "0-4 business days",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:46:13Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 7.9639,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:45:34Z"
    },
    {
     "provider": "wise",
@@ -1604,8 +1826,38 @@
     "checkedAt": "2026-11-14T07:19:00Z"
    },
    {
+    "provider": "worldremit",
+    "variant": "Bank transfer",
+    "rate": 7.9435,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Within 2 working days",
+    "note": "",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:35:20Z"
+   },
+   {
+    "provider": "worldremit",
+    "variant": "Mobile money",
+    "rate": 7.9435,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Within 1 hour",
+    "note": "",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:35:50Z"
+   }
+  ],
+  "australia-kenya": [
+   {
     "provider": "remitly",
-    "rate": 7.9258,
+    "rate": 87.49,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -1614,26 +1866,10 @@
      "cash"
     ],
     "speed": "",
-    "note": "Standard rate; new-customer offers not included",
+    "note": "Standard rate (welcome rate 90.13 applies to first AUD 700 for new customers, plus AUD 15 first-transfer discount). No fees on all transfers.",
     "refAmount": 450,
-    "checkedAt": "2026-11-13T06:12:00Z"
+    "checkedAt": "2026-11-14T07:34:25Z"
    },
-   {
-    "provider": "westernunion",
-    "rate": 7.9982,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "cash",
-     "bank"
-    ],
-    "speed": "",
-    "note": "From Western Union's online converter; may vary by payment and payout method",
-    "refAmount": 500,
-    "checkedAt": "2026-11-13T06:33:00Z"
-   }
-  ],
-  "australia-kenya": [
    {
     "provider": "taptapsend",
     "rate": 88.5,
@@ -1649,6 +1885,48 @@
     "checkedAt": "2026-11-14T07:23:23Z"
    },
    {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 89.7604,
+    "feeFixed": 7.0,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:43:37Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 89.7604,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:44:09Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 89.7604,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:42:59Z"
+   },
+   {
     "provider": "wise",
     "rate": 88.089751,
     "feeFixed": 7.44,
@@ -1661,11 +1939,13 @@
     "note": "Fee read at the reference amount from Wise's calculator",
     "refAmount": 450,
     "checkedAt": "2026-11-14T07:19:00Z"
-   },
+   }
+  ],
+  "australia-uganda": [
    {
     "provider": "remitly",
-    "rate": 87.78,
-    "feeFixed": 0,
+    "rate": 2734.58,
+    "feeFixed": 1.99,
     "feePct": 0,
     "payout": [
      "mobile",
@@ -1673,12 +1953,10 @@
      "cash"
     ],
     "speed": "",
-    "note": "Standard rate; new-customer offers not included",
+    "note": "Standard rate (welcome rate 2852.17 applies to first AUD 500 for new customers, plus AUD 15 first-transfer discount). Fee AUD 1.99 on all transfers (waived on first transfer).",
     "refAmount": 450,
-    "checkedAt": "2026-11-13T06:12:00Z"
-   }
-  ],
-  "australia-uganda": [
+    "checkedAt": "2026-11-14T07:34:46Z"
+   },
    {
     "provider": "taptapsend",
     "rate": 2790.0,
@@ -1693,6 +1971,48 @@
     "checkedAt": "2026-11-14T07:23:25Z"
    },
    {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 2809.49,
+    "feeFixed": 7.0,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:46:56Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 2823.3982,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "0-4 business days",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:47:06Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 2823.3982,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:46:37Z"
+   },
+   {
     "provider": "wise",
     "rate": 2801,
     "feeFixed": 1.81,
@@ -1704,21 +2024,6 @@
     "note": "Fee read at two amounts from Wise's calculator: fixed part plus a percentage",
     "refAmount": 450,
     "checkedAt": "2026-11-13T13:05:00Z"
-   },
-   {
-    "provider": "remitly",
-    "rate": 2744.09,
-    "feeFixed": 1.99,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 450,
-    "checkedAt": "2026-11-13T06:12:00Z"
    }
   ],
   "uk-zambia": [
@@ -1907,6 +2212,34 @@
     "checkedAt": "2026-11-14T07:22:57Z"
    },
    {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 13.9032,
+    "feeFixed": 7.9,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded. Bank-account payout not offered.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:40:56Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 14.0609,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded. Rate labelled 'Special rate' (best-rate badge; no other standard rate shown).",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:41:22Z"
+   },
+   {
     "provider": "wise",
     "rate": 14.347687,
     "feeFixed": 17.99,
@@ -1920,21 +2253,50 @@
     "checkedAt": "2026-11-14T07:19:00Z"
    },
    {
-    "provider": "westernunion",
-    "rate": 14.0737,
-    "feeFixed": 0,
+    "provider": "worldremit",
+    "variant": "Cash pickup",
+    "rate": 13.8424,
+    "feeFixed": 1.99,
     "feePct": 0,
     "payout": [
-     "cash",
-     "bank"
+     "cash"
     ],
-    "speed": "",
-    "note": "From Western Union's online converter; may vary by payment and payout method",
-    "refAmount": 100,
-    "checkedAt": "2026-11-13T06:33:00Z"
+    "speed": "Within 5 minutes",
+    "note": "",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:33:30Z"
+   },
+   {
+    "provider": "worldremit",
+    "variant": "Mobile money",
+    "rate": 14.1001,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Within 5 minutes",
+    "note": "",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:33:50Z"
    }
   ],
   "australia-zambia": [
+   {
+    "provider": "remitly",
+    "rate": 13.59,
+    "feeFixed": 2.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate (welcome rate 14.15 applies to first AUD 500 for new customers). Fee AUD 2.99 for AUD->ZMW (waived on first transfer).",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:35:06Z"
+   },
    {
     "provider": "taptapsend",
     "rate": 13.77,
@@ -1947,6 +2309,34 @@
     "note": "No transfer fees shown; Payout methods as recorded at the previous check",
     "refAmount": 450,
     "checkedAt": "2026-11-14T07:23:37Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 14.0714,
+    "feeFixed": 7.0,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded. Bank-account payout not offered.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:48:21Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 14.0714,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:47:55Z"
    },
    {
     "provider": "wise",
@@ -1962,33 +2352,18 @@
     "checkedAt": "2026-11-14T07:19:00Z"
    },
    {
-    "provider": "remitly",
-    "rate": 13.65,
-    "feeFixed": 2.99,
+    "provider": "worldremit",
+    "variant": "Cash pickup",
+    "rate": 13.4357,
+    "feeFixed": 3.99,
     "feePct": 0,
     "payout": [
-     "mobile",
-     "bank",
      "cash"
     ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
+    "speed": "Within 5 minutes",
+    "note": "Payout rounded to whole ZMW: calculator adjusted send to 450.90 AUD for 6058 ZMW",
     "refAmount": 450,
-    "checkedAt": "2026-11-13T06:12:00Z"
-   },
-   {
-    "provider": "westernunion",
-    "rate": 14.113,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "cash",
-     "bank"
-    ],
-    "speed": "",
-    "note": "From Western Union's online converter; may vary by payment and payout method",
-    "refAmount": 500,
-    "checkedAt": "2026-11-13T12:50:00Z"
+    "checkedAt": "2026-11-14T07:36:50Z"
    }
   ],
   "us-zambia": [
@@ -2043,7 +2418,7 @@
      "cash"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 19.8878. Bank-account payout not offered.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off, plus a better promo rate); standard rate and fee recorded. Promo rate shown: 19.8878. Bank-account payout not offered.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:31:48Z"
    },
@@ -2057,7 +2432,7 @@
      "mobile"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off); standard rate and fee recorded.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off); standard rate and fee recorded.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:32:04Z"
    },
@@ -2170,7 +2545,7 @@
      "cash"
     ],
     "speed": "In minutes",
-    "note": "Paid in USD; paid by instant bank transfer (card/bank transfer 4.99)",
+    "note": "Paid in USD; paid by instant bank transfer (card/bank transfer 4.99) Bank-account payout not offered.",
     "refAmount": 250,
     "checkedAt": "2026-11-14T07:26:33Z"
    },
@@ -2242,7 +2617,7 @@
      "cash"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off); standard rate and fee recorded. Paid out in USD.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off); standard rate and fee recorded. Paid out in USD. Bank-account payout not offered.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:32:29Z"
    },
@@ -2256,7 +2631,7 @@
      "mobile"
     ],
     "speed": "In minutes",
-    "note": "Paid by debit card (default). Promotional first-transfer offer shown (fee 100% off); standard rate and fee recorded. Paid out in USD.",
+    "note": "Paid by debit card (default). Promotional offer shown (fee 100% off); standard rate and fee recorded. Paid out in USD.",
     "refAmount": 300,
     "checkedAt": "2026-11-14T07:32:18Z"
    },
@@ -2301,6 +2676,48 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator. They get 1,120,000 UGX.",
     "refAmount": 1000,
     "checkedAt": "2026-11-14T08:05:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 1098.6973,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 1116.5987,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "0-4 business days",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 1107.648,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
    }
   ],
   "uae-zambia": [
@@ -2344,6 +2761,34 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator. They get 5,484 ZMW.",
     "refAmount": 1000,
     "checkedAt": "2026-11-14T08:05:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 5.2604,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 5.5595,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
    }
   ],
   "uae-kenya": [
@@ -2359,6 +2804,48 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator. They get 35,100 KES.",
     "refAmount": 1000,
     "checkedAt": "2026-11-14T08:05:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 34.298,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 35.2183,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 35.3245,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
    }
   ],
   "uae-nigeria": [
@@ -2374,6 +2861,34 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator. They get 370,000 NGN.",
     "refAmount": 1000,
     "checkedAt": "2026-11-14T08:05:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 379.5097,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 371.0761,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
    }
   ],
   "uae-ghana": [
@@ -2389,6 +2904,48 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator. They get 3,193.70 GHS (displayed rate rounded to 3.194).",
     "refAmount": 1000,
     "checkedAt": "2026-11-14T08:05:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 3.1387,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 3.184,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "0-4 business days",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 3.1872,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
    }
   ],
   "uae-zimbabwe": [
@@ -2404,6 +2961,34 @@
     "note": "Taptap Send public calculator shows 'Transfer fee: from AED 0.00 - fees may be higher depending on delivery method'; payout methods not shown. They get 270.00 USD.",
     "refAmount": 1000,
     "checkedAt": "2026-11-14T08:05:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 0.2668,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 0.2717,
+    "feeFixed": 7.88,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee includes 5% VAT as shown on site",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:20:00Z"
    }
   ],
   "bahrain-kenya": [
@@ -2590,8 +3175,344 @@
     "note": "Paid out in USD via Econet.",
     "refAmount": 400,
     "checkedAt": "2026-11-14T07:28:12Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 0.6795,
+    "feeFixed": 7.9,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded. Paid out in USD. Bank-account payout not offered.",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:41:48Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 0.6795,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default; same fee for bank account/Interac). Site shows '0 CAD fee on first online transfer' promo; standard fee (shown struck through) recorded. Paid out in USD. Rate labelled 'Special rate' (best-rate badge; no other standard rate shown).",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:42:15Z"
+   },
+   {
+    "provider": "worldremit",
+    "variant": "Cash pickup",
+    "rate": 0.6884,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Within 5 minutes",
+    "note": "Cash payout rounded to whole USD: calculator adjusted send to 406.74 CAD for 280 USD",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:34:00Z"
+   },
+   {
+    "provider": "worldremit",
+    "variant": "Mobile money",
+    "rate": 0.6814,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Within 5 minutes",
+    "note": "",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T07:34:30Z"
    }
   ],
-  "australia-zimbabwe": []
+  "australia-zimbabwe": [
+   {
+    "provider": "remitly",
+    "variant": "Mobile money",
+    "rate": 0.6491,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "Paid out in USD. Standard rate (welcome rate 0.6861 applies to first AUD 1,000 for new customers). Mobile wallet fee AUD 0.99 per Remitly fee table (waived on first transfer).",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:33:44Z"
+   },
+   {
+    "provider": "remitly",
+    "variant": "Bank / Cash pickup",
+    "rate": 0.6491,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Paid out in USD. Standard rate (welcome rate 0.6861 applies to first AUD 1,000 for new customers). Fee AUD 1.99 for bank deposit or cash pickup (waived on first transfer).",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:33:44Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 0.6894,
+    "feeFixed": 7.0,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded. Paid out in USD; bank-account payout not offered.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:48:37Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 0.6894,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In minutes",
+    "note": "Paid by debit card (default). Site shows a promo making the fee 0.00 AUD; standard fee (shown struck through) recorded. Paid out in USD.",
+    "refAmount": 450,
+    "checkedAt": "2026-11-14T07:48:54Z"
+   }
+  ],
+  "saudi-kenya": [
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 33.7032,
+    "feeFixed": 5.75,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 33.7032,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 33.7032,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   }
+  ],
+  "saudi-nigeria": [
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 371.3951,
+    "feeFixed": 5.75,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 371.3951,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   }
+  ],
+  "saudi-ghana": [
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 3.0284,
+    "feeFixed": 5.75,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 3.0785,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "0-4 business days",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 3.0785,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   }
+  ],
+  "saudi-uganda": [
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 1060.9713,
+    "feeFixed": 5.75,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Bank account",
+    "rate": 1069.7307,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "0-4 business days",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 1069.7307,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   }
+  ],
+  "saudi-zambia": [
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 5.2825,
+    "feeFixed": 5.75,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 5.2825,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   }
+  ],
+  "saudi-zimbabwe": [
+   {
+    "provider": "westernunion",
+    "variant": "Cash pickup",
+    "rate": 0.2606,
+    "feeFixed": 5.75,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "variant": "Mobile wallet",
+    "rate": 0.2606,
+    "feeFixed": 0.0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "WU Saudi (via Ersal Money Transfer) estimate, paying by Mada card. Site shows standard fee 20.00 SAR struck through and a reduced fee (footnote: reduced transfer fee campaign); cash fee 5.00 + 15% VAT 0.75 as shown; 0 fee has no VAT",
+    "refAmount": 1000.0,
+    "checkedAt": "2026-11-14T08:40:00Z"
+   }
+  ]
  }
 }
