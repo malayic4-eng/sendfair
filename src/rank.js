@@ -156,7 +156,8 @@
     "economy": "Slower delivery, usually for a better rate or lower fee"
   };
   function variantHint(v) { return VARIANT_HINT[String(v || "").toLowerCase()] || ""; }
-  var GENERAL_NOTE = /^(Standard rate;|Fee read at two amounts)/;
+  function isAuto(q) { return q.source === "wise-feed" || /^Updated automatically from Wise/.test(q.note || ""); }
+  var GENERAL_NOTE = /^(Standard rate;|Fee read at two amounts|Updated automatically from Wise)/;
   // Where senders can check a provider's licence, by sending country.
   var REGISTER = {
     uk: ["the FCA register", "https://register.fca.org.uk/"],
@@ -187,7 +188,7 @@
     if (x.q.speed) extra.push(esc(x.q.speed));
     if (how) extra.push(how);
     if (rep && rep.n >= 3) extra.push("usually arrives " + esc(rep.typical));
-    if (checked && !x.stale) extra.push(checked);
+    if (checked && !x.stale) extra.push(checked + (isAuto(x.q) ? " (auto)" : ""));
     var ref = Number(x.q.refAmount) || 0, shownAmt = x.pay || c.amount;
     if (ref && shownAmt > 0 && Math.abs(shownAmt - ref) / ref > 0.15) bits.push('<span class="ref-txt" title="The rate and fee were read for this amount; they can differ for yours">checked for ' + esc(money(ref, c.s.currency, 0)) + "</span>");
     if (extra.length) bits.push('<span class="xtra">' + extra.join(DOT) + "</span>");
@@ -222,7 +223,7 @@
       ["Delivery time", esc(x.q.speed || "Not shown by the provider for this route")],
       ["Ways to pay", esc((x.p.payIn || []).join(", ") || "See the provider's site") + ((x.p.payIn || []).some(function (m) { return /credit/i.test(m); }) ? ". Card payments can cost more; the rate above assumes the provider's standard method." : "")],
       ["Rating", x.p.rating ? '<a href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener">Trustpilot ' + x.p.rating.score + "/5</a> (" + esc(x.p.rating.label) + ", " + fixed(x.p.rating.reviews, 0) + " reviews)" : "Not rated yet"],
-      ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + esc(money(Number(x.q.refAmount) || c.amount, cur, 0)) : ""]
+      ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + esc(money(Number(x.q.refAmount) || c.amount, cur, 0)) + (isAuto(x.q) ? ", automatically from Wise's comparison data" : ", by hand on the provider's site") : ""]
     ];
     if (x.q.variant) items.splice(1, 0, ["Option", esc(x.q.variant) + (variantHint(x.q.variant) ? ": " + esc(variantHint(x.q.variant).charAt(0).toLowerCase() + variantHint(x.q.variant).slice(1)) : "")]);
     if (x.q.note) items.push(["Note", esc(x.q.note)]);
@@ -270,6 +271,7 @@
       }).join("");
       html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>' + (c.target ? "You pay" : "They get") + '</span><span></span></div>' + rows + "</div>";
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
+      if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are updated every 30 minutes from Wise\'s comparison data, which collects each provider\'s advertised rate and fee. Payout options on those rows may be incomplete.</p>';
       if (c.rows.some(function (x) { return x.tied; })) html += '<p class="note tie-note">"=" means tied: the same amount arrives. Tied services are listed with the lower fee first.</p>';
       var reg = REGISTER[c.s.id];
       html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") + ', using standard rates (first-transfer offers are left out). Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +

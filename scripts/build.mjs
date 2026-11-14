@@ -275,7 +275,7 @@ function tool({ heading, sub, ctx, after = "" }) {
 </div>
 <ul class="trustbar" aria-label="Why you can trust these rankings">
   <li><strong>Independent.</strong> Run from Nairobi; no provider owns us.</li>
-  <li><strong>Checked by hand.</strong> Busy routes daily, others every two days; each row shows when.</li>
+  <li><strong>Updated every 30 minutes</strong> for the big providers, and checked by hand for the rest; each row shows when.</li>
   <li><strong>Standard rates only.</strong> No paid placements; commissions never change the order.</li>
   <li><strong>Ratings shown</strong> from Trustpilot, so you see what customers say.</li>
 </ul>
@@ -525,8 +525,8 @@ const R0 = corridors.receivers.find((r) => r.id === "kenya") || corridors.receiv
 const quotedRoutes = Object.keys(quotesFile.quotes || {}).filter((k) => (quotesFile.quotes[k] || []).length).length;
 const quotedProviders = new Set(Object.values(quotesFile.quotes || {}).flat().map((q) => q.provider).filter((id) => providers[id])).size;
 const homeProof = quotedProviders > 1
-  ? `${quotedProviders} services on ${quotedRoutes} routes, checked by hand every day.`
-  : "Rates checked by hand. Commissions never change the order.";
+  ? `${quotedProviders} services on ${quotedRoutes} routes, updated through the day.`
+  : "Commissions never change the order.";
 const homeCtx = routeContext(S0, R0, "", config.defaultAmounts[S0.currency]);
 write("index.html", page({
   prefix: "", canonical: "", bodyOnly: PREVIEW, og: "home",
@@ -573,8 +573,8 @@ for (const s of corridors.senders) {
     const title = cap(`Send money from ${s.short} to ${r.name}: best ${s.currency} to ${r.currency} rate today`);
     const description = top
       ? `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 4))} by what arrives in ${r.name}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}.`
-      : `Compare money transfer services from ${s.short} to ${r.name} by what actually arrives in ${rCur}, after fees and the exchange-rate markup. Rates checked by hand.`;
-    const lede = `Compare ${names.length > 1 ? names.length + " services" : "transfer services"} by how many ${esc(rCur)} arrive${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. ${top ? `Checked by hand, ${esc(dateLong)}.` : "Quotes for this route are being added."}`;
+      : `Compare money transfer services from ${s.short} to ${r.name} by what actually arrives in ${rCur}, after fees and the exchange-rate markup.`;
+    const lede = `Compare ${names.length > 1 ? names.length + " services" : "transfer services"} by how many ${esc(rCur)} arrive${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. ${top ? `Rates checked ${esc(dateLong)}.` : "Quotes for this route are being added."}`;
     const mobileProv = [...new Set(fresh.filter((x) => (x.q.payout || []).includes("mobile")).map((x) => x.p.name))];
     const midTxt = ctx.mid ? `1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}` : "";
     const summary = top ? `<p>On ${esc(dateLong)}, ${lead.length > 1 ? `<strong>${esc(R.names(lead))}</strong> tie for the most` : `<strong>${esc(top.p.name)}</strong> delivers the most`} from ${esc(s.short)} to ${esc(r.name)}: <strong>${esc(plain(R.money(top.gets, r.currency)))}</strong> for ${esc(amt)}${lead.length > 1 ? "" : `, at a rate of ${R.rateStr(top.ev.rate)} with ${esc(R.feeStr(top.q, s.currency).replace(/^Fee /, "a fee of ").replace(/^No fee$/, "no fee"))}`}.${last && last !== top ? ` The lowest of the ${fresh.length} services we checked, ${esc(last.p.name)}, delivers ${esc(plain(R.money(last.gets, r.currency)))}, so choosing well is worth ${esc(plain(R.money(top.gets - last.gets, r.currency)))} on this one transfer.` : ""}${midTxt ? ` The mid-market rate is ${esc(midTxt)}.` : ""}</p>` : "";
@@ -652,7 +652,7 @@ for (const r of corridors.receivers) {
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>Send money to ${esc(r.name)}</h1>
-<p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Europe, Canada, Australia and the Gulf states, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, checked by hand ${esc(dateLong)}.</p>
+<p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Europe, Canada, Australia and the Gulf states, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, rates checked ${esc(dateLong)}.</p>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">Sending from</th><th scope="col">You pay</th><th scope="col">Best today</th><th scope="col" class="num">They get</th><th scope="col"></th></tr></thead>
 <tbody>${lines.filter((l) => l.s.region !== "gulf" || lines.some((m) => m.s.region === "gulf" && m.ctx.anyQuotes)).map((l, i, arr) => `${i && l.s.region !== arr[i - 1].s.region ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}<tr><th scope="row">${esc(l.s.name)}</th><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td>${l.top ? esc(l.lead.length > 1 ? l.lead.map((x) => x.p.name).join(", ") + " (tie)" : l.top.p.name) : "Being checked"}</td><td class="num top">${l.top ? esc(plain(R.money(l.top.gets, r.currency))) : "–"}</td><td><a href="${link(prefix, corridorPath(l.s, r))}">Compare all</a></td></tr>`).join("")}${lines.some((m) => m.s.region === "gulf") && !lines.some((m) => m.s.region === "gulf" && m.ctx.anyQuotes) ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf: rates are being added · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}</tbody>
@@ -720,7 +720,7 @@ for (const p of providersWithQuotes()) {
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1 class="with-badge">${R.badge(p, "b-lg")}<span>${esc(p.name)} review: rates, fees and ratings for Africa</span></h1>
-<p class="lede">How ${esc(p.name)} compares on ${lines.length} routes to ${esc(joinList(countries))}, using rates checked by hand on ${esc(dateLong)}.</p>
+<p class="lede">How ${esc(p.name)} compares on ${lines.length} routes to ${esc(joinList(countries))}, using rates checked on ${esc(dateLong)}.</p>
 <div class="facts">
   <div><span class="k">Customer rating</span><span class="v">${ratingLine(p)}</span></div>
   <div><span class="k">Most money home</span><span class="v">${firsts} of ${fresh.length} routes today</span></div>
@@ -843,7 +843,7 @@ ${crumbNav(prefix, trail)}
 ${histChart(ctx)}
 <h2>Mid-market rate vs the rate you get</h2>
 <p>The mid-market rate above is the midpoint between what banks pay to buy and sell ${esc(rCur)} on the currency market. No transfer service gives exactly this rate for long: each adds a margin, and some also charge a fee. A service advertising "zero fees" can still cost more than one with a small fee, if its rate is lower. That is why SendFair ranks services by the amount that actually arrives in ${esc(r.name)}.</p>
-<p>${s.region === "gulf" ? `The ${esc(sCur.replace(/s$/, ""))} is pegged to the US dollar, so day-to-day moves come from the ${esc(rCur.replace(/s$/, ""))} itself.` : `Both currencies float, so the rate moves through the day with the markets.`} Our copy of the mid-market rate is refreshed every few hours; the service rates are checked by hand, so compare on the day you send.</p>
+<p>${s.region === "gulf" ? `The ${esc(sCur.replace(/s$/, ""))} is pegged to the US dollar, so day-to-day moves come from the ${esc(rCur.replace(/s$/, ""))} itself.` : `Both currencies float, so the rate moves through the day with the markets.`} Our copy of the mid-market rate is refreshed every few hours; service rates are updated through the day, so compare on the day you send.</p>
 <h2>Questions</h2>
 ${faqBlock(faqs)}
 <h2>Send money from ${esc(s.short)} to ${esc(r.name)}</h2>
@@ -953,7 +953,7 @@ const trust = {
 <p>SendFair shows one number clearly: how much actually lands at home. We cover the routes most used by Africans in the United States, the United Kingdom, Europe, Canada and Australia, and by the many who work in the Gulf (the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman), sending to ${esc(joinList(corridors.receivers.map((r) => r.name)))}.</p>
 <p>The site is run independently from Nairobi, Kenya. We are not owned by any transfer company.</p>
 <h2>How the numbers are made</h2>
-<p>Every quote is read by hand from the provider's own public calculator or app, for a typical amount on each route, and saved with the time it was checked. Busy routes are checked every day and quieter ones at least every two days. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
+<p>Quotes for the big providers are updated automatically every 30 minutes from Wise's comparison data; the rest are read by hand from each provider's own calculator or app, for a typical amount on each route. Every quote is saved with the time it was checked. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
 <h2>Editorial independence</h2>
 <p>Services are ranked only by how much your family receives. Some providers pay us a referral commission, but no provider can pay to appear, to rank higher or to have a quote removed, and services that pay us nothing are listed on the same terms. See <a href="${link("../", "disclosure/")}">how we make money</a>.</p>
 <h2>Corrections</h2>
@@ -963,7 +963,7 @@ const trust = {
 <h1>How we rank</h1>
 <h2>What we collect</h2>
 <ul><li>The exchange rate each provider quotes on each route, and the amount we checked it for.</li><li>The transfer fee: a fixed amount, a percentage, or both.</li><li>The ways the money can be received (mobile money, bank, cash pickup). Where a provider's rate differs by payout method, we record each one separately.</li><li>The typical delivery time and when we checked.</li></ul>
-<p>Quotes are checked by hand from each provider's public calculator or app. Busy routes are checked every day, quieter routes at least every two days.</p>
+<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are updated automatically every 30 minutes from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. Those rows are marked "(auto)". Other services, including Taptap Send, Sendwave and Gulf exchange houses, are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data. Automatic rates far from the mid-market rate are held back as likely errors.</p>
 <h2>How the amount received is calculated</h2>
 <p>You enter the total you plan to pay. We take off the provider's fee and convert the rest at the provider's rate. Where the fee is a percentage, it is worked out on the amount sent.</p>
 <p>Total cost is the gap between that and converting your full amount at the mid-market rate with no fee.</p>
