@@ -324,7 +324,7 @@ function corridorGrid(prefix) {
       const top = c.rows.find((x) => !x.stale), lead = R.leaders(c.rows);
       return `<li><a href="${link(prefix, corridorPath(s, r))}"><span class="b-country">${esc(r.name)}</span>${top
         ? `<span class="b-amt num">${R.moneyHtml(top.gets, r.currency)}</span><span class="b-prov">${lead.length > 1 ? `${lead.length}-way tie: ${esc(lead.map((x) => x.p.name).join(", "))}` : `with ${esc(top.p.name)}`}</span>`
-        : `<span class="b-amt b-wait">${c.anyQuotes ? "Being rechecked" : "Coming soon"}</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
+        : `<span class="b-amt b-wait">${c.anyQuotes ? "Being rechecked" : "Prices in apps only"}</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
     }).join("");
     return `<div class="board-col"><h3>From ${esc(s.short)}</h3><p class="board-sub">Best result for <span class="num">${esc(R.money(amount, s.currency, 0))}</span></p><ul>${rows}</ul></div>`;
   };
@@ -575,7 +575,7 @@ for (const s of corridors.senders) {
     const description = top
       ? `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 4))} by what arrives in ${r.name}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}.`
       : `Compare money transfer services from ${s.short} to ${r.name} by what actually arrives in ${rCur}, after fees and the exchange-rate markup.`;
-    const lede = `Compare ${names.length > 1 ? names.length + " services" : "transfer services"} by how many ${esc(rCur)} arrive${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. ${top ? `Rates checked ${esc(dateLong)}.` : "Quotes for this route are being added."}`;
+    const lede = `Compare ${names.length > 1 ? names.length + " services" : "transfer services"} by how many ${esc(rCur)} arrive${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. ${top ? `Rates checked ${esc(dateLong)}.` : "No service publishes online prices for this route yet."}`;
     const mobileProv = [...new Set(fresh.filter((x) => (x.q.payout || []).includes("mobile")).map((x) => x.p.name))];
     const midTxt = ctx.mid ? `1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}` : "";
     const summary = top ? `<p>On ${esc(dateLong)}, ${lead.length > 1 ? `<strong>${esc(R.names(lead))}</strong> tie for the most` : `<strong>${esc(top.p.name)}</strong> delivers the most`} from ${esc(s.short)} to ${esc(r.name)}: <strong>${esc(plain(R.money(top.gets, r.currency)))}</strong> for ${esc(amt)}${lead.length > 1 ? "" : `, at a rate of ${R.rateStr(top.ev.rate)} with ${esc(R.feeStr(top.q, s.currency).replace(/^Fee /, "a fee of ").replace(/^No fee$/, "no fee"))}`}.${last && last !== top ? ` The lowest of the ${fresh.length} services we checked, ${esc(last.p.name)}, delivers ${esc(plain(R.money(last.gets, r.currency)))}, so choosing well is worth ${esc(plain(R.money(top.gets - last.gets, r.currency)))} on this one transfer.` : ""}${midTxt ? ` The mid-market rate is ${esc(midTxt)}.` : ""}</p>` : "";
@@ -828,7 +828,7 @@ for (const { s, r } of ratePairs) {
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>${esc(s.currency)} to ${esc(r.currency)} today: 1 ${esc(s.currency)} = ${R.rateStr(ctx.mid)} ${esc(r.currency)}</h1>
-<p class="lede">The mid-market rate for ${esc(sCur)} to ${esc(rCur)}${pairHasData ? `, and what actually arrives in ${esc(r.name)} when you send money from ${esc(s.short)} with the best service we checked on ${esc(dateLong)}` : `. Transfer quotes from ${esc(s.short)} to ${esc(r.name)} are being added`}.</p>
+<p class="lede">The mid-market rate for ${esc(sCur)} to ${esc(rCur)}${pairHasData ? `, and what actually arrives in ${esc(r.name)} when you send money from ${esc(s.short)} with the best service we checked on ${esc(dateLong)}` : `. No transfer service publishes online prices from ${esc(s.short)} to ${esc(r.name)} yet`}.</p>
 <div class="converter" id="sf-conv" data-mid="${ctx.mid}" data-from="${s.currency}" data-to="${r.currency}">
   <label>Amount in ${esc(s.currency)} <input type="number" inputmode="decimal" min="0" step="any" value="${config.defaultAmounts[s.currency]}" id="sf-conv-in"></label>
   <div class="conv-out"><span class="k">At the mid-market rate</span><span class="v num" id="sf-conv-mid">${esc(plain(R.money(config.defaultAmounts[s.currency] * ctx.mid, r.currency)))}</span></div>
@@ -837,7 +837,7 @@ ${crumbNav(prefix, trail)}
 <h2>What arrives in ${esc(r.name)} today</h2>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">You send</th><th scope="col" class="num">At mid-market</th><th scope="col" class="num">Best service gives</th><th scope="col">Service</th></tr></thead>
-<tbody>${amts.map((a) => { const b = bestAt(a); return `<tr><th scope="row">${esc(plain(R.money(a, s.currency, a < 10 ? 2 : 0)))}</th><td class="num">${esc(plain(R.money(a * ctx.mid, r.currency)))}</td><td class="num top">${b ? esc(plain(R.money(b.gets, r.currency))) : "–"}</td><td>${b ? esc(b.p.name) : "Coming soon"}</td></tr>`; }).join("")}</tbody>
+<tbody>${amts.map((a) => { const b = bestAt(a); return `<tr><th scope="row">${esc(plain(R.money(a, s.currency, a < 10 ? 2 : 0)))}</th><td class="num">${esc(plain(R.money(a * ctx.mid, r.currency)))}</td><td class="num top">${b ? esc(plain(R.money(b.gets, r.currency))) : "–"}</td><td>${b ? esc(b.p.name) : "No online prices"}</td></tr>`; }).join("")}</tbody>
 </table></div>
 <p class="note">"Best service gives" is for sending from ${esc(s.short)}, after fees and margins, using rates checked for ${esc(plain(R.money(ctx.amount, s.currency, 0)))}. For 1 ${esc(s.currency)}, a fixed fee can outweigh the transfer.</p>
 <h2>${esc(s.currency)} to ${esc(r.currency)} rate history</h2>
@@ -897,7 +897,7 @@ ${crumbNav(prefix, trail)}
 <h2 id="best">Today's best from each Gulf country</h2>
 <div class="table-wrap"><table class="rates-table gulf-grid">
 <thead><tr><th scope="col">From</th>${corridors.receivers.map((r) => `<th scope="col" class="num">${esc(r.name)}</th>`).join("")}</tr></thead>
-<tbody>${grid.map((g) => `<tr><th scope="row">${esc(g.s.label)}<span class="sub">${esc(plain(R.money(config.defaultAmounts[g.s.currency], g.s.currency, 0)))}</span></th>${g.cells.map((c) => `<td class="num"><a href="${link(prefix, corridorPath(g.s, c.r))}">${c.top ? `${esc(plain(R.money(c.top.gets, c.r.currency)))}<span class="sub">${esc(c.lead.length > 1 ? c.lead.length + "-way tie" : c.top.p.name)}</span>` : `${c.ctx.anyQuotes ? "Being rechecked" : "Coming soon"}<span class="sub">${esc(g.s.currency)} to ${esc(c.r.currency)}</span>`}</a></td>`).join("")}</tr>`).join("")}</tbody>
+<tbody>${grid.map((g) => `<tr><th scope="row">${esc(g.s.label)}<span class="sub">${esc(plain(R.money(config.defaultAmounts[g.s.currency], g.s.currency, 0)))}</span></th>${g.cells.map((c) => `<td class="num"><a href="${link(prefix, corridorPath(g.s, c.r))}">${c.top ? `${esc(plain(R.money(c.top.gets, c.r.currency)))}<span class="sub">${esc(c.lead.length > 1 ? c.lead.length + "-way tie" : c.top.p.name)}</span>` : `${c.ctx.anyQuotes ? "Being rechecked" : "Apps only"}<span class="sub">${esc(g.s.currency)} to ${esc(c.r.currency)}</span>`}</a></td>`).join("")}</tr>`).join("")}</tbody>
 </table></div>
 <p class="note">Most that arrives for the amount shown, after fees (including VAT) and exchange-rate margins. Tap a cell to compare every service on that route.</p>
 <h2 id="ways">How the ways of sending compare</h2>

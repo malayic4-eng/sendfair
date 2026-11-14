@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-11-14T11:39:49Z",
+ "updatedAt": "2026-11-14T11:50:25Z",
  "coverage": {
   "us-nigeria": [
    "wise",
@@ -7210,6 +7210,21 @@
     "note": "WU UAE (via Al Fardan Exchange) estimate, paying by Visa debit card; fee 7.50 + 5% VAT 0.38 as shown on site",
     "refAmount": 1000.0,
     "checkedAt": "2026-11-14T11:32:00Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 160.07,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "cash",
+     "bank",
+     "mobile"
+    ],
+    "speed": "",
+    "note": "Remitly AED->XOF public converter (page names Senegal); Everyday rate, Zero fees shown; payout options listed for Senegal: cash pickup, bank deposit, mobile wallet",
+    "refAmount": 1000,
+    "checkedAt": "2026-11-14T12:22:00Z"
    }
   ],
   "uae-ivorycoast": [
@@ -7539,6 +7554,21 @@
     "note": "WU UAE (via Al Fardan Exchange) estimate, RWF payout, paying by Visa debit card; fee 7.50 + 5% VAT 0.38 as shown on site",
     "refAmount": 1000.0,
     "checkedAt": "2026-11-14T11:51:00Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 390.74,
+    "feeFixed": 5.25,
+    "feePct": 0,
+    "payout": [
+     "cash",
+     "bank",
+     "mobile"
+    ],
+    "speed": "",
+    "note": "Remitly AED->RWF public converter; Everyday rate shown; standard fee 5.00 AED shown excl. VAT (waived on first transfer) - 5% VAT added",
+    "refAmount": 1000,
+    "checkedAt": "2026-11-14T12:22:00Z"
    }
   ],
   "bahrain-egypt": [
@@ -7554,6 +7584,35 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "variant": "Bank account",
+    "rate": 139.6549,
+    "feeFixed": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "4 business days",
+    "note": "Fee 0.000 BHD + VAT 10% 0.000 shown; paid by debit card (site default); receiver gets EGP 13,965.49",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:41:00Z",
+    "provider": "westernunion",
+    "feePct": 0
+   },
+   {
+    "variant": "Cash pickup / mobile wallet",
+    "rate": 137.674,
+    "feeFixed": 0,
+    "payout": [
+     "cash",
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 0.000 BHD + VAT 10% 0.000 shown; paid by debit card (site default); receiver gets EGP 13,767.40",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:42:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-morocco": [
@@ -7569,6 +7628,35 @@
     "note": "Taptap Send public calculator; shows 'Transfer fee: from BHD 0.00*' (fees may be higher depending on delivery method); payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "variant": "Bank account",
+    "rate": 25.7585,
+    "feeFixed": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 0.000 BHD + VAT 10% 0.000 shown; paid by debit card (site default); receiver gets MAD 2,575.85",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:44:00Z",
+    "provider": "westernunion",
+    "feePct": 0
+   },
+   {
+    "variant": "Cash pickup / mobile wallet",
+    "rate": 24.9657,
+    "feeFixed": 0,
+    "payout": [
+     "cash",
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 0.000 BHD + VAT 10% 0.000 shown; paid by debit card (site default); receiver gets MAD 2,496.57",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:45:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-senegal": [
@@ -7584,6 +7672,35 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "variant": "Mobile wallet",
+    "rate": 1561.5722,
+    "feeFixed": 0.88,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 0.800 BHD + 10% VAT 0.080 = 0.880; paid by debit card (site default); receiver gets XOF 156,160",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:47:00Z",
+    "provider": "westernunion",
+    "feePct": 0
+   },
+   {
+    "variant": "Cash pickup / bank account",
+    "rate": 1521.1922,
+    "feeFixed": 2.2,
+    "payout": [
+     "cash",
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 2.000 BHD + 10% VAT 0.200 = 2.200; paid by debit card (site default); receiver gets XOF 152,120; bank delivery 0-4 business days, cash in minutes",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:48:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-ivorycoast": [
@@ -7599,6 +7716,34 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "variant": "Mobile wallet",
+    "rate": 1564.3471,
+    "feeFixed": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 0.000 BHD + 10% VAT 0.000; paid by debit card (site default); receiver gets XOF 156,435",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:50:00Z",
+    "provider": "westernunion",
+    "feePct": 0
+   },
+   {
+    "variant": "Cash pickup",
+    "rate": 1518.5107,
+    "feeFixed": 2.2,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 2.000 BHD + 10% VAT 0.200 = 2.200; paid by debit card (site default); receiver gets XOF 151,855; no bank option shown",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:49:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-mali": [
@@ -7614,6 +7759,34 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "variant": "Mobile wallet",
+    "rate": 1574.191,
+    "feeFixed": 1.1,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 1.000 BHD + 10% VAT 0.100 = 1.100; paid by debit card (site default); receiver gets XOF 157,420",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:52:00Z",
+    "provider": "westernunion",
+    "feePct": 0
+   },
+   {
+    "variant": "Cash pickup",
+    "rate": 1532.0759,
+    "feeFixed": 2.2,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 2.000 BHD + 10% VAT 0.200 = 2.200; paid by debit card (site default); receiver gets XOF 153,208; no bank option shown",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:51:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-cameroon": [
@@ -7629,6 +7802,34 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "variant": "Mobile wallet",
+    "rate": 1574.191,
+    "feeFixed": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 0.000 BHD + 10% VAT 0.000; paid by debit card (site default); receiver gets XAF 157,420",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:54:00Z",
+    "provider": "westernunion",
+    "feePct": 0
+   },
+   {
+    "variant": "Cash pickup",
+    "rate": 1507.627,
+    "feeFixed": 1.1,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 1.000 BHD + 10% VAT 0.100 = 1.100; paid by debit card (site default); receiver gets XAF 150,763; no bank option shown",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:53:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-ethiopia": [
@@ -7644,6 +7845,34 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "variant": "Mobile wallet",
+    "rate": 413.1732,
+    "feeFixed": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 0.000 BHD + 10% VAT 0.000; paid by debit card (site default); receiver gets ETB 41,317.32",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:56:00Z",
+    "provider": "westernunion",
+    "feePct": 0
+   },
+   {
+    "variant": "Bank account",
+    "rate": 412.5323,
+    "feeFixed": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "0-4 business days",
+    "note": "Fee 0.000 BHD + 10% VAT 0.000; paid by debit card (site default); receiver gets ETB 41,253.24; no cash pickup option shown",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:55:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-southafrica": [
@@ -7659,6 +7888,19 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "rate": 44.7852,
+    "feeFixed": 1.65,
+    "payout": [
+     "bank"
+    ],
+    "speed": "0-4 business days",
+    "note": "Fee 1.500 BHD + 10% VAT 0.150 = 1.650; paid by debit card (site default); receiver gets ZAR 4,478.52; only bank account offered",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:57:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-tanzania": [
@@ -7674,6 +7916,35 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "variant": "Mobile wallet",
+    "rate": 6958.4644,
+    "feeFixed": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 0.000 BHD + 10% VAT 0.000; paid by debit card (site default); receiver gets TZS 695,846.44",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:59:00Z",
+    "provider": "westernunion",
+    "feePct": 0
+   },
+   {
+    "variant": "Cash pickup / bank account",
+    "rate": 6804.3742,
+    "feeFixed": 2.2,
+    "payout": [
+     "cash",
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 2.000 BHD + 10% VAT 0.200 = 2.200; paid by debit card (site default); receiver gets TZS 680,437.44; cash in minutes, bank 2 business days",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:58:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-drc": [
@@ -7689,6 +7960,34 @@
     "note": "Taptap Send public calculator; 'No transfer fees' shown; payout methods not shown on calculator.",
     "refAmount": 100,
     "checkedAt": "2026-11-14T11:20:00Z"
+   },
+   {
+    "variant": "Mobile wallet",
+    "rate": 2.5743,
+    "feeFixed": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 0.000 BHD + 10% VAT 0.000; paid by debit card (site default); receiver gets USD 257.43",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T12:01:00Z",
+    "provider": "westernunion",
+    "feePct": 0
+   },
+   {
+    "variant": "Cash pickup",
+    "rate": 2.5743,
+    "feeFixed": 2.2,
+    "payout": [
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "Fee 2.000 BHD + 10% VAT 0.200 = 2.200; paid by debit card (site default); receiver gets USD 257.43; no bank option shown",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T12:00:00Z",
+    "provider": "westernunion",
+    "feePct": 0
    }
   ],
   "bahrain-rwanda": [
@@ -8154,9 +8453,38 @@
     "note": "Fee when paying by bank account. Site banner warns of problems with bank-account payouts",
     "refAmount": 300,
     "checkedAt": "2026-11-14T11:41:00Z"
+   },
+   {
+    "provider": "taptapsend",
+    "rate": 596.2,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "cash"
+    ],
+    "speed": "Within a few minutes",
+    "note": "Mobile wallet (Orange Money, Wave, Wizall), cash pickup via Wizall/Proximo or BNB bank branch",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T12:12:00Z"
    }
   ],
   "us-ivorycoast": [
+   {
+    "provider": "remitly",
+    "rate": 579.3,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; first-transfer welcome rate 592.99",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T11:12:00Z"
+   },
    {
     "provider": "worldremit",
     "rate": 572.5985,
@@ -8197,9 +8525,37 @@
     "note": "Standard fee 4.99 shown waived (100% off) by current promo; paying by bank account",
     "refAmount": 300,
     "checkedAt": "2026-11-14T11:47:00Z"
+   },
+   {
+    "provider": "taptapsend",
+    "rate": 596.0,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Within a few minutes",
+    "note": "Mobile money only (Moov, MTN, Orange, Wave)",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T12:13:00Z"
    }
   ],
   "us-mali": [
+   {
+    "provider": "remitly",
+    "rate": 562.85,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; first-transfer welcome rate 567.92",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T11:14:00Z"
+   },
    {
     "provider": "worldremit",
     "rate": 589.1421,
@@ -8240,9 +8596,37 @@
     "note": "Standard rate; promo BEST RATE 578.7663 and fee waiver (100% off 4.99) also shown; paying by bank account",
     "refAmount": 300,
     "checkedAt": "2026-11-14T11:52:00Z"
+   },
+   {
+    "provider": "taptapsend",
+    "rate": 596.0,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Within a few minutes",
+    "note": "Orange or Wave mobile wallet",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T12:13:00Z"
    }
   ],
   "us-cameroon": [
+   {
+    "provider": "remitly",
+    "rate": 582.17,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; first-transfer welcome rate 598.43",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T11:13:00Z"
+   },
    {
     "provider": "worldremit",
     "variant": "Cash pickup",
@@ -8284,9 +8668,37 @@
     "note": "Standard rate; promo BEST RATE 580.5517 and fee waiver (100% off 4.99) also shown; paying by bank account",
     "refAmount": 300,
     "checkedAt": "2026-11-14T11:55:00Z"
+   },
+   {
+    "provider": "taptapsend",
+    "rate": 590.0,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Under 5 minutes",
+    "note": "MTN/Orange mobile money; bank transfer temporarily unavailable",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T12:13:00Z"
    }
   ],
   "us-drc": [
+   {
+    "provider": "remitly",
+    "rate": 1.0,
+    "feeFixed": 7.75,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "USD payout. Fee 7.75 shown for $300 (fee table: Economy 0.905%+$3.99, Express 1.26%+$3.99); first transfer fee-free",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T11:16:00Z"
+   },
    {
     "provider": "westernunion",
     "variant": "Mobile wallet",
@@ -8314,9 +8726,51 @@
     "note": "USD payout. Standard fee 8.99 shown waived (100% off) by current promo; paying by bank account",
     "refAmount": 300,
     "checkedAt": "2026-11-14T11:58:00Z"
+   },
+   {
+    "provider": "taptapsend",
+    "rate": 1.0,
+    "feeFixed": 4.0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "cash"
+    ],
+    "speed": "Within a few minutes",
+    "note": "USD payout; Airtel/Orange/M-Pesa mobile money or Flash cash pickup; US fee $4.00 for $141.01-$461",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T12:13:00Z"
+   },
+   {
+    "provider": "sendwave",
+    "rate": 1.0,
+    "feeFixed": 5.79,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "USD payout to Airtel, M-Pesa or Orange mobile money",
+    "refAmount": 300,
+    "checkedAt": "2026-11-14T12:21:00Z"
    }
   ],
   "uk-cameroon": [
+   {
+    "provider": "remitly",
+    "rate": 763.54,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; first-transfer welcome rate 778.81 (first GBP 300)",
+    "refAmount": 250,
+    "checkedAt": "2026-11-14T11:18:00Z"
+   },
    {
     "provider": "worldremit",
     "variant": "Cash pickup",
@@ -8358,9 +8812,50 @@
     "note": "Fee with instant bank transfer (card 4.99). 0.2% Cameroon tax deducted at payout",
     "refAmount": 250,
     "checkedAt": "2026-11-14T12:04:00Z"
+   },
+   {
+    "provider": "taptapsend",
+    "rate": 772.0,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Under 5 minutes",
+    "note": "MTN/Orange mobile money; bank transfer temporarily unavailable",
+    "refAmount": 250,
+    "checkedAt": "2026-11-14T12:14:00Z"
+   },
+   {
+    "provider": "sendwave",
+    "rate": 766.432,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "Orange or MTN mobile money",
+    "refAmount": 250,
+    "checkedAt": "2026-11-14T12:22:00Z"
    }
   ],
   "canada-cameroon": [
+   {
+    "provider": "remitly",
+    "rate": 410.57,
+    "feeFixed": 2.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; first-transfer welcome rate 424.12, first transfer fee-free",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T11:18:00Z"
+   },
    {
     "provider": "worldremit",
     "variant": "Cash pickup",
@@ -8416,7 +8911,152 @@
     "note": "Fee with Interac e-Transfer/debit; first online transfer fee-free. 0.2% Cameroon tax deducted at payout",
     "refAmount": 400,
     "checkedAt": "2026-11-14T12:08:00Z"
+   },
+   {
+    "provider": "taptapsend",
+    "rate": 413.5,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "Under 5 minutes",
+    "note": "MTN/Orange mobile money; bank transfer temporarily unavailable",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T12:15:00Z"
+   },
+   {
+    "provider": "sendwave",
+    "rate": 408.827,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "Orange or MTN mobile money",
+    "refAmount": 400,
+    "checkedAt": "2026-11-14T12:23:00Z"
    }
-  ]
+  ],
+  "kuwait-egypt": [
+   {
+    "provider": "almulla",
+    "rate": 170.01,
+    "feeFixed": 1.5,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1 hour",
+    "note": "Payout method not shown",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:38:00Z"
+   }
+  ],
+  "kuwait-morocco": [
+   {
+    "provider": "almulla",
+    "rate": 30.2959,
+    "feeFixed": 3,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Next day",
+    "note": "Payout method not shown",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:40:00Z"
+   },
+   {
+    "provider": "westernunion",
+    "rate": 31.1604,
+    "feeFixed": 2.5,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "",
+    "note": "",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:52:00Z"
+   }
+  ],
+  "kuwait-ethiopia": [
+   {
+    "provider": "almulla",
+    "rate": 494.727,
+    "feeFixed": 1.5,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "5 minutes",
+    "note": "Payout method not shown",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:40:30Z"
+   }
+  ],
+  "kuwait-southafrica": [
+   {
+    "provider": "almulla",
+    "rate": 54.4434,
+    "feeFixed": 2,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "5 days",
+    "note": "Payout method not shown",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:41:30Z"
+   }
+  ],
+  "kuwait-zambia": [
+   {
+    "provider": "westernunion",
+    "rate": 59.6618,
+    "feeFixed": 4,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "",
+    "note": "",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:50:00Z"
+   }
+  ],
+  "kuwait-zimbabwe": [
+   {
+    "provider": "westernunion",
+    "rate": 2.9159,
+    "feeFixed": 4,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "",
+    "note": "",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:51:00Z"
+   }
+  ],
+  "kuwait-senegal": [
+   {
+    "provider": "westernunion",
+    "rate": 1736.3254,
+    "feeFixed": 4,
+    "feePct": 0,
+    "payout": [
+     "cash"
+    ],
+    "speed": "",
+    "note": "",
+    "refAmount": 100,
+    "checkedAt": "2026-11-14T11:53:00Z"
+   }
+  ],
+  "oman-egypt": []
  }
 }

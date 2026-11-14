@@ -283,8 +283,8 @@
       var list = (c.checkList || []).map(function (p) {
         return '<a href="' + esc(c.hrefFor(p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener">' + esc(p.name) + "</a>";
       }).join(DOT);
-      html += '<div class="empty"><strong>' + (c.anyQuotes ? "Today\'s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked." : "We haven\'t published quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " yet.") + "</strong>" +
-        "<span>" + (c.anyQuotes ? "The last check is too old to rank, so we have hidden it until it is rechecked." : "This route is being added. Until it is, compare the services below yourself.") + (c.mid ? " The figures below show what a fair deal looks like, so you can judge any quote you get." : "") + "</span>" +
+      html += '<div class="empty"><strong>' + (c.anyQuotes ? "Today\'s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked." : "No service publishes online prices for " + esc(c.s.short) + " to " + esc(c.r.name) + " yet.") + "</strong>" +
+        "<span>" + (c.anyQuotes ? "The last check is too old to rank, so we have hidden it until it is rechecked." : "The services that send on this route show their rates only in their apps or at their branches. Compare them there, using the fair-deal figures below as a guide.") + (c.mid ? " The figures below show what a fair deal looks like, so you can judge any quote you get." : "") + "</span>" +
         (list ? '<span class="checklist">Services to check on this route: ' + list + "</span>" : "") + "</div>";
     }
     if (c.mid && c.target) {
@@ -356,7 +356,7 @@
   function notice(c) {
     var top = c.rows.filter(function (x) { return !x.stale; })[0];
     if (!(c.amount > 0) && !(c.target > 0)) return { title: "SendFair", text: "Enter an amount to see what arrives.", cap: "" };
-    if (!top) return { title: "SendFair", text: c.anyQuotes ? "Today\u2019s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked." : "Quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are coming soon.", cap: "" };
+    if (!top) return { title: "SendFair", text: c.anyQuotes ? "Today\u2019s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked." : "No online prices yet for " + esc(c.s.short) + " to " + esc(c.r.name) + ".", cap: "" };
     var how = c.payout && c.payout !== "all" ? c.payout : (top.q.payout || [])[0] || "mobile";
     var amt = "<b>" + esc(money(top.gets, c.r.currency, 2)) + "</b>";
     var lead = leaders(c.rows);
