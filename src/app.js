@@ -83,7 +83,7 @@
     var allRows = S.payout === "all" ? rows : R.rank(Object.assign({}, opts, { payout: "all" }));
     var hist = Object.keys((S.history || {}).days || {}).sort().map(function (d) { var e = S.history.days[d][k] || {}; return { d: d, mid: e.mid, best: e.best }; }).filter(function (e) { return e.mid || e.best; });
     if (target !== undefined) { var top0 = rows.filter(function (x) { return !x.stale; })[0]; amount = top0 ? top0.pay : NaN; }
-    var coverage = S.coverage[k] && S.coverage[k].length ? S.coverage[k] : Object.keys(S.providers);
+    var from = $("sf-from").value, coverage = S.coverage[k] && S.coverage[k].length ? S.coverage[k] : Object.keys(S.providers).filter(function (id) { var p = S.providers[id]; return !p.sendsFrom || p.sendsFrom.indexOf(from) > -1; });
     return {
       s: s, r: r, key: k, amount: amount, target: target, payout: S.payout, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
       anyQuotes: list.length > 0, reports: S.reports, hrefFor: hrefFor, disclosureHref: SF.disclosureHref || "#",

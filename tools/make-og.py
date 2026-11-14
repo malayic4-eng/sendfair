@@ -1,5 +1,5 @@
 """Generates the link-preview images (1200x630) in src/og/ for the home page and every route.
-Run again only if you add countries:  python3 tools/make-og.py   (needs: pip install playwright && playwright install chromium)
+Run again only if you add countries:  python3 tools/make-og.py  (draws only missing images; --all redraws every one)   (needs: pip install playwright && playwright install chromium)
 """
 import asyncio, base64, json, pathlib, sys
 from playwright.async_api import async_playwright
@@ -33,15 +33,19 @@ h1{color:#111853;font:760 96px/1 B,sans-serif;letter-spacing:-.03em;max-width:10
 FACES = {"b": font("bricolage-grotesque-latin-opsz-normal.woff2"), "f": font("figtree-latin-wght-normal.woff2")}
 
 async def main():
-    jobs = [("home", "Money transfers to Africa, compared", "Send more home.", "Ranked by what your family actually receives, after the fee and the exchange-rate markup.")]
+    jobs = [("home", "Money transfers to Africa, compared", "Send more home.", "Ranked by what your family actually receives, after the fee and the exchange-rate markup."),
+            ("gulf", "Exchange houses, banks, wallets and apps", "From the Gulf to Africa", "Every way of sending compared by how much actually arrives.")]
     for s in corr["senders"]:
         for r in corr["receivers"]:
             jobs.append((f"{s['id']}-to-{r['id']}", f"{s['currency']} to {r['currency']}", f"{s['label']} to {r['name']}", "Today's transfer services ranked by how much actually arrives."))
     async with async_playwright() as p:
-        exe = sys.argv[1] if len(sys.argv) > 1 else None
+        exe = next((a for a in sys.argv[1:] if not a.startswith("--")), None)
         b = await p.chromium.launch(executable_path=exe, args=["--no-sandbox"]) if exe else await p.chromium.launch()
         pg = await b.new_page(viewport={"width": 1200, "height": 630})
+        redo = "--all" in sys.argv
         for name, kicker, title, sub in jobs:
+            if not redo and (OUT / f"{name}.png").exists():
+                continue  # keep existing images; pass --all to redraw every one
             await pg.set_content(TEMPLATE % {**FACES, "kicker": kicker, "title": title, "sub": sub})
             await pg.evaluate("document.fonts.ready")
             await pg.screenshot(path=str(OUT / f"{name}.png"))

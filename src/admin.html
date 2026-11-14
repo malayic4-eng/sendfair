@@ -133,10 +133,11 @@ function loadRoute(){
   $("ref").value=ref;
   S.rows=list.map(function(q){return{provider:q.provider,variant:q.variant||"",rate:q.rate,feeFixed:q.feeFixed!=null?q.feeFixed:(q.fee||0),feePct:q.feePct||0,payout:(q.payout||[]).slice(),speed:q.speed||"",note:q.note||"",checked:false,prev:q.checkedAt||null}});
   var have=S.rows.map(function(r){return r.provider});
-  var extra=(cov.length?cov:(list.length?[]:S.providers.map(function(p){return p.id})));
+  var extra=(cov.length?cov:(list.length?[]:S.providers.filter(function(p){return !p.sendsFrom||p.sendsFrom.indexOf(i.s.id)>-1}).map(function(p){return p.id})));
   extra.forEach(function(id){if(have.indexOf(id)===-1&&S.pmap[id])S.rows.push(blank(id))});
   var mid=midFor(k);
   $("mid").textContent=mid&&i.s.currency!==i.r.currency?("Mid-market: 1 "+i.s.currency+" = "+R.rateStr(mid)+" "+i.r.currency):(i.s.currency===i.r.currency?"Same currency: rate is normally 1, compare fees.":"Mid-market rate not loaded yet.");
+  if(i.s.vat)$("mid").textContent+=" · Fees here carry "+i.s.vat+"% VAT: type the fee including VAT.";
   $("route-err").hidden=true;
   renderRows();
 }
@@ -162,7 +163,7 @@ function renderRows(){
       '<td><button class="link" type="button" data-variant="'+ix+'">+ variant</button><button class="link" type="button" data-remove="'+ix+'">Remove</button></td></tr>';
   }).join("");
   var used=S.rows.map(function(r){return r.provider});
-  $("add-prov").innerHTML=S.providers.map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.name)+(used.indexOf(p.id)>-1?" (another variant)":"")+"</option>"}).join("");
+  $("add-prov").innerHTML=S.providers.filter(function(p){var s=info(k).s;return !p.sendsFrom||p.sendsFrom.indexOf(s.id)>-1||used.indexOf(p.id)>-1}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.name)+(used.indexOf(p.id)>-1?" (another variant)":"")+"</option>"}).join("");
   flags();
 }
 function flags(){

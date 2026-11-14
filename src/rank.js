@@ -153,7 +153,13 @@
     uk: ["the FCA register", "https://register.fca.org.uk/"],
     us: ["FinCEN's MSB search", "https://www.fincen.gov/msb-registrant-search"],
     canada: ["FINTRAC's MSB registry", "https://fintrac-canafe.canada.ca/msb-esm/reg-eng"],
-    australia: ["AUSTRAC's remittance register", "https://www.austrac.gov.au/remittance-sector-register-and-remittance-registration-actions"]
+    australia: ["AUSTRAC's remittance register", "https://www.austrac.gov.au/remittance-sector-register-and-remittance-registration-actions"],
+    uae: ["the Central Bank of the UAE", "https://www.centralbank.ae/", "by"],
+    saudi: ["the Saudi Central Bank (SAMA)", "https://www.sama.gov.sa/", "by"],
+    qatar: ["Qatar Central Bank", "https://www.qcb.gov.qa/", "by"],
+    kuwait: ["the Central Bank of Kuwait", "https://www.cbk.gov.kw/", "by"],
+    bahrain: ["the Central Bank of Bahrain", "https://www.cbb.gov.bh/", "by"],
+    oman: ["the Central Bank of Oman", "https://cbo.gov.om/", "by"]
   };
 
   // One compact line per service, so the whole ranking fits on screen. Notes become numbered footnotes under the table.
@@ -253,7 +259,7 @@
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
       var reg = REGISTER[c.s.id];
       html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") + ', using standard rates (first-transfer offers are left out). Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +
-        (reg ? '<p class="disclose">Before you send, check the service is licensed on <a href="' + reg[1] + '" target="_blank" rel="noopener">' + reg[0] + "</a>.</p>" : "") +
+        (reg ? '<p class="disclose">Before you send, check the service is licensed ' + (reg[2] || "on") + ' <a href="' + reg[1] + '" target="_blank" rel="noopener">' + reg[0] + "</a>.</p>" : "") +
         (notes.length ? '<ol class="notes">' + notes.map(function (n, k) { return '<li id="sf-fn-' + (k + 1) + '"><strong>' + esc(n.who) + ":</strong> " + esc(n.text) + "</li>"; }).join("") + "</ol>" : "") + "</div>";
     } else if (c.payout && c.payout !== "all" && c.anyQuotes) {
       html += '<div class="empty"><strong>None of today\'s checked services pay out by ' + LABEL[c.payout].toLowerCase() + " on this route.</strong><span>Choose another way to receive, or check back later today.</span></div>";

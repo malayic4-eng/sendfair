@@ -31,6 +31,16 @@ const providersFile = read("data/providers.json");
 let quotesFile = read("data/quotes.json");
 let midmarket = read("data/midmarket.json");
 
+// Kinds of service, used to compare ways of sending on the Gulf guide.
+const METHOD = {
+  exchange: { name: "Exchange house", short: "Exchange houses" },
+  bank: { name: "Bank remittance service", short: "Bank remittance services" },
+  wallet: { name: "Mobile wallet", short: "Mobile wallets" },
+  app: { name: "International transfer app", short: "International apps" },
+  network: { name: "Global cash network", short: "Global cash networks" }
+};
+const servesFrom = (p, sid) => !p.sendsFrom || p.sendsFrom.includes(sid);
+
 // ---------- validation ----------
 (function validate() {
   const p = [];
@@ -44,6 +54,13 @@ let midmarket = read("data/midmarket.json");
     ids.add(pr.id);
     if (!/^https:\/\//.test(pr.website || "")) p.push(`data/providers.json: ${pr.id} website must start with https://`);
     if (pr.affiliateUrl && !/^https:\/\//.test(pr.affiliateUrl)) p.push(`data/providers.json: ${pr.id} affiliateUrl must start with https://`);
+  }
+  const senderIds = new Set(senders.map((x) => x.id));
+  for (const x of senders) if (/-/.test(x.id)) p.push(`data/corridors.json: sender id "${x.id}" must not contain "-"`);
+  for (const pr of providersFile.providers || []) {
+    for (const sid of pr.sendsFrom || []) if (!senderIds.has(sid)) p.push(`data/providers.json: ${pr.id} sendsFrom has unknown country "${sid}"`);
+    if (pr.type && !METHOD[pr.type]) p.push(`data/providers.json: ${pr.id} type must be one of ${Object.keys(METHOD).join(", ")}`);
+    if (!/^[a-z]+$/.test(pr.id || "")) p.push(`data/providers.json: id "${pr.id}" must be lowercase letters only`);
   }
   const routes = new Set(senders.flatMap((s) => receivers.map((r) => `${s.id}-${r.id}`)));
   for (const [k, list] of Object.entries(quotesFile.quotes || {})) {
@@ -85,7 +102,7 @@ const staleH = config.staleAfterHours || 36, hideH = config.hideAfterHours || 72
 // ---------- demo data (preview only, bannered on every page) ----------
 let demoReports = null;
 if (DEMO) {
-  const rates = { USD: 1, GBP: 0.75, CAD: 1.39, AUD: 1.52, NGN: 1460, GHS: 11.2, KES: 129.2, UGX: 3640, ZMW: 23.6 };
+  const rates = { USD: 1, GBP: 0.75, CAD: 1.39, AUD: 1.52, AED: 3.6725, SAR: 3.75, QAR: 3.64, KWD: 0.31, BHD: 0.376, OMR: 0.3845, NGN: 1460, GHS: 11.2, KES: 129.2, UGX: 3640, ZMW: 23.6 };
   midmarket = { base: "USD", updatedAt: new Date(NOW - 3 * 3600000).toISOString(), source: "Example figures", demo: true, rates };
   const pick = ["lemfi", "wise", "worldremit", "remitly", "sendwave", "taptapsend", "afriex", "nala", "westernunion", "mukuru"];
   const out = {}, coverage = {}, reps = {};
@@ -95,9 +112,10 @@ if (DEMO) {
   for (const s of corridors.senders) {
     for (const r of corridors.receivers) {
       const k = `${s.id}-${r.id}`, mid = rates[r.currency] / rates[s.currency], ref = config.defaultAmounts[s.currency];
-      const list = [], used = new Set(), n = 4 + Math.floor(rnd() * 3);
+      const from = s.region === "gulf" ? providersFile.providers.filter((p) => servesFrom(p, s.id)).map((p) => p.id) : pick;
+      const list = [], used = new Set(), n = Math.min(from.length, 4 + Math.floor(rnd() * 3));
       while (used.size < n) {
-        const id = pick[Math.floor(rnd() * pick.length)];
+        const id = from[Math.floor(rnd() * from.length)];
         if (used.has(id)) continue;
         used.add(id);
         const age = rnd() < 0.1 ? 50 : rnd() < 0.05 ? 90 : rnd() * 10;
@@ -143,7 +161,7 @@ function routeContext(s, r, prefix, amount) {
   const mid = R.midRate(midmarket, s.currency, r.currency);
   const list = quotes[k] || [];
   const rows = R.rank({ list, providers, amount, payout: "all", mid, now: NOW, staleH, hideH });
-  const cov = coverage[k] && coverage[k].length ? coverage[k] : Object.keys(providers);
+  const cov = coverage[k] && coverage[k].length ? coverage[k] : Object.keys(providers).filter((id) => servesFrom(providers[id], s.id));
   return {
     s, r, key: k, amount, payout: "all", mid, rows, allRows: rows, hist: histFor(k), now: NOW, midPrev: midmarket.previous ? R.midRate(midmarket.previous, s.currency, r.currency) : null, midPrevAt: midmarket.previous && midmarket.previous.updatedAt, timeStyle: "absolute", anyQuotes: list.length > 0, reports: demoReports ? demoReports.routes[k] : {},
     hrefFor: hrefFor(prefix), disclosureHref: link(prefix, "disclosure/"), checkList: cov.map((id) => providers[id]).filter(Boolean),
@@ -163,6 +181,7 @@ function head({ title, description, canonical, prefix, jsonld = [], noindex = fa
     : `<link rel="preload" href="${prefix}assets/fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${prefix}assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${prefix}assets/fonts.css?v=${V.fonts}">`;
+  if (hasOg && !fs.existsSync(path.join(ROOT, "src/og", og + ".png"))) og = "home";
   const ogImg = hasOg ? `<meta property="og:image" content="${site}/og/${og}.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">` : `<meta name="twitter:card" content="summary">`;
   return `<title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
@@ -200,9 +219,9 @@ function footer(prefix) {
 <div><h3>Send money to</h3><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul></div>
 <div><h3>Popular routes</h3><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, corridorPath(S, Rr))}">${esc(S.label)} to ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
 <div><h3>Services</h3><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
-<div><h3>Exchange rates</h3><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "CAD-NGN", "AUD-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
+<div><h3>Exchange rates</h3><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "AED-KES", "SAR-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
 </div>
-<nav aria-label="Footer"><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
+<nav aria-label="Footer"><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services. We do not send, hold or exchange money. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
@@ -293,9 +312,10 @@ function corridorGrid(prefix) {
     }).join("");
     return `<div class="board-col"><h3>From ${esc(s.short)}</h3><p class="board-sub">Best result for <span class="num">${esc(R.money(amount, s.currency, 0))}</span></p><ul>${rows}</ul></div>`;
   };
+  const groups = REGION_IDS.map((id) => ({ id, reg: (corridors.regions || {})[id] || {}, list: corridors.senders.filter((s) => (s.region || "west") === id) })).filter((g) => g.list.length);
   return `<section class="block" id="corridors"><div class="wrap">
 <div class="section-head"><h2>Today's best on every route</h2><p class="lede">What arrives for a typical transfer, from the service that delivers the most. Open a route to compare every service and enter your own amount.</p></div>
-<div class="board">${corridors.senders.map(col).join("")}</div>
+${groups.map((g) => `${groups.length > 1 ? `<div class="board-group" id="from-${g.id}"><h3>${esc(g.reg.heading || "")}</h3>${g.reg.guide ? `<a href="${link(prefix, g.reg.guide)}">Compare exchange houses, apps, banks and wallets</a>` : ""}</div>` : ""}<div class="board${g.list.length % 3 === 0 && g.list.length > 4 ? " board-3" : ""}">${g.list.map(col).join("")}</div>`).join("")}
 </div></section>`;
 }
 
@@ -333,12 +353,19 @@ const ver = (f) => crypto.createHash("sha256").update(fs.readFileSync(path.join(
 const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css") };
 
 // ---------- SEO helpers ----------
-const CURNAME = { GBP: "British pounds", USD: "US dollars", CAD: "Canadian dollars", AUD: "Australian dollars", KES: "Kenyan shillings", NGN: "Nigerian naira", GHS: "Ghanaian cedis", UGX: "Ugandan shillings", ZMW: "Zambian kwacha" };
-const STEP_AMOUNTS = { GBP: [100, 250, 500, 1000], USD: [100, 300, 500, 1000], CAD: [200, 400, 1000, 2000], AUD: [200, 450, 1000, 2000] };
+const joinList = (a) => a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : a.join("");
+const CURNAME = { GBP: "British pounds", USD: "US dollars", CAD: "Canadian dollars", AUD: "Australian dollars", AED: "UAE dirhams", SAR: "Saudi riyals", QAR: "Qatari riyals", KWD: "Kuwaiti dinars", BHD: "Bahraini dinars", OMR: "Omani rials", KES: "Kenyan shillings", NGN: "Nigerian naira", GHS: "Ghanaian cedis", UGX: "Ugandan shillings", ZMW: "Zambian kwacha" };
+const STEP_AMOUNTS = { GBP: [100, 250, 500, 1000], USD: [100, 300, 500, 1000], CAD: [200, 400, 1000, 2000], AUD: [200, 450, 1000, 2000],
+  AED: [500, 1000, 2000, 5000], SAR: [500, 1000, 2000, 5000], QAR: [500, 1000, 2000, 5000], KWD: [50, 100, 200, 500], BHD: [50, 100, 200, 500], OMR: [50, 100, 200, 500] };
+const REGION_IDS = ["west", "gulf"];
+const GULF_GUIDE = ((corridors.regions || {}).gulf || {}).guide || "send-money-from-the-gulf/";
+const gulfSenders = corridors.senders.filter((x) => x.region === "gulf");
+const allSendersText = joinList(corridors.senders.filter((x) => x.region !== "gulf").map((x) => x.label)) + (gulfSenders.length ? " and the Gulf" : "");
+const regulatorText = (list) => joinList([...new Set(list.map((x) => REGULATOR[x.id]).filter(Boolean))]);
+const REGULATOR = { uk: "the FCA (UK)", us: "FinCEN (US)", canada: "FINTRAC (Canada)", australia: "AUSTRAC (Australia)", uae: "the Central Bank of the UAE", saudi: "the Saudi Central Bank (SAMA)", qatar: "Qatar Central Bank", kuwait: "the Central Bank of Kuwait", bahrain: "the Central Bank of Bahrain", oman: "the Central Bank of Oman" };
 const dateLong = new Date(quotesFile.updatedAt || NOW).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const hubPath = (r) => `send-money-to/${r.id}/`;
 const provPath = (p) => `providers/${p.id}/`;
-const joinList = (a) => a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : a.join("");
 const networks = (r) => (r.payout.mobile || "").replace(/^Wallets such as /, "").split(/,| and /).map((x) => x.trim()).filter(Boolean);
 const ordinal = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
 const providersWithQuotes = () => Object.values(providers).filter((p) => Object.values(quotes).some((list) => (list || []).some((q) => q.provider === p.id)));
@@ -361,9 +388,19 @@ const TIPS_ALL = [
   "Pay by bank transfer or debit card where you can. Card issuers can treat credit-card payments as cash advances, with extra fees and interest.",
   "Your first transfer may take longer while the provider checks your ID. Large amounts can need proof of where the money came from.",
   "Bank deposits sent at weekends or on public holidays may wait until the next working day; mobile money usually arrives any day.",
-  "Sending money to family is generally not taxed for the sender in the UK, US, Canada or Australia, though very large gifts can have reporting rules. Check with a tax adviser if unsure.",
   "Never send money to someone you've only met online, or because someone urgently asks you to. Genuine providers never ask you to move money to 'protect' it."
 ];
+
+// Tips that depend on where the money is sent from.
+const TIPS_FROM = {
+  west: ["Sending money to family is generally not taxed for the sender in the UK, US, Canada or Australia, though very large gifts can have reporting rules. Check with a tax adviser if unsure."],
+  gulf: [
+    "Gulf states do not tax money you send home, but VAT is added to the transfer fee in some: 5% in the UAE and Oman, 10% in Bahrain and 15% in Saudi Arabia. Fees shown here include it.",
+    "Use only a service licensed by the country's central bank. Informal hawala agents are cheap until something goes wrong: there is no receipt, no refund and, in the UAE and elsewhere, operating unregistered is a crime.",
+    "Gulf currencies are pegged to the US dollar, so day-to-day moves in your rate come from the African currency, not the dirham, riyal or dinar."
+  ]
+};
+const tipsFor = (s, r) => [...(TIPS[r.id] || []), ...(TIPS_FROM[s.region || "west"] || []), ...TIPS_ALL];
 
 // Daily history chart: mid-market rate (line) and the best rate a service gave (dots), server-drawn SVG.
 function histChart(ctx) {
@@ -463,9 +500,9 @@ const homeCtx = routeContext(S0, R0, "", config.defaultAmounts[S0.currency]);
 write("index.html", page({
   prefix: "", canonical: "", bodyOnly: PREVIEW, og: "home",
   title: PREVIEW ? config.siteName : `Compare money transfers to Africa: best rates today | ${config.siteName}`,
-  description: "Compare what actually arrives when you send money from the US, UK, Canada or Australia to Nigeria, Ghana, Kenya, Uganda, Zambia and Zimbabwe. Rates checked by hand.",
+  description: `Compare what actually arrives when you send money from the US, UK, Canada, Australia or the Gulf (UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman) to ${joinList(corridors.receivers.map((r) => r.name))}. Rates checked by hand.`,
   jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/" },
-    { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail, areaServed: ["GB", "US", "CA", "AU", "NG", "GH", "KE", "UG", "ZM", "ZW"] }],
+    { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail, areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) }],
   body: tool({
     ctx: homeCtx,
     heading: "Send more home.",
@@ -509,7 +546,7 @@ for (const s of corridors.senders) {
     const lede = `Compare ${names.length > 1 ? names.length + " services" : "transfer services"} by how many ${esc(rCur)} arrive${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Checked by hand, ${esc(dateLong)}.`;
     const mobileProv = [...new Set(fresh.filter((x) => (x.q.payout || []).includes("mobile")).map((x) => x.p.name))];
     const midTxt = ctx.mid ? `1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}` : "";
-    const summary = top ? `<p>On ${esc(dateLong)}, ${lead.length > 1 ? `<strong>${esc(R.names(lead))}</strong> tie for the most` : `<strong>${esc(top.p.name)}</strong> delivers the most`} from ${esc(s.short)} to ${esc(r.name)}: <strong>${esc(plain(R.money(top.gets, r.currency)))}</strong> for ${esc(amt)}${lead.length > 1 ? "" : `, at a rate of ${R.rateStr(top.ev.rate)} with ${esc(R.feeStr(top.q, s.currency).toLowerCase())}`}.${last && last !== top ? ` The lowest of the ${fresh.length} services we checked, ${esc(last.p.name)}, delivers ${esc(plain(R.money(last.gets, r.currency)))}, so choosing well is worth ${esc(plain(R.money(top.gets - last.gets, r.currency)))} on this one transfer.` : ""}${midTxt ? ` The mid-market rate is ${esc(midTxt)}.` : ""}</p>` : "";
+    const summary = top ? `<p>On ${esc(dateLong)}, ${lead.length > 1 ? `<strong>${esc(R.names(lead))}</strong> tie for the most` : `<strong>${esc(top.p.name)}</strong> delivers the most`} from ${esc(s.short)} to ${esc(r.name)}: <strong>${esc(plain(R.money(top.gets, r.currency)))}</strong> for ${esc(amt)}${lead.length > 1 ? "" : `, at a rate of ${R.rateStr(top.ev.rate)} with ${esc(R.feeStr(top.q, s.currency).replace(/^Fee /, "a fee of ").replace(/^No fee$/, "no fee"))}`}.${last && last !== top ? ` The lowest of the ${fresh.length} services we checked, ${esc(last.p.name)}, delivers ${esc(plain(R.money(last.gets, r.currency)))}, so choosing well is worth ${esc(plain(R.money(top.gets - last.gets, r.currency)))} on this one transfer.` : ""}${midTxt ? ` The mid-market rate is ${esc(midTxt)}.` : ""}</p>` : "";
     const faqs = [
       [`What is the cheapest way to send money from ${s.short} to ${r.name} today?`, top ? `Today ${who}: ${plain(R.money(top.gets, r.currency))} for ${amt}, after fees and exchange-rate margins. The order changes from day to day, so check the ranking on this page before each transfer.` : `It changes from day to day. The ranking on this page shows which service delivers the most ${rCur} for the amount you enter, after the transfer fee and the exchange-rate markup.`],
       ...(ctx.mid ? [[`What is the ${s.currency} to ${r.currency} exchange rate today?`, `The mid-market rate is ${midTxt}.${top ? ` The best rate a transfer service offers today is ${R.rateStr(Math.max(...fresh.map((x) => x.ev.rate)))}, but the fee matters too, which is why we rank by the amount that arrives.` : ""}`]] : []),
@@ -540,15 +577,16 @@ ${alertForm(ctx)}
 <h2>How to send money from ${esc(s.short)} to ${esc(r.name)}</h2>
 <ol class="howto">
 <li><strong>Compare today's options.</strong> Enter the amount you will pay above. The service at the top delivers the most ${esc(rCur)} after its fee and exchange-rate margin.</li>
-<li><strong>Open an account with the provider.</strong> UK, US, Canadian and Australian providers must check your identity, so have photo ID ready. Your first transfer may take longer while this is done.</li>
+<li><strong>Open an account with the provider.</strong> ${s.region === "gulf" ? `Services in ${esc(s.short)} must check your identity, so have your ${esc(s.idDoc || "residence ID")} ready. At an exchange house branch you can do this at the counter; apps check it on your phone.` : "UK, US, Canadian and Australian providers must check your identity, so have photo ID ready."} Your first transfer may take longer while this is done.</li>
 <li><strong>Add your recipient.</strong> For mobile money${nets.length ? ` (${esc(joinList(nets))})` : ""}, you need their phone number registered for the wallet. For a bank deposit, their account number and bank. For cash pickup, their full name exactly as on their ID.</li>
-<li><strong>Pay and track the transfer.</strong> Bank transfers are often cheapest to pay with; cards can add a fee. Check the final amount on the provider's screen before you confirm.</li>
+<li><strong>Pay and track the transfer.</strong> ${s.region === "gulf" ? "Pay by bank transfer, debit card, wallet balance or cash at a branch, depending on the service." : "Bank transfers are often cheapest to pay with; cards can add a fee."} Check the final amount on the provider's screen before you confirm.</li>
 </ol>
 <h2>Ways to receive money in ${esc(r.name)}</h2>
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
 ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
 <h2 id="tips">Good to know before you send</h2>
-<ul class="tips">${[...(TIPS[r.id] || []), ...TIPS_ALL].map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
+<ul class="tips">${tipsFor(s, r).map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
+${s.region === "gulf" ? `<p class="note"><a href="${link(prefix, GULF_GUIDE)}">Exchange house, bank, wallet or app? How the ways of sending from the Gulf compare</a></p>` : ""}
 <h2 id="faq">Questions about sending money to ${esc(r.name)}</h2>
 ${faqBlock(faqs)}
 <h2>Other routes</h2>
@@ -582,10 +620,10 @@ for (const r of corridors.receivers) {
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>Send money to ${esc(r.name)}</h1>
-<p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Canada and Australia, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, checked by hand ${esc(dateLong)}.</p>
+<p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Canada, Australia and the Gulf states, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, checked by hand ${esc(dateLong)}.</p>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">Sending from</th><th scope="col">You pay</th><th scope="col">Best today</th><th scope="col" class="num">They get</th><th scope="col"></th></tr></thead>
-<tbody>${lines.map((l) => `<tr><th scope="row">${esc(l.s.name)}</th><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td>${l.top ? esc(l.lead.length > 1 ? l.lead.map((x) => x.p.name).join(", ") + " (tie)" : l.top.p.name) : "Being checked"}</td><td class="num top">${l.top ? esc(plain(R.money(l.top.gets, r.currency))) : "–"}</td><td><a href="${link(prefix, corridorPath(l.s, r))}">Compare all</a></td></tr>`).join("")}</tbody>
+<tbody>${lines.map((l, i) => `${i && l.s.region !== lines[i - 1].s.region ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}<tr><th scope="row">${esc(l.s.name)}</th><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td>${l.top ? esc(l.lead.length > 1 ? l.lead.map((x) => x.p.name).join(", ") + " (tie)" : l.top.p.name) : "Being checked"}</td><td class="num top">${l.top ? esc(plain(R.money(l.top.gets, r.currency))) : "–"}</td><td><a href="${link(prefix, corridorPath(l.s, r))}">Compare all</a></td></tr>`).join("")}</tbody>
 </table></div>
 <h2>Ways to receive money in ${esc(r.name)}</h2>
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
@@ -596,7 +634,7 @@ ${faqBlock(faqs)}
 <ul class="route-links">${corridors.senders.map((s) => `<li><a href="${link(prefix, corridorPath(s, r))}">${esc(s.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
-    title: `Send money to ${r.name}: best rates from the UK, US, Canada and Australia`,
+    title: `Send money to ${r.name}: best rates from the UK, US, Canada, Australia and the Gulf`,
     description: `Compare money transfers to ${r.name} by what arrives in ${rCur}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}. Today's best service from each country, checked by hand.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   urls.push(rel);
@@ -642,7 +680,7 @@ for (const p of providersWithQuotes()) {
     [`Is ${p.name} the cheapest way to send money to Africa?`, `On the routes we checked on ${dateLong}, ${p.name} delivers the most on ${firsts} of ${fresh.length}. Which service is cheapest depends on the route and the amount, so compare before each transfer.`],
     [`Which countries does ${p.name} send to that SendFair compares?`, `${joinList(countries)}, from ${joinList(senders)}.`],
     [`How do I pay ${p.name}?`, (p.payIn || []).length ? `${joinList(p.payIn)}. Card payments can cost more than a bank transfer.` : `See ${p.name}'s website for payment options.`],
-    [`Is ${p.name} safe?`, `${p.name} is a licensed money transfer service in the countries it operates in. Before sending, you can check its licence on the regulator's register: the FCA (UK), FinCEN (US), FINTRAC (Canada) or AUSTRAC (Australia).${p.rating ? ` Customers rate it ${p.rating.score}/5 on Trustpilot.` : ""}`]
+    [`Is ${p.name} safe?`, `${p.name} is a licensed money transfer service in the countries it operates in. Before sending, you can check its licence with the regulator where you live: ${regulatorText([...new Set(lines.map((l) => l.s))])}.${p.rating ? ` Customers rate it ${p.rating.score}/5 on Trustpilot.` : ""}`]
   ];
   const others = providersWithQuotes().filter((o) => o.id !== p.id);
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
@@ -766,6 +804,80 @@ ${faqBlock(faqs)}
   urls.push(rel);
 }
 
+// Gulf guide: every Gulf route at a glance, and how the ways of sending compare (exchange houses, banks, wallets, apps, cash networks).
+if (gulfSenders.length) {
+  const rel = GULF_GUIDE, prefix = "../";
+  const grid = gulfSenders.map((s) => ({ s, cells: corridors.receivers.map((r) => { const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]); return { r, ctx, top: ctx.rows.find((x) => !x.stale), lead: R.leaders(ctx.rows) }; }) }));
+  // Cost against the mid-market rate for every fresh quote on a Gulf route, grouped by kind of service.
+  const byType = {};
+  for (const g of grid) for (const c of g.cells) for (const x of c.ctx.rows) {
+    if (x.stale || x.cost == null) continue;
+    const t = x.p.type || "app";
+    (byType[t] = byType[t] || []).push({ cost: Math.max(0, x.cost), p: x.p, s: g.s, r: c.r, gets: x.gets });
+  }
+  const median = (a) => { const v = a.map((x) => x.cost).sort((m, n) => m - n); const h = Math.floor(v.length / 2); return v.length % 2 ? v[h] : (v[h - 1] + v[h]) / 2; };
+  const pct = (v) => (v * 100).toFixed(1) + "%";
+  const gulfProv = Object.values(providers).filter((p) => (p.sendsFrom || []).some((id) => gulfSenders.some((x) => x.id === id)));
+  const named = (t) => joinList(gulfProv.filter((p) => (p.type || "app") === t).map((p) => `${p.name} (${joinList(p.sendsFrom.filter((id) => gulfSenders.some((x) => x.id === id)).map((id) => corridors.senders.find((x) => x.id === id).label))})`));
+  const ways = [
+    ["exchange", "The counter most workers know: a licensed money exchange with branches in malls and labour areas, and usually an app too.", "Cash at the branch, or bank transfer and debit card in the app", "Bank, mobile money or cash pickup, through partners in Africa", "Ask for the total that arrives, not just the rate on the board. The rate at the counter and in the same company's app can differ."],
+    ["bank", "The remittance arm of a bank, with its own centres and app.", "From your bank account, or cash at a remittance centre", "Bank deposit, mobile money or cash pickup, depending on the country", "You must register first. Some destinations go by SWIFT, which can take days and add charges on the receiving side."],
+    ["wallet", "A phone wallet that can hold your salary and send it abroad through partner networks.", "From the wallet balance, often where the salary is paid", "Usually through Western Union, MoneyGram or similar partners: mobile money, bank or cash", "The partner network sets the rate, so the same wallet can be good to one country and poor to another."],
+    ["app", "Online services built for sending money abroad, licensed in the Gulf country you send from.", "Local debit card or bank transfer", "Mobile money such as M-Pesa and MTN MoMo, or a bank account", "Each app works only from certain Gulf countries, and checks your ID on your phone before the first transfer."],
+    ["network", "Western Union and MoneyGram, offered through exchange houses, banks and some apps.", "Cash at an agent, or online", "Cash pickup almost anywhere, plus mobile money and bank", "Handy when your family needs cash in a small town. Compare their fee and rate with the others first."]
+  ];
+  const costCell = (t) => { const a = byType[t] || []; if (!a.length) return "Being checked"; const best = a.reduce((m, x) => (x.cost < m.cost ? x : m)); return `${pct(median(a))} typical, from ${pct(best.cost)} (${esc(best.p.name)}, ${esc(best.s.label)} to ${esc(best.r.name)}); ${a.length} quote${a.length > 1 ? "s" : ""}`; };
+  const ranked = Object.keys(byType).filter((t) => byType[t].length >= 2).sort((a, b) => median(byType[a]) - median(byType[b]));
+  const cheapest = ranked.length ? `On the Gulf routes we checked on ${dateLong}, ${METHOD[ranked[0]].short.toLowerCase()} cost least, typically ${pct(median(byType[ranked[0]]))} of what you send against the mid-market rate${ranked.length > 1 ? `, and ${METHOD[ranked[ranked.length - 1]].short.toLowerCase()} the most (${pct(median(byType[ranked[ranked.length - 1]]))})` : ""}. The best single service still varies by route and amount, so open your route to compare.` : "We are checking rates on the Gulf routes now. Until the figures are in, the table below shows how each way of sending works.";
+  const faqs = [
+    ["What is the cheapest way to send money from the Gulf to Africa?", cheapest],
+    ["Is hawala legal in the Gulf?", "Only registered or licensed providers may move money for others. In the UAE, hawala providers must hold a certificate from the Central Bank, and operating without one can bring fines and prison. Informal agents give no receipt and no refund if the money doesn't arrive, which is why we don't list them."],
+    ["Do I pay tax on money I send home from the Gulf?", "No Gulf state taxes the money you send. VAT is added to the transfer fee in the UAE (5%), Oman (5%), Bahrain (10%) and Saudi Arabia (15%); Qatar and Kuwait have no VAT. The fees on SendFair include it."],
+    ["What ID do I need to send money from the Gulf?", `Your residence ID: ${joinList(gulfSenders.map((x) => `${x.idDoc} in ${x.short}`))}. Apps check it on your phone; exchange houses and bank remittance centres check it at the counter.`],
+    ["Can I send from the Gulf straight to M-Pesa or MTN Mobile Money?", "Yes. Most exchange houses, wallets and apps that serve Kenya, Uganda, Ghana and Zambia pay straight into mobile money wallets. Choose \"Mobile money\" on a route page to compare only those services."]
+  ];
+  const trail = [[config.siteName, ""], ["Sending from the Gulf", rel]];
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>Sending money from the Gulf to Africa: every way compared</h1>
+<p class="lede">Exchange houses, bank remittance services, mobile wallets, transfer apps and cash networks, from ${esc(joinList(gulfSenders.map((x) => x.short)))} to ${esc(joinList(corridors.receivers.map((r) => r.name)))}. Ranked by what your family receives, checked by hand.</p>
+<h2 id="best">Today's best from each Gulf country</h2>
+<div class="table-wrap"><table class="rates-table gulf-grid">
+<thead><tr><th scope="col">From</th>${corridors.receivers.map((r) => `<th scope="col" class="num">${esc(r.name)}</th>`).join("")}</tr></thead>
+<tbody>${grid.map((g) => `<tr><th scope="row">${esc(g.s.label)}<span class="sub">${esc(plain(R.money(config.defaultAmounts[g.s.currency], g.s.currency, 0)))}</span></th>${g.cells.map((c) => `<td class="num"><a href="${link(prefix, corridorPath(g.s, c.r))}">${c.top ? `${esc(plain(R.money(c.top.gets, c.r.currency)))}<span class="sub">${esc(c.lead.length > 1 ? c.lead.length + "-way tie" : c.top.p.name)}</span>` : `Being checked<span class="sub">${esc(g.s.currency)} to ${esc(c.r.currency)}</span>`}</a></td>`).join("")}</tr>`).join("")}</tbody>
+</table></div>
+<p class="note">Most that arrives for the amount shown, after fees (including VAT) and exchange-rate margins. Tap a cell to compare every service on that route.</p>
+<h2 id="ways">How the ways of sending compare</h2>
+<p>${esc(cheapest)}</p>
+<div class="ways">${ways.map(([t, what, pay, arrive, watch]) => `<div class="way"><h3>${esc(METHOD[t].short)}</h3><p>${esc(what)}</p><dl>
+<div><dt>On SendFair</dt><dd>${esc(named(t) || "–")}</dd></div>
+<div><dt>You pay by</dt><dd>${esc(pay)}</dd></div>
+<div><dt>It arrives as</dt><dd>${esc(arrive)}</dd></div>
+<div><dt>Cost vs mid-market today</dt><dd>${costCell(t)}</dd></div>
+<div><dt>Watch out for</dt><dd>${esc(watch)}</dd></div></dl></div>`).join("")}
+<div class="way way-warn"><h3>Hawala and informal agents</h3><p>A trusted person takes your cash and a contact back home pays your family. It can look cheap, but there is no receipt, no refund and no protection if the money goes missing, and running it without a licence is illegal in the Gulf. We don't compare it, and we don't recommend it.</p></div>
+</div>
+<p class="note">"Cost vs mid-market" is the share of your money lost to the fee and the exchange-rate margin together, across the fresh quotes we checked on all Gulf routes for a typical amount. "Typical" is the middle quote.</p>
+<h2 id="where">Which services work from which country</h2>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col">Service</th><th scope="col">Kind</th>${gulfSenders.map((x) => `<th scope="col">${esc(x.label)}</th>`).join("")}</tr></thead>
+<tbody>${Object.keys(METHOD).flatMap((t) => gulfProv.filter((p) => (p.type || "app") === t)).map((p) => `<tr><th scope="row">${esc(p.name)}</th><td>${esc(METHOD[p.type || "app"].name)}</td>${gulfSenders.map((x) => `<td>${(p.sendsFrom || []).includes(x.id) ? "✓" : ""}</td>`).join("")}</tr>`).join("")}</tbody>
+</table></div>
+<p class="note">From each service's published list of sending countries. Not every service pays out in every African country; route pages show only the ones we found when checking. Know a service we should add? Email <span class="email">${esc(config.contactEmail)}</span>.</p>
+<h2 id="tips">Good to know</h2>
+<ul class="tips">${[...TIPS_FROM.gulf, "If your salary is paid onto a wage card or wallet, check whether it can send abroad directly. It saves withdrawing cash and paying again at the counter.", "Exchange houses set daily limits per person. For a large amount, an app or bank transfer to a bank account is usually simpler."].map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
+<h2 id="faq">Questions</h2>
+${faqBlock(faqs)}
+<h2>Every Gulf route</h2>
+${gulfSenders.map((x) => `<h3>From ${esc(x.short)}</h3><ul class="route-links">${corridors.receivers.map((r) => `<li><a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>`).join("")}
+</div></div></section>`;
+  write(rel + "index.html", page({ prefix, canonical: rel, og: "gulf",
+    title: `Send money from the Gulf to Africa: exchange houses, banks, wallets and apps compared`,
+    description: `Compare ways to send money from the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman to ${joinList(corridors.receivers.map((r) => r.name))}: exchange houses, bank remittance services, wallets, apps and cash networks, ranked by what arrives.`,
+    jsonld: [faqLd(faqs), crumbs(trail)], body }));
+  urls.push(rel);
+}
+
 // Trust pages
 const today = new Date(NOW).toISOString().slice(0, 10);
 const privacyItems = [
@@ -785,7 +897,7 @@ const trust = {
   "about/": ["About SendFair", "Who runs SendFair and why it exists.", `
 <h1>About SendFair</h1>
 <p>Sending money home is one of the most regular bills in a diaspora household, and one of the least transparent. A transfer that says "zero fees" can still lose several percent in the exchange rate.</p>
-<p>SendFair shows one number clearly: how much actually lands at home. We cover the routes most used by Africans in the United States, the United Kingdom, Canada and Australia sending to Nigeria, Ghana, Kenya, Uganda, Zambia and Zimbabwe.</p>
+<p>SendFair shows one number clearly: how much actually lands at home. We cover the routes most used by Africans in the United States, the United Kingdom, Canada and Australia, and by the many who work in the Gulf (the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman), sending to Nigeria, Ghana, Kenya, Uganda, Zambia and Zimbabwe.</p>
 <p>The site is run independently from Nairobi, Kenya. We are not owned by any transfer company.</p>
 <h2>Contact</h2><p>Corrections, partnership enquiries and provider updates: <span class="email">${esc(config.contactEmail)}</span></p>`],
   "methodology/": ["How we rank", "How SendFair collects rates and ranks money transfer services.", `
@@ -796,6 +908,7 @@ const trust = {
 <h2>How the amount received is calculated</h2>
 <p>You enter the total you plan to pay. We take off the provider's fee and convert the rest at the provider's rate. Where the fee is a percentage, it is worked out on the amount sent.</p>
 <p>Total cost is the gap between that and converting your full amount at the mid-market rate with no fee.</p>
+<p>In the Gulf, VAT is charged on transfer fees in the UAE (5%), Oman (5%), Bahrain (10%) and Saudi Arabia (15%). We record fees there including VAT, because that is what you pay.</p>
 <h2>Freshness</h2>
 <ul><li>A quote older than ${staleH} hours is marked "Not rechecked today", ranks below fresh quotes, and never gets the "Most money home" label.</li><li>A quote older than ${hideH} hours is removed from the ranking until it is checked again.</li><li>Mid-market reference rates come from ExchangeRate-API's free service, which updates once a day. We refresh our copy every few hours.</li></ul>
 <h2>What can differ on the provider's site</h2>

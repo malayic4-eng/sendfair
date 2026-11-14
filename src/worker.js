@@ -12,7 +12,11 @@ import * as alert from "../functions/api/alert.js";
 const LOGO_DOMAINS = {
   wise: "wise.com", remitly: "remitly.com", worldremit: "worldremit.com", sendwave: "sendwave.com",
   taptapsend: "taptapsend.com", westernunion: "westernunion.com", lemfi: "lemfi.com", afriex: "afriex.com",
-  nala: "nala.money", africhange: "africhange.com", mukuru: "mukuru.com", moneygram: "moneygram.com"
+  nala: "nala.money", africhange: "africhange.com", mukuru: "mukuru.com", moneygram: "moneygram.com",
+  // Gulf services
+  alansari: "alansariexchange.com", luluexchange: "luluexchange.com", alfardan: "alfardanexchange.com", almulla: "almullaexchange.com",
+  bfc: "bfc.com.bh", omanexchange: "omanexchange.com.om", tahweel: "alrajhibank.com.sa", enjaz: "enjaz.com", urpay: "urpay.com.sa",
+  stcbank: "stcpay.com.sa", ooredoomoney: "ooredoo.qa", botim: "botim.me"
 };
 async function logo(id, request, ctx) {
   const domain = LOGO_DOMAINS[id];

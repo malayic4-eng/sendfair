@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const KEEP = ["USD", "GBP", "CAD", "AUD", "EUR", "NGN", "GHS", "KES", "UGX", "ZMW", "TZS", "RWF", "ZAR"];
+const KEEP = ["USD", "GBP", "CAD", "AUD", "EUR", "AED", "SAR", "QAR", "KWD", "BHD", "OMR", "NGN", "GHS", "KES", "UGX", "ZMW", "TZS", "RWF", "ZAR"];
 
 const res = await fetch("https://open.er-api.com/v6/latest/USD");
 if (!res.ok) throw new Error(`Rate source returned ${res.status}`);

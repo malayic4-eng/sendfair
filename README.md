@@ -1,6 +1,8 @@
 # SendFair
 
-Money transfer comparison for the African diaspora: 4 sending countries (US, UK, Canada, Australia) × 6 receiving countries (Nigeria, Ghana, Kenya, Uganda, Zambia, Zimbabwe) = 24 routes. Services are ranked by how much the family actually receives.
+Money transfer comparison for the African diaspora: 10 sending countries (US, UK, Canada, Australia, plus the Gulf: UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman) × 6 receiving countries (Nigeria, Ghana, Kenya, Uganda, Zambia, Zimbabwe) = 60 routes. Services are ranked by how much the family actually receives.
+
+The Gulf guide at `/send-money-from-the-gulf/` compares the ways of sending from the Gulf (exchange houses, bank remittance services, mobile wallets, apps, cash networks) using the quotes you enter on Gulf routes.
 
 Hosting is free (Cloudflare Pages). The only running cost is the domain, about $10–15 a year.
 
@@ -11,7 +13,7 @@ Hosting is free (Cloudflare Pages). The only running cost is the domain, about $
 | Path | What it is |
 |---|---|
 | `config.json` | Site name, domain, email, daily routes, and switches for ads, alerts, click tracking and delivery reports |
-| `data/providers.json` | The 12 transfer services. **Paste affiliate links here** once approved |
+| `data/providers.json` | The 24 transfer services. **Paste affiliate links here** once approved. `sendsFrom` = countries each one sends from; `type` = app, exchange, bank, wallet or network (used on the Gulf guide) |
 | `data/quotes.json` | Daily quotes. Written by the Rate Desk, don't edit by hand |
 | `data/midmarket.json` | Market reference rates, updated automatically |
 | `data/corridors.json` | Countries, currencies and ways to receive |
@@ -57,9 +59,9 @@ Cloudflare dashboard → **Zero Trust → Access → Applications → Add an app
 
 1. Open `https://yourdomain/admin/`. The coloured chips show progress: green done, yellow partly done, **bold** = daily routes.
 2. Pick a route. Yesterday's numbers are filled in, with how long ago each was checked.
-3. For each provider, open its calculator for the **reference amount** shown (£250, $300, C$400, A$450) and type:
+3. For each provider, open its calculator for the **reference amount** shown (£250, $300, C$400, A$450; AED/SAR/QAR 1,000; KWD/BHD/OMR 100) and type:
    - **They get**: the amount the provider says arrives. The rate is worked out for you. (Or type the rate directly.)
-   - **Fixed fee** and/or **% fee** in the sending currency.
+   - **Fixed fee** and/or **% fee** in the sending currency. On UAE, Saudi, Bahrain and Oman routes, type the fee **including VAT** (the Rate Desk reminds you).
    - **Receive by**: tick at least one.
    - **Variant**: only if the provider gives a different rate for, say, mobile money vs bank. Use **+ variant** for a second row.
 4. Any row you edit is ticked **Checked today**. Untouched rows keep their old time, so the site honestly shows "Not rechecked today" for them.

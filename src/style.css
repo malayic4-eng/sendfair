@@ -472,3 +472,25 @@ details p { margin-top: 10px; color: var(--muted); }
 .install-btn { font: inherit; color: var(--link); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
 .install-btn:hover { border-color: var(--line-strong); }
 [hidden] { display: none !important; }
+
+/* Gulf: grouped route board, guide page */
+.board-group { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 30px 0 12px; }
+.board-group:first-of-type { margin-top: 6px; }
+.board-group h3 { font-size: 1.15rem; margin: 0; }
+.board-group a { font-size: .9rem; font-weight: 600; }
+.board.board-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.rates-table tr.group th { background: var(--surface); font-size: .82rem; color: var(--muted); }
+.gulf-grid td a { text-decoration: none; color: var(--ink); font-weight: 650; }
+.gulf-grid td a:hover { text-decoration: underline; }
+.gulf-grid .sub { display: block; font-size: .76rem; font-weight: 500; color: var(--muted); }
+.ways { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+.way { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 18px 8px; min-width: 0; }
+.way h3 { margin: 0 0 6px; font-size: 1.1rem; }
+.way p { margin: 0 0 10px; font-size: .93rem; }
+.way dl { margin: 0; }
+.way dl div { padding: 8px 0; border-top: 1px solid var(--line); }
+.way dt { font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.way dd { margin: 2px 0 0; font-size: .92rem; }
+.way-warn { border-color: var(--warn, #b0522a); align-self: start; }
+@media (max-width: 820px) { .board.board-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ways { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .board.board-3 { grid-template-columns: minmax(0, 1fr); } }

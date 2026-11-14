@@ -1,5 +1,5 @@
 {
- "_howto": "Paste your affiliate link into affiliateUrl once a program approves you. Leave it empty to link to the provider's homepage.",
+ "_howto": "Paste your affiliate link into affiliateUrl once a program approves you. Leave it empty to link to the provider's homepage. sendsFrom lists the sending countries each service works from; type is the kind of service (app, exchange, bank, wallet, network) used on the Gulf guide.",
  "providers": [
   {
    "id": "wise",
@@ -11,7 +11,15 @@
     "Debit card",
     "Credit card",
     "Apple Pay / Google Pay"
-   ]
+   ],
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia",
+    "uae"
+   ],
+   "type": "app"
   },
   {
    "id": "worldremit",
@@ -22,7 +30,19 @@
     "Debit or credit card",
     "Bank transfer",
     "Apple Pay / Google Pay"
-   ]
+   ],
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia",
+    "saudi",
+    "qatar",
+    "kuwait",
+    "bahrain",
+    "oman"
+   ],
+   "type": "app"
   },
   {
    "id": "remitly",
@@ -33,7 +53,15 @@
     "Bank account",
     "Debit card",
     "Credit card"
-   ]
+   ],
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia",
+    "uae"
+   ],
+   "type": "app"
   },
   {
    "id": "sendwave",
@@ -42,13 +70,27 @@
    "affiliateUrl": "",
    "payIn": [
     "Debit card"
-   ]
+   ],
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia"
+   ],
+   "type": "app"
   },
   {
    "id": "lemfi",
    "name": "LemFi",
    "website": "https://lemfi.com",
-   "affiliateUrl": ""
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia"
+   ],
+   "type": "app"
   },
   {
    "id": "taptapsend",
@@ -57,31 +99,68 @@
    "affiliateUrl": "",
    "payIn": [
     "Debit card"
-   ]
+   ],
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia",
+    "uae",
+    "bahrain"
+   ],
+   "type": "app"
   },
   {
    "id": "afriex",
    "name": "Afriex",
    "website": "https://www.afriex.com",
-   "affiliateUrl": ""
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia"
+   ],
+   "type": "app"
   },
   {
    "id": "nala",
    "name": "NALA",
    "website": "https://www.nala.com",
-   "affiliateUrl": ""
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia"
+   ],
+   "type": "app"
   },
   {
    "id": "africhange",
    "name": "Africhange",
    "website": "https://www.africhange.com",
-   "affiliateUrl": ""
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia"
+   ],
+   "type": "app"
   },
   {
    "id": "mukuru",
    "name": "Mukuru",
    "website": "https://www.mukuru.com",
-   "affiliateUrl": ""
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia"
+   ],
+   "type": "network"
   },
   {
    "id": "westernunion",
@@ -93,13 +172,163 @@
     "Debit card",
     "Credit card",
     "Cash at an agent"
-   ]
+   ],
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia",
+    "uae",
+    "saudi",
+    "qatar",
+    "kuwait",
+    "bahrain",
+    "oman"
+   ],
+   "type": "network"
   },
   {
    "id": "moneygram",
    "name": "MoneyGram",
    "website": "https://www.moneygram.com",
-   "affiliateUrl": ""
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "us",
+    "uk",
+    "canada",
+    "australia",
+    "uae",
+    "saudi",
+    "qatar",
+    "kuwait",
+    "bahrain",
+    "oman"
+   ],
+   "type": "network"
+  },
+  {
+   "id": "alansari",
+   "name": "Al Ansari Exchange",
+   "website": "https://alansariexchange.com",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "uae"
+   ],
+   "type": "exchange"
+  },
+  {
+   "id": "luluexchange",
+   "name": "LuLu Exchange",
+   "website": "https://luluexchange.com",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "uae",
+    "qatar",
+    "kuwait",
+    "bahrain",
+    "oman"
+   ],
+   "type": "exchange"
+  },
+  {
+   "id": "alfardan",
+   "name": "Al Fardan Exchange",
+   "website": "https://alfardanexchange.com",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "uae"
+   ],
+   "type": "exchange"
+  },
+  {
+   "id": "almulla",
+   "name": "Al Mulla Exchange",
+   "website": "https://www.almullaexchange.com",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "kuwait"
+   ],
+   "type": "exchange"
+  },
+  {
+   "id": "bfc",
+   "name": "BFC",
+   "website": "https://www.bfc.com.bh",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "bahrain"
+   ],
+   "type": "exchange"
+  },
+  {
+   "id": "omanexchange",
+   "name": "Oman Exchange",
+   "website": "https://omanexchange.com.om",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "oman"
+   ],
+   "type": "exchange"
+  },
+  {
+   "id": "tahweel",
+   "name": "Tahweel Al Rajhi",
+   "website": "https://www.alrajhibank.com.sa/en/Tahweel",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "saudi"
+   ],
+   "type": "bank"
+  },
+  {
+   "id": "enjaz",
+   "name": "Enjaz",
+   "website": "https://enjaz.com",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "saudi"
+   ],
+   "type": "bank"
+  },
+  {
+   "id": "urpay",
+   "name": "urpay",
+   "website": "https://www.urpay.com.sa",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "saudi"
+   ],
+   "type": "wallet"
+  },
+  {
+   "id": "stcbank",
+   "name": "STC Bank (stc pay)",
+   "website": "https://stcpay.com.sa/international-transfer",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "saudi"
+   ],
+   "type": "wallet"
+  },
+  {
+   "id": "ooredoomoney",
+   "name": "Ooredoo Money",
+   "website": "https://www.ooredoo.qa/web/en/ooredoo-money/services/international-transfer-with-moneygram/africa",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "qatar"
+   ],
+   "type": "wallet"
+  },
+  {
+   "id": "botim",
+   "name": "botim money",
+   "website": "https://www.botim.me",
+   "affiliateUrl": "",
+   "sendsFrom": [
+    "uae"
+   ],
+   "type": "wallet"
   }
  ]
 }
