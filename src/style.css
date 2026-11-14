@@ -69,6 +69,15 @@ p { margin: 0; }
 .site-nav { display: flex; gap: 4px 20px; flex-wrap: wrap; font-size: .93rem; font-weight: 550; }
 .site-nav a { color: var(--on-band-muted); text-decoration: none; padding-block: 4px; }
 .site-nav a:hover { color: var(--on-band); }
+.lang-btn { display: inline-flex; align-items: center; gap: 5px; font: inherit; color: var(--on-band-muted); background: none; border: 1px solid var(--band-line); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.lang-btn:hover, .lang-btn[aria-expanded="true"] { color: var(--on-band); border-color: var(--line-strong); }
+.lang-box { border-top: 1px solid var(--band-line); }
+.lang-box .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding-block: 8px; }
+.lang-note { margin: 0; font-size: .75rem; color: var(--on-band-muted); }
+.lang-note a { color: inherit; }
+/* Hide Google's top banner so the page doesn't jump */
+body { top: 0 !important; }
+.skiptranslate iframe.goog-te-banner-frame, iframe.skiptranslate { display: none !important; }
 
 .demo-banner { background: var(--marigold); color: var(--marigold-ink); font-size: .9rem; }
 .demo-banner .wrap { padding-block: 10px; }
@@ -418,7 +427,9 @@ details p { margin-top: 10px; color: var(--muted); }
   .site-header .wrap { padding-block: 9px; flex-wrap: nowrap; }
   .brand { font-size: 1.1rem; gap: 8px; }
   .brand svg { width: 28px; height: 28px; }
-  .site-nav { font-size: .8rem; gap: 12px; flex-wrap: nowrap; white-space: nowrap; }
+  .site-nav { font-size: .8rem; gap: 12px; flex-wrap: nowrap; white-space: nowrap; align-items: center; }
+  .lang-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .lang-btn { padding: 4px 7px; }
   .hero { padding-block: 0 44px; }
   .hero h1 { font-size: 1.45rem; }
   .hero .lede { display: none; }
@@ -445,6 +456,8 @@ details p { margin-top: 10px; color: var(--muted); }
   .gets-cost, .gets-save { display: none; }
   .picks { display: flex; flex-wrap: nowrap; overflow-x: auto; margin: 0 -2px; padding-bottom: 2px; scrollbar-width: none; }
   .pick { flex: none; padding: 3px 9px; }
+  /* Fade the right edge so it's clear the quick picks scroll sideways */
+  .picks { -webkit-mask-image: linear-gradient(to right, #000 82%, transparent); mask-image: linear-gradient(to right, #000 82%, transparent); padding-right: 24px; }
   .result .fn { display: none; }
   .prov-name { flex-wrap: nowrap; min-width: 0; align-items: flex-start; }
   /* Names wrap onto a second line rather than being cut off; the variant moves to the line below. */

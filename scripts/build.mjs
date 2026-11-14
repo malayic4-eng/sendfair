@@ -93,6 +93,12 @@ const providers = Object.fromEntries(providersFile.providers.map((x) => [x.id, x
 // Daily history (data/history.json), written by scripts/record-history.mjs after each rate check.
 let history = { days: {} };
 try { history = read("data/history.json"); } catch {}
+// How often each service delivered the most on a route, from the daily history (last 30 days).
+const winsFor = (k) => {
+  const days = Object.keys(history.days || {}).sort().slice(-30).map((d) => (history.days[d] || {})[k]).filter((e) => e && (e.by || []).length);
+  const n = {}; days.forEach((e) => e.by.forEach((id) => { n[id] = (n[id] || 0) + 1; }));
+  return { days: days.length, wins: Object.entries(n).sort((a, b) => b[1] - a[1]) };
+};
 const histFor = (k) => Object.keys(history.days || {}).sort().map((d) => ({ d, ...(history.days[d][k] || {}) })).filter((x) => x.mid || x.best);
 const esc = R.esc;
 const plain = (s) => String(s).replace(/ /g, " ");
@@ -183,6 +189,7 @@ function head({ title, description, canonical, prefix, jsonld = [], noindex = fa
 <link rel="stylesheet" href="${prefix}assets/fonts.css?v=${V.fonts}">`;
   if (hasOg && !fs.existsSync(path.join(ROOT, "src/og", og + ".png"))) og = "home";
   const ogImg = hasOg ? `<meta property="og:image" content="${site}/og/${og}.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">` : `<meta name="twitter:card" content="summary">`;
+  description = clip(description, 158);
   return `<title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 ${PREVIEW ? '<meta name="claude:viewport-fit-sides" content="cover">' : ""}
@@ -204,12 +211,21 @@ ${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j)}</sc
 ${ads}${cfa}${impact}`;
 }
 
+// Cut a description to fit search results: at a sentence end if one is close, else at a word, with an ellipsis.
+function clip(t, max) {
+  t = String(t || "");
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max), dot = cut.lastIndexOf(". ");
+  if (dot > max * 0.6) return cut.slice(0, dot + 1);
+  return cut.slice(0, cut.lastIndexOf(" ")).replace(/[,;:]$/, "") + "…";
+}
+
 function header(prefix) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a></nav>
-</div></header>`;
+<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="Translate this page"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">Language</span></button></nav>
+</div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">Machine translation by Google. Amounts and service names stay as they are. <a href="${link(prefix, "privacy/")}">Privacy</a></p></div></div></header>`;
 }
 
 function footer(prefix) {
@@ -327,7 +343,11 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
       trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO },
     ...(init || {})
   };
-  const scripts = `<script>window.SF=${JSON.stringify(sf)};</script><script src="${prefix}assets/rank.js?v=${V.rank}" defer></script><script src="${prefix}assets/app.js?v=${V.app}" defer></script>` +
+  const translate = `<script>(function(){var b=document.getElementById("sf-lang"),box=document.getElementById("sf-lang-box"),loaded=false;if(!b)return;
+function load(){if(loaded)return;loaded=true;window.sfTranslateInit=function(){new google.translate.TranslateElement({pageLanguage:"en",autoDisplay:false},"google_translate_element");};var s=document.createElement("script");s.src="https://translate.google.com/translate_a/element.js?cb=sfTranslateInit";s.async=true;document.head.appendChild(s);}
+b.addEventListener("click",function(){var open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",String(open));if(open)load();});
+var m=document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);if(m&&m[1]!=="en")load();})();</script>`;
+  const scripts = translate + `<script>window.SF=${JSON.stringify(sf)};</script><script src="${prefix}assets/rank.js?v=${V.rank}" defer></script><script src="${prefix}assets/app.js?v=${V.app}" defer></script>` +
     (PREVIEW || DEMO ? "" : `<script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})});addEventListener("beforeinstallprompt",function(e){e.preventDefault();var b=document.getElementById("sf-install");if(!b)return;b.hidden=false;b.onclick=function(){b.hidden=true;e.prompt();};});</script>`);
   const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og });
   const bodyStr = `${header(prefix)}\n<main>${body}</main>\n${footer(prefix)}\n${scripts}`;
@@ -500,7 +520,7 @@ const homeCtx = routeContext(S0, R0, "", config.defaultAmounts[S0.currency]);
 write("index.html", page({
   prefix: "", canonical: "", bodyOnly: PREVIEW, og: "home",
   title: PREVIEW ? config.siteName : `Compare money transfers to Africa: best rates today | ${config.siteName}`,
-  description: `Compare what actually arrives when you send money from the US, UK, Canada, Australia or the Gulf (UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman) to ${joinList(corridors.receivers.map((r) => r.name))}. Rates checked by hand.`,
+  description: `See which service delivers the most to ${joinList(corridors.receivers.map((r) => r.name))}, from the UK, US, Canada, Australia and the Gulf. Rates checked by hand.`,
   jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/" },
     { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail, areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) }],
   body: tool({
@@ -571,6 +591,7 @@ ${summary}
 ${amountsTable(ctx)}
 <h2 id="history">${esc(s.currency)} to ${esc(r.currency)} rate history</h2>
 ${histChart(ctx)}
+${(() => { const w = winsFor(ctx.key); if (w.days < 3) return ""; return `<h3>Who delivered the most, day by day</h3><p>Over the last ${w.days} days we checked this route, ${esc(joinList(w.wins.slice(0, 4).map(([id, c]) => `${(providers[id] || { name: id }).name} on ${c}`)))}. Ties count for each service.</p>`; })()}
 ${s.currency !== r.currency ? `<p class="note"><a href="${link(prefix, `rates/${s.currency.toLowerCase()}-to-${r.currency.toLowerCase()}/`)}">${esc(s.currency)} to ${esc(r.currency)} converter and today's rate</a></p>` : ""}
 <h2 id="alert">Get a rate alert</h2>
 ${alertForm(ctx)}
@@ -628,13 +649,15 @@ ${crumbNav(prefix, trail)}
 <h2>Ways to receive money in ${esc(r.name)}</h2>
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
 ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
+<h2>Good to know before you send to ${esc(r.name)}</h2>
+<ul class="tips">${[...(TIPS[r.id] || []), ...TIPS_ALL].map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
 <h2>Questions</h2>
 ${faqBlock(faqs)}
 <h2>Compare a route</h2>
 <ul class="route-links">${corridors.senders.map((s) => `<li><a href="${link(prefix, corridorPath(s, r))}">${esc(s.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
-    title: `Send money to ${r.name}: best rates from the UK, US, Canada, Australia and the Gulf`,
+    title: `Send money to ${r.name}: today's best rates compared`,
     description: `Compare money transfers to ${r.name} by what arrives in ${rCur}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}. Today's best service from each country, checked by hand.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   urls.push(rel);
@@ -690,6 +713,7 @@ ${crumbNav(prefix, trail)}
 <div class="facts">
   <div><span class="k">Customer rating</span><span class="v">${ratingLine(p)}</span></div>
   <div><span class="k">Most money home</span><span class="v">${firsts} of ${fresh.length} routes today</span></div>
+  ${(() => { let days = 0, won = 0; for (const l of lines) { const w = winsFor(l.ctx.key); days += w.days; won += (w.wins.find(([id]) => id === p.id) || [0, 0])[1]; } return days >= 6 ? `<div><span class="k">Last 30 days</span><span class="v">Most money home on ${won} of ${days} route-days</span></div>` : ""; })()}
   <div><span class="k">Average cost vs mid-market</span><span class="v">${costPct == null ? "–" : costPct.toFixed(1) + "%"}</span></div>
   <div><span class="k">Ways to pay</span><span class="v">${esc(joinList(p.payIn || []) || "See provider")}</span></div>
   <div><span class="k">Ways to receive</span><span class="v">${esc(joinList(payouts) || "–")}</span></div>
@@ -709,7 +733,7 @@ ${notes.length ? `<p class="note">${notes.map(esc).join(" ")}</p>` : ""}
 ${faqBlock(faqs)}
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
-    title: `${p.name} review: rates, fees and ratings to ${countries.length > 3 ? countries.slice(0, 3).join(", ") + " and more" : joinList(countries)}`,
+    title: `${p.name} review: rates, fees and ratings for Africa`,
     description: `${p.name} on ${lines.length} routes to Africa: today's rates and fees, how often it delivers the most, ways to pay and receive, and its ${p.rating ? `${p.rating.score}/5 Trustpilot rating` : "customer rating"}.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   urls.push(rel);
@@ -750,6 +774,18 @@ ${crumbNav(prefix, trail)}
 <tbody>${rows.map((x) => `<tr><th scope="row"><a href="${link(prefix, corridorPath(x.s, x.r))}">${esc(x.s.label)} to ${esc(x.r.name)}</a></th><td class="num">${esc(plain(R.money(x.ctx.amount, x.s.currency, 0)))}</td><td class="num${Math.round(x.a.gets) > Math.round(x.b.gets) ? " top" : ""}">${esc(plain(R.money(x.a.gets, x.r.currency)))}</td><td class="num${Math.round(x.b.gets) > Math.round(x.a.gets) ? " top" : ""}">${esc(plain(R.money(x.b.gets, x.r.currency)))}</td><td class="num">${Math.round(x.a.gets) === Math.round(x.b.gets) ? "Tie" : esc(plain(R.money(Math.abs(x.a.gets - x.b.gets), x.r.currency, Math.max(x.a.gets, x.b.gets) >= 1000 ? 0 : 2)))}</td></tr>`).join("")}</tbody>
 </table></div>
 <p class="note">Amounts are what arrives for a typical transfer, after fees and exchange-rate margins. The higher figure on each route is in bold. Other services may beat both: open a route to see the full ranking.</p>
+<h2>What sets them apart</h2>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col"></th><th scope="col">${esc(A.name)}</th><th scope="col">${esc(B.name)}</th></tr></thead>
+<tbody>${[
+  ["Routes we compare", (P) => String(providerLines(P, prefix).length)],
+  ["Ways to receive", (P) => joinList([...new Set(providerLines(P, prefix).flatMap((l) => l.x.q.payout || []))].map((m) => R.LABEL[m])) || "–"],
+  ["Ways to pay", (P) => joinList(P.payIn || []) || "See provider"],
+  ["Delivery time", (P) => [...new Set(providerLines(P, prefix).map((l) => l.x.q.speed).filter(Boolean))].slice(0, 3).join("; ") || "Not shown by the provider"],
+  ["Typical cost vs mid-market", (P) => { const c = providerLines(P, prefix).filter((l) => !l.x.stale && l.x.cost != null).map((l) => Math.max(0, l.x.cost)); return c.length ? (c.reduce((a, b) => a + b, 0) / c.length * 100).toFixed(1) + "%" : "–"; }],
+  ["Trustpilot", (P) => P.rating ? `${P.rating.score}/5 (${Number(P.rating.reviews).toLocaleString("en")} reviews)` : "Not rated yet"]
+].map(([k, f]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(f(A))}</td><td>${esc(f(B))}</td></tr>`).join("")}</tbody></table></div>
+<p>${esc(winsA === winsB ? `Neither is cheaper across the board. Pick by route: on each line above, the bold figure is the one that delivers more today.` : `${lead.name} delivers more on most shared routes today, but ${lead === A ? B.name : A.name} wins on ${Math.min(winsA, winsB)}, so check your own route.`)} Speed, the ways your family can collect the money and how you can pay also matter: a slightly lower amount can be worth it if it reaches a mobile wallet in minutes.</p>
 <h2>Questions</h2>
 ${faqBlock(faqs)}
 </div></div></section>`;
@@ -794,13 +830,16 @@ ${crumbNav(prefix, trail)}
 <p class="note">"Best service gives" is for sending from ${esc(s.short)}, after fees and margins, using rates checked for ${esc(plain(R.money(ctx.amount, s.currency, 0)))}. For 1 ${esc(s.currency)}, a fixed fee can outweigh the transfer.</p>
 <h2>${esc(s.currency)} to ${esc(r.currency)} rate history</h2>
 ${histChart(ctx)}
+<h2>Mid-market rate vs the rate you get</h2>
+<p>The mid-market rate above is the midpoint between what banks pay to buy and sell ${esc(rCur)} on the currency market. No transfer service gives exactly this rate for long: each adds a margin, and some also charge a fee. A service advertising "zero fees" can still cost more than one with a small fee, if its rate is lower. That is why SendFair ranks services by the amount that actually arrives in ${esc(r.name)}.</p>
+<p>${s.region === "gulf" ? `The ${esc(sCur.replace(/s$/, ""))} is pegged to the US dollar, so day-to-day moves come from the ${esc(rCur.replace(/s$/, ""))} itself.` : `Both currencies float, so the rate moves through the day with the markets.`} Our copy of the mid-market rate is refreshed every few hours; the service rates are checked by hand, so compare on the day you send.</p>
 <h2>Questions</h2>
 ${faqBlock(faqs)}
 <h2>Send money from ${esc(s.short)} to ${esc(r.name)}</h2>
 <p><a class="btn" href="${link(prefix, corridorPath(s, r))}">Compare all services for ${esc(s.label)} to ${esc(r.name)}</a></p>
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: slug(s, r), noindex: !pairHasData,
-    title: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency} | ${sCur} to ${rCur}`,
+    title: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}`,
     description: `${sCur} to ${rCur} rate today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}. Converter, what arrives with the best transfer service, and rate history.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   if (pairHasData) urls.push(rel);
@@ -874,7 +913,7 @@ ${faqBlock(faqs)}
 ${gulfSenders.map((x) => `<h3>From ${esc(x.short)}</h3><ul class="route-links">${corridors.receivers.map((r) => `<li><a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>`).join("")}
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: "gulf",
-    title: `Send money from the Gulf to Africa: exchange houses, banks, wallets and apps compared`,
+    title: `Send money from the Gulf to Africa: every way compared`,
     description: `Compare ways to send money from the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman to ${joinList(corridors.receivers.map((r) => r.name))}: exchange houses, bank remittance services, wallets, apps and cash networks, ranked by what arrives.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   urls.push(rel);
@@ -891,6 +930,7 @@ const privacyItems = [
   config.impactScriptId ? `<li><strong>Affiliate tracking.</strong> Our pages load a script from Impact, an affiliate network some providers use. It records when a page is viewed and when you follow a link to a provider, so the provider can credit us if you sign up. It does not change the ranking.</li>` : "",
   config.cfAnalyticsToken ? `<li><strong>Visit statistics.</strong> We use Cloudflare Web Analytics, which counts visits without cookies and without building a profile of you.</li>` : "",
   config.adsenseClient ? `<li><strong>Advertising.</strong> Some pages show ads from Google. Visitors in the UK and Europe are asked for consent before Google uses cookies for personalised ads. You can change your choice at any time from the privacy link Google adds to the page, and manage ads at adssettings.google.com.</li>` : "",
+  `<li><strong>Translation.</strong> If you choose a language from the Language button, the page is translated by Google Translate. Your browser then loads Google's translation script and sends the page's text to Google, and a cookie (googtrans) remembers your language. Nothing is sent to Google unless you choose a language.</li>`,
   `<li><strong>Offline copies and logos.</strong> Your browser keeps a copy of the pages you open on SendFair so they still load without a connection; this stays on your device. Service logos are fetched by our server from each provider's public website, so your browser only ever connects to sendfair.africa for them.</li>`,
   `<li><strong>Hosting.</strong> The site is hosted by Cloudflare, which processes basic technical data (such as IP address) to deliver pages and protect against abuse.</li>`
 ].filter(Boolean).join("");
@@ -928,7 +968,7 @@ const trust = {
   "disclosure/": ["How we make money", "SendFair's affiliate and advertising disclosure.", `
 <h1>How we make money</h1>
 <p>SendFair is free to use. We earn money in two ways:</p>
-<ul><li><strong>Referral commissions.</strong> Some "Go to" buttons are affiliate links. If you open an account and make your first transfer, the provider may pay us a fee. You pay the same either way.</li><li><strong>Advertising.</strong> Some pages may show ads served by Google.</li></ul>
+<ul><li><strong>Referral commissions.</strong> Some "Go to" buttons are affiliate links. If you open an account and make your first transfer, the provider may pay us a fee. You pay the same either way.</li>${config.adsenseClient ? `<li><strong>Advertising.</strong> Some pages show ads served by Google. Ads are labelled as ads, are never placed inside the ranking, and advertisers cannot choose or influence where a service ranks.</li>` : `<li><strong>Advertising.</strong> We don't show ads at the moment. If we ever do, they will be labelled, kept out of the ranking, and this page will say so.</li>`}</ul>
 <p>Neither affects the ranking. Results are sorted only by how much your recipient receives. Providers that pay us nothing appear and rank on the same terms.</p>`],
   "privacy/": ["Privacy policy", "How SendFair handles your data.", `
 <h1>Privacy policy</h1>
@@ -961,7 +1001,9 @@ fs.writeFileSync(path.join(OUT, "admin/index.html"), fs.readFileSync(path.join(R
 
 // SEO and hosting files
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${site}/${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
-write("robots.txt", `User-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nSitemap: ${site}/sitemap.xml\n`);
+// AI answer engines may read the site so SendFair can be cited in their answers; model-training crawlers are
+// blocked separately by Cloudflare's managed robots.txt, which Cloudflare puts above these lines.
+write("robots.txt", `User-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nAllow: /\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nSitemap: ${site}/sitemap.xml\n`);
 // Installable app: the manifest and a small service worker that keeps the last pages viewed for offline use.
 write("manifest.webmanifest", JSON.stringify({
   name: "SendFair: compare money transfers to Africa", short_name: "SendFair",

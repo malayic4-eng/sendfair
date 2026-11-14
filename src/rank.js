@@ -147,6 +147,15 @@
   }
   function hue(id) { var h = 0; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0; return HUES[h % HUES.length]; }
   // Notes that say the same thing for most services are summed up once under the table instead of as footnotes.
+  var VARIANT_HINT = {
+    "card deposit": "Paid straight onto the recipient's bank card (Visa or Mastercard), usually within minutes",
+    "mobile money": "Paid into a mobile money wallet such as M-Pesa or MTN MoMo",
+    "bank": "Paid into the recipient's bank account",
+    "cash pickup": "Collected in cash at an agent",
+    "express": "Faster delivery, usually for a higher fee or lower rate",
+    "economy": "Slower delivery, usually for a better rate or lower fee"
+  };
+  function variantHint(v) { return VARIANT_HINT[String(v || "").toLowerCase()] || ""; }
   var GENERAL_NOTE = /^(Standard rate;|Fee read at two amounts)/;
   // Where senders can check a provider's licence, by sending country.
   var REGISTER = {
@@ -185,15 +194,15 @@
     var mark = fn ? ' <a class="fn" href="#sf-fn-' + fn + '" aria-label="Note ' + fn + '">' + fn + "</a>" : "";
     return '<article class="result' + (top ? " best" : "") + (x.stale ? " is-stale" : "") + '">' +
       '<div class="rank"' + (x.tied ? ' title="Tied"' : "") + ">" + (x.pos || i + 1) + (x.tied ? "=" : "") + "</div>" +
-      '<div class="prov"><div class="prov-name">' + badge(x.p) + '<span>' + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant">' + esc(x.q.variant) + "</span>" : "") +
+      '<div class="prov"><div class="prov-name notranslate">' + badge(x.p) + '<span>' + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant"' + (variantHint(x.q.variant) ? ' title="' + esc(variantHint(x.q.variant)) + '"' : "") + ">" + esc(x.q.variant) + "</span>" : "") +
       (top ? '<span class="chip best">' + (x.tied ? "Joint best" : c.target ? "Cheapest" : "Most money home") + "</span>" : "") + mark +
       (x.p.rating ? '<a class="tp" href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener" title="Trustpilot: ' + x.p.rating.score + " out of 5 from " + fixed(x.p.rating.reviews, 0) + ' reviews"><span aria-hidden="true">★</span> ' + x.p.rating.score + "</a>" : "") +
       '<button type="button" class="more-btn" aria-expanded="' + open + '" aria-controls="' + pid + '"><span class="more-txt">Details</span><span aria-hidden="true" class="chev">▾</span></button>' + "</div>" +
       '<div class="prov-sub num">' + bits.join('<span class="dot">' + DOT + "</span>") + "</div></div>" +
       (c.target
-        ? '<div class="gets"><span class="gets-value num">' + moneyHtml(x.pay, c.s.currency) + "</span>" +
+        ? '<div class="gets notranslate"><span class="gets-value num">' + moneyHtml(x.pay, c.s.currency) + "</span>" +
           (top && c.low && c.low.pay - x.pay >= 0.01 ? '<span class="gets-save num">' + esc(money(c.low.pay - x.pay, c.s.currency, 2)) + " less than the dearest</span>" : '<span class="gets-cost">' + costTxt + "</span>") + "</div>"
-        : '<div class="gets"><span class="gets-value num">' + moneyHtml(x.gets, c.r.currency) + "</span>" +
+        : '<div class="gets notranslate"><span class="gets-value num">' + moneyHtml(x.gets, c.r.currency) + "</span>" +
           (top && c.low && x.gets - c.low.gets >= 1 ? '<span class="gets-save num">' + esc(money(x.gets - c.low.gets, c.r.currency)) + " more than the lowest</span>" : '<span class="gets-cost">' + costTxt + "</span>") + "</div>") +
       '<div class="go-cell"><a class="go" href="' + esc(c.hrefFor(x.p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener" aria-label="Go to ' + esc(x.p.name) + '">Go<span class="go-name"> to ' + esc(x.p.name) + "</span></a></div>" +
       details(x, c, pid, open) +
@@ -214,6 +223,7 @@
       ["Rating", x.p.rating ? '<a href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener">Trustpilot ' + x.p.rating.score + "/5</a> (" + esc(x.p.rating.label) + ", " + fixed(x.p.rating.reviews, 0) + " reviews)" : "Not rated yet"],
       ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + esc(money(Number(x.q.refAmount) || c.amount, cur, 0)) : ""]
     ];
+    if (x.q.variant) items.splice(1, 0, ["Option", esc(x.q.variant) + (variantHint(x.q.variant) ? ": " + esc(variantHint(x.q.variant).charAt(0).toLowerCase() + variantHint(x.q.variant).slice(1)) : "")]);
     if (x.q.note) items.push(["Note", esc(x.q.note)]);
     return '<div class="more" id="' + pid + '"' + (open ? "" : " hidden") + '><dl>' + items.filter(function (it) { return it[1]; }).map(function (it) { return "<div><dt>" + it[0] + "</dt><dd>" + it[1] + "</dd></div>"; }).join("") + "</dl></div>";
   }
@@ -225,10 +235,10 @@
     var out = [];
     ["mobile", "bank", "cash"].forEach(function (m) {
       var best = all.filter(function (x) { return (x.q.payout || []).indexOf(m) > -1; })[0];
-      if (best) out.push('<button type="button" class="pick" data-payout="' + m + '" title="Show only ' + LABEL[m].toLowerCase() + ' services"><span class="pick-k">Best by ' + LABEL[m].toLowerCase() + '</span><span class="pick-v">' + esc(best.p.name) + ' <span class="pick-n num">' + esc(c.target ? money(best.pay, c.s.currency, 2) : fixed(best.gets, best.gets >= 1000 ? 0 : 2)) + "</span></span></button>");
+      if (best) out.push('<button type="button" class="pick" data-payout="' + m + '" title="Show only ' + LABEL[m].toLowerCase() + ' services"><span class="pick-k">Best by ' + LABEL[m].toLowerCase() + '</span><span class="pick-v notranslate">' + esc(best.p.name) + ' <span class="pick-n num">' + esc(c.target ? money(best.pay, c.s.currency, 2) : fixed(best.gets, best.gets >= 1000 ? 0 : 2)) + "</span></span></button>");
     });
     var fast = all.filter(function (x) { return /minute|instant|second/i.test(x.q.speed || ""); })[0];
-    if (fast) out.push('<span class="pick"><span class="pick-k">Fastest</span><span class="pick-v">' + esc(fast.p.name) + ' <span class="pick-n">' + esc(fast.q.speed) + "</span></span></span>");
+    if (fast) out.push('<span class="pick"><span class="pick-k">Fastest</span><span class="pick-v notranslate">' + esc(fast.p.name) + ' <span class="pick-n">' + esc(fast.q.speed) + "</span></span></span>");
     return out.join("");
   }
 
@@ -259,6 +269,7 @@
       }).join("");
       html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>' + (c.target ? "You pay" : "They get") + '</span><span></span></div>' + rows + "</div>";
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
+      if (c.rows.some(function (x) { return x.tied; })) html += '<p class="note tie-note">"=" means tied: the same amount arrives. Tied services are listed with the lower fee first.</p>';
       var reg = REGISTER[c.s.id];
       html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") + ', using standard rates (first-transfer offers are left out). Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +
         (reg ? '<p class="disclose">Before you send, check the service is licensed ' + (reg[2] || "on") + ' <a href="' + reg[1] + '" target="_blank" rel="noopener">' + reg[0] + "</a>.</p>" : "") +
