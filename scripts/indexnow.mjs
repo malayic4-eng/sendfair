@@ -6,10 +6,10 @@ const HOST = "sendfair.africa";
 const xml = await (await fetch(`https://${HOST}/sitemap.xml`)).text();
 const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 if (!urls.length) { console.log("No URLs found in the sitemap"); process.exit(1); }
-const res = await fetch("https://api.indexnow.org/indexnow", {
+const res = await fetch("https://www.bing.com/indexnow", {
   method: "POST",
   headers: { "Content-Type": "application/json; charset=utf-8" },
   body: JSON.stringify({ host: HOST, key: KEY, keyLocation: `https://${HOST}/${KEY}.txt`, urlList: urls.slice(0, 10000) })
 });
-console.log(`IndexNow: submitted ${urls.length} URLs, response ${res.status} ${res.statusText}`);
+console.log(`IndexNow: submitted ${urls.length} URLs, response ${res.status} ${res.statusText} ${(await res.text()).slice(0, 300)}`);
 if (res.status >= 400) process.exit(1);
