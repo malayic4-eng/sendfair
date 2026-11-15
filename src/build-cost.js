@@ -78,12 +78,15 @@
       doorsIn: Math.max(2, Math.round(m2 * m.doorsIn)),
       doorsOut: storeys >= 2 ? 2 : 1,
       tilesM2: m2 * m.tilesM2,
+      wallTilesM2: m2 * (m.wallTilesM2 || 0),
       ceilingM2: slab ? 0 : m2 * m.ceilingM2,
       paintL: m2 * m.paintL,
       elecPoints: Math.max(8, Math.round(m2 * m.elecPoints)),
       pipeM: m2 * m.pipeM,
       wc: m2 < 70 ? 1 : m2 < 160 ? 2 : 3,
       tank: 1,
+      gutterM: slab ? 0 : footprint * (m.gutterM || 0),
+      formworkM2: slab ? m2 * (storeys >= 2 ? 1.05 : 1) : (storeys >= 2 ? footprint * 1.05 : 0),
       masonDays: m2 * (m.masonDays + m.masonFinish),
       handDays: m2 * (m.handDays + m.handFinish),
       carpenterDays: m2 * m.carpenterDays,
@@ -130,26 +133,36 @@
       add(key, label, n, n + " days", rateKey, "per day", "Labour");
     }
     var bars = Math.round(q.steelKg / (data.barKg || 10.65));
-    add("cement", "Cement", roundQty(q.cementBags), Math.round(q.cementBags) + " bags of 50kg, for concrete, mortar, plaster and the floor screed", "cement", "per bag", "Structure");
-    add("steel", "Steel", roundQty(q.steelKg), Math.round(q.steelKg) + " kg. At 12mm by 12m that is about " + bars + " bars; a thicker bar is fewer bars for the same weight", "steel", "per kg", "Structure");
-    add("ballast", "Ballast", roundQty(q.ballastM3, 1), roundQty(q.ballastM3, 1) + " m³ under the ground floor", "ballast", "per m³", "Structure");
+    var steelNote = Math.round(q.steelKg) + " kg, for footings, the ground slab, columns, the ring beam and lintels. At 12mm by 12m that is about " + bars + " bars";
+    if (storeys >= 2) steelNote += ". The two-floor allowance adds the upper slab, its beams and the staircase";
+    if (c.roof === "slab") steelNote += ". The concrete roof slab is included";
+    add("cement", "Cement", roundQty(q.cementBags), Math.round(q.cementBags) + " bags of 50kg, for concrete, block mortar, plaster both sides and the floor screed", "cement", "per bag", "Structure");
+    add("steel", "Steel", roundQty(q.steelKg), steelNote, "steel", "per kg", "Structure");
+    add("ballast", "Ballast", roundQty(q.ballastM3, 1), roundQty(q.ballastM3, 1) + " m³ of hardcore and concrete aggregate under the ground floor", "ballast", "per m³", "Structure");
     add("sand", "Sand", roundQty(q.sandM3, 1), roundQty(q.sandM3, 1) + " m³, for concrete, mortar, plaster and the screed", "sand", "per m³", "Structure");
+    add("formwork", "Slab formwork", roundQty(q.formworkM2, 0), Math.round(q.formworkM2) + " m² of soffit shuttering" + (storeys >= 2 ? ", including the staircase" : ""), "formwork", "per m²", "Structure");
     add("blocks", "Blocks", q.blocks, q.blocks + " hollow blocks", "blocks", "each", "Walls and roof");
     if (c.roof === "slab") {
       lines.push({ key: "roof", group: "Walls and roof", label: "Roof", qty: 0, qtyLabel: "Concrete slab. The extra cement and steel above stand in for it. No sheets, no timber trusses, no board ceiling.", cost: 0, quoted: true, source: "No iron sheets on a concrete roof.", slab: true });
     } else {
-      add("roof", "Roofing", roundQty(q.roofM2, 0), Math.round(q.roofM2) + " m² of sheet", "roof", "per m²", "Walls and roof");
+      add("roof", "Roofing", roundQty(q.roofM2, 0), Math.round(q.roofM2) + " m² of sheet, with pitch and overhang", "roof", "per m²", "Walls and roof");
       add("timber", "Roof timber", roundQty(q.timberM2, 0), Math.round(q.timberM2) + " m² of trusses", "timber", "per m²", "Walls and roof");
+      add("gutter", "Gutters and downpipes", roundQty(q.gutterM, 0), Math.round(q.gutterM) + " m around the eaves, downpipes included at the same rate", "gutter", "per m", "Walls and roof");
     }
     add("windows", "Windows", q.windows, q.windows + " windows", "window", "each", "Windows and doors");
     add("doorIn", "Internal doors", q.doorsIn, q.doorsIn + " internal doors", "doorIn", "each", "Windows and doors");
     add("doorOut", "External doors", q.doorsOut, q.doorsOut + " external door" + (q.doorsOut > 1 ? "s" : ""), "doorOut", "each", "Windows and doors");
-    add("tiles", "Floor tiles", roundQty(q.tilesM2, 0), Math.round(q.tilesM2) + " m², with an allowance for waste", "tiles", "per m²", "Finishes");
-    add("ceiling", "Ceiling boards", roundQty(q.ceilingM2, 0), Math.round(q.ceilingM2) + " m² of board. The metal frame is not in this line", "ceiling", "per m²", "Finishes");
-    add("paint", "Paint", roundQty(q.paintL, 0), Math.round(q.paintL) + " litres, two coats on the walls", "paint", "per litre", "Finishes");
+    add("tiles", "Floor tiles", roundQty(q.tilesM2, 0), Math.round(q.tilesM2) + " m² of floor, including cutting waste", "tiles", "per m²", "Finishes");
+    add("wallTiles", "Wall tiles", roundQty(q.wallTilesM2, 0), Math.round(q.wallTilesM2) + " m² on bathroom and kitchen walls", "tiles", "per m²", "Finishes");
+    add("ceiling", "Ceiling boards", roundQty(q.ceilingM2, 0), Math.round(q.ceilingM2) + " m² of board", "ceiling", "per m²", "Finishes");
+    add("ceilingFrame", "Ceiling frame", roundQty(q.ceilingM2, 0), Math.round(q.ceilingM2) + " m² of metal channels, screws and jointing. Fixing labour is with the carpenter", "ceilingFrame", "per m²", "Finishes");
+    add("paint", "Paint", roundQty(q.paintL, 0), Math.round(q.paintL) + " litres, primer and two coats inside and out", "paint", "per litre", "Finishes");
     add("elec", "Wiring", q.elecPoints, q.elecPoints + " lights and sockets, materials", "elecPoint", "per point", "Services");
     add("pipe", "Plumbing pipe", roundQty(q.pipeM, 0), Math.round(q.pipeM) + " m of pipe", "pipe", "per m", "Services");
-    add("wc", "Sanitary fittings", q.wc, q.wc + " WC and cistern", "wc", "each", "Services");
+    add("wc", "WCs", q.wc, q.wc + " WC and cistern", "wc", "each", "Services");
+    add("basin", "Wash basins", q.wc, q.wc + " basin and pillar tap", "basin", "each", "Services");
+    add("shower", "Showers", q.wc, q.wc + " shower", "shower", "each", "Services");
+    add("sink", "Kitchen sink", 1, "One single-bowl sink", "sink", "each", "Services");
     add("tank", "Water tank", q.tank, "One 1,000 litre tank", "tank", "each", "Services");
     trade("mason", "Masons", q.masonDays, "mason");
     trade("hand", "Labourers", q.handDays, "hand");
@@ -244,7 +257,7 @@
         '<div class="share"><a href="https://wa.me/?text=' + encodeURIComponent(share) + '" target="_blank" rel="noopener">Share on WhatsApp</a></div>' +
         '<details class="build-src"><summary>Where the prices come from</summary><ul>' + est.lines.filter(function (l) { return l.source; }).map(function (l) {
           return "<li><strong>" + esc(l.label) + ".</strong> " + esc(l.source) + (l.url ? ' <a href="' + esc(l.url) + '" target="_blank" rel="noopener">Source</a>' : "") + "</li>";
-        }).join("") + "</ul><p>Checked " + esc(data.updated) + ". Next refresh " + esc(data.nextReview) + ". City prices move, and a town away from " + esc(est.country.city) + " can differ. This is not a structural design. Left out on purpose: the plot of land, the contractor's fee, permits, a septic tank, kitchen cupboards, wardrobes, a boundary wall, and the metal frame that holds the ceiling boards.</p></details>";
+        }).join("") + "</ul><p>Checked " + esc(data.updated) + ". Next refresh " + esc(data.nextReview) + ". City prices move, and a town away from " + esc(est.country.city) + " can differ. This is not a structural design. Left out on purpose: the plot of land, the contractor's fee, permits, a septic tank or biodigester, kitchen cupboards, wardrobes, and a boundary wall.</p></details>";
     }
     var countrySel = document.getElementById("sf-build-country");
     countrySel.innerHTML = Object.keys(data.countries).map(function (id) {

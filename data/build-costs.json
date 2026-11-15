@@ -4,58 +4,62 @@
   "barKg": 10.65,
   "model": {
     "one": {
-      "cementBags": 2,
-      "cementFinish": 0.7,
-      "steelKg": 16,
-      "roofM2": 1.35,
-      "sandM3": 0.3,
-      "sandFinish": 0.1,
-      "masonDays": 0.4,
-      "masonFinish": 0.38,
-      "handDays": 0.65,
-      "handFinish": 0.45,
-      "blocks": 22,
-      "ballastM3": 0.15,
-      "windows": 0.08,
-      "doorsIn": 0.05,
-      "tilesM2": 0.9,
-      "ceilingM2": 1,
-      "paintL": 0.8,
-      "elecPoints": 0.32,
-      "pipeM": 0.45,
-      "carpenterDays": 0.08,
-      "painterDays": 0.08,
-      "sparkDays": 0.06,
-      "plumbDays": 0.05
-    },
-    "two": {
-      "cementBags": 2.6,
-      "cementFinish": 0.85,
-      "steelKg": 30,
-      "roofM2": 1.35,
-      "sandM3": 0.34,
-      "sandFinish": 0.12,
+      "cementBags": 3.8,
+      "cementFinish": 1.8,
+      "steelKg": 28,
+      "roofM2": 1.85,
+      "sandM3": 0.22,
+      "sandFinish": 0.18,
       "masonDays": 0.55,
-      "masonFinish": 0.48,
+      "masonFinish": 0.5,
       "handDays": 0.85,
       "handFinish": 0.55,
-      "blocks": 28,
-      "ballastM3": 0.15,
+      "blocks": 30,
+      "ballastM3": 0.22,
       "windows": 0.09,
-      "doorsIn": 0.055,
-      "tilesM2": 0.9,
-      "ceilingM2": 0.55,
-      "paintL": 0.95,
-      "elecPoints": 0.36,
-      "pipeM": 0.5,
-      "carpenterDays": 0.07,
-      "painterDays": 0.09,
-      "sparkDays": 0.07,
-      "plumbDays": 0.06
+      "doorsIn": 0.05,
+      "tilesM2": 1.08,
+      "wallTilesM2": 0.35,
+      "ceilingM2": 1,
+      "paintL": 1.15,
+      "elecPoints": 0.5,
+      "pipeM": 0.9,
+      "carpenterDays": 0.14,
+      "painterDays": 0.14,
+      "sparkDays": 0.12,
+      "plumbDays": 0.1,
+      "gutterM": 0.45
+    },
+    "two": {
+      "cementBags": 5.4,
+      "cementFinish": 2,
+      "steelKg": 50,
+      "roofM2": 1.85,
+      "sandM3": 0.28,
+      "sandFinish": 0.2,
+      "masonDays": 0.75,
+      "masonFinish": 0.55,
+      "handDays": 1.05,
+      "handFinish": 0.65,
+      "blocks": 32,
+      "ballastM3": 0.22,
+      "windows": 0.1,
+      "doorsIn": 0.06,
+      "tilesM2": 1.08,
+      "wallTilesM2": 0.4,
+      "ceilingM2": 0.65,
+      "paintL": 1.3,
+      "elecPoints": 0.55,
+      "pipeM": 1,
+      "carpenterDays": 0.16,
+      "painterDays": 0.16,
+      "sparkDays": 0.14,
+      "plumbDays": 0.12,
+      "gutterM": 0.55
     },
     "slabExtra": {
-      "cementBags": 0.7,
-      "steelKg": 12
+      "cementBags": 1.3,
+      "steelKg": 22
     }
   },
   "houses": [
@@ -775,6 +779,24 @@
         },
         "timber": {
           "guideFrom": "kenya"
+        },
+        "ceilingFrame": {
+          "guideFrom": "kenya"
+        },
+        "gutter": {
+          "guideFrom": "kenya"
+        },
+        "formwork": {
+          "guideFrom": "kenya"
+        },
+        "basin": {
+          "guideFrom": "kenya"
+        },
+        "shower": {
+          "guideFrom": "kenya"
+        },
+        "sink": {
+          "guideFrom": "kenya"
         }
       }
     },
@@ -783,7 +805,7 @@
       "currency": "KES",
       "city": "Nairobi",
       "roof": "sheet",
-      "note": "Cement, steel, blocks, sand, ballast, roofing, trusses, windows, internal doors, tiles, paint and pipe are Nairobi retail ranges. The external door is the bottom of a wide published range. Wiring, ceiling boards and several trade day rates are guides. The metal ceiling frame is not priced. Each line with a menu lets you switch to another point in the published Nairobi range.",
+      "note": "Cement, steel, blocks, sand, ballast, roofing, trusses, windows, internal doors, tiles, paint and pipe are Nairobi retail ranges. The external door is the bottom of a wide published range. Wiring, ceiling boards and several trade day rates are guides. The metal ceiling frame is not priced. Each line with a menu lets you switch to another point in the published Nairobi range. Quantities follow published planning takeoffs for a simple Nairobi bungalow: about 4 to 6 bags of cement per square metre of floor, 2.5 to 4 tonnes of steel on a 120 m² house, and a finish of floor tiles, wall tiles in wet rooms, a framed ceiling, paint, a basin, a shower and a sink. A published all-in band is shown separately because it includes a builder's overhead.",
       "items": {
         "cement": {
           "price": 780,
@@ -1221,7 +1243,96 @@
         },
         "carpenter": {
           "guideFrom": "ghana"
+        },
+        "ceilingFrame": {
+          "price": 325,
+          "guide": true,
+          "source": "Middle of KES 250–400 per m² for metal ceiling framework, screws and jointing, from a 2026 Nairobi split of a plain gypsum ceiling. The board is a separate line. Fixing labour is with the carpenter, not in this rate.",
+          "url": "https://interiors.hauzisha.co.ke/gypsum-ceiling-price-kenya/"
+        },
+        "gutter": {
+          "price": 1060,
+          "source": "140mm PVC half-round gutter, KES 1,060 a metre, the 2026 Nairobi and Central all-in rate in the Integrum construction costs handbook. Downpipes are allowed at the same rate. Brackets are inside that all-in figure.",
+          "url": "https://integrum.co.ke/2026-construction-costs-handbook-kenya-nairobi-central/"
+        },
+        "formwork": {
+          "price": 2560,
+          "source": "Slab soffit formwork, KES 2,560 per m² for a single use, Integrum 2026 Nairobi handbook, including erection, striking and cleaning down. A deck reused three or more times is listed there at KES 1,600.",
+          "url": "https://integrum.co.ke/2026-construction-costs-handbook-kenya-nairobi-central/"
+        },
+        "basin": {
+          "price": 2180,
+          "source": "Wash hand basin KES 1,600 plus a pillar tap KES 580, Buy More Mall Kenya list of 28 September 2026.",
+          "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya",
+          "options": [
+            {
+              "id": "basic",
+              "name": "Basin and brass tap",
+              "price": 1800,
+              "source": "Hanzach small hand basin KES 1,200 plus a half-inch brass tap around KES 600.",
+              "url": "https://hanzach.com/category/sanitary-ware"
+            },
+            {
+              "id": "listed",
+              "name": "Basin and pillar tap",
+              "price": 2180,
+              "default": true,
+              "source": "Wash hand basin KES 1,600 plus a pillar tap KES 580, Buy More Mall Kenya, 28 September 2026.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            }
+          ]
+        },
+        "shower": {
+          "price": 2500,
+          "source": "Instant electric shower, KES 2,500, Buy More Mall Kenya list of 28 September 2026. The cable for it is not in this line.",
+          "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya",
+          "options": [
+            {
+              "id": "instant",
+              "name": "Instant electric shower",
+              "price": 2500,
+              "default": true,
+              "source": "Instant shower (Ducha), KES 2,500, Buy More Mall Kenya, 28 September 2026.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            },
+            {
+              "id": "mixer",
+              "name": "Mixer shower",
+              "price": 6500,
+              "source": "Taps mixer, KES 6,500, on the same Buy More Mall list.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            }
+          ]
+        },
+        "sink": {
+          "price": 1300,
+          "source": "Single kitchen sink, KES 1,300, Buy More Mall Kenya list of 28 September 2026. The kitchen tap is not in this line.",
+          "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya",
+          "options": [
+            {
+              "id": "single",
+              "name": "Single bowl sink",
+              "price": 1300,
+              "default": true,
+              "source": "Single kitchen sink, KES 1,300, Buy More Mall Kenya, 28 September 2026.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            },
+            {
+              "id": "large",
+              "name": "Larger sink",
+              "price": 1800,
+              "source": "Larger single-bowl sink, KES 1,800, on the same list.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            }
+          ]
         }
+      },
+      "finished": {
+        "low": 36000,
+        "high": 42500,
+        "label": "Published range for an economy to standard finish in Kenya, for a house of this floor area",
+        "source": "KenyaHub 2026, citing BORAQS and KNBS benchmarks: KES 36,000–42,500 per m² for box-profile roofing, ceramic tiles, ordinary doors and standard sanitaryware. That band is a whole-build planning rate. This page still leaves out the contractor's fee and the land.",
+        "url": "https://kenyahub.me/blog/cost-of-building-a-house-in-kenya-mjengo-guide-2026/"
       }
     },
     "uganda": {
