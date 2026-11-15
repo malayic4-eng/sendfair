@@ -1,0 +1,48 @@
+name: Update rates
+
+on:
+  schedule:
+    # Every 30 minutes. GitHub may start scheduled runs a few minutes late.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Never let two runs overlap.
+concurrency:
+  group: update-rates
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      WISE_API_TOKEN: ${{ secrets.WISE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Fetch mid-market rates
+        run: node scripts/fetch-midmarket.mjs
+      - name: Fetch Wise comparison feed (only if WISE_API_TOKEN secret is set)
+        if: ${{ env.WISE_API_TOKEN != '' }}
+        run: node scripts/fetch-wise-feed.mjs
+      - name: Publish the Wise feed into today's quotes (with safety checks)
+        if: ${{ env.WISE_API_TOKEN != '' }}
+        run: node scripts/apply-wise-feed.mjs && node scripts/record-history.mjs
+      - name: Commit if changed
+        run: |
+          git add data/midmarket.json
+          if [ -f data/wise-feed.json ]; then git add data/wise-feed.json; fi
+          git add data/quotes.json data/history.json
+          if git diff --cached --quiet; then
+            echo "No change"
+          else
+            git config user.name "sendfair-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git commit -m "Update rates (automatic)"
+            git pull --rebase
+            git push
+          fi

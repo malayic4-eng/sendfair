@@ -1,0 +1,27 @@
+// Cloudflare Workers settings for SendFair. Cloudflare reads this on every deploy.
+{
+  "name": "sendfair",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-06-01",
+  // Builds the 30 pages into dist/ before each deploy.
+  "build": { "command": "node scripts/build.mjs" },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // Lets the script below send www.sendfair.africa visitors to sendfair.africa.
+    "run_worker_first": true
+  },
+  // The site's own address. www is forwarded to the main address.
+  "routes": [
+    { "pattern": "sendfair.africa", "custom_domain": true },
+    { "pattern": "www.sendfair.africa", "custom_domain": true }
+  ],
+  // Storage for delivery reports and click counts (namespace "sendfair").
+  "kv_namespaces": [{ "binding": "SENDFAIR_KV", "id": "4184f9d4de9440119baf9408cecc938a" }],
+  // Rate alerts run after the morning (09:37) and evening (19:37) Nairobi rate checks.
+  "triggers": { "crons": ["30 8 * * *", "30 18 * * *"] },
+  "observability": { "enabled": true },
+  // Keep settings added in the Cloudflare dashboard (such as ADMIN_PASSWORD) when a new version deploys.
+  "keep_vars": true
+}
