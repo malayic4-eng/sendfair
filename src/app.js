@@ -120,6 +120,7 @@
     $("sf-note").textContent = c.r.note || "";
     $("sf-note").hidden = !c.r.note;
     $("sf-results").innerHTML = R.renderResults(c);
+    syncAlert(c);
     if ($("sf-picks")) $("sf-picks").innerHTML = R.picks(c);
     var wa = $("sf-wa");
     if (wa) {
@@ -162,6 +163,19 @@
     var keep = sel.value;
     sel.innerHTML = '<option value="">Choose the service you used</option>' + ids.map(function (id) { return '<option value="' + id + '">' + R.esc(S.providers[id].name) + "</option>"; }).join("");
     if (ids.indexOf(keep) > -1) sel.value = keep;
+  }
+
+  // The home page alert follows the route and amount chosen in the tool.
+  function syncAlert(c) {
+    var f = $("sf-alert-route");
+    if (!f || f.getAttribute("data-follow") !== "1" || f.getAttribute("data-route") === c.key && f.getAttribute("data-amt") === String(c.amount)) return;
+    f.setAttribute("data-route", c.key); f.setAttribute("data-amt", String(c.amount));
+    var cur = f.querySelectorAll(".af-cur");
+    if (cur[0]) cur[0].textContent = c.s.currency;
+    if (cur[1]) cur[1].textContent = c.r.currency;
+    if (c.amount > 0) f.amount.value = c.amount;
+    var top = (c.rows || []).filter(function (x) { return !x.stale; })[0];
+    if (top) { var u = top.gets >= 1000 ? 100 : 1; f.target.value = Math.ceil(top.gets * 1.01 / u) * u; }
   }
 
   function onRouteChange() {

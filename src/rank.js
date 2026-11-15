@@ -23,7 +23,10 @@
     var d = digits == null ? (Math.abs(value) >= 1000 ? 0 : 2) : digits;
     return '<span class="cur">' + currency + "</span>" + fixed(value, d);
   }
-  function rateStr(rate) { return fixed(rate, rate >= 100 ? 2 : 4); }
+  function rateStr(rate) {
+    // Up to 4 decimals, so the rate shown times the amount gives the amount shown.
+    return Number(rate).toLocaleString("en", { minimumFractionDigits: rate >= 100 ? 2 : 4, maximumFractionDigits: 4 });
+  }
   function midRate(mid, src, tgt) {
     if (src === tgt) return 1;
     var r = mid && mid.rates;
@@ -226,10 +229,22 @@
       ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + esc(money(Number(x.q.refAmount) || c.amount, cur, 0)) + (isAuto(x.q) ? ", automatically from Wise's comparison data" : ", by hand on the provider's site") : ""]
     ];
     if (x.q.variant) items.splice(1, 0, ["Option", esc(x.q.variant) + (variantHint(x.q.variant) ? ": " + esc(variantHint(x.q.variant).charAt(0).toLowerCase() + variantHint(x.q.variant).slice(1)) : "")]);
+    if (x.p.welcomeOffer) items.push(["New-customer offer", esc(x.p.welcomeOffer) + " (not included in the ranking; check the terms on the provider's site)"]);
     if (x.q.note) items.push(["Note", esc(x.q.note)]);
     return '<div class="more" id="' + pid + '"' + (open ? "" : " hidden") + '><dl>' + items.filter(function (it) { return it[1]; }).map(function (it) { return "<div><dt>" + it[0] + "</dt><dd>" + it[1] + "</dd></div>"; }).join("") + "</dl></div>";
   }
 
+  // Lower is faster. Rows keep their ranking order within the same speed, so the one that delivers more wins a tie.
+  function speedRank(t) {
+    t = String(t || "").toLowerCase();
+    if (/second|instant/.test(t)) return 0;
+    if (/minute/.test(t)) return 1;
+    if (/hour/.test(t)) return 2;
+    if (/same day|today/.test(t)) return 3;
+    if (/next day|1 day|1-2|1–2/.test(t)) return 4;
+    if (/day/.test(t)) return 5;
+    return 9;
+  }
   // Quick picks above the ranking: best service per way of receiving, and the fastest where speeds are known.
   function picks(c) {
     var all = (c.allRows || c.rows).filter(function (x) { return !x.stale; });
@@ -239,7 +254,7 @@
       var best = all.filter(function (x) { return (x.q.payout || []).indexOf(m) > -1; })[0];
       if (best) out.push('<button type="button" class="pick" data-payout="' + m + '" title="Show only ' + LABEL[m].toLowerCase() + ' services"><span class="pick-k">Best by ' + LABEL[m].toLowerCase() + '</span><span class="pick-v notranslate">' + esc(best.p.name) + ' <span class="pick-n num">' + esc(c.target ? money(best.pay, c.s.currency, 2) : fixed(best.gets, best.gets >= 1000 ? 0 : 2)) + "</span></span></button>");
     });
-    var fast = all.filter(function (x) { return /minute|instant|second/i.test(x.q.speed || ""); })[0];
+    var fast = all.filter(function (x) { return speedRank(x.q.speed) < 9; }).sort(function (a, b) { return speedRank(a.q.speed) - speedRank(b.q.speed); })[0];
     if (fast) out.push('<span class="pick"><span class="pick-k">Fastest</span><span class="pick-v notranslate">' + esc(fast.p.name) + ' <span class="pick-n">' + esc(fast.q.speed) + "</span></span></span>");
     return out.join("");
   }
@@ -271,8 +286,11 @@
       }).join("");
       html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>' + (c.target ? "You pay" : "They get") + '</span><span></span></div>' + rows + "</div>";
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
-      if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are updated every 30 minutes from Wise\'s comparison data, which collects each provider\'s advertised rate and fee. Payout options on those rows may be incomplete.</p>';
+      if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows come from Wise\'s comparison data, which collects each provider\'s advertised rate and fee. We fetch it every 30 minutes, but each provider\'s price is only as new as Wise\'s last collection, shown on the row. Payout options on those rows may be incomplete.</p>';
       if (c.rows.some(function (x) { return x.tied; })) html += '<p class="note tie-note">"=" means tied: the same amount arrives. Tied services are listed with the lower fee first.</p>';
+      var ranked = {}; c.rows.forEach(function (x) { ranked[x.p.id] = 1; });
+      var unpriced = (c.checkList || []).filter(function (p) { return !ranked[p.id]; });
+      if (unpriced.length) html += '<p class="note unpriced">Also sending on this route, with no price we could check today: ' + unpriced.map(function (p) { return '<a href="' + esc(c.hrefFor(p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener">' + esc(p.name) + "</a>"; }).join(DOT) + '. Compare their in-app quote with the amounts above.</p>';
       var reg = REGISTER[c.s.id];
       html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") + ', using standard rates (first-transfer offers are left out). Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +
         (reg ? '<p class="disclose">Before you send, check the service is licensed ' + (reg[2] || "on") + ' <a href="' + reg[1] + '" target="_blank" rel="noopener">' + reg[0] + "</a>.</p>" : "") +

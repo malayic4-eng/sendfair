@@ -72,6 +72,8 @@ const servesFrom = (p, sid) => !p.sendsFrom || p.sendsFrom.includes(sid);
       if (!Array.isArray(q.payout) || !q.payout.length || q.payout.some((m) => !R.LABEL[m])) p.push(`data/quotes.json: ${k} ${q.provider} needs payout from mobile, bank, cash`);
     });
   }
+  const f = config.featured;
+  if (f && f.provider && !ids.has(f.provider)) p.push(`config.json: featured.provider "${f.provider}" is not in data/providers.json`);
   if (p.length) fail(p);
 })();
 
@@ -80,7 +82,9 @@ try {
   const ov = JSON.parse(fs.readFileSync(path.join(ROOT, "data/mid-overrides.json"), "utf8"));
   if (ov && ov.rates && NOW - new Date(ov.updatedAt).getTime() < 7 * 24 * 3600000 && midmarket.rates) {
     Object.assign(midmarket.rates, ov.rates);
-    if (!midmarket.updatedAt || new Date(ov.updatedAt) > new Date(midmarket.updatedAt)) midmarket.updatedAt = ov.updatedAt;
+    // Remember which currencies came from the hand-checked list, so pages show the time of the rate they actually use.
+    midmarket.overrideAt = ov.updatedAt;
+    midmarket.overridden = Object.keys(ov.rates).filter((c) => c !== "USD");
     // The previous check's rates, for the "since yesterday" trend next to the market rate.
     if (ov.previous && ov.previous.rates) midmarket.previous = { updatedAt: ov.previous.updatedAt, rates: Object.assign({ USD: 1 }, ov.previous.rates) };
   }
@@ -172,7 +176,7 @@ function routeContext(s, r, prefix, amount) {
     s, r, key: k, amount, payout: "all", mid, rows, allRows: rows, hist: histFor(k), now: NOW, midPrev: midmarket.previous ? R.midRate(midmarket.previous, s.currency, r.currency) : null, midPrevAt: midmarket.previous && midmarket.previous.updatedAt, timeStyle: "absolute", anyQuotes: list.length > 0, reports: demoReports ? demoReports.routes[k] : {},
     hrefFor: hrefFor(prefix), disclosureHref: link(prefix, "disclosure/"), checkList: cov.map((id) => providers[id]).filter(Boolean),
     avgPct: config.regionalAverageCost.percent, avgLabel: config.regionalAverageCost.label,
-    midUpdated: midmarket && midmarket.updatedAt, quotesUpdated: quotesFile.updatedAt
+    midUpdated: midmarket && (midmarket.overridden && [s.currency, r.currency].some((c) => midmarket.overridden.includes(c)) && [s.currency, r.currency].every((c) => c === "USD" || midmarket.overridden.includes(c)) ? midmarket.overrideAt : midmarket.updatedAt), quotesUpdated: quotesFile.updatedAt
   };
 }
 
@@ -240,7 +244,7 @@ function footer(prefix) {
 <nav aria-label="Footer"><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services. We do not send, hold or exchange money. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
-<p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${config.businessName ? `, a ${esc(config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
+<p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${config.businessName ? `, a ${esc(config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <a class="email" href="mailto:${esc(config.contactEmail)}">${esc(config.contactEmail)}</a></p>
 </div></footer>`;
 }
 
@@ -271,16 +275,27 @@ function tool({ heading, sub, ctx, after = "" }) {
   </div>
   <div id="sf-results">${R.renderResults(ctx)}</div>
   <div class="tool-meta" id="sf-meta">${R.metaLine(ctx)}</div>
+  ${sponsored(ctx)}
   <p class="note" id="sf-note"${ctx.r.note ? "" : " hidden"}>${esc(ctx.r.note)}</p>
 </div>
 <ul class="trustbar" aria-label="Why you can trust these rankings">
   <li><strong>Independent.</strong> Run from Nairobi; no provider owns us.</li>
-  <li><strong>Updated every 30 minutes</strong> for the big providers, and checked by hand for the rest; each row shows when.</li>
+  <li><strong>Checked through the day.</strong> Big providers automatically, the rest by hand; every row shows when it was last checked.</li>
   <li><strong>Standard rates only.</strong> No paid placements; commissions never change the order.</li>
   <li><strong>Ratings shown</strong> from Trustpilot, so you see what customers say.</li>
 </ul>
 ${shareBar(ctx)}${after}
 </div></section>`;
+}
+
+function sponsored(ctx) {
+  const f = config.featured;
+  if (!f || !f.provider || !providers[f.provider] || DEMO) return "";
+  if (f.until && NOW > new Date(f.until).getTime()) return "";
+  if (Array.isArray(f.routes) && f.routes.length && !f.routes.includes(ctx.key)) return "";
+  if (!servesFrom(providers[f.provider], ctx.s.id)) return "";
+  const p = providers[f.provider];
+  return `<aside class="sponsored" aria-label="Sponsored"><span class="sp-tag">Sponsored</span><p><strong>${esc(p.name)}</strong>${f.text ? ": " + esc(f.text) : ""}</p><a class="go" href="${esc(ctx.hrefFor(p, ctx.key))}" target="_blank" rel="sponsored nofollow noopener">Go to ${esc(p.name)}</a><span class="sp-note">Paid placement, outside the ranking. <a href="${ctx.disclosureHref}">How we make money</a></span></aside>`;
 }
 
 function shareBar(ctx) {
@@ -319,12 +334,14 @@ function alerts() {
 function corridorGrid(prefix) {
   const col = (s) => {
     const amount = config.defaultAmounts[s.currency];
+    if (!corridors.receivers.some((r) => routeContext(s, r, prefix, amount).rows.some((x) => !x.stale)))
+      return `<div class="board-col board-empty"><h3>From ${esc(s.short)}</h3><p class="board-sub">Services here show prices only in their apps or branches. <a href="${link(prefix, GULF_GUIDE)}">See how to compare them</a> and what a fair deal looks like.</p></div>`;
     const rows = corridors.receivers.map((r) => {
       const c = routeContext(s, r, prefix, amount);
       const top = c.rows.find((x) => !x.stale), lead = R.leaders(c.rows);
       return `<li><a href="${link(prefix, corridorPath(s, r))}"><span class="b-country">${esc(r.name)}</span>${top
         ? `<span class="b-amt num">${R.moneyHtml(top.gets, r.currency)}</span><span class="b-prov">${lead.length > 1 ? `${lead.length}-way tie: ${esc(lead.map((x) => x.p.name).join(", "))}` : `with ${esc(top.p.name)}`}</span>`
-        : `<span class="b-amt b-wait">${c.anyQuotes ? "Being rechecked" : "Prices in apps only"}</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
+        : `<span class="b-amt b-wait">${c.anyQuotes ? "Being rechecked" : "Check in app"}</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
     }).join("");
     return `<div class="board-col"><h3>From ${esc(s.short)}</h3><p class="board-sub">Best result for <span class="num">${esc(R.money(amount, s.currency, 0))}</span></p><ul>${rows}</ul></div>`;
   };
@@ -396,7 +413,7 @@ const faqLd = (faqs) => ({ "@context": "https://schema.org", "@type": "FAQPage",
 
 // Practical tips per receiving country, plus general ones for every route.
 const TIPS = {
-  kenya: ["M-Pesa limits: KES 250,000 per transaction and KES 500,000 per day, with a wallet balance cap of KES 500,000. For more, send to a bank account or split it over several days.", "Enter the recipient's number in +254 format and check the registered name the provider shows before you confirm."],
+  kenya: ["M-Pesa limits (Safaricom, checked November 2026): KES 250,000 per transaction and KES 500,000 per day, with a wallet balance cap of KES 500,000. Transfers that arrive through M-Pesa Global have lower limits (KES 150,000 per transfer, KES 300,000 per day). For more, send to a bank account or split it over several days.", "Enter the recipient's number in +254 format and check the registered name the provider shows before you confirm."],
   nigeria: ["Most transfers go to a bank account: you need the 10-digit account number and the bank's name. The provider shows the account holder's name before you pay; check it matches.", "Wallets such as OPay and PalmPay have limits that depend on how fully the recipient's account is verified."],
   ghana: ["Mobile money wallets (MTN MoMo, Telecel Cash, AT Money) must be registered to the recipient; their verification level sets how much they can receive.", "Check the registered name the provider shows before you confirm."],
   uganda: ["MTN Mobile Money and Airtel Money wallets have daily and balance limits set by how fully the account is registered. For large amounts, send to a bank account.", "Enter the number in +256 format and check the registered name before you confirm."],
@@ -455,19 +472,19 @@ function histChart(ctx) {
 <text x="${W - Rr}" y="${T + 2}" class="lbl" text-anchor="end">${R.rateStr(hi)}</text><text x="${W - Rr}" y="${H - B - 4}" class="lbl" text-anchor="end">${R.rateStr(lo)}</text>
 </svg>`;
   };
-  return `<figure class="hchart">${draw(960, 210, "hc-wide")}${draw(380, 200, "hc-narrow")}
+  return `<figure class="hchart">${draw(960, 210, "hc-wide")}${draw(380, 200, "hc-narrow").replace('role="img"', 'aria-hidden="true"')}
 <figcaption><span class="key mid">Mid-market rate</span><span class="key best">Best rate a service gave, for ${esc(plain(R.money(ctx.amount, ctx.s.currency, 0)))}</span>${pts.length < 7 ? `<span class="key-note">History began ${fmtD(pts[0].d)}; one point is added after each daily check.</span>` : ""}</figcaption></figure>`;
 }
 
 // Rate alert sign-up for one route.
-function alertForm(ctx) {
+function alertForm(ctx, prefix = "../../", follow = false) {
   const top = ctx.rows.find((x) => !x.stale);
   const target = top ? Math.ceil((top.gets * 1.01) / (top.gets >= 1000 ? 100 : 1)) * (top.gets >= 1000 ? 100 : 1) : "";
-  return `<form class="alert-form" id="sf-alert-route" data-route="${ctx.key}" novalidate>
+  return `<form class="alert-form" id="sf-alert-route" data-route="${ctx.key}"${follow ? ' data-follow="1"' : ""} novalidate>
 <div class="af-row"><label>When <span class="af-cur">${ctx.s.currency}</span> <input name="amount" type="number" min="1" step="any" inputmode="decimal" value="${ctx.amount}" required aria-label="Amount you send"></label>
 <label>delivers at least <span class="af-cur">${ctx.r.currency}</span> <input name="target" type="number" min="1" step="any" inputmode="decimal" value="${target}" required aria-label="Amount you want them to receive"></label></div>
 <div class="af-row"><label class="af-email">email me at <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label><button type="submit" class="btn">Set alert</button></div>
-<p class="note">We check once after each daily rate check and email you once when the best service reaches your target. One email to confirm, an unsubscribe link in every email, and nothing else. <a href="../../privacy/">Privacy</a></p>
+<p class="note">We check once after each daily rate check and email you once when the best service reaches your target. One email to confirm, an unsubscribe link in every email, and nothing else. <a href="${link(prefix, "privacy/")}">Privacy</a></p>
 <p class="af-msg" id="sf-alert-msg" role="status"></p></form>`;
 }
 
@@ -538,8 +555,10 @@ write("index.html", page({
   body: tool({
     ctx: homeCtx,
     heading: "Send more home.",
-    sub: `Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup. ${homeProof}`
+    sub: `See what actually lands on M-Pesa, MTN MoMo, a bank account or at cash pickup, after the fee and the exchange-rate markup. ${homeProof}`
   }) + corridorGrid("") + `
+<section class="block home-alert" id="alert"><div class="wrap"><div class="section-head"><h2>Get told when your rate is good</h2><p class="lede">Pick your route in the tool above, set the amount you want to arrive, and we email you once when a service delivers it.${config.whatsappChannelUrl ? ` Or <a href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">follow today's best rates on WhatsApp</a>.` : ""}</p></div>
+${alertForm(homeCtx, "", true)}</div></section>
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
 <ol class="steps">
@@ -555,7 +574,8 @@ write("index.html", page({
 <ul class="route-links">${vsPairs().map(([a, b]) => `<li><a href="${link("", vsPath(a, b))}">${esc(a.name)} vs ${esc(b.name)}</a></li>`).join("")}</ul>
 <div class="section-head" style="margin-top:32px"><h2>Exchange rates today</h2></div>
 <ul class="route-links">${ratePairs.map(({ s, r }) => `<li><a href="${link("", ratePath(s, r))}">${s.currency} to ${r.currency}</a></li>`).join("")}</ul>
-</div></section>` + alerts()
+</div></section>
+` + alerts()
 }));
 urls.push("");
 
@@ -916,7 +936,7 @@ ${crumbNav(prefix, trail)}
 <thead><tr><th scope="col">Service</th><th scope="col">Kind</th>${gulfSenders.map((x) => `<th scope="col">${esc(x.label)}</th>`).join("")}</tr></thead>
 <tbody>${Object.keys(METHOD).flatMap((t) => gulfProv.filter((p) => (p.type || "app") === t)).map((p) => `<tr><th scope="row">${esc(p.name)}</th><td>${esc(METHOD[p.type || "app"].name)}</td>${gulfSenders.map((x) => `<td>${(p.sendsFrom || []).includes(x.id) ? "✓" : ""}</td>`).join("")}</tr>`).join("")}</tbody>
 </table></div>
-<p class="note">From each service's published list of sending countries. Not every service pays out in every African country; route pages show only the ones we found when checking. Know a service we should add? Email <span class="email">${esc(config.contactEmail)}</span>.</p>
+<p class="note">From each service's published list of sending countries. Not every service pays out in every African country; route pages show only the ones we found when checking. Know a service we should add? Email <a class="email" href="mailto:${esc(config.contactEmail)}">${esc(config.contactEmail)}</a>.</p>
 <h2 id="tips">Good to know</h2>
 <ul class="tips">${[...TIPS_FROM.gulf, "If your salary is paid onto a wage card or wallet, check whether it can send abroad directly. It saves withdrawing cash and paying again at the counter.", "Exchange houses set daily limits per person. For a large amount, an app or bank transfer to a bank account is usually simpler."].map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
 <h2 id="faq">Questions</h2>
@@ -956,17 +976,17 @@ const trust = {
 <h2>Who's behind SendFair</h2>
 <p>SendFair was founded by ${esc(config.founderName || "")} to make the true cost of sending money home easy to compare. ${esc(config.businessName || "")} runs the site, checks the rates and handles corrections.</p>
 <h2>How the numbers are made</h2>
-<p>Quotes for the big providers are updated automatically every 30 minutes from Wise's comparison data; the rest are read by hand from each provider's own calculator or app, for a typical amount on each route. Every quote is saved with the time it was checked. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
+<p>Quotes for the big providers come automatically from Wise's comparison data, which we fetch every 30 minutes; the rest are read by hand from each provider's own calculator or app, for a typical amount on each route. Every quote is saved with the time it was checked. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
 <h2>Editorial independence</h2>
 <p>Services are ranked only by how much your family receives. Some providers pay us a referral commission, but no provider can pay to appear, to rank higher or to have a quote removed, and services that pay us nothing are listed on the same terms. See <a href="${link("../", "disclosure/")}">how we make money</a>.</p>
 <h2>Corrections</h2>
 <p>If a figure here doesn't match what a provider shows you, tell us with the route, the amount and a screenshot if you can. We recheck it and fix the page, usually the same day.</p>
-<h2>Contact</h2><p>Corrections, partnership enquiries and provider updates: <span class="email">${esc(config.contactEmail)}</span></p>`],
+<h2>Contact</h2><p>Corrections, partnership enquiries and provider updates: <a class="email" href="mailto:${esc(config.contactEmail)}">${esc(config.contactEmail)}</a></p>`],
   "methodology/": ["How we rank", "How SendFair collects rates and ranks money transfer services.", `
 <h1>How we rank</h1>
 <h2>What we collect</h2>
 <ul><li>The exchange rate each provider quotes on each route, and the amount we checked it for.</li><li>The transfer fee: a fixed amount, a percentage, or both.</li><li>The ways the money can be received (mobile money, bank, cash pickup). Where a provider's rate differs by payout method, we record each one separately.</li><li>The typical delivery time and when we checked.</li></ul>
-<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are updated automatically every 30 minutes from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. Those rows are marked "(auto)". Other services, including Taptap Send, Sendwave and Gulf exchange houses, are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data. Automatic rates far from the mid-market rate are held back as likely errors.</p>
+<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees come automatically from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. We fetch it every 30 minutes, but each provider's price is only as recent as Wise's last collection for it, which can be several hours old; the time on each row is that collection time. Those rows are marked "(auto)". Other services, including Taptap Send, Sendwave and Gulf exchange houses, are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data. Automatic rates far from the mid-market rate are held back as likely errors.</p>
 <h2>How the amount received is calculated</h2>
 <p>You enter the total you plan to pay. We take off the provider's fee and convert the rest at the provider's rate. Where the fee is a percentage, it is worked out on the amount sent.</p>
 <p>Total cost is the gap between that and converting your full amount at the mid-market rate with no fee.</p>
@@ -983,7 +1003,14 @@ const trust = {
 <h1>How we make money</h1>
 <p>SendFair is free to use. We earn money in two ways:</p>
 <ul><li><strong>Referral commissions.</strong> Some "Go to" buttons are affiliate links. If you open an account and make your first transfer, the provider may pay us a fee. You pay the same either way.</li>${config.adsenseClient ? `<li><strong>Advertising.</strong> Some pages show ads served by Google. Ads are labelled as ads, are never placed inside the ranking, and advertisers cannot choose or influence where a service ranks.</li>` : `<li><strong>Advertising.</strong> We don't show ads at the moment. If we ever do, they will be labelled, kept out of the ranking, and this page will say so.</li>`}</ul>
-<p>Neither affects the ranking. Results are sorted only by how much your recipient receives. Providers that pay us nothing appear and rank on the same terms.</p>`],
+<p>Neither affects the ranking. Results are sorted only by how much your recipient receives. Providers that pay us nothing appear and rank on the same terms.</p>
+<h2>Who pays us</h2>
+${(() => { const paid = Object.values(providers).filter((p) => p.affiliateUrl); return paid.length
+  ? `<p>These services have a referral agreement with us, so their "Go to" buttons are affiliate links: ${esc(joinList(paid.map((p) => p.name)))}. Every other service is linked to its own website and pays us nothing.</p>`
+  : `<p>At the moment none of our "Go to" buttons carries a referral link: each one goes straight to the provider's own website. When a referral agreement starts, the service is named here the same day.</p>`; })()}
+${config.featured && config.featured.provider && providers[config.featured.provider] ? `<h2>Sponsored placement</h2><p>${esc(providers[config.featured.provider].name)} pays for a box marked "Sponsored" on some pages. It sits outside the ranking and does not change any position.</p>` : ""}
+<h2>How we check the prices are the same</h2>
+<p>We read each quote from the provider's public calculator or app, the same screen any customer sees, and never from a special partner rate. If you ever see a different price after clicking through from SendFair, tell us at <a href="mailto:${esc(config.contactEmail)}">${esc(config.contactEmail)}</a> and we will look into it.</p>`],
   "privacy/": ["Privacy policy", "How SendFair handles your data.", `
 <h1>Privacy policy</h1>
 <p>Last updated ${today}.</p>
@@ -992,7 +1019,7 @@ const trust = {
 <h2>Your rights</h2>
 <p>If you are in the UK or Europe, data protection law gives you the right to ask what we hold about you, to have it corrected or deleted, and to object to its use. You can also complain to your data protection authority (the ICO in the UK). In practice we hold very little: usually only your email address, if you signed up for alerts.</p>
 <h2>Links to providers</h2><p>When you follow a link to a transfer service, that service's own privacy policy applies.</p>
-<h2>Contact</h2><p>For any privacy request: <span class="email">${esc(config.contactEmail)}</span></p>`],
+<h2>Contact</h2><p>For any privacy request: <a class="email" href="mailto:${esc(config.contactEmail)}">${esc(config.contactEmail)}</a></p>`],
   "terms/": ["Terms of use", "Terms for using SendFair.", `
 <h1>Terms of use</h1>
 <p>Last updated ${today}.</p>

@@ -81,6 +81,14 @@ How the site treats age: older than 36 hours shows "Not rechecked today", ranks 
 ### Affiliate links
 When a program approves you, open `data/providers.json` on GitHub (pencil icon), paste the link into that provider's `affiliateUrl`, commit. If the network supports a tracking or sub-ID parameter, put `{route}` there (for example `...&subid={route}`) and each route's earnings show separately in the network's reports.
 
+### New-customer offers
+Add `"welcomeOffer": "…"` to a provider in `data/providers.json` (for example a promo code you got from its affiliate program). It shows in that provider's Details panel, clearly marked, and never changes the ranking.
+
+### Sponsored box
+To sell one labelled slot, fill in `config.json` → `featured`: `provider` (an id from providers.json), a short `text`, optional `routes` (e.g. `["uk-nigeria"]`) and an `until` date. It appears under the ranking marked "Sponsored", outside the order, and the How we make money page names the sponsor automatically. Empty `provider` switches it off.
+
+The How we make money page also lists every provider that has an `affiliateUrl`, so keep that field accurate.
+
 ### Google AdSense (UK visitors need a consent message)
 1. Apply at adsense.google.com after 20–30 days live with traffic.
 2. **Before turning ads on:** in AdSense open **Privacy & messaging** and publish the **European regulations** consent message. Google requires a certified consent message for visitors in the UK and Europe; its own one is free.
