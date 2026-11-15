@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-11-15T00:03:43.187Z",
+ "updatedAt": "2026-11-15T00:43:33Z",
  "coverage": {
   "us-nigeria": [
    "wise",
@@ -8400,6 +8400,65 @@
   ],
   "us-senegal": [
    {
+    "provider": "ria",
+    "variant": "Mobile wallet, bank account funding",
+    "rate": 588.43,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Minutes to 5 business days",
+    "note": "Standard rate/fee shown struck-through beside first-transfer promo 601.0069 (code HELLORIA). Other standard options at $300: bank deposit 580.262 + $0.00; cash pickup 580.262 + $0.00. Ria Wallet also offered",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:28:34Z"
+   },
+   {
+    "provider": "xoom",
+    "variant": "Bank account",
+    "rate": 562.2064,
+    "feeFixed": 4.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "cash"
+    ],
+    "speed": "Cash pickup typically in minutes",
+    "note": "300 USD -> 168,662 XOF. Fee sheet listed only Cash Pickup: bank account 4.99, debit card 6.49 (PYUSD 0); page also advertises mobile wallets but no wallet fee shown.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:29:30Z"
+   },
+   {
+    "provider": "sendwave",
+    "variant": "Debit card",
+    "rate": 577.24,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "300 USD -> 173,175 XOF to Wave or Orange Money. Standard fee 0.99 USD (shown struck-through; intro offer 0.00). Intro rate shown equals standard rate 577.24.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:38:03Z"
+   },
+   {
+    "provider": "lemfi",
+    "variant": "",
+    "rate": 596,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In seconds",
+    "note": "Rate and fee read from LemFi's public calculator at USD 300 with the optional LemFi Cash bonus (+XOF 2,980 / $5) switched off; not labelled as a first-transfer rate. Fee row shows 0.00 (displayed with a £ symbol). Shown rate is slightly above the ~594 reference mid-market. Page titled 'mobile money transfers'.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:31:00Z"
+   },
+   {
     "provider": "remitly",
     "rate": 587.11,
     "feeFixed": 0,
@@ -8516,6 +8575,66 @@
   ],
   "us-ivorycoast": [
    {
+    "provider": "ria",
+    "variant": "Mobile wallet, bank account funding",
+    "rate": 582.22,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Minutes to 5 business days",
+    "note": "Standard rate/fee shown struck-through beside first-transfer promo 598.6361. Other standard options at $300: bank deposit 578.78 + $1.00 fee; cash pickup 577.891 + $4.00 fee",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:30:01Z"
+   },
+   {
+    "provider": "xoom",
+    "variant": "Bank account",
+    "rate": 566.0012,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "cash"
+    ],
+    "speed": "Cash pickup typically in minutes",
+    "note": "300 USD -> 169,800 XOF, labelled Best Xoom Rate (best-rate receiving option, not a first-transfer promo). Fees: mobile wallet bank 0 / debit 0.99; cash pickup bank 4.99 / debit 6.49.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:30:26Z"
+   },
+   {
+    "provider": "sendwave",
+    "variant": "Debit card",
+    "rate": 572.59,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "300 USD -> 171,780 XOF to Orange or Wave. Standard fee 0.99 USD (shown struck-through; intro offer 0.00). Intro rate shown equals standard rate.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:38:30Z"
+   },
+   {
+    "provider": "lemfi",
+    "variant": "",
+    "rate": 596,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank"
+    ],
+    "speed": "In seconds",
+    "note": "Rate and fee read from LemFi's public calculator at USD 300 with the optional LemFi Cash bonus (+XOF 2,980 / $5) switched off; not labelled as a first-transfer rate. Fee row shows 0.00 (displayed with a £ symbol). Shown rate is slightly above the ~594 reference mid-market. Page titled 'mobile money and banks'.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:33:00Z"
+   },
+   {
     "provider": "remitly",
     "rate": 579.3,
     "feeFixed": 0,
@@ -8601,6 +8720,65 @@
    }
   ],
   "us-mali": [
+   {
+    "provider": "ria",
+    "variant": "Mobile wallet, bank account funding",
+    "rate": 584.114,
+    "feeFixed": 5.0,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Minutes to 5 business days",
+    "note": "Standard rate/fee shown struck-through beside first-transfer promo 598.6361 (HELLORIA). Other standard options at $300: bank deposit 578.78 + $5.00; cash pickup 577.891 + $5.00",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:32:44Z"
+   },
+   {
+    "provider": "xoom",
+    "variant": "Bank account",
+    "rate": 566.0012,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "cash"
+    ],
+    "speed": "",
+    "note": "300 USD -> 169,800 XOF, labelled Best Xoom Rate (best-rate receiving option, not a promo). Fees: mobile wallet bank/debit 0; cash pickup bank 4.99 / debit 6.49.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:30:56Z"
+   },
+   {
+    "provider": "sendwave",
+    "variant": "Debit card",
+    "rate": 572.59,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "300 USD -> 171,780 XOF to mobile money. Fee 0.00 USD shown with no struck-through standard fee. Intro rate shown equals standard rate.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:38:52Z"
+   },
+   {
+    "provider": "lemfi",
+    "variant": "",
+    "rate": 596,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "In seconds",
+    "note": "Rate and fee read from LemFi public calculator at USD 300 with the optional LemFi Cash bonus (+XOF 2,980 / $5) excluded; not labelled as a first-transfer rate. Fee row shows 0.00 (with a £ symbol). Rate slightly above the ~594 reference mid-market. Payout methods for Mali not stated on the public page.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:34:00Z"
+   },
    {
     "provider": "remitly",
     "rate": 562.85,
@@ -8688,6 +8866,82 @@
   ],
   "us-cameroon": [
    {
+    "provider": "ria",
+    "variant": "Mobile wallet, bank account funding",
+    "rate": 584.411,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Minutes to 5 business days",
+    "note": "Standard rate/fee shown struck-through beside first-transfer promo 590.0845 (HELLORIA). Other standard options at $300: bank deposit 574.356 + $0.00; cash pickup 584.411 + $3.00",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:35:00Z"
+   },
+   {
+    "provider": "moneygram",
+    "variant": "Default online quote (non-credit-card funding; payout method not selectable on public calculator)",
+    "rate": 587.8,
+    "feeFixed": 2.99,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "Standard fee USD 2.99 shown struck-through beside USD 0 first-transfer fee; rate 587.80 labelled Great rates, every time and unchanged at USD 2000 (fee 3.99 there), so not a promo rate. Calculator says fees vary by payment and receive method",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:41:31Z"
+   },
+   {
+    "provider": "xoom",
+    "variant": "Bank account",
+    "rate": 567.0,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "cash"
+    ],
+    "speed": "",
+    "note": "300 USD -> 170,100 XAF, labelled Best Xoom Rate (best-rate receiving option, not a promo). Fees: mobile wallet bank 0 / debit 0.99; cash pickup bank 4.99 / debit 6.49.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:31:24Z"
+   },
+   {
+    "provider": "sendwave",
+    "variant": "Debit card",
+    "rate": 582.89,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "300 USD -> 174,870 XAF to Orange or MTN. Standard fee 0.99 USD (shown struck-through; intro offer 0.00). Intro rate shown equals standard rate.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:39:13Z"
+   },
+   {
+    "provider": "lemfi",
+    "variant": "",
+    "rate": 583,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank"
+    ],
+    "speed": "In seconds",
+    "note": "Rate and fee read from LemFi public calculator (USD 300 entered) excluding the optional LemFi Cash bonus (+XAF 2,915 / $5); not labelled as first-transfer. Fee row shows 0.00 (with a £ symbol). Page titled mobile money and banks.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:36:00Z"
+   },
+   {
     "provider": "remitly",
     "rate": 582.17,
     "feeFixed": 0,
@@ -8759,6 +9013,37 @@
    }
   ],
   "us-drc": [
+   {
+    "provider": "ria",
+    "variant": "Mobile wallet, bank account funding, USD payout",
+    "rate": 1.0,
+    "feeFixed": 3.0,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Minutes to 5 business days",
+    "note": "Payout in USD (1 USD = 1.000000 USD); destination picker lists Congo - Kinshasa only once, no CDF option seen. Standard fee shown struck-through beside $0 first-transfer fee. Other options at $300: bank deposit $4.00; cash pickup $5.00",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:36:46Z"
+   },
+   {
+    "provider": "xoom",
+    "variant": "Bank account",
+    "rate": 1.0,
+    "feeFixed": 4.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Paid out in USD (1 USD = 1.0000 USD); no CDF option on calculator. Fees at 300 USD: mobile wallet 4.99 (bank/debit); cash pickup bank 9.99 / debit 16.00.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:33:43Z"
+   },
    {
     "provider": "remitly",
     "rate": 1,
@@ -8847,6 +9132,68 @@
   ],
   "uk-cameroon": [
    {
+    "provider": "ria",
+    "variant": "Mobile wallet, debit card funding",
+    "rate": 776.2,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Seconds to 5 days",
+    "note": "Mobile wallet showed no promo rate (standard 776.20); standard fee GBP 0.99 shown struck-through beside first-transfer GBP 0. Only debit/credit card funding offered. Other standard options at GBP 200: bank deposit 773.85 + GBP 8.00; cash pickup 773.85 + GBP 3.90",
+    "refAmount": 200,
+    "checkedAt": "2026-11-15T00:38:22Z"
+   },
+   {
+    "provider": "moneygram",
+    "variant": "Default online quote (payout/funding not selectable on public calculator)",
+    "rate": 769.28,
+    "feeFixed": 4.99,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "Standard fee GBP 4.99 shown struck-through beside GBP 0 first-transfer fee. 769.28 confirmed standard: at GBP 1500 page shows it struck-through beside a first-transfer special rate 777.13",
+    "refAmount": 200,
+    "checkedAt": "2026-11-15T00:42:34Z"
+   },
+   {
+    "provider": "xoom",
+    "variant": "Bank account",
+    "rate": 754.424,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "cash"
+    ],
+    "speed": "",
+    "note": "200 GBP -> 150,885 XAF, labelled Best Xoom Rate. Fees: mobile wallet 0.99 (any funding); cash pickup 2.99 GBP.",
+    "refAmount": 200,
+    "checkedAt": "2026-11-15T00:33:14Z"
+   },
+   {
+    "provider": "lemfi",
+    "variant": "",
+    "rate": 772,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank"
+    ],
+    "speed": "In seconds",
+    "note": "Read from LemFi UK public calculator at GBP 200, excluding the optional LemFi Cash bonus (+XAF 3,860 / £5); not labelled as first-transfer. Transfer fee shown £0.00. Page titled mobile money and banks.",
+    "refAmount": 200,
+    "checkedAt": "2026-11-15T00:39:00Z"
+   },
+   {
     "provider": "remitly",
     "rate": 763.54,
     "feeFixed": 0,
@@ -8931,6 +9278,68 @@
    }
   ],
   "canada-cameroon": [
+   {
+    "provider": "ria",
+    "variant": "Mobile wallet, debit card funding",
+    "rate": 408.03,
+    "feeFixed": 1.9,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Seconds to 5 days",
+    "note": "Standard rate/fee shown struck-through beside first-transfer promo 410.1981 (HELLORIA). Only debit/credit card funding offered (credit card bank-deposit fee CAD 13.00). Other debit-card options at CAD 300: bank deposit 401.99 + CAD 3.00; cash pickup 407.92 + CAD 2.90",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:39:51Z"
+   },
+   {
+    "provider": "moneygram",
+    "variant": "Default online quote (payout/funding not selectable on public calculator)",
+    "rate": 407.78,
+    "feeFixed": 3.89,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "Minutes",
+    "note": "Standard fee CAD 3.89 shown struck-through beside CAD 0 first-transfer fee; rate labelled Great rates, every time (no promo rate shown at CAD 300). Page lists Debit/Credit and cash-at-location funding",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:43:07Z"
+   },
+   {
+    "provider": "xoom",
+    "variant": "Bank account",
+    "rate": 396.8419,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "cash"
+    ],
+    "speed": "",
+    "note": "300 CAD -> 119,053 XAF, labelled Best Xoom Rate. Fees: mobile wallet bank 1.99 / debit 3.99; cash pickup bank 4.99 / debit 6.99 CAD.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:32:00Z"
+   },
+   {
+    "provider": "lemfi",
+    "variant": "",
+    "rate": 413,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank"
+    ],
+    "speed": "In seconds",
+    "note": "Read from LemFi Canada public calculator at CAD 300, excluding the optional LemFi Cash bonus (+XAF 2,065 / $5); not labelled as first-transfer. Fee row shows 0.00 (with a £ symbol). Page titled mobile money and banks.",
+    "refAmount": 300,
+    "checkedAt": "2026-11-15T00:41:00Z"
+   },
    {
     "provider": "remitly",
     "rate": 410.57,
