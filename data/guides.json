@@ -1,0 +1,615 @@
+{
+  "updated": "2026-11-15",
+  "pillars": [
+    {
+      "slug": "send-money",
+      "title": "Sending money to Africa",
+      "description": "How to compare a transfer by the amount that arrives, not by a zero-fee headline.",
+      "updated": "2026-11-15",
+      "lede": "The useful comparison is the amount your family receives, after the fee and the exchange-rate markup. A service that advertises no fee can still deliver less than one that shows a fee.",
+      "sections": [
+        {
+          "id": "start",
+          "h": "Start from a route, not a brand",
+          "paragraphs": [
+            "Pick the country you send from and the country that receives the money, then enter the amount you will pay. [Open the comparison](/) and read the rows by what arrives.",
+            "Each row names the service, the fee, the rate and when it was checked. The first row is the one that delivers the most on that check. A commission never moves a row up."
+          ]
+        },
+        {
+          "id": "guides",
+          "h": "The questions these guides answer",
+          "paragraphs": [
+            "The articles under this guide cover the mid-market rate, payout methods, sending from the UK, the US and the Gulf, delivery time, first-transfer offers, and what to do when a number looks wrong.",
+            "They sit next to the live routes. A guide explains the method. The route page is the current check."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "build-a-house",
+      "title": "Cost to build a house back home",
+      "description": "How to read the house calculator, check a contractor quote, and see what is included.",
+      "updated": "2026-11-15",
+      "lede": "The house calculator is a receipt check: quantities of materials, trade days, a finish, plot works and the published permit fee. It is not a contractor's quote and it does not include the land.",
+      "sections": [
+        {
+          "id": "start",
+          "h": "Use the calculator, then read the lines",
+          "paragraphs": [
+            "Choose the country and the size on the [house calculator](/cost-to-build/). The total follows the types you pick for the roof, windows, doors, tiles and the other menus.",
+            "Every line shows a quantity. That is what you match to a yard receipt or a contractor's bill. A round sum with no bags, blocks or days is the usual way a quote gets inflated."
+          ]
+        },
+        {
+          "id": "guides",
+          "h": "What the house guides cover",
+          "paragraphs": [
+            "The articles explain what is in the total, why two floors of the same floor area are not double, how permits differ by country, and how a published whole-build band differs from this receipt.",
+            "Prices are refreshed monthly. The date is on the calculator."
+          ]
+        }
+      ]
+    }
+  ],
+  "articles": [
+    {
+      "pillar": "send-money",
+      "slug": "how-to-compare-a-transfer",
+      "title": "How to compare a money transfer",
+      "description": "Compare transfers to Africa by the amount that arrives, for your amount and your payout method.",
+      "updated": "2026-11-15",
+      "lede": "Compare the amount that arrives, for the sum you will actually send and the way your family will receive it. Ignore a league table that uses a different amount or a different payout.",
+      "steps": [
+        { "name": "Choose the route", "text": "Select the country you send from and the country that receives the money." },
+        { "name": "Enter your amount", "text": "Use the amount you will pay, not a round example that is far from it. Fees and rates can change with the amount." },
+        { "name": "Choose the payout", "text": "Bank, mobile money and cash pickup can carry different rates. Pick the one your family will use." },
+        { "name": "Read what arrives", "text": "The top row delivers the most on this check. Open that provider and confirm the final figure on their own screen before you pay." }
+      ],
+      "sections": [
+        {
+          "id": "amount",
+          "h": "Use your amount",
+          "paragraphs": [
+            "SendFair records a rate and a fee for a typical amount on each route. If you enter a sum much larger or smaller, the page says so, because some providers change the rate.",
+            "The maths takes the fee off what you pay and converts the rest at the provider's rate. [How we rank](/methodology/) sets that out."
+          ]
+        },
+        {
+          "id": "confirm",
+          "h": "Confirm before you pay",
+          "paragraphs": [
+            "Rates move during the day. The page shows when each quote was checked. A quote that is too old is marked or dropped.",
+            "The Go button leaves SendFair. The provider's screen is the one that takes your money."
+          ]
+        }
+      ],
+      "faq": [
+        ["Does SendFair send the money?", "No. SendFair compares services. You complete the transfer on the provider's own site or app."]
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "zero-fee-is-not-free",
+      "title": "Why a zero fee can still cost more",
+      "description": "A transfer with no fee can lose more in the exchange rate than one that shows a fee.",
+      "updated": "2026-11-15",
+      "lede": "A zero fee is not a free transfer. The provider can take its margin in the exchange rate, and that gap is invisible if you only look at the fee line.",
+      "sections": [
+        {
+          "id": "margin",
+          "h": "The rate is part of the price",
+          "paragraphs": [
+            "Two services can charge no fee and still deliver different amounts. The one with the weaker rate delivers less.",
+            "SendFair shows the amount that arrives, so the fee and the rate are already combined. You do not have to add them up yourself."
+          ]
+        },
+        {
+          "id": "check",
+          "h": "What to look at",
+          "paragraphs": [
+            "Look at the received amount for your payout method. Then look at when the quote was checked.",
+            "A promotion that applies only to a first transfer is not treated as the everyday price unless the page says so."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "mid-market-rate",
+      "title": "What the mid-market rate means",
+      "description": "The mid-market rate is the reference SendFair uses to show the hidden margin in a transfer.",
+      "updated": "2026-11-15",
+      "lede": "The mid-market rate is the midpoint between buy and sell prices on the currency market. Providers sell you a worse rate. The gap is a cost, even when the fee says zero.",
+      "sections": [
+        {
+          "id": "reference",
+          "h": "It is a reference, not a rate you can buy",
+          "paragraphs": [
+            "You cannot usually send money at the mid-market rate. It is the yardstick. The total cost of a transfer is how far the amount you receive sits below a no-fee conversion at that rate.",
+            "SendFair refreshes the reference from ExchangeRate-API. The route page names the figure it used."
+          ]
+        },
+        {
+          "id": "gulf",
+          "h": "Fees in the Gulf include VAT",
+          "paragraphs": [
+            "In the UAE, Oman, Bahrain and Saudi Arabia the recorded fee includes VAT, because that is what you pay. The [Gulf guide](/send-money-from-the-gulf/) explains exchange houses, apps, banks and wallets."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "bank-mobile-money-or-cash",
+      "title": "Bank, mobile money or cash pickup",
+      "description": "The same provider can quote a different rate for a bank account, a mobile wallet and cash pickup.",
+      "updated": "2026-11-15",
+      "lede": "Choose the payout your family will actually use before you compare. A bank rate, a mobile-money rate and a cash-pickup rate from the same company are often three different prices.",
+      "sections": [
+        {
+          "id": "why",
+          "h": "Why the payout changes the price",
+          "paragraphs": [
+            "The provider pays a different partner to finish the transfer. An account credit, a wallet and a cash desk do not cost the provider the same.",
+            "On SendFair, where a provider publishes more than one payout, each one is its own row."
+          ]
+        },
+        {
+          "id": "pick",
+          "h": "Match the row to the person receiving",
+          "paragraphs": [
+            "If your family will collect cash, ignore the bank row even if the bank row looks cheaper. They cannot use it.",
+            "The route page lists the payout methods that country supports."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "sending-from-the-uk",
+      "title": "Sending money from the UK",
+      "description": "How a pound transfer to Africa is compared, and what to confirm before you pay.",
+      "updated": "2026-11-15",
+      "lede": "A UK transfer is compared in pounds: the fee comes off the amount you pay, and the rest converts at the provider's rate into the currency your family receives.",
+      "sections": [
+        {
+          "id": "routes",
+          "h": "Open the route you use",
+          "paragraphs": [
+            "Busy UK routes include [UK to Nigeria](/send-money/uk-to-nigeria/), [UK to Kenya](/send-money/uk-to-kenya/) and [UK to Ghana](/send-money/uk-to-ghana/). The same comparison exists for the other countries on the homepage.",
+            "Enter your own amount. A quote checked at £250 can differ from one at £1,000."
+          ]
+        },
+        {
+          "id": "confirm",
+          "h": "What the provider will still ask",
+          "paragraphs": [
+            "The provider will ask how you pay them, by bank transfer or by card. A card payment can carry a different fee from the one on an open-banking transfer.",
+            "Confirm the received amount, the fee and the delivery time on their screen. SendFair does not move the money."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "sending-from-the-us",
+      "title": "Sending money from the United States",
+      "description": "How a dollar transfer to Africa is compared on SendFair.",
+      "updated": "2026-11-15",
+      "lede": "A US transfer is compared in dollars, by the amount that arrives after the fee and the rate. The cheapest headline is not always the most money home.",
+      "sections": [
+        {
+          "id": "routes",
+          "h": "Start with the corridor",
+          "paragraphs": [
+            "Common checks are [US to Nigeria](/send-money/us-to-nigeria/), [US to Kenya](/send-money/us-to-kenya/) and [US to Ghana](/send-money/us-to-ghana/).",
+            "Pick bank, mobile money or cash to match how the money will be received."
+          ]
+        },
+        {
+          "id": "fresh",
+          "h": "Use a fresh quote",
+          "paragraphs": [
+            "Dollar rates move through the day. The row shows the check time. An old quote is marked and ranks below a fresh one.",
+            "If the figure on the provider's app disagrees, send the route, the amount and a screenshot to the [contact page](/contact/). The quote is rechecked."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "sending-from-the-gulf",
+      "title": "Sending money from the Gulf",
+      "description": "Exchange houses, apps, banks and wallets from the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman.",
+      "updated": "2026-11-15",
+      "lede": "From the Gulf, the same comparison applies: what arrives, after a fee that already includes VAT in the UAE, Oman, Bahrain and Saudi Arabia.",
+      "sections": [
+        {
+          "id": "where",
+          "h": "Where the rates come from",
+          "paragraphs": [
+            "Some Gulf services publish an online calculator. Others are exchange houses whose rate is on the board or in an app. The [Gulf guide](/send-money-from-the-gulf/) separates those ways of sending.",
+            "A route with no checked online quote stays on the site and is kept out of the search listing until a quote is in."
+          ]
+        },
+        {
+          "id": "vat",
+          "h": "VAT sits inside the fee",
+          "paragraphs": [
+            "The recorded fee is what you pay, tax included, in the countries that charge VAT on the transfer fee. You do not add VAT again.",
+            "The amount that arrives is still the number to compare."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "how-long-a-transfer-takes",
+      "title": "How long a transfer takes",
+      "description": "What SendFair shows about delivery time, and what it does not promise.",
+      "updated": "2026-11-15",
+      "lede": "Delivery time on a route is the provider's stated time, plus a sender report when at least three people have reported that route in the last two months. It is not a guarantee.",
+      "sections": [
+        {
+          "id": "stated",
+          "h": "The provider's stated time",
+          "paragraphs": [
+            "Each quote can carry the delivery time the provider publishes, such as minutes or one to two days. That is their claim, checked when the quote was read.",
+            "A bank payout on a weekend can take longer than the same payout on a weekday. The provider's screen is the place to see the current estimate."
+          ]
+        },
+        {
+          "id": "reports",
+          "h": "Reports from senders",
+          "paragraphs": [
+            "Where enough senders have reported a time on that route, the page shows the most common answer. Fewer than three reports and the line is left off.",
+            "A report is not a complaint form. Corrections to a rate go through the [contact page](/contact/)."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "first-transfer-promotions",
+      "title": "First-transfer promotions",
+      "description": "Why a new-customer rate is not used as the everyday comparison.",
+      "updated": "2026-11-15",
+      "lede": "A first-transfer promotion applies once. SendFair leaves it out of the everyday ranking unless the page says the quote is a promotion.",
+      "sections": [
+        {
+          "id": "once",
+          "h": "Once is not the rate you will keep",
+          "paragraphs": [
+            "Comparing a new-customer bonus with another company's standard rate makes the bonus look like the normal price. The next transfer will not get it.",
+            "If you are sending for the first time and the provider shows a bonus, read their terms. The ranking itself stays on the repeatable price."
+          ]
+        },
+        {
+          "id": "page",
+          "h": "Where a promotion is mentioned",
+          "paragraphs": [
+            "If a note on the row says the figure is promotional, treat it as one send. The [method](/methodology/) says first-transfer promotions are excluded unless noted."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "when-a-quote-looks-wrong",
+      "title": "When a quote looks wrong",
+      "description": "What to send if a rate on SendFair does not match the provider's screen.",
+      "updated": "2026-11-15",
+      "lede": "If the provider's screen shows a different amount, the quote needs a recheck. Send the route, the amount, the payout and a screenshot.",
+      "steps": [
+        { "name": "Note the route and the amount", "text": "Write the countries and the amount you entered, including the payout method." },
+        { "name": "Capture the provider's screen", "text": "A screenshot of their calculator, with the rate and the fee visible, is enough." },
+        { "name": "Send it", "text": "Email the contact address on the contact page. The quote is rechecked, usually the same day." }
+      ],
+      "sections": [
+        {
+          "id": "why",
+          "h": "Why the two screens can differ",
+          "paragraphs": [
+            "Rates move. A check from this morning can be behind the app this afternoon. The row's time tells you how old it is.",
+            "The payment method can differ too. A debit card and a bank transfer are not always the same fee."
+          ]
+        },
+        {
+          "id": "automatic",
+          "h": "Automatic quotes are held back when they look broken",
+          "paragraphs": [
+            "Some large providers are updated from Wise's comparison data and marked auto. A hand check in the last 30 hours replaces that. An automatic rate far from the mid-market rate is held back as a likely error.",
+            "The full rules are on [How we rank](/methodology/)."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "send-money",
+      "slug": "rate-alerts",
+      "title": "How to set a rate alert",
+      "description": "Get one email when the best service on a route reaches the amount you want.",
+      "updated": "2026-11-15",
+      "lede": "A rate alert watches one route after each daily check and emails you once, when the best service reaches your target. It does not send a newsletter.",
+      "steps": [
+        { "name": "Open the route", "text": "Go to the corridor you send on." },
+        { "name": "Set the target", "text": "Enter the amount you want your family to receive, and your email address." },
+        { "name": "Confirm", "text": "Use the confirmation email. After that, one email arrives if the target is hit. Every email has a remove link." }
+      ],
+      "sections": [
+        {
+          "id": "what",
+          "h": "What is stored",
+          "paragraphs": [
+            "The alert stores your email, the route, the amount and the target. It is deleted when it fires, when you use the remove link, or after 12 months.",
+            "The [privacy policy](/privacy/) is the full account of that."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "how-to-use-the-house-calculator",
+      "title": "How to use the house calculator",
+      "description": "Pick a country, a size and the material types, then read the quantities.",
+      "updated": "2026-11-15",
+      "lede": "The calculator prices one simple house in the country you choose. Change the size, the number of floors and the material menus, and the total changes with them.",
+      "steps": [
+        { "name": "Choose the country", "text": "Open the house calculator and pick where the house will be built." },
+        { "name": "Choose the size", "text": "Use a bedroom count or type your own floor area. One floor and two floors use that same floor area." },
+        { "name": "Switch the types", "text": "Where a line has a menu, pick the roof, windows, doors, tiles or other type you intend to buy." },
+        { "name": "Read the quantities", "text": "Match bags, blocks, metres and days to receipts. The sources sit under the list." }
+      ],
+      "sections": [
+        {
+          "id": "same",
+          "h": "The quantities are shared. The prices are not.",
+          "paragraphs": [
+            "A three-bedroom house uses the same takeoff in every country. The price is that country's published list, or a guide scaled from a country that has one.",
+            "A guide is marked. It is not a shop receipt from the town where you will build."
+          ]
+        },
+        {
+          "id": "not",
+          "h": "What it is not",
+          "paragraphs": [
+            "It is not a structural design and not a contractor's price. Land is not included. An architect's fee is not included.",
+            "Start at the [calculator](/cost-to-build/)."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "what-the-total-includes",
+      "title": "What the house total includes",
+      "description": "Structure, finish, plot works and the published permit, and what is still left out.",
+      "updated": "2026-11-15",
+      "lede": "The total includes the structure, the finish, the plot works and that country's published building permit. It leaves out the land, the contractor's fee, appliances and the architect's professional fee.",
+      "sections": [
+        {
+          "id": "in",
+          "h": "In the list",
+          "paragraphs": [
+            "Cement, steel, sand, ballast, blocks, the roof or a concrete slab, windows, doors, tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, sanitary fittings, a septic tank, a boundary wall, a gate and the trade days.",
+            "Two floors add the upper slab, the staircase and the formwork. A concrete roof, as in Egypt and Morocco, replaces iron sheets."
+          ]
+        },
+        {
+          "id": "out",
+          "h": "Left out on purpose",
+          "paragraphs": [
+            "The plot of land and the contractor's own fee stay out, so the receipt can be checked against materials. Appliances are out. Where a country has not published a permit tariff, the permit line is shown and not given a guessed price.",
+            "The [method](/methodology/) says the same thing in the house section."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "one-floor-and-two-floors",
+      "title": "Why two floors are not double the price",
+      "description": "A two-floor house on this calculator has the same floor area, a smaller roof and an upper slab.",
+      "updated": "2026-11-15",
+      "lede": "Two floors on this page are the same floor area, split onto a smaller footprint. The roof gets smaller. The upper slab, the staircase and the formwork are added. The price goes up. It does not double.",
+      "sections": [
+        {
+          "id": "area",
+          "h": "The size button is floor area",
+          "paragraphs": [
+            "A five-bedroom house is 190 square metres whether you build it on one floor or two. Two floors means about 95 square metres on the ground.",
+            "The boundary wall follows the plot, not the roof, so it stays the same."
+          ]
+        },
+        {
+          "id": "extra",
+          "h": "What the second floor adds",
+          "paragraphs": [
+            "More cement and steel, soffit formwork, and a staircase. The sheet roof and the gutters cover a smaller plan.",
+            "If you want a two-floor house with more than 190 square metres, type that floor area yourself. The bedroom buttons do not double the area."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "check-a-contractor-quote",
+      "title": "How to check a contractor quote",
+      "description": "Put a lump-sum quote next to the calculator's bags, blocks and days.",
+      "updated": "2026-11-15",
+      "lede": "Ask for the quote as quantities, then set them beside the calculator. A gap is not automatically padding. It is a question: which line is the extra money paying for?",
+      "steps": [
+        { "name": "Match the house", "text": "Set the calculator to the same country, floor area and number of floors." },
+        { "name": "Match the types", "text": "Pick the roof, windows, doors and tiles the quote specifies, or the closest published type." },
+        { "name": "Compare line by line", "text": "Bags of cement, tonnes of steel, blocks, sheets and trade days should be visible on both sides." },
+        { "name": "Ask about the gap", "text": "The contractor's fee, transport and anything this page leaves out will sit on top. Ask which of those the difference is." }
+      ],
+      "sections": [
+        {
+          "id": "fee",
+          "h": "Their fee is allowed to be extra",
+          "paragraphs": [
+            "This page does not include the contractor's overhead. A quote that is higher by that fee can still be honest.",
+            "A quote that will not show bags or days is the one to treat carefully."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "listed-prices-and-guides",
+      "title": "Listed prices and guides",
+      "description": "A listed price is a published figure. A guide is scaled, or built from a coverage assumption.",
+      "updated": "2026-11-15",
+      "lede": "A listed price was published by a yard, a council or a supplier. A guide was scaled from another country's figure at the mid-market rate, or it assumes how much a box or a sheet covers.",
+      "sections": [
+        {
+          "id": "tag",
+          "h": "Read the tag on the line",
+          "paragraphs": [
+            "The tag sits on the line. The source sits in the list at the bottom of the calculator, with a link where there is a public page.",
+            "Changing the menu switches to another published type or to the ends of a published range. The first choice is the one the page was checked with."
+          ]
+        },
+        {
+          "id": "town",
+          "h": "A town away can differ",
+          "paragraphs": [
+            "Sand, ballast and haulage move more than a bag of cement on a city price list. The city named on the page is the one the list came from.",
+            "Check the yard before you send the money to buy."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "building-permits",
+      "title": "Building permits, country by country",
+      "description": "Each country keeps its own published permit fee. A missing tariff is not copied from somewhere else.",
+      "updated": "2026-11-15",
+      "lede": "The permit line uses that country's own published fee. It is not a Nairobi fee converted into another currency. If no tariff was published, the line stays and the price is left blank.",
+      "sections": [
+        {
+          "id": "kinds",
+          "h": "The fee is not the same kind of charge everywhere",
+          "paragraphs": [
+            "Nairobi prices a plan approval as a percentage of a county construction rate, plus an occupation certificate and a public-health vetting fee. Kampala prices inspections by the ground-floor area and adds VAT. Kigali and Rwanda use a floor-area band. Johannesburg charges by the square metre.",
+            "Egypt's line is the insurance deposit in the building law, worked out from the ministry's deemed cost. The governor's own issuing fee is not added, because the current decision was not in the check."
+          ]
+        },
+        {
+          "id": "blank",
+          "h": "A blank price is deliberate",
+          "paragraphs": [
+            "Lusaka and Addis Ababa require a permit. A current residential tariff was not published in a form that could be quoted, so the line is not filled with a guess.",
+            "Open the country on the [calculator](/cost-to-build/) and read that permit line. The source is under the list."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "septic-kitchen-wardrobes-wall",
+      "title": "Septic tank, kitchen, wardrobes and the wall",
+      "description": "How the plot works and the joinery are counted, and which published ranges they use.",
+      "updated": "2026-11-15",
+      "lede": "A house that is not on a sewer gets one septic tank, sized from the published range by the number of bedrooms. Cupboards, wardrobes, the boundary wall and the gate are separate lines.",
+      "sections": [
+        {
+          "id": "sizes",
+          "h": "The quantities follow the house",
+          "paragraphs": [
+            "A one-bedroom kitchen is a short run. A five-bedroom kitchen is longer. Wardrobes are one run per bedroom. The wall goes around a usual plot for that bedroom count, with a 4 metre gate opening left out of the wall length.",
+            "One floor and two floors share the plot, because the wall follows the land."
+          ]
+        },
+        {
+          "id": "rates",
+          "h": "The rates are Nairobi lists, scaled elsewhere",
+          "paragraphs": [
+            "The septic range, the cupboard rate, the wardrobe rate and the stone-wall rate are published Kenyan figures. Other countries take them at the mid-market rate and the line is marked as a guide, unless that country has its own price.",
+            "You can switch the wall to chain link or to a cheaper block rate, and the kitchen to a laminate run without a stone top."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "kenya-cost-band",
+      "title": "The Kenya published cost band",
+      "description": "Why the calculator can sit near a published per-square-metre band without being a builder's quote.",
+      "updated": "2026-11-15",
+      "lede": "Kenya publishes a whole-build band for an economy to standard finish that includes a builder's overhead. The calculator shows that band beside its own receipt. The receipt does not include the builder's fee.",
+      "sections": [
+        {
+          "id": "band",
+          "h": "Read both numbers",
+          "paragraphs": [
+            "The band on the Kenya page is the published planning range for the floor area you chose. It is labelled as a whole-build rate. It is not the sum of the lines.",
+            "The lines are the receipt: materials, trade days, finish, plot works and permits. Adding the contractor's fee on top of the lines can land inside the band. The page does not do that addition for you."
+          ]
+        },
+        {
+          "id": "other",
+          "h": "Other countries",
+          "paragraphs": [
+            "Where another country publishes an all-in rate, it is shown the same way and labelled as including a contractor. Ghana and South Africa are examples. The line total remains the receipt."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "choosing-materials",
+      "title": "Choosing the roof, windows, doors and tiles",
+      "description": "The menu on a line switches the price. The quantity stays so you can check the receipt.",
+      "updated": "2026-11-15",
+      "lede": "Each menu is a published type or the ends of a published range. The quantity does not change when you pick a dearer sheet. The price does.",
+      "sections": [
+        {
+          "id": "menu",
+          "h": "What the first choice means",
+          "paragraphs": [
+            "The first choice is the figure the page was checked with. The others are named alternatives from the same published list.",
+            "A guide that turns a sheet price into a price per square metre says how much cover was assumed. If your sheet covers a different area, the line will not match the yard."
+          ]
+        },
+        {
+          "id": "share",
+          "h": "The link keeps your choices",
+          "paragraphs": [
+            "The page address stores the size, the floors and the menus you picked, so you can send the same check to a builder or a relative.",
+            "The [calculator](/cost-to-build/) is the place to do it."
+          ]
+        }
+      ]
+    },
+    {
+      "pillar": "build-a-house",
+      "slug": "before-you-send",
+      "title": "What to ask before you send the money",
+      "description": "The checks to make before a transfer is meant to pay for a house.",
+      "updated": "2026-11-15",
+      "lede": "Before you send a lump sum for a build, match the calculator to the quote, confirm the permit and the land are understood, and confirm the transfer itself on the provider's screen.",
+      "sections": [
+        {
+          "id": "house",
+          "h": "On the house",
+          "paragraphs": [
+            "Ask which quantities the quote covers, and whether the contractor's fee is inside the sum. Ask whether the plot is on a sewer. If it is, the septic line does not apply.",
+            "Ask who is paying the permit. The calculator includes the published fee. It does not pay the county for you."
+          ]
+        },
+        {
+          "id": "money",
+          "h": "On the transfer",
+          "paragraphs": [
+            "Use the [comparison](/) for the amount you will actually send. A house payment is often larger than the amount a route was checked at, so read the warning if the page shows one.",
+            "Confirm the payout method the builder or the family can receive."
+          ]
+        }
+      ]
+    }
+  ]
+}

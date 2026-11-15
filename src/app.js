@@ -5,7 +5,7 @@
   var R = window.SFRank;
   var cfg = SF.config || {};
   var root = SF.root || "";
-  var S = { corridors: null, providers: {}, quotes: {}, coverage: {}, quotesUpdated: null, mid: null, reports: {}, payout: "all", mode: "pay" };
+  var S = { corridors: null, providers: {}, quotes: {}, coverage: {}, quotesUpdated: null, mid: null, reports: {}, payout: "all", payIn: "all", promo: false, mode: "pay", feed: {} };
   var $ = function (id) { return document.getElementById(id); };
 
   // Exchange-rate pages: simple converter at the mid-market rate.
@@ -15,6 +15,167 @@
     var upd = function () { var v = parseFloat(cin.value); cout.textContent = v > 0 ? to + " " + (v * mid).toLocaleString("en", { maximumFractionDigits: v * mid >= 1000 ? 0 : 2, minimumFractionDigits: v * mid >= 1000 ? 0 : 2 }) : "–"; };
     cin.addEventListener("input", upd);
   }
+
+  function consentChoice() {
+    try { return JSON.parse(localStorage.getItem("sf-consent") || "null"); } catch (e) { return null; }
+  }
+  function allowOptional() { return consentChoice() === "all"; }
+  function stripImpact() {
+    document.querySelectorAll('script[src*="impactcdn.com"]').forEach(function (s) { if (s.parentNode) s.parentNode.removeChild(s); });
+    try { window.impactStat = function () {}; } catch (e) {}
+  }
+  if (consentChoice() === "essential") stripImpact();
+
+  function setupNav() {
+    var header = document.querySelector(".site-header");
+    var nav = document.querySelector(".site-nav");
+    if (!header || !nav || $("sf-nav-toggle")) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "sf-nav-toggle";
+    btn.className = "nav-toggle";
+    btn.setAttribute("aria-expanded", "false");
+    btn.setAttribute("aria-controls", "sf-nav");
+    btn.setAttribute("aria-label", "Open menu");
+    btn.innerHTML = "<span></span><span></span><span></span>";
+    nav.id = nav.id || "sf-nav";
+    header.querySelector(".wrap").appendChild(btn);
+    btn.addEventListener("click", function () {
+      var on = header.classList.toggle("is-open");
+      btn.setAttribute("aria-expanded", String(on));
+      btn.setAttribute("aria-label", on ? "Close menu" : "Open menu");
+    });
+  }
+
+  function fixAvatars() {
+    document.querySelectorAll(".avatar").forEach(function (el) {
+      var img = el.querySelector("img");
+      var bits = [];
+      el.childNodes.forEach(function (n) {
+        if (n.nodeType === 3 && n.textContent.trim()) bits.push(n.textContent.trim());
+      });
+      var initials = el.getAttribute("data-initials") || bits.join("");
+      if (initials) el.setAttribute("data-initials", initials);
+      bits.forEach(function () {
+        el.childNodes.forEach(function (n) { if (n.nodeType === 3) n.textContent = ""; });
+      });
+      if (img && !img.getAttribute("alt")) {
+        var name = (el.nextElementSibling && el.nextElementSibling.textContent) || (el.closest("h1") && el.closest("h1").textContent) || "";
+        name = name.replace(/\s*review.*$/i, "").trim() || "Provider";
+        img.setAttribute("alt", name + " logo");
+      }
+    });
+  }
+
+  function setupLanguage() {
+    var b = $("sf-lang"), box = $("sf-lang-box");
+    if (!b || !box) return;
+    var fresh = b.cloneNode(true);
+    b.parentNode.replaceChild(fresh, b);
+    b = fresh;
+    var langs = (cfg.translateLanguages || "en,fr,ar,sw,pt").split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+    var names = { en: "English", fr: "Français", ar: "العربية", sw: "Kiswahili", pt: "Português", ha: "Hausa", yo: "Yorùbá", am: "አማርኛ", so: "Soomaali" };
+    if (!$("sf-lang-choices")) {
+      var row = document.createElement("div");
+      row.id = "sf-lang-choices";
+      row.className = "lang-choices";
+      langs.forEach(function (id) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = names[id] || id;
+        btn.setAttribute("data-lang", id);
+        row.appendChild(btn);
+      });
+      var wrap = box.querySelector(".wrap") || box;
+      wrap.insertBefore(row, wrap.querySelector(".lang-note") || wrap.firstChild);
+    }
+    function loadGoogle() {
+      if (document.getElementById("sf-gt-script")) return;
+      window.sfTranslateInit = function () {
+        if (!window.google || !google.translate) return;
+        new google.translate.TranslateElement({ pageLanguage: "en", includedLanguages: langs.join(","), autoDisplay: false, layout: google.translate.TranslateElement.InlineLayout.SIMPLE }, "google_translate_element");
+      };
+      var s = document.createElement("script");
+      s.id = "sf-gt-script";
+      s.src = "https://translate.google.com/translate_a/element.js?cb=sfTranslateInit";
+      s.async = true;
+      document.head.appendChild(s);
+    }
+    function applyLang(id) {
+      document.cookie = "googtrans=" + (id === "en" ? ";path=/;max-age=0" : "/en/" + id + ";path=/");
+      if (id === "en") { location.hash = ""; location.reload(); return; }
+      if (!allowOptional()) {
+        var note = box.querySelector(".lang-note");
+        if (note) note.textContent = "Accept optional scripts in the banner to translate the page, or keep it in English.";
+        return;
+      }
+      loadGoogle();
+      setTimeout(function () { location.reload(); }, 80);
+    }
+    b.addEventListener("click", function () {
+      var open = box.hidden;
+      box.hidden = !open;
+      b.setAttribute("aria-expanded", String(open));
+    });
+    box.addEventListener("click", function (e) {
+      var lang = e.target.closest && e.target.closest("[data-lang]");
+      if (lang) applyLang(lang.getAttribute("data-lang"));
+    });
+    var m = document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);
+    if (m && m[1] !== "en" && allowOptional()) loadGoogle();
+  }
+
+  function setupConsentBar() {
+    if (document.getElementById("sf-consent") || consentChoice()) {
+      if (consentChoice() === "all" && cfg.impactSrc && !document.querySelector('script[src*="impactcdn.com"]')) {
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = cfg.impactSrc;
+        document.head.appendChild(s);
+      }
+      return;
+    }
+    var bar = document.createElement("div");
+    bar.id = "sf-consent";
+    bar.className = "consent";
+    bar.innerHTML = '<div class="wrap"><p>SendFair uses Google Translate if you pick a language, and Impact so a provider can credit a signup. You can compare rates without either. <a href="' + (root || "") + 'privacy/">Privacy</a></p><div class="consent-actions"><button type="button" data-c="essential">Essential only</button><button type="button" class="btn" data-c="all">Accept</button></div></div>';
+    (document.body || document.documentElement).appendChild(bar);
+    bar.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-c]"); if (!b) return;
+      var choice = b.getAttribute("data-c");
+      try { localStorage.setItem("sf-consent", JSON.stringify(choice)); } catch (err) {}
+      bar.remove();
+      if (choice === "essential") stripImpact();
+      if (choice === "all" && cfg.impactSrc) {
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = cfg.impactSrc;
+        document.head.appendChild(s);
+      }
+    });
+  }
+
+  function prefetch(urls) {
+    var run = function () {
+      urls.forEach(function (href) {
+        if (!href) return;
+        var link = document.createElement("link");
+        link.rel = "prefetch";
+        link.as = "document";
+        link.href = href;
+        document.head.appendChild(link);
+      });
+    };
+    if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 2000 });
+    else setTimeout(run, 1500);
+  }
+
+  setupNav();
+  fixAvatars();
+  setupLanguage();
+  setupConsentBar();
+  if (location.pathname.indexOf("/cost-to-build/") === -1) prefetch([root + "cost-to-build/"]);
+
   if (!$("sf-results") || !R) return;
 
   var store = {
@@ -66,6 +227,11 @@
     var qAmt = parseFloat(qs.get("amount"));
     $("sf-amount").value = qAmt > 0 ? qAmt : (last.amount && last.currency === cur ? last.amount : (cfg.defaultAmounts || {})[cur] || 300);
     if (last.payout && R.LABEL[last.payout]) setPayout(last.payout);
+    if (last.payIn) S.payIn = last.payIn;
+    if (last.promo) S.promo = !!last.promo;
+    if (SF.routeUrl && location.pathname.indexOf("/send-money/") === -1) {
+      prefetch([SF.routeUrl.replace("{from}", $("sf-from").value).replace("{to}", $("sf-to").value)]);
+    }
   }
 
   function setPayout(v) {
@@ -80,16 +246,28 @@
     var amount = target === undefined ? entered : NaN;
     var mid = R.midRate(S.mid, s.currency, r.currency);
     var list = S.quotes[k] || [];
-    var opts = { list: list, providers: S.providers, amount: amount, target: target, payout: S.payout, mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72 };
+    var opts = { list: list, feed: S.feed[k] || null, providers: S.providers, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: S.promo, customer: S.promo ? "new" : "", mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72, handLockH: cfg.preferAutoAfterHours || cfg.handLockHours || 6, refAmount: (cfg.defaultAmounts || {})[s.currency] };
     var rows = R.rank(opts);
-    var allRows = S.payout === "all" ? rows : R.rank(Object.assign({}, opts, { payout: "all" }));
+    var allRows = (S.payout === "all" && S.payIn === "all") ? rows : R.rank(Object.assign({}, opts, { payout: "all", payIn: "all" }));
     var hist = Object.keys((S.history || {}).days || {}).sort().map(function (d) { var e = S.history.days[d][k] || {}; return { d: d, mid: e.mid, best: e.best }; }).filter(function (e) { return e.mid || e.best; });
     if (target !== undefined) { var top0 = rows.filter(function (x) { return !x.stale; })[0]; amount = top0 ? top0.pay : NaN; }
     var from = $("sf-from").value, coverage = S.coverage[k] && S.coverage[k].length ? S.coverage[k] : Object.keys(S.providers).filter(function (id) { var p = S.providers[id]; return !p.sendsFrom || p.sendsFrom.indexOf(from) > -1; });
+    var ranked = {};
+    rows.forEach(function (x) { ranked[x.p.id] = 1; });
+    var gulfExtras = { uae: ["luluexchange", "alansari", "alfardan", "moneygram", "wise", "remitly"], oman: ["worldremit", "westernunion", "moneygram", "luluexchange", "omanexchange", "ria"] };
+    var extra = gulfExtras[from] || [];
+    extra.forEach(function (id) { if (coverage.indexOf(id) < 0) coverage = coverage.concat([id]); });
+    ["lemfi", "nala", "mukuru"].forEach(function (id) {
+      var p = S.providers[id];
+      if (p && (!p.sendsFrom || p.sendsFrom.indexOf(from) > -1) && coverage.indexOf(id) < 0) coverage = coverage.concat([id]);
+    });
     return {
-      s: s, r: r, key: k, amount: amount, target: target, payout: S.payout, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
+      s: s, r: r, key: k, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: S.promo, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
+      list: list, feed: opts.feed, staleH: opts.staleH, hideH: opts.hideH, handLockH: opts.handLockH, providers: S.providers,
       anyQuotes: list.length > 0, reports: S.reports, hrefFor: hrefFor, disclosureHref: SF.disclosureHref || "#",
       checkList: coverage.map(function (id) { return S.providers[id]; }).filter(Boolean),
+      pending: coverage.map(function (id) { return S.providers[id]; }).filter(function (p) { return p && !ranked[p.id]; }),
+      ssa: !!(R.SSA && R.SSA[r.id]),
       avgPct: (cfg.regionalAverageCost || {}).percent || 8.46, avgLabel: (cfg.regionalAverageCost || {}).label || "",
       midUpdated: S.mid && S.mid.updatedAt, quotesUpdated: S.quotesUpdated,
       midPrev: S.mid && S.mid.previous ? R.midRate(S.mid.previous, s.currency, r.currency) : null, midPrevAt: S.mid && S.mid.previous && S.mid.previous.updatedAt
@@ -117,7 +295,7 @@
       var lab = $("sf-amount-label"); if (lab) lab.textContent = get ? "They need to receive" : "You pay in total";
       $("sf-amount").closest(".amount-wrap").classList.toggle("is-get", get);
     }
-    if (!get) store.set("sf-last", { from: c.s.id, to: c.r.id, amount: c.amount, currency: c.s.currency, payout: S.payout });
+    if (!get) store.set("sf-last", { from: c.s.id, to: c.r.id, amount: c.amount, currency: c.s.currency, payout: S.payout, payIn: S.payIn, promo: S.promo });
     $("sf-meta").innerHTML = R.metaLine(c);
     $("sf-note").textContent = c.r.note || "";
     $("sf-note").hidden = !c.r.note;
@@ -131,6 +309,60 @@
     }
     fillReportProviders(c);
     renderPhone(c);
+    ensureFilters();
+    fixCopy(c);
+  }
+
+  function setPayIn(v) {
+    S.payIn = v;
+    document.querySelectorAll("[data-payin]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-payin") === v)); });
+  }
+
+  function ensureFilters() {
+    if ($("sf-payin")) {
+      document.querySelectorAll("[data-payin]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-payin") === S.payIn)); });
+      var pr = $("sf-promo"); if (pr) pr.setAttribute("aria-pressed", String(S.promo));
+      return;
+    }
+    var tabs = document.querySelector(".payout-tabs");
+    if (!tabs) return;
+    var box = document.createElement("div");
+    box.className = "extra-filters";
+    box.innerHTML = '<div class="payout-field payin-field"><span class="label" id="sf-payin-label">You pay by</span><div class="payout-tabs" id="sf-payin" role="group" aria-labelledby="sf-payin-label">' +
+      '<button type="button" data-payin="all" aria-pressed="' + (S.payIn === "all") + '">Any</button>' +
+      '<button type="button" data-payin="bank" aria-pressed="' + (S.payIn === "bank") + '">Bank</button>' +
+      '<button type="button" data-payin="card" aria-pressed="' + (S.payIn === "card") + '">Card</button></div></div>' +
+      '<button type="button" class="promo-btn" id="sf-promo" aria-pressed="' + S.promo + '">First-transfer offers</button>';
+    tabs.parentNode.appendChild(box);
+  }
+
+  function fixCopy(c) {
+    var hasMobile = (c.allRows || c.rows).some(function (x) { return !x.stale && (x.q.payout || []).indexOf("mobile") > -1; });
+    var top = c.rows.filter(function (x) { return !x.stale; })[0];
+    var amt = R.money(c.amount, c.s.currency, 0).replace(/\u00a0/g, " ");
+    document.querySelectorAll("details").forEach(function (d) {
+      var s = d.querySelector("summary"), p = d.querySelector("p");
+      if (!s || !p) return;
+      var q = s.textContent;
+      if (/cheapest way/i.test(q) && !c.rows.length) {
+        p.textContent = "No service publishes an online price for this route yet. Compare the services listed above in their apps or at a branch, using the mid-market figure as a guide. There is no ranking on this page until an online quote is checked.";
+      } else if (/cheapest way/i.test(q) && top) {
+        p.textContent = "For " + amt + ", " + top.p.name + " delivers the most after fees and the exchange-rate margin. The order can change with the amount: check the table of common amounts on this page. The ranking updates when you change the figure above.";
+      }
+      if (/receive the money|Vodafone Cash|OPay|M-Pesa|mobile money/i.test(q) && /several services pay out to mobile money/i.test(p.textContent) && !hasMobile) {
+        p.textContent = "None of the services we priced on this check list a mobile-money payout. Use Bank above the ranking, or confirm on the provider's own site.";
+      }
+    });
+    var lede = document.querySelector(".hero .lede, .hero-copy .lede");
+    if (lede && /Vodafone Cash|Orange Cash|InstaPay/.test(lede.textContent) && !hasMobile) {
+      lede.textContent = lede.textContent.replace(/ by Vodafone Cash, Orange Cash and InstaPay-linked wallets, bank or cash pickup/i, " by bank").replace(/Vodafone Cash, Orange Cash and InstaPay-linked wallets, /g, "");
+    }
+    document.querySelectorAll(".howto li").forEach(function (li) {
+      if (!c.rows.length && /service at the top/i.test(li.textContent)) {
+        li.innerHTML = "<strong>Compare in the app or at a branch.</strong> No service publishes an online price for this route yet, so there is no ranking to use. Open the services listed above and compare what they quote for your amount.";
+      }
+    });
+    fixAvatars();
   }
 
   // Lock-screen phone in the header: the family's local time and what today's best option delivers.
@@ -168,7 +400,7 @@
 
   function onRouteChange() {
     var last = store.get("sf-last") || {};
-    store.set("sf-last", { from: $("sf-from").value, to: $("sf-to").value, amount: parseFloat($("sf-amount").value), currency: last.currency, payout: S.payout });
+    store.set("sf-last", { from: $("sf-from").value, to: $("sf-to").value, amount: parseFloat($("sf-amount").value), currency: last.currency, payout: S.payout, payIn: S.payIn, promo: S.promo });
     if (SF.from && SF.routeUrl) { location.href = routeUrl($("sf-from").value, $("sf-to").value); return; }
     var cur = sender().currency;
     if (last.currency !== cur) $("sf-amount").value = (cfg.defaultAmounts || {})[cur] || 300;
@@ -198,7 +430,10 @@
         return;
       }
       var pk = e.target.closest && e.target.closest(".pick[data-payout]");
-      if (pk) { setPayout(pk.getAttribute("data-payout")); render(); }
+      if (pk) { setPayout(pk.getAttribute("data-payout")); render(); return; }
+      var pi = e.target.closest && e.target.closest("[data-payin]");
+      if (pi) { setPayIn(pi.getAttribute("data-payin")); render(); return; }
+      if (e.target.closest && e.target.closest("#sf-promo")) { S.promo = !S.promo; render(); }
     });
     var quick = $("sf-quick");
     if (quick) quick.addEventListener("click", function (e) {
@@ -209,6 +444,7 @@
     document.querySelectorAll("[data-payout]").forEach(function (b) {
       b.addEventListener("click", function () { setPayout(b.getAttribute("data-payout")); render(); });
     });
+    setupAlerts();
 
     var copy = $("sf-copy");
     if (copy) copy.addEventListener("click", function () {
@@ -224,8 +460,11 @@
     if (af) af.addEventListener("submit", function (e) {
       e.preventDefault();
       var msg = $("sf-alert-msg"), btn = af.querySelector("button");
-      var body = { route: af.getAttribute("data-route"), email: af.email.value.trim(), amount: parseFloat(af.amount.value), target: parseFloat(af.target.value) };
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.email)) { msg.textContent = "Enter a valid email address."; af.email.focus(); return; }
+      var via = (af.querySelector('input[name="sf-alert-via"]:checked') || {}).value || "email";
+      var body = { route: af.getAttribute("data-route"), email: af.email.value.trim(), amount: parseFloat(af.amount.value), target: parseFloat(af.target.value), via: via, whatsapp: (af.whatsapp && af.whatsapp.value || "").trim() };
+      if (via === "whatsapp") {
+        if (!/^\+?[0-9\s-]{8,}$/.test(body.whatsapp)) { msg.textContent = "Enter a WhatsApp number with country code."; $("sf-alert-wa").focus(); return; }
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.email)) { msg.textContent = "Enter a valid email address."; af.email.focus(); return; }
       if (!(body.amount > 0) || !(body.target > 0)) { msg.textContent = "Enter both amounts."; return; }
       btn.disabled = true; msg.textContent = "Saving…";
       fetch(root + "api/alert", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
@@ -233,7 +472,9 @@
         .then(function (x) {
           btn.disabled = false;
           if (!x.ok) { msg.textContent = x.d.error || "Could not save your alert. Try again."; return; }
-          msg.textContent = x.d.pending ? "Saved. We'll send a confirmation email to " + body.email + " within a day; click it to switch the alert on." : "Check your email: click the link we sent to " + body.email + " to switch the alert on.";
+          msg.textContent = via === "whatsapp"
+            ? (x.d.pending ? "Saved. We'll send a WhatsApp confirmation to " + body.whatsapp + " when the target is hit." : "Alert saved for WhatsApp " + body.whatsapp + ".")
+            : (x.d.pending ? "Saved. We'll send a confirmation email to " + body.email + " within a day; click it to switch the alert on." : "Check your email: click the link we sent to " + body.email + " to switch the alert on.");
           af.email.value = "";
         })
         .catch(function () { btn.disabled = false; msg.textContent = "Could not save your alert. Check your connection and try again."; });
@@ -244,6 +485,25 @@
       alertForm.addEventListener("submit", function (e) {
         e.preventDefault();
         $("sf-alert-msg").textContent = "Alerts are switched off in this preview. On the live site this adds the email to your mailing list.";
+      });
+    }
+
+    function setupAlerts() {
+      var af = $("sf-alert-route");
+      if (!af || $("sf-alert-via")) return;
+      var email = af.querySelector('input[type=email]');
+      if (!email) return;
+      var via = document.createElement("div");
+      via.className = "alert-via";
+      via.innerHTML = '<label><input type="radio" name="sf-alert-via" value="email" checked> Email</label>' +
+        '<label><input type="radio" name="sf-alert-via" id="sf-alert-via" value="whatsapp"> WhatsApp</label>';
+      email.parentNode.insertBefore(via, email);
+      var wa = document.createElement("input");
+      wa.type = "tel"; wa.name = "whatsapp"; wa.id = "sf-alert-wa"; wa.placeholder = "+254 7xx xxx xxx"; wa.hidden = true;
+      email.parentNode.insertBefore(wa, email.nextSibling);
+      via.addEventListener("change", function () {
+        var w = via.querySelector('input[value=whatsapp]').checked;
+        wa.hidden = !w; email.hidden = w; email.required = !w; wa.required = w;
       });
     }
 
@@ -266,7 +526,7 @@
     });
   }
 
-  Promise.all([getJSON("data/corridors.json"), getJSON("data/providers.json"), getJSON("data/quotes.json"), loadMid(), getJSON("data/history.json").catch(function () { return { days: {} }; })])
+  Promise.all([getJSON("data/corridors.json"), getJSON("data/providers.json"), getJSON("data/quotes.json"), loadMid(), getJSON("data/history.json").catch(function () { return { days: {} }; }), getJSON("data/wise-feed.json").catch(function () { return { routes: {} }; })])
     .then(function (res) {
       S.corridors = res[0];
       res[1].providers.forEach(function (p) { S.providers[p.id] = p; });
@@ -275,6 +535,7 @@
       S.quotesUpdated = res[2].updatedAt;
       S.mid = res[3];
       S.history = res[4];
+      S.feed = (res[5] && res[5].routes) || {};
       fillSelects();
       bind();
       return loadReports();

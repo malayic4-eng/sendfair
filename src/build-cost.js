@@ -129,6 +129,95 @@
     }
     return q;
   }
+  function permitChoice(item, pick) {
+    var options = item.options || [];
+    var chosen = null;
+    var i;
+    if (pick) for (i = 0; i < options.length; i++) if (options[i].id === pick) chosen = options[i];
+    if (!chosen) for (i = 0; i < options.length; i++) if (options[i]["default"]) chosen = options[i];
+    if (!chosen && options.length) chosen = options[0];
+    return chosen;
+  }
+  function pushPermit(lines, item, pick, qty, qtyLabel, unitPrice, unitName, cost) {
+    var chosen = permitChoice(item, pick);
+    var guide = chosen && chosen.guide != null ? !!chosen.guide : !!item.guide;
+    var source = (chosen && chosen.source) || item.source || "";
+    var choices = null;
+    if (item.options && item.options.length > 1) {
+      choices = item.options.map(function (o) {
+        var price = o.amount != null ? o.amount : o.rate;
+        return { id: o.id, name: o.name, price: price, source: o.source || item.source || "", url: o.url || item.url || "", quoted: !(o.guide != null ? o.guide : item.guide), isDefault: !!o["default"] };
+      });
+    }
+    if (choices && chosen) qtyLabel = qtyLabel + " · " + chosen.name;
+    if (!(cost > 0)) {
+      lines.push({ key: item.key, label: item.label, group: "Permits", qty: qty || 1, qtyLabel: qtyLabel, cost: null, quoted: false, source: source, url: item.url || "" });
+      return;
+    }
+    lines.push({
+      key: item.key, label: item.label, group: "Permits", qty: qty, qtyLabel: qtyLabel,
+      unitPrice: unitPrice, unitName: unitName, cost: cost, quoted: !guide, source: source, url: item.url || "",
+      choice: chosen ? chosen.id : null, choiceName: chosen ? chosen.name : null, choices: choices
+    });
+  }
+  function addPermits(list, m2, storeys, q, subtotal, rates, currency, picks, lines) {
+    if (!list || !list.length) {
+      lines.push({ key: "permit", label: "Building permit", group: "Permits", qty: 1, qtyLabel: "One permit is required. No fee was published for this country in this check.", cost: null, quoted: false, source: "No published residential permit fee in this check.", url: "" });
+      return;
+    }
+    list.forEach(function (item) {
+      var chosen = permitChoice(item, picks[item.key]);
+      var rate = chosen && chosen.rate != null ? chosen.rate : item.rate;
+      var amount = chosen && chosen.amount != null ? chosen.amount : item.amount;
+      var footprint = m2 / (storeys >= 2 ? 2 : 1);
+      var method = item.method;
+      if (method === "flat") {
+        pushPermit(lines, item, picks[item.key], 1, item.qtyLabel, amount, "each", amount);
+      } else if (method === "perM2") {
+        pushPermit(lines, item, picks[item.key], Math.round(m2), Math.round(m2) + " m² of floor. " + item.qtyLabel, rate, "per m²", Math.round(m2 * rate));
+      } else if (method === "usdPerM2") {
+        var local = fx(rate, "USD", currency, rates);
+        if (!(local > 0)) {
+          pushPermit(lines, item, null, Math.round(m2), Math.round(m2) + " m². The dollar fee could not be changed into " + currency + " this month.", null, "per m²", null);
+        } else {
+          pushPermit(lines, item, null, Math.round(m2), Math.round(m2) + " m² at USD " + rate + " a square metre, changed at the mid-market rate. " + item.qtyLabel, local, "per m²", Math.round(m2 * local));
+        }
+      } else if (method === "band") {
+        var step = null;
+        var steps = item.steps || [];
+        for (var i = 0; i < steps.length; i++) if (m2 <= steps[i].upto) { step = steps[i]; break; }
+        if (!step && steps.length) step = steps[steps.length - 1];
+        var bandAmount = step ? step.amount : null;
+        pushPermit(lines, item, null, 1, Math.round(m2) + " m² of floor, the " + (step ? step.name : "listed") + " band. " + item.qtyLabel, bandAmount, "each", bandAmount);
+      } else if (method === "percent") {
+        var base = Math.max(item.minimum || 0, (item.rate || 0) * subtotal) + (item.extra || 0);
+        pushPermit(lines, item, null, 1, item.qtyLabel, Math.round(base), "each", Math.round(base));
+      } else if (method === "joburg") {
+        var fee = m2 <= item.smallMax ? item.smallFee : Math.max(item.minimum, item.rate * m2);
+        pushPermit(lines, item, null, 1, Math.round(m2) + " m². A house of " + item.smallMax + " m² or less is a flat fee. Above that the fee is " + item.rate + " a square metre, and at least " + item.minimum + ". " + item.qtyLabel, Math.round(fee), "each", Math.round(fee));
+      } else if (method === "kcca") {
+        var arch = item.archPerM2 * footprint;
+        var slabFee = storeys >= 2 ? item.slab : 0;
+        var net = arch + slabFee + item.wall + item.occupation;
+        var withVat = Math.round(net * (1 + item.vat));
+        var kccaLabel = Math.round(footprint) + " m² on the ground at UGX " + item.archPerM2 + ", structural inspection " + (slabFee ? "UGX " + item.slab + " for the upper slab" : "not charged on one floor") + ", boundary-wall inspection UGX " + item.wall + ", occupation permit UGX " + item.occupation + ", then " + Math.round(item.vat * 100) + "% VAT";
+        pushPermit(lines, item, null, 1, kccaLabel, withVat, "each", withVat);
+      } else if (method === "ghana") {
+        var fixed = item.form + item.jacket + item.site + item.perBedroom * q.beds + (storeys >= 2 ? item.twoStorey : item.oneStorey);
+        var ghanaFee = Math.round(fixed + item.percent * subtotal);
+        var ghanaLabel = "Form " + item.form + ", jacket " + item.jacket + ", site-plan check " + item.site + ", " + item.perBedroom + " for each of " + q.beds + " bedrooms, Class A " + (storeys >= 2 ? "two-storey " + item.twoStorey : "single-storey " + item.oneStorey) + ", plus " + (item.percent * 100) + "% of this page's total before the permit. " + item.qtyLabel;
+        pushPermit(lines, item, null, 1, ghanaLabel, ghanaFee, "each", ghanaFee);
+      } else if (method === "nigeria") {
+        var row = item.small;
+        if (q.beds >= 5) row = item.large;
+        else if (q.beds >= 4 || storeys >= 2) row = item.duplex;
+        else if (q.beds >= 3) row = item.bungalow;
+        pushPermit(lines, { key: item.key, label: item.label, source: row.source, url: item.url, guide: true }, null, 1, row.qtyLabel, row.amount, "each", row.amount);
+      } else {
+        pushPermit(lines, item, null, 1, item.qtyLabel || "One application", null, "each", null);
+      }
+    });
+  }
   function roundQty(n, d) {
     var p = Math.pow(10, d || 0);
     return Math.round(n * p) / p;
@@ -210,6 +299,8 @@
     trade("painter", "Painter", q.painterDays, "painter");
     trade("spark", "Electrician", q.sparkDays, "spark");
     trade("plumber", "Plumber", q.plumbDays, "plumber");
+    var subtotal = lines.reduce(function (s, l) { return s + (l.cost > 0 ? l.cost : 0); }, 0);
+    addPermits(c.permits, m2, storeys, q, subtotal, rates, c.currency, linePicks, lines);
     var priced = lines.filter(function (l) { return l.cost > 0; });
     var total = priced.reduce(function (s, l) { return s + l.cost; }, 0);
     return {
@@ -297,7 +388,7 @@
         '<div class="share"><a href="https://wa.me/?text=' + encodeURIComponent(share) + '" target="_blank" rel="noopener">Share on WhatsApp</a></div>' +
         '<details class="build-src"><summary>Where the prices come from</summary><ul>' + est.lines.filter(function (l) { return l.source; }).map(function (l) {
           return "<li><strong>" + esc(l.label) + ".</strong> " + esc(l.source) + (l.url ? ' <a href="' + esc(l.url) + '" target="_blank" rel="noopener">Source</a>' : "") + "</li>";
-        }).join("") + "</ul><p>Checked " + esc(data.updated) + ". Next refresh " + esc(data.nextReview) + ". City prices move, and a town away from " + esc(est.country.city) + " can differ. This is not a structural design. Left out on purpose: the plot of land, the contractor's fee, and permits. The septic tank, kitchen cupboards, wardrobes, boundary wall and gate are in the list above.</p></details>";
+        }).join("") + "</ul><p>Checked " + esc(data.updated) + ". Next refresh " + esc(data.nextReview) + ". City prices move, and a town away from " + esc(est.country.city) + " can differ. This is not a structural design. Left out on purpose: the plot of land and the contractor's fee. Permits are the lines above. An architect's or engineer's professional fee is not a permit and is not included.</p></details>";
     }
     var countrySel = document.getElementById("sf-build-country");
     countrySel.innerHTML = Object.keys(data.countries).map(function (id) {

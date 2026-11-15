@@ -3,7 +3,13 @@
   "tagline": "See what lands at home before you send.",
   "siteUrl": "https://sendfair.africa",
   "contactEmail": "hello@sendfair.africa",
+  "legalName": "Continental Flow Ltd",
   "adsenseClient": "",
+  "adsenseSlots": {
+    "afterIntro": "",
+    "midPage": "",
+    "sticky": ""
+  },
   "cfAnalyticsToken": "",
   "newsletterFormAction": "",
   "emailProvider": "",
@@ -12,34 +18,34 @@
   "reportsEnabled": true,
   "staleAfterHours": 36,
   "hideAfterHours": 72,
-  "priorityRoutes": [
-    "uk-nigeria",
-    "us-nigeria",
-    "canada-nigeria",
-    "uk-kenya",
-    "us-kenya",
-    "uk-ghana",
-    "us-ghana",
-    "uk-zimbabwe"
-  ],
+  "handLockHours": 6,
+  "preferAutoAfterHours": 6,
+  "priorityRoutes": ["uk-nigeria", "us-nigeria", "canada-nigeria", "uk-kenya", "us-kenya", "uk-ghana", "us-ghana", "uk-zimbabwe"],
   "regionalAverageCost": {
     "percent": 8.46,
-    "label": "World Bank average cost of sending money to Sub-Saharan Africa (Q3 2025)"
+    "label": "World Bank average cost of sending money to Sub-Saharan Africa (Q3 2025)",
+    "appliesTo": "ssa"
   },
   "defaultAmounts": {
-    "USD": 300,
-    "GBP": 250,
-    "CAD": 400,
-    "AUD": 450,
-    "AED": 1000,
-    "SAR": 1000,
-    "QAR": 1000,
-    "KWD": 100,
-    "BHD": 100,
-    "OMR": 100,
-    "EUR": 300
+    "USD": 300, "GBP": 250, "CAD": 400, "AUD": 450, "EUR": 300,
+    "AED": 1000, "SAR": 1000, "QAR": 1000, "KWD": 100, "BHD": 100, "OMR": 100
   },
+  "quickAmounts": {
+    "GBP": [100, 250, 500, 1000],
+    "EUR": [100, 300, 500, 1000],
+    "USD": [100, 300, 500, 1000],
+    "CAD": [200, 400, 1000, 2000],
+    "AUD": [200, 450, 1000, 2000],
+    "AED": [500, 1000, 2000, 5000],
+    "SAR": [500, 1000, 2000, 5000],
+    "QAR": [500, 1000, 2000, 5000],
+    "KWD": [50, 100, 200, 500],
+    "BHD": [50, 100, 200, 500],
+    "OMR": [50, 100, 200, 500]
+  },
+  "translateLanguages": "en,fr,ar,sw,pt,ha,yo,am,so",
   "impactScriptId": "A8203446-e866-4f4e-b1d2-c666d8ad98641",
+  "impactSrc": "https://utt.impactcdn.com/P-A8203446-e866-4f4e-b1d2-c666d8ad98641.js",
   "founderName": "Dr Simiyu Malayi",
   "businessName": "Continental Flow Ltd"
 }

@@ -4,7 +4,16 @@
 (function (root) {
   "use strict";
   var LABEL = { mobile: "Mobile money", bank: "Bank", cash: "Cash pickup" };
+  var PAYIN = { all: "Any", bank: "Bank transfer", card: "Card", cash: "Cash at an agent" };
   var DOT = " · ";
+  var SSA = { nigeria: 1, ghana: 1, kenya: 1, uganda: 1, zambia: 1, zimbabwe: 1, senegal: 1, ivorycoast: 1, mali: 1, cameroon: 1, ethiopia: 1, southafrica: 1, tanzania: 1, drc: 1, rwanda: 1 };
+  function isAuto(q) { return !!(q && (q.source === "wise-feed" || /^Updated automatically from Wise/.test(q.note || ""))); }
+  function payMethodOf(q, p) {
+    if (q && q.payMethod && q.payMethod !== "any") return q.payMethod;
+    var list = (p && p.payIn) || [];
+    var onlyCard = list.length && list.every(function (m) { return /card|debit|apple pay|google pay/i.test(m); }) && !list.some(function (m) { return /bank/i.test(m); });
+    return onlyCard ? "card" : (q && q.payMethod) || "any";
+  }
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -55,13 +64,17 @@
     return { fixed: f || 0, pct: Number(q.feePct) || 0 };
   }
   // "You pay in total" model: total = sent + fixed fee + pct% of sent.
-  function evaluate(q, amount) {
+  function evaluate(q, amount, o) {
     var rate = Number(q.rate);
+    if (o && o.customer === "new" && q.promo && Number(q.promo.rate) > 0) {
+      var cap = Number(q.promo.cap) || 0;
+      if (!cap || amount <= cap) rate = Number(q.promo.rate);
+    }
     if (!(rate > 0) || !(amount > 0)) return null;
     var f = feeParts(q);
     var sent = (amount - f.fixed) / (1 + f.pct / 100);
     if (!(sent > 0)) return null;
-    return { sent: sent, fee: amount - sent, gets: sent * rate, rate: rate, feeFixed: f.fixed, feePct: f.pct };
+    return { sent: sent, fee: amount - sent, gets: sent * rate, rate: rate, feeFixed: f.fixed, feePct: f.pct, promo: rate !== Number(q.rate) };
   }
   function feeStr(q, cur) {
     var f = feeParts(q);
@@ -83,15 +96,19 @@
     var best = {}, target = o.target > 0 ? o.target : 0;
     var score = function (x) { return target ? -Math.round(x.pay * 100) : shown(x.gets); };
     var shown = function (v) { return Math.round(v * (Math.abs(v) >= 1000 ? 1 : 100)); };
-    (o.list || []).forEach(function (q) {
+    var list = mergeFeed(o.list, o.feed, o);
+    list.forEach(function (q) {
+      if (o.promo) q = withPromo(q);
+      var p = o.providers[q.provider];
+      if (!p) return;
+      if (!payInOk(p, o.payIn, q)) return;
       var age = ageHours(q.checkedAt, o.now);
       if (age > o.hideH) return;
       if (o.payout && o.payout !== "all" && (q.payout || []).indexOf(o.payout) === -1) return;
       var pay = target ? payFor(q, target) : o.amount;
-      var ev = pay ? evaluate(q, pay) : null;
+      var ev = pay ? evaluate(q, pay, o) : null;
       if (!ev) return;
-      var p = o.providers[q.provider];
-      if (!p) return;
+      if (o.mid && isAuto(q) && ev.rate > o.mid * 1.015) return;
       var row = { q: q, p: p, ev: ev, gets: ev.gets, pay: pay, age: age, stale: age > o.staleH, cost: o.mid ? 1 - ev.gets / (pay * o.mid) : null };
       var cur = best[q.provider];
       if (!cur || (cur.stale && !row.stale) || (cur.stale === row.stale && score(row) > score(cur))) best[q.provider] = row;
@@ -142,8 +159,8 @@
     return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] || "?").slice(0, 2)).toUpperCase();
   }
   function badge(p, cls) {
-    return '<span class="avatar' + (cls ? " " + cls : "") + '" aria-hidden="true" style="background:' + hue(p.id) + '">' + initials(p.name) +
-      '<img src="/logos/' + esc(p.id) + '.png" alt="" width="22" height="22" loading="lazy" decoding="async" onerror="this.remove()"></span>';
+    return '<span class="avatar' + (cls ? " " + cls : "") + '" aria-hidden="true" data-initials="' + esc(initials(p.name)) + '" style="background:' + hue(p.id) + '">' +
+      '<picture><source srcset="/logos/' + esc(p.id) + '.webp" type="image/webp"><img src="/logos/' + esc(p.id) + '.png" alt="' + esc(p.name) + ' logo" width="22" height="22" loading="lazy" decoding="async" onerror="this.remove()"></picture></span>';
   }
   function hue(id) { var h = 0; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0; return HUES[h % HUES.length]; }
   // Notes that say the same thing for most services are summed up once under the table instead of as footnotes.
@@ -156,8 +173,60 @@
     "economy": "Slower delivery, usually for a better rate or lower fee"
   };
   function variantHint(v) { return VARIANT_HINT[String(v || "").toLowerCase()] || ""; }
-  function isAuto(q) { return q.source === "wise-feed" || /^Updated automatically from Wise/.test(q.note || ""); }
-  var GENERAL_NOTE = /^(Standard rate;|Fee read at two amounts|Updated automatically from Wise)/;
+  var GENERAL_NOTE = /^(Standard rate;|Fee read at (two amounts|the reference amount)|Updated automatically from Wise|No transfer fees shown|Payout method not shown)/;
+  function promoRate(q) {
+    if (Number(q.promoRate) > 0) return Number(q.promoRate);
+    var n = q.note || "";
+    var m = n.match(/welcome rate\s+([\d.]+)/i) || n.match(/intro \(first-transfer\) rate\s+([\d.]+)/i);
+    return m ? Number(m[1]) : 0;
+  }
+  function withPromo(q) {
+    var r = promoRate(q);
+    if (!(r > 0)) return q;
+    var o = {};
+    for (var k in q) o[k] = q[k];
+    o.rate = r;
+    o.promoApplied = true;
+    return o;
+  }
+  function payInOk(p, want, q) {
+    if (!want || want === "all") return true;
+    var method = payMethodOf(q, p);
+    if (method === want) return true;
+    if (method !== "any") return false;
+    var list = (p && p.payIn) || [];
+    if (!list.length) return true;
+    var re = want === "bank" ? /bank/i : want === "card" ? /card|debit|credit|apple|google/i : /cash|agent/i;
+    return list.some(function (m) { return re.test(m); });
+  }
+  // After a few hours, a newer automatic quote replaces the hand check for that provider.
+  function mergeFeed(list, feed, o) {
+    var now = o.now, lockH = o.handLockH == null ? 6 : o.handLockH, hideH = o.hideH, amount = o.refAmount || o.amount;
+    list = (list || []).slice();
+    if (!feed) return list;
+    Object.keys(feed).forEach(function (id) {
+      var f = feed[id];
+      if (!(f && Number(f.rate) > 0 && f.collected)) return;
+      var feedAge = ageHours(f.collected, now);
+      if (feedAge > hideH) return;
+      var mine = list.filter(function (q) { return q.provider === id; });
+      var hands = mine.filter(function (q) { return !isAuto(q); });
+      var newestHand = hands.sort(function (a, b) { return ageHours(a.checkedAt, now) - ageHours(b.checkedAt, now); })[0];
+      if (newestHand && ageHours(newestHand.checkedAt, now) <= lockH) return;
+      var payout = [];
+      mine.forEach(function (q) { (q.payout || []).forEach(function (m) { if (payout.indexOf(m) < 0) payout.push(m); }); });
+      var speed = f.speed || (hands.filter(function (q) { return q.speed; })[0] || {}).speed || "";
+      var nq = {
+        provider: id, variant: "", rate: Number(f.rate), feeFixed: Number(f.fee) || 0, feePct: 0,
+        payout: payout.length ? payout : ["bank"], speed: speed,
+        note: "Updated automatically from Wise's comparison data; confirm on the provider's site",
+        refAmount: amount, checkedAt: f.collected, source: "wise-feed"
+      };
+      list = list.filter(function (q) { return q.provider !== id; });
+      list.push(nq);
+    });
+    return list;
+  }
   // Where senders can check a provider's licence, by sending country.
   var REGISTER = {
     uk: ["the FCA register", "https://register.fca.org.uk/"],
@@ -193,12 +262,12 @@
     if (ref && shownAmt > 0 && Math.abs(shownAmt - ref) / ref > 0.15) bits.push('<span class="ref-txt" title="The rate and fee were read for this amount; they can differ for yours">checked for ' + esc(money(ref, c.s.currency, 0)) + "</span>");
     if (extra.length) bits.push('<span class="xtra">' + extra.join(DOT) + "</span>");
     if (x.stale) bits.push('<span class="stale-txt">not rechecked today</span>');
-    var mark = fn ? ' <a class="fn" href="#sf-fn-' + fn + '" aria-label="Note ' + fn + '">' + fn + "</a>" : "";
+    var mark = fn ? ' <a class="fn" href="#sf-fn-' + fn + '" aria-label="Footnote ' + fn + ' about ' + esc(x.p.name) + '">' + fn + "</a>" : "";
     return '<article class="result' + (top ? " best" : "") + (x.stale ? " is-stale" : "") + '">' +
       '<div class="rank"' + (x.tied ? ' title="Tied"' : "") + ">" + (x.pos || i + 1) + (x.tied ? "=" : "") + "</div>" +
       '<div class="prov"><div class="prov-name notranslate">' + badge(x.p) + '<span>' + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant"' + (variantHint(x.q.variant) ? ' title="' + esc(variantHint(x.q.variant)) + '"' : "") + ">" + esc(x.q.variant) + "</span>" : "") +
       (top ? '<span class="chip best">' + (x.tied ? "Joint best" : c.target ? "Cheapest" : "Most money home") + "</span>" : "") + mark +
-      (x.p.rating ? '<a class="tp" href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener" title="Trustpilot: ' + x.p.rating.score + " out of 5 from " + fixed(x.p.rating.reviews, 0) + ' reviews"><span aria-hidden="true">★</span> ' + x.p.rating.score + "</a>" : "") +
+      (x.p.rating ? '<a class="tp" href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener" title="Trustpilot: ' + x.p.rating.score + " out of 5 from " + fixed(x.p.rating.reviews, 0) + ' reviews"><span aria-hidden="true">★</span> ' + x.p.rating.score + "</a>" : (x.p.ratingUrl ? '<a class="tp" href="' + esc(x.p.ratingUrl) + '" target="_blank" rel="noopener" title="Trustpilot reviews">Trustpilot</a>' : "")) +
       '<button type="button" class="more-btn" aria-expanded="' + open + '" aria-controls="' + pid + '"><span class="more-txt">Details</span><span aria-hidden="true" class="chev">▾</span></button>' + "</div>" +
       '<div class="prov-sub num">' + bits.join('<span class="dot">' + DOT + "</span>") + "</div></div>" +
       (c.target
@@ -222,11 +291,12 @@
       ["They can receive by", esc((x.q.payout || []).map(function (m) { return LABEL[m]; }).join(", ") || "Not stated")],
       ["Delivery time", esc(x.q.speed || "Not shown by the provider for this route")],
       ["Ways to pay", esc((x.p.payIn || []).join(", ") || "See the provider's site") + ((x.p.payIn || []).some(function (m) { return /credit/i.test(m); }) ? ". Card payments can cost more; the rate above assumes the provider's standard method." : "")],
-      ["Rating", x.p.rating ? '<a href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener">Trustpilot ' + x.p.rating.score + "/5</a> (" + esc(x.p.rating.label) + ", " + fixed(x.p.rating.reviews, 0) + " reviews)" : "Not rated yet"],
+      ["Rating", x.p.rating ? '<a href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener">Trustpilot ' + x.p.rating.score + "/5</a> (" + esc(x.p.rating.label) + ", " + fixed(x.p.rating.reviews, 0) + " reviews)" : (x.p.ratingUrl ? '<a href="' + esc(x.p.ratingUrl) + '" target="_blank" rel="noopener">Trustpilot</a> (open to read current reviews)' : "Not rated yet")],
       ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + esc(money(Number(x.q.refAmount) || c.amount, cur, 0)) + (isAuto(x.q) ? ", automatically from Wise's comparison data" : ", by hand on the provider's site") : ""]
     ];
     if (x.q.variant) items.splice(1, 0, ["Option", esc(x.q.variant) + (variantHint(x.q.variant) ? ": " + esc(variantHint(x.q.variant).charAt(0).toLowerCase() + variantHint(x.q.variant).slice(1)) : "")]);
-    if (x.q.note) items.push(["Note", esc(x.q.note)]);
+    if (x.q.note) items.push(["Note", esc(String(x.q.note).replace(/\s*;\s*;/g, ". ").replace(/\.\s*;/g, ". "))]);
+    if (x.q.promoApplied) items.push(["First-transfer rate", "This row uses the welcome or intro rate the provider publishes for new customers."]);
     return '<div class="more" id="' + pid + '"' + (open ? "" : " hidden") + '><dl>' + items.filter(function (it) { return it[1]; }).map(function (it) { return "<div><dt>" + it[0] + "</dt><dd>" + it[1] + "</dd></div>"; }).join("") + "</dl></div>";
   }
 
@@ -253,6 +323,23 @@
     return ' <svg class="spark" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="Mid-market rate over the last ' + v.length + ' days"><path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
   }
 
+  function amountNote(c) {
+    if (c.target || !c.rows.length || !c.list || !c.providers) return "";
+    var base = Number(c.amount);
+    if (!(base > 0)) return "";
+    var amts = [base];
+    [base * 2, base * 4].forEach(function (a) { if (amts.indexOf(a) < 0) amts.push(a); });
+    var namesAt = amts.map(function (a) {
+      var rows = rank({ list: c.list, feed: c.feed, providers: c.providers, amount: a, payout: c.payout, payIn: c.payIn, promo: c.promo, mid: c.mid, now: c.now, staleH: c.staleH || 36, hideH: c.hideH || 72, handLockH: c.handLockH || 6 });
+      var top = rows.filter(function (x) { return !x.stale; })[0];
+      return top ? { a: a, name: top.p.name } : null;
+    }).filter(Boolean);
+    if (namesAt.length < 2) return "";
+    var first = namesAt[0], other = namesAt.filter(function (x) { return x.name !== first.name; })[0];
+    if (!other) return '<p class="note amount-note">For ' + esc(money(first.a, c.s.currency, 0)) + ", " + esc(first.name) + " delivers the most on this check. The same service leads at the larger amounts we compared.</p>";
+    return '<p class="note amount-note">For ' + esc(money(first.a, c.s.currency, 0)) + ", " + esc(first.name) + " delivers the most. At " + esc(money(other.a, c.s.currency, 0)) + ", " + esc(other.name) + " does. Change the amount above to see the order for your transfer.</p>";
+  }
+
   function renderResults(c) {
     var html = "";
     if (c.target === 0 || !(c.amount > 0 || c.target > 0)) return '<div class="empty"><strong>' + (c.target != null ? "Enter the amount they need to receive." : "Enter the amount you plan to pay.") + "</strong></div>";
@@ -270,11 +357,14 @@
         return renderRow(x, i, c, n);
       }).join("");
       html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>' + (c.target ? "You pay" : "They get") + '</span><span></span></div>' + rows + "</div>";
+      html += amountNote(c);
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
       if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are updated every 30 minutes from Wise\'s comparison data, which collects each provider\'s advertised rate and fee. Payout options on those rows may be incomplete.</p>';
       if (c.rows.some(function (x) { return x.tied; })) html += '<p class="note tie-note">"=" means tied: the same amount arrives. Tied services are listed with the lower fee first.</p>';
       var reg = REGISTER[c.s.id];
-      html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") + ', using standard rates (first-transfer offers are left out). Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +
+      html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") +
+        (c.promo ? ", using first-transfer rates where the provider publishes one" : ", using standard rates (turn on first-transfer offers above if you are new)") +
+        '. Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +
         (reg ? '<p class="disclose">Before you send, check the service is licensed ' + (reg[2] || "on") + ' <a href="' + reg[1] + '" target="_blank" rel="noopener">' + reg[0] + "</a>.</p>" : "") +
         (notes.length ? '<ol class="notes">' + notes.map(function (n, k) { return '<li id="sf-fn-' + (k + 1) + '"><strong>' + esc(n.who) + ":</strong> " + esc(n.text) + "</li>"; }).join("") + "</ol>" : "") + "</div>";
     } else if (c.payout && c.payout !== "all" && c.anyQuotes) {
@@ -283,8 +373,8 @@
       var list = (c.checkList || []).map(function (p) {
         return '<a href="' + esc(c.hrefFor(p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener">' + esc(p.name) + "</a>";
       }).join(DOT);
-      html += '<div class="empty"><strong>' + (c.anyQuotes ? "Today\'s quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are being checked." : "No service publishes online prices for " + esc(c.s.short) + " to " + esc(c.r.name) + " yet.") + "</strong>" +
-        "<span>" + (c.anyQuotes ? "The last check is too old to rank, so we have hidden it until it is rechecked." : "The services that send on this route show their rates only in their apps or at their branches. Compare them there, using the fair-deal figures below as a guide.") + (c.mid ? " The figures below show what a fair deal looks like, so you can judge any quote you get." : "") + "</span>" +
+      html += '<div class="empty"><strong>' + (c.anyQuotes ? "Quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are too old to rank." : "No service publishes online prices for " + esc(c.s.short) + " to " + esc(c.r.name) + " yet.") + "</strong>" +
+        "<span>" + (c.anyQuotes ? "The last check is older than three days, so it is hidden until we recheck it." : "The services on this route show their rates only in their apps or at their branches. There is no ranking to use until an online quote is published. Compare them there, using the fair-deal figures below as a guide.") + "</span>" +
         (list ? '<span class="checklist">Services to check on this route: ' + list + "</span>" : "") + "</div>";
     }
     if (c.mid && c.target) {
@@ -293,8 +383,8 @@
       var saved = cheapest ? avgPay - cheapest.pay : 0;
       html += '<div class="benchmark">' +
         '<div class="bench"><span class="k">At the mid-market rate, no fees</span><span class="v num">' + moneyHtml(ideal, c.s.currency) + '</span><span class="s">The least it could ever cost.</span></div>' +
-        '<div class="bench"><span class="k">At the regional average cost (' + c.avgPct + '%)</span><span class="v num">' + moneyHtml(avgPay, c.s.currency) + '</span><span class="s">' + esc(c.avgLabel) + "</span></div>" +
-        (saved > 0 ? '<div class="bench"><span class="k">Cheapest option vs the average</span><span class="v num gain">' + moneyHtml(saved, c.s.currency) + '</span><span class="s">Kept in your pocket on this transfer.</span></div>' : "") +
+        (c.ssa ? '<div class="bench"><span class="k">At the regional average cost (' + c.avgPct + '%)</span><span class="v num">' + moneyHtml(avgPay, c.s.currency) + '</span><span class="s">' + esc(c.avgLabel) + "</span></div>" : "") +
+        (c.ssa && saved > 0 ? '<div class="bench"><span class="k">Cheapest option vs the average</span><span class="v num gain">' + moneyHtml(saved, c.s.currency) + '</span><span class="s">Kept in your pocket on this transfer.</span></div>' : "") +
         "</div>";
     } else if (c.mid) {
       var perfect = c.amount * c.mid;
@@ -305,9 +395,13 @@
       html += '<div class="benchmark">' +
         '<div class="bench"><span class="k">At the mid-market rate, no fees</span><span class="v num">' + moneyHtml(perfect, c.r.currency) + '</span><span class="s">' +
           (top && top.gets > perfect ? esc(top.p.name) + " beats the mid-market rate today. That is usually a promotional or subsidised rate, so check it on their screen before you pay." : "Converting at the market rate with no fee. Services rarely beat this.") + "</span></div>" +
-        '<div class="bench"><span class="k">At the regional average cost (' + pct + '%)</span><span class="v num">' + moneyHtml(avg, c.r.currency) + '</span><span class="s">' + esc(c.avgLabel) + "</span></div>" +
-        (gain > 0 ? '<div class="bench"><span class="k">Best option vs the average</span><span class="v num gain">' + moneyHtml(gain, c.r.currency).replace("</span>", "</span>+") + '</span><span class="s">Extra that reaches home on this transfer.</span></div>' : "") +
+        (c.ssa ? '<div class="bench"><span class="k">At the regional average cost (' + pct + '%)</span><span class="v num">' + moneyHtml(avg, c.r.currency) + '</span><span class="s">' + esc(c.avgLabel) + "</span></div>" : "") +
+        (c.ssa && gain > 0 ? '<div class="bench"><span class="k">Best option vs the average</span><span class="v num gain">' + moneyHtml(gain, c.r.currency).replace("</span>", "</span>+") + '</span><span class="s">Extra that reaches home on this transfer.</span></div>' : "") +
         "</div>";
+    }
+    if (c.pending && c.pending.length) {
+      html += '<p class="note pending-note">Also sends on this route, not priced in this check: ' +
+        c.pending.map(function (p) { return '<a href="' + esc(c.hrefFor(p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener">' + esc(p.name) + "</a>"; }).join(DOT) + ".</p>";
     }
     return html;
   }
@@ -365,8 +459,13 @@
       : " Sent from " + esc(c.s.short) + " with " + esc(top.p.name) + ".";
     var text = how === "cash" ? amt + " is ready to collect." + by : "You have received " + amt + "." + by;
     var n = c.rows.length;
-    var cap = c.target ? "Today\u2019s cheapest way to get " + esc(money(c.target, c.r.currency, 0)) + " to " + esc(c.r.name) + (n > 1 ? ", out of " + n + " services checked." : ".") : "Today\u2019s best for " + esc(money(c.amount, c.s.currency, 0)) + " from " + esc(c.s.short) + " to " + esc(c.r.name) +
-      (n > 1 ? ", out of " + n + " services checked." : ".");
+    var checkedDay = top.q.checkedAt ? absTime(top.q.checkedAt).replace(/, .*/, "") : "";
+    var todayUtc = absTime(new Date(c.now).toISOString()).replace(/, .*/, "");
+    var when = checkedDay && checkedDay !== todayUtc ? "Best from quotes checked " + checkedDay : "Today\u2019s best";
+    var cap = c.target
+      ? (checkedDay && checkedDay !== todayUtc ? "Cheapest from quotes checked " + checkedDay : "Today\u2019s cheapest") + " way to get " + esc(money(c.target, c.r.currency, 0)) + " to " + esc(c.r.name) + (n > 1 ? ", out of " + n + " services checked." : ".")
+      : when + " for " + esc(money(c.amount, c.s.currency, 0)) + " from " + esc(c.s.short) + " to " + esc(c.r.name) +
+        (n > 1 ? ", out of " + n + " services checked." : ".");
     if (c.target) return { title: NOTICE_TITLE[how] || "Mobile money", text: text, cap: cap.replace(/\u00a0/g, " ") };
     return { title: NOTICE_TITLE[how] || "Mobile money", text: text, cap: cap.replace(/\u00a0/g, " ") };
   }
@@ -377,22 +476,25 @@
   function shareRaw(c, url) {
     var top = c.rows.filter(function (x) { return !x.stale; })[0];
     var lead = leaders(c.rows);
+    var checkedDay = top && top.q.checkedAt ? absTime(top.q.checkedAt).replace(/, .*/, "") : "";
+    var todayUtc = absTime(new Date(c.now || Date.now()).toISOString()).replace(/, .*/, "");
+    var when = checkedDay && checkedDay !== todayUtc ? "On quotes checked " + checkedDay + ", " : "Today ";
     if (top && c.target) {
-      return "Need " + money(c.target, c.r.currency) + " to arrive in " + c.r.name + "? Today " + top.p.name + " gets it there for " + money(top.pay, c.s.currency, 2) +
+      return "Need " + money(c.target, c.r.currency) + " to arrive in " + c.r.name + "? " + when + top.p.name + " gets it there for " + money(top.pay, c.s.currency, 2) +
         (c.rows.length > 1 ? ", the least of " + c.rows.length + " services checked" : "") + ". Compare: " + url;
     }
     if (top && lead.length > 1) {
-      return "Sending " + money(c.amount, c.s.currency, 0) + " to " + c.r.name + "? Today " + names(lead) + " tie at " + money(top.gets, c.r.currency) +
+      return "Sending " + money(c.amount, c.s.currency, 0) + " to " + c.r.name + "? " + when + names(lead) + " tie at " + money(top.gets, c.r.currency) +
         ", the most of " + c.rows.length + " services checked. Compare your amount: " + url;
     }
     if (top) {
-      return "Sending " + money(c.amount, c.s.currency, 0) + " to " + c.r.name + "? Today " + top.p.name + " delivers " + money(top.gets, c.r.currency) +
+      return "Sending " + money(c.amount, c.s.currency, 0) + " to " + c.r.name + "? " + when + top.p.name + " delivers " + money(top.gets, c.r.currency) +
         (c.rows.length > 1 ? ", the most of " + c.rows.length + " services checked" : "") + ". Compare your amount: " + url;
     }
     return "Compare what actually arrives when you send money from " + c.s.short + " to " + c.r.name + ": " + url;
   }
 
   var api = { LABEL: LABEL, esc: esc, money: money, rateStr: rateStr, midRate: midRate, ageHours: ageHours, ago: ago, absTime: absTime,
-    evaluate: evaluate, payFor: payFor, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText, notice: notice, moneyHtml: moneyHtml, homeTime: homeTime, leaders: leaders, names: names, picks: picks, spark: spark, badge: badge };
+    evaluate: evaluate, payFor: payFor, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText, notice: notice, moneyHtml: moneyHtml, homeTime: homeTime, leaders: leaders, names: names, picks: picks, spark: spark, badge: badge, mergeFeed: mergeFeed, promoRate: promoRate, SSA: SSA };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.SFRank = api;
 })(typeof window !== "undefined" ? window : this);

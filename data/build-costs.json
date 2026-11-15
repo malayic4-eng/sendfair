@@ -108,7 +108,35 @@
           "source": "6-inch hollow sandcrete block, Lagos depot asking price ₦850 on 16 Oct 2026. Landalyst records the vendor's opening price, so cash and bulk buys often close lower.",
           "url": "https://www.landalyst.com/prices/sandcrete-block-6-inches-hollow-machine-moulded-block"
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Building plan approval",
+          "method": "nigeria",
+          "url": "https://www.listedbyowners.com.ng/building-cost-nigeria-2025",
+          "small": {
+            "amount": 150000,
+            "qtyLabel": "No separate 1-bedroom or 2-bedroom Abuja figure was published. This is the bottom of a 2025 reported range for a 3-bedroom bungalow.",
+            "source": "Reported Abuja building-plan approval for a 3-bedroom bungalow, bottom of ₦150,000–₦200,000, 2025. The FCT computes the real fee from the building volume after the drawings are in. Development-control and drawing fees are not in this line."
+          },
+          "bungalow": {
+            "amount": 175000,
+            "qtyLabel": "A 3-bedroom bungalow, middle of a 2025 reported Abuja range.",
+            "source": "Reported Abuja building-plan approval for a 3-bedroom bungalow, middle of ₦150,000–₦200,000, 2025. The FCT computes the real fee from the building volume. Development-control and drawing fees are not in this line."
+          },
+          "duplex": {
+            "amount": 330000,
+            "qtyLabel": "A 4-bedroom or two-floor house, middle of a 2025 reported range for a duplex.",
+            "source": "Reported Abuja building-plan approval for a 4-bedroom duplex, middle of ₦280,000–₦380,000, 2025. Used here for a 4-bedroom house and for any two-floor house below five bedrooms."
+          },
+          "large": {
+            "amount": 550000,
+            "qtyLabel": "A 5-bedroom house, middle of a 2025 reported range.",
+            "source": "Reported Abuja building-plan approval for a 5-bedroom house, middle of ₦450,000–₦650,000, 2025. The FCT assessment can differ once the volume is measured."
+          }
+        }
+      ]
     },
     "ghana": {
       "name": "Ghana",
@@ -813,7 +841,25 @@
         "gate": {
           "guideFrom": "kenya"
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Building permit",
+          "method": "ghana",
+          "guide": true,
+          "form": 200,
+          "jacket": 250,
+          "site": 100,
+          "perBedroom": 100,
+          "oneStorey": 822.25,
+          "twoStorey": 1012,
+          "percent": 0.0063,
+          "qtyLabel": "Ga West Municipal Assembly draft 2026 fee-fixing. Other assemblies publish their own resolution. The percentage uses this page's total before the permit, in place of the assembly's assessed cost.",
+          "source": "Ga West draft 2026 fee-fixing, as reported by Yen.com.gh: form GH₵200, residential jacket GH₵250, site-plan check GH₵100, submission GH₵100 a bedroom, Class A development fee GH₵822.25 on one floor or GH₵1,012 on two, plus 0.63% of the cost of development.",
+          "url": "https://yen.com.gh/real-estate/314630-building-permit-costs-ghana-2026-fees-requirements-how-apply/"
+        }
+      ]
     },
     "kenya": {
       "name": "Kenya",
@@ -1497,7 +1543,36 @@
         "label": "Published range for an economy to standard finish in Kenya, for a house of this floor area",
         "source": "KenyaHub 2026, citing BORAQS and KNBS benchmarks: KES 36,000–42,500 per m² for box-profile roofing, ceramic tiles, ordinary doors and standard sanitaryware. That band is a whole-build planning rate. This page still leaves out the contractor's fee and the land.",
         "url": "https://kenyahub.me/blog/cost-of-building-a-house-in-kenya-mjengo-guide-2026/"
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Building plan approval",
+          "method": "perM2",
+          "rate": 105,
+          "qtyLabel": "0.3% of KES 35,000 a square metre, the Nairobi City County Finance Bill 2025 rate for a low-class bungalow or maisonette.",
+          "source": "Nairobi City County Finance Bill 2025: a new domestic submission is 0.3% of the proposed construction cost, and the bill's rate for a low-class single unit is KES 35,000 a square metre. That is KES 105 a square metre.",
+          "url": "https://nairobiassembly.go.ke/ncca/wp-content/uploads/bill/2025/THE-NAIROBI-COUNTY-CITY-FINANCE-Bill-2025-26-final-1_compressed.pdf"
+        },
+        {
+          "key": "occupation",
+          "label": "Occupation certificate",
+          "method": "flat",
+          "amount": 10000,
+          "qtyLabel": "One certificate for a single dwelling.",
+          "source": "Nairobi City County Finance Bill 2025: occupation certificate for a single dwelling, KES 10,000.",
+          "url": "https://nairobiassembly.go.ke/ncca/wp-content/uploads/bill/2025/THE-NAIROBI-COUNTY-CITY-FINANCE-Bill-2025-26-final-1_compressed.pdf"
+        },
+        {
+          "key": "healthFee",
+          "label": "Public health plan vetting",
+          "method": "flat",
+          "amount": 5000,
+          "qtyLabel": "One architectural plan, the fee for 1 to 10 units.",
+          "source": "Nairobi City County Finance Bill 2025: public-health vetting of an architectural building plan, KES 5,000 for 1 to 10 units.",
+          "url": "https://nairobiassembly.go.ke/ncca/wp-content/uploads/bill/2025/THE-NAIROBI-COUNTY-CITY-FINANCE-Bill-2025-26-final-1_compressed.pdf"
+        }
+      ]
     },
     "uganda": {
       "name": "Uganda",
@@ -1551,7 +1626,21 @@
           "source": "Plaster sand, middle of UGX 1,750,000–1,900,000 for a 25 m³ truck, July 2026.",
           "url": "https://aurabuildltd.com/blog/construction-rates-in-uganda-2026"
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Kampala plan approval",
+          "method": "kcca",
+          "archPerM2": 1000,
+          "slab": 30000,
+          "wall": 50000,
+          "occupation": 80000,
+          "vat": 0.18,
+          "source": "Kampala Capital City Authority: architectural inspection UGX 1,000 a square metre of ground floor, structural inspection UGX 30,000 a suspended slab, boundary-wall inspection UGX 50,000, occupation permit UGX 80,000. The authority adds 18% VAT.",
+          "url": "https://www.kcca.go.ug/physical-planning-fees/plan-approval"
+        }
+      ]
     },
     "zambia": {
       "name": "Zambia",
@@ -1583,7 +1672,17 @@
             }
           ]
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Lusaka construction permit",
+          "method": "unpriced",
+          "qtyLabel": "One permit from Lusaka City Council. No residential fee schedule was published in this check, so the line is not given a guessed figure.",
+          "source": "Lusaka City Council's planning department requires a construction permit. Its Metro Manager portal does not publish a residential tariff.",
+          "url": "https://www.lcc.gov.zm/city-planning-department/"
+        }
+      ]
     },
     "zimbabwe": {
       "name": "Zimbabwe",
@@ -1592,7 +1691,19 @@
       "roof": "sheet",
       "guideFrom": "southafrica",
       "note": "Transfers to Zimbabwe on SendFair are shown in US dollars. No checked Zimbabwe shop list was available this month, so every line is a guide scaled from Gauteng or, where Gauteng has no price, from Nairobi.",
-      "items": {}
+      "items": {},
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Harare building plan approval",
+          "method": "flat",
+          "guide": true,
+          "amount": 200,
+          "qtyLabel": "One approval. The town clerk's stated fee for a single-storey house in a low-density area. The statement was not split by floor area, so every size on this page uses US$200. A two-storey house was not given a separate fee.",
+          "source": "City of Harare, Schedule 25A, as stated by the town clerk: US$200 for a single-storey house in a low-density area, reduced from an earlier higher charge.",
+          "url": "https://www.propertybook.co.zw/blog/harare-slashes-building-plan-approval-fee"
+        }
+      ]
     },
     "egypt": {
       "name": "Egypt",
@@ -1612,7 +1723,37 @@
           "source": "Reinforcing steel, about EGP 41,300 a tonne in the same May 2026 bulletin.",
           "url": "https://enterpriseam.com/egypt/hardhats/real-estate-price-gains-are-masking-a-liquidity-crunch-for-developers/"
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Licence insurance deposit",
+          "method": "perM2",
+          "qtyLabel": "Building Law article 45 requires a deposit of 0.2% of the licensed works. Decree 773 of 2025 sets the deemed cost a square metre. The governor's own issuing fee is capped by the law and is not added, because the current governor's decision was not in this check. The deposit is held against demolition and correction.",
+          "url": "https://blogs.realestate.gov.eg/news/minister-of-housing-issues-decision-on-estimating-the-average-cost-of-constructing-a-square-meter-of-buildings/",
+          "options": [
+            {
+              "id": "city",
+              "name": "Cairo, Giza and Alexandria",
+              "rate": 2.8,
+              "default": true,
+              "source": "0.2% of EGP 1,400 a square metre, Decree 773 of 2025 for Cairo, Giza and Alexandria. That is EGP 2.80 a square metre."
+            },
+            {
+              "id": "town",
+              "name": "Other towns",
+              "rate": 1.6,
+              "source": "0.2% of EGP 800 a square metre, Decree 773 of 2025 for towns in the other governorates. That is EGP 1.60 a square metre."
+            },
+            {
+              "id": "village",
+              "name": "Village",
+              "rate": 0.6,
+              "source": "0.2% of EGP 300 a square metre, Decree 773 of 2025 for villages. That is EGP 0.60 a square metre."
+            }
+          ]
+        }
+      ]
     },
     "morocco": {
       "name": "Morocco",
@@ -1651,7 +1792,41 @@
             }
           ]
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Municipal building permit",
+          "method": "flat",
+          "guide": true,
+          "qtyLabel": "One villa permit. Architect's fees are legally required and are not in this line.",
+          "url": "https://buildmarrakech.com/blog/building-permits-morocco/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower reported fee",
+              "amount": 5000,
+              "guide": true,
+              "source": "Bottom of a 2025 reported range of MAD 5,000–25,000 for a municipal villa permit in Marrakech. Communes differ."
+            },
+            {
+              "id": "mid",
+              "name": "Middle of the reported range",
+              "amount": 15000,
+              "guide": true,
+              "default": true,
+              "source": "Middle of a 2025 reported range of MAD 5,000–25,000 for a municipal villa permit. Communes differ. Architect's fees are not included."
+            },
+            {
+              "id": "high",
+              "name": "Upper reported fee",
+              "amount": 25000,
+              "guide": true,
+              "source": "Top of a 2025 reported range of MAD 5,000–25,000 for a municipal villa permit in Marrakech."
+            }
+          ]
+        }
+      ]
     },
     "senegal": {
       "name": "Senegal",
@@ -1690,7 +1865,31 @@
             }
           ]
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Authorisation to build",
+          "method": "flat",
+          "qtyLabel": "The ministry's urbanism tax plus the fiscal stamp. A commune may add a charge that was not on this list.",
+          "url": "https://www.urbanisme.gouv.sn/services-aux-usagers/demande-dune-autorisation-de-construire",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower urbanism tax plus stamp",
+              "amount": 11000,
+              "source": "Ministry of Urban Renewal: urbanism tax at the bottom of XOF 1,000–5,000, plus a fiscal stamp of XOF 10,000."
+            },
+            {
+              "id": "high",
+              "name": "Upper urbanism tax plus stamp",
+              "amount": 15000,
+              "default": true,
+              "source": "Ministry of Urban Renewal: urbanism tax at the top of XOF 1,000–5,000, plus a fiscal stamp of XOF 10,000."
+            }
+          ]
+        }
+      ]
     },
     "ivorycoast": {
       "name": "Côte d'Ivoire",
@@ -1705,7 +1904,18 @@
           "source": "Official ceiling for a 50kg bag of CPJ 42.5, FCFA 3,900, in force through 2026.",
           "url": "https://blog.iambeezy.app/fr/prix-ciment-cote-ivoire-tonne-baisse-7000-fcfa-nouveaux-tarifs-2026/"
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Building permit",
+          "method": "flat",
+          "amount": 50000,
+          "qtyLabel": "One permit, the published fee for every type of construction.",
+          "source": "Service Public de Côte d'Ivoire: building permit, all types of construction, XOF 50,000. A property development is listed at XOF 100,000 and is not used for a single house.",
+          "url": "https://servicepublic.gouv.ci/accueil/detaildemarcheparticulier/3/140/29"
+        }
+      ]
     },
     "mali": {
       "name": "Mali",
@@ -1714,7 +1924,18 @@
       "roof": "sheet",
       "guideFrom": "ivorycoast",
       "note": "No Bamako shop list was in this month's check. Cement follows the Abidjan ceiling and the other lines follow that guide. Haulage to Bamako usually costs extra.",
-      "items": {}
+      "items": {},
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Bamako building permit",
+          "method": "flat",
+          "amount": 10250,
+          "qtyLabel": "One file fee and the stamp on the application. A September 2026 ordinance caps the home authorisation tax at XOF 10,000.",
+          "source": "Bamako town hall: file fee XOF 10,000 plus a XOF 250 stamp on the application. Checked from the city portal on 17 October 2026.",
+          "url": "https://www.ibamako.com/en/demarches/building-permit-bamako/"
+        }
+      ]
     },
     "cameroon": {
       "name": "Cameroon",
@@ -1723,7 +1944,21 @@
       "roof": "sheet",
       "guideFrom": "ivorycoast",
       "note": "No Douala shop list was in this month's check. The Central African franc is pegged to the West African franc, so the Abidjan cement ceiling is used as a guide only.",
-      "items": {}
+      "items": {},
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Yaoundé building permit",
+          "method": "percent",
+          "guide": true,
+          "rate": 0.01,
+          "minimum": 25000,
+          "extra": 10000,
+          "qtyLabel": "Yaoundé 1 charges 1% of the estimated works, and at least XAF 25,000, plus a planning certificate of XAF 10,000. This page uses its own total before the permit as that estimate. Douala's own tariff was not in this check.",
+          "source": "Yaoundé 1st town hall: a building permit for work over 40 m² is 1% of the estimated cost of the works, minimum XAF 25,000. A planning certificate is XAF 10,000.",
+          "url": "https://www.mairie-yde1.cm/en/services/urbanisme-construction"
+        }
+      ]
     },
     "ethiopia": {
       "name": "Ethiopia",
@@ -1732,7 +1967,17 @@
       "roof": "sheet",
       "guideFrom": "kenya",
       "note": "No Addis retail list was reliable enough to quote this month. Every line is a guide scaled from Nairobi prices.",
-      "items": {}
+      "items": {},
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Addis construction permit",
+          "method": "unpriced",
+          "qtyLabel": "A sub-city construction permit is required, and a two-floor house also needs a soil test. No current city-wide tariff was reliable enough to price.",
+          "source": "An Addis Ababa case study records a planning-consent service fee of ETB 400 and an administrative fee of ETB 300. Those figures are one office's practice, not a current city tariff, so they are not added.",
+          "url": "https://ethiopianchamber.com/shared-files/29879/?Construction+Permit+for+the+Private+Sector+in+Ethiopia+.pdf="
+        }
+      ]
     },
     "southafrica": {
       "name": "South Africa",
@@ -1802,7 +2047,22 @@
           "source": "6-inch hollow concrete block, 390×140×190, Cashbuild listed price R14 including VAT. Branch prices can differ.",
           "url": "https://www.cashbuild.co.za/shop/cement-blocks/1272-block-concrete-hollow-6-2050000036859.html"
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Johannesburg building plan fee",
+          "method": "joburg",
+          "guide": true,
+          "rate": 27,
+          "minimum": 1027,
+          "smallMax": 50,
+          "smallFee": 732,
+          "qtyLabel": "City of Johannesburg tariff report from 1 July 2026. The report does not say whether VAT is included. Other metros set their own tariff.",
+          "source": "City of Johannesburg, from 1 July 2026: R27 a square metre for the first 1,000 m², minimum R1,027. A new house of 50 m² or less is R732.",
+          "url": "https://buildingplans.co.za/councils/johannesburg/"
+        }
+      ]
     },
     "tanzania": {
       "name": "Tanzania",
@@ -1848,7 +2108,41 @@
             }
           ]
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Dar es Salaam building permit",
+          "method": "flat",
+          "guide": true,
+          "qtyLabel": "One residential permit. This is a reported range, not a municipal tariff, and it is not split by floor area.",
+          "url": "https://materials.tanzibaba.com/learn/building-permit-guide-tanzania",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower reported fee",
+              "amount": 500000,
+              "guide": true,
+              "source": "Bottom of a 2025 reported range of TZS 500,000–2,000,000 for a standard house in Dar es Salaam."
+            },
+            {
+              "id": "mid",
+              "name": "Middle of the reported range",
+              "amount": 1250000,
+              "guide": true,
+              "default": true,
+              "source": "Middle of a 2025 reported range of TZS 500,000–2,000,000 for a standard house in Dar es Salaam. Not a municipal tariff."
+            },
+            {
+              "id": "high",
+              "name": "Upper reported fee",
+              "amount": 2000000,
+              "guide": true,
+              "source": "Top of a 2025 reported range of TZS 500,000–2,000,000 for a standard house in Dar es Salaam."
+            }
+          ]
+        }
+      ]
     },
     "drc": {
       "name": "DR Congo",
@@ -1857,7 +2151,19 @@
       "roof": "sheet",
       "guideFrom": "kenya",
       "note": "No Kinshasa or Lubumbashi price list was in this month's check. Every line is a guide scaled from Nairobi, and transport inside DR Congo can dwarf it.",
-      "items": {}
+      "items": {},
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Kinshasa building permit",
+          "method": "usdPerM2",
+          "guide": true,
+          "rate": 1.8,
+          "qtyLabel": "Residential buildings of at most two floors are assessed by the province at USD 1.80 a square metre.",
+          "source": "Agence Nationale pour la Promotion des Investissements: a residential building of at most two floors costs USD 1.80 a square metre. Shown here in francs at the mid-market rate.",
+          "url": "https://www.dev.investindrc.cd/en/Permis-de-construire"
+        }
+      ]
     },
     "rwanda": {
       "name": "Rwanda",
@@ -1896,7 +2202,39 @@
             }
           ]
         }
-      }
+      },
+      "permits": [
+        {
+          "key": "planFee",
+          "label": "Construction permit",
+          "method": "band",
+          "qtyLabel": "Rwanda Revenue Authority fee on built-up floor area. A Kigali occupation permit is free, and a fence authorisation is exempt.",
+          "source": "Rwanda Revenue Authority: building permit FRW 20,000 up to 100 m², FRW 100,000 from 101 to 200 m², FRW 150,000 from 201 to 500 m², and FRW 200,000 above 500 m².",
+          "url": "https://www.rra.gov.rw/en/domestic-tax-services/local-government-taxes/other-fees",
+          "steps": [
+            {
+              "upto": 100,
+              "amount": 20000,
+              "name": "up to 100 m²"
+            },
+            {
+              "upto": 200,
+              "amount": 100000,
+              "name": "101 to 200 m²"
+            },
+            {
+              "upto": 500,
+              "amount": 150000,
+              "name": "201 to 500 m²"
+            },
+            {
+              "upto": 1000000,
+              "amount": 200000,
+              "name": "above 500 m²"
+            }
+          ]
+        }
+      ]
     }
   }
 }
