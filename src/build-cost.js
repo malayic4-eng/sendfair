@@ -6,27 +6,60 @@
     if (!(amount > 0) || !rates || !rates[from] || !rates[to]) return null;
     return amount / rates[from] * rates[to];
   }
-  function priceOf(data, id, key, rates, seen) {
-    seen = seen || {};
-    var mark = id + ":" + key;
-    if (seen[mark]) return null;
-    seen[mark] = 1;
-    var c = data.countries[id];
-    if (!c) return null;
-    var item = (c.items || {})[key];
-    if (item && item.price > 0) {
-      return { price: item.price, quoted: !item.guide, source: item.source, url: item.url || "", currency: c.currency, origin: c.name };
+  function choicesFor(data, id, key, rates) {
+    var seen = {};
+    var cursor = id;
+    while (cursor && !seen[cursor]) {
+      seen[cursor] = 1;
+      var c = data.countries[cursor];
+      if (!c) break;
+      var item = (c.items || {})[key];
+      var hasOpts = item && item.options && item.options.length;
+      var hasPrice = item && item.price > 0;
+      if (hasOpts || hasPrice) {
+        var raw = hasOpts ? item.options : [{ id: "listed", name: "Listed price", price: item.price, source: item.source, url: item.url, guide: !!item.guide, "default": true }];
+        var home = data.countries[id];
+        var out = [];
+        for (var i = 0; i < raw.length; i++) {
+          var o = raw[i];
+          if (!(o.price > 0)) continue;
+          var price = o.price;
+          var source = o.source || (item && item.source) || "";
+          var quoted = !o.guide && !(item && item.guide);
+          if (cursor !== id) {
+            price = fx(o.price, c.currency, home.currency, rates);
+            if (!(price > 0)) continue;
+            var note = "Guide, scaled from the " + c.name + " figure at the mid-market rate. ";
+            source = source.indexOf(note) === 0 ? source : note + source;
+            quoted = false;
+          }
+          out.push({
+            id: o.id, name: o.name, price: price, source: source,
+            url: o.url || (item && item.url) || "", quoted: quoted, isDefault: !!o["default"]
+          });
+        }
+        return out;
+      }
+      cursor = (item && item.guideFrom) || c.guideFrom;
     }
-    var donor = (item && item.guideFrom) || c.guideFrom;
-    if (!donor) return null;
-    var base = priceOf(data, donor, key, rates, seen);
-    if (!base || !(base.price > 0)) return null;
-    var converted = fx(base.price, base.currency, c.currency, rates);
-    if (!(converted > 0)) return null;
-    var note = "Guide, scaled from the " + base.origin + " figure at the mid-market rate. ";
+    return [];
+  }
+  function priceOf(data, id, key, rates, seen, optionId) {
+    var choices = choicesFor(data, id, key, rates);
+    if (!choices.length) return null;
+    var chosen = null;
+    var i;
+    if (optionId) {
+      for (i = 0; i < choices.length; i++) if (choices[i].id === optionId) chosen = choices[i];
+    }
+    if (!chosen) {
+      for (i = 0; i < choices.length; i++) if (choices[i].isDefault) chosen = choices[i];
+    }
+    if (!chosen) chosen = choices[0];
+    var c = data.countries[id];
     return {
-      price: converted, quoted: false, currency: c.currency, origin: base.origin, url: base.url,
-      source: base.source.indexOf(note) === 0 ? base.source : note + base.source
+      price: chosen.price, quoted: chosen.quoted, source: chosen.source, url: chosen.url,
+      currency: c.currency, origin: c.name, optionId: chosen.id, optionName: chosen.name, choices: choices
     };
   }
   function quantities(data, m2, storeys, roof) {
@@ -68,56 +101,56 @@
     var p = Math.pow(10, d || 0);
     return Math.round(n * p) / p;
   }
-  function estimate(data, id, m2, storeys, rates) {
+  function estimate(data, id, m2, storeys, rates, picks) {
     var c = data.countries[id];
     if (!c || !(m2 > 0)) return null;
     storeys = storeys >= 2 ? 2 : 1;
+    picks = picks || {};
     var q = quantities(data, m2, storeys, c.roof);
-    var cement = priceOf(data, id, "cement", rates);
-    var steel = priceOf(data, id, "steel", rates);
-    var roof = c.roof === "slab" ? null : priceOf(data, id, "roof", rates);
-    var sand = priceOf(data, id, "sand", rates);
     var lines = [];
-    function add(key, label, qty, qtyLabel, unit, unitName, group) {
+    function add(key, label, qty, qtyLabel, rateKey, unitName, group) {
       if (!(qty > 0)) return;
+      var unit = priceOf(data, id, rateKey, rates, null, picks[key]);
       if (!unit) {
         lines.push({ key: key, label: label, group: group, qty: qty, qtyLabel: qtyLabel, cost: null, quoted: false, source: "No price this month." });
         return;
       }
+      var choices = unit.choices && unit.choices.length > 1 ? unit.choices : null;
       lines.push({
-        key: key, label: label, group: group, qty: qty, qtyLabel: qtyLabel,
+        key: key, label: label, group: group, qty: qty,
+        qtyLabel: qtyLabel + (choices ? " · " + unit.optionName : ""),
         unitPrice: unit.price, unitName: unitName, cost: qty * unit.price,
-        quoted: unit.quoted, source: unit.source, url: unit.url
+        quoted: unit.quoted, source: unit.source, url: unit.url,
+        choice: unit.optionId, choiceName: unit.optionName, choices: choices
       });
     }
     function trade(key, label, days, rateKey) {
-      var unit = priceOf(data, id, rateKey, rates);
       var n = Math.round(days);
       if (!(n > 0)) return;
-      add(key, label, n, n + " days", unit, "per day", "Labour");
+      add(key, label, n, n + " days", rateKey, "per day", "Labour");
     }
     var bars = Math.round(q.steelKg / (data.barKg || 10.65));
-    add("cement", "Cement", roundQty(q.cementBags), Math.round(q.cementBags) + " bags of 50kg, for concrete, mortar, plaster and the floor screed", cement, "per bag", "Structure");
-    add("steel", "Steel", roundQty(q.steelKg), Math.round(q.steelKg) + " kg, about " + bars + " bars of 12mm by 12m", steel, "per kg", "Structure");
-    add("ballast", "Ballast", roundQty(q.ballastM3, 1), roundQty(q.ballastM3, 1) + " m³ under the ground floor", priceOf(data, id, "ballast", rates), "per m³", "Structure");
-    add("sand", "Sand", roundQty(q.sandM3, 1), roundQty(q.sandM3, 1) + " m³, for concrete, mortar, plaster and the screed", sand, "per m³", "Structure");
-    add("blocks", "Blocks", q.blocks, q.blocks + " hollow blocks, 6 inch", priceOf(data, id, "blocks", rates), "each", "Walls and roof");
+    add("cement", "Cement", roundQty(q.cementBags), Math.round(q.cementBags) + " bags of 50kg, for concrete, mortar, plaster and the floor screed", "cement", "per bag", "Structure");
+    add("steel", "Steel", roundQty(q.steelKg), Math.round(q.steelKg) + " kg. At 12mm by 12m that is about " + bars + " bars; a thicker bar is fewer bars for the same weight", "steel", "per kg", "Structure");
+    add("ballast", "Ballast", roundQty(q.ballastM3, 1), roundQty(q.ballastM3, 1) + " m³ under the ground floor", "ballast", "per m³", "Structure");
+    add("sand", "Sand", roundQty(q.sandM3, 1), roundQty(q.sandM3, 1) + " m³, for concrete, mortar, plaster and the screed", "sand", "per m³", "Structure");
+    add("blocks", "Blocks", q.blocks, q.blocks + " hollow blocks", "blocks", "each", "Walls and roof");
     if (c.roof === "slab") {
       lines.push({ key: "roof", group: "Walls and roof", label: "Roof", qty: 0, qtyLabel: "Concrete slab. The extra cement and steel above stand in for it. No sheets, no timber trusses, no board ceiling.", cost: 0, quoted: true, source: "No iron sheets on a concrete roof.", slab: true });
     } else {
-      add("roof", "Roofing", roundQty(q.roofM2, 0), Math.round(q.roofM2) + " m² of sheet", roof, "per m²", "Walls and roof");
-      add("timber", "Roof timber", roundQty(q.timberM2, 0), Math.round(q.timberM2) + " m² of trusses", priceOf(data, id, "timber", rates), "per m²", "Walls and roof");
+      add("roof", "Roofing", roundQty(q.roofM2, 0), Math.round(q.roofM2) + " m² of sheet", "roof", "per m²", "Walls and roof");
+      add("timber", "Roof timber", roundQty(q.timberM2, 0), Math.round(q.timberM2) + " m² of trusses", "timber", "per m²", "Walls and roof");
     }
-    add("windows", "Windows", q.windows, q.windows + " aluminium windows", priceOf(data, id, "window", rates), "each", "Windows and doors");
-    add("doorIn", "Internal doors", q.doorsIn, q.doorsIn + " wooden doors", priceOf(data, id, "doorIn", rates), "each", "Windows and doors");
-    add("doorOut", "External doors", q.doorsOut, q.doorsOut + " metal security door" + (q.doorsOut > 1 ? "s" : ""), priceOf(data, id, "doorOut", rates), "each", "Windows and doors");
-    add("tiles", "Floor tiles", roundQty(q.tilesM2, 0), Math.round(q.tilesM2) + " m², with an allowance for waste", priceOf(data, id, "tiles", rates), "per m²", "Finishes");
-    add("ceiling", "Ceiling boards", roundQty(q.ceilingM2, 0), Math.round(q.ceilingM2) + " m² of board. The metal frame is not in this line", priceOf(data, id, "ceiling", rates), "per m²", "Finishes");
-    add("paint", "Paint", roundQty(q.paintL, 0), Math.round(q.paintL) + " litres, two coats on the walls", priceOf(data, id, "paint", rates), "per litre", "Finishes");
-    add("elec", "Wiring", q.elecPoints, q.elecPoints + " lights and sockets, materials", priceOf(data, id, "elecPoint", rates), "per point", "Services");
-    add("pipe", "Plumbing pipe", roundQty(q.pipeM, 0), Math.round(q.pipeM) + " m of small supply pipe", priceOf(data, id, "pipe", rates), "per m", "Services");
-    add("wc", "Sanitary fittings", q.wc, q.wc + " WC and cistern", priceOf(data, id, "wc", rates), "each", "Services");
-    add("tank", "Water tank", q.tank, "One 1,000 litre tank", priceOf(data, id, "tank", rates), "each", "Services");
+    add("windows", "Windows", q.windows, q.windows + " windows", "window", "each", "Windows and doors");
+    add("doorIn", "Internal doors", q.doorsIn, q.doorsIn + " internal doors", "doorIn", "each", "Windows and doors");
+    add("doorOut", "External doors", q.doorsOut, q.doorsOut + " external door" + (q.doorsOut > 1 ? "s" : ""), "doorOut", "each", "Windows and doors");
+    add("tiles", "Floor tiles", roundQty(q.tilesM2, 0), Math.round(q.tilesM2) + " m², with an allowance for waste", "tiles", "per m²", "Finishes");
+    add("ceiling", "Ceiling boards", roundQty(q.ceilingM2, 0), Math.round(q.ceilingM2) + " m² of board. The metal frame is not in this line", "ceiling", "per m²", "Finishes");
+    add("paint", "Paint", roundQty(q.paintL, 0), Math.round(q.paintL) + " litres, two coats on the walls", "paint", "per litre", "Finishes");
+    add("elec", "Wiring", q.elecPoints, q.elecPoints + " lights and sockets, materials", "elecPoint", "per point", "Services");
+    add("pipe", "Plumbing pipe", roundQty(q.pipeM, 0), Math.round(q.pipeM) + " m of pipe", "pipe", "per m", "Services");
+    add("wc", "Sanitary fittings", q.wc, q.wc + " WC and cistern", "wc", "each", "Services");
+    add("tank", "Water tank", q.tank, "One 1,000 litre tank", "tank", "each", "Services");
     trade("mason", "Masons", q.masonDays, "mason");
     trade("hand", "Labourers", q.handDays, "hand");
     trade("carpenter", "Carpenter", q.carpenterDays, "carpenter");
@@ -133,7 +166,7 @@
       missing: lines.filter(function (l) { return !(l.cost > 0) && !l.slab; }).length
     };
   }
-  var api = { estimate: estimate, fx: fx, priceOf: priceOf };
+  var api = { estimate: estimate, fx: fx, priceOf: priceOf, choicesFor: choicesFor };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.SFBuild = api;
 
@@ -158,6 +191,8 @@
     var data = res[0], rates = (res[1] && res[1].rates) || {}, corridors = res[2];
     var country = box.getAttribute("data-country") || "kenya";
     var qs = new URLSearchParams(location.search);
+    var picks = {};
+    qs.forEach(function (v, k) { if (k.indexOf("opt_") === 0 && v) picks[k.slice(4)] = v; });
     var house = qs.get("size") || "3";
     var storeys = qs.get("floors") === "2" ? 2 : 1;
     var custom = house === "custom";
@@ -173,7 +208,7 @@
     }
     function draw() {
       var area = m2();
-      var est = estimate(data, country, area, storeys, rates);
+      var est = estimate(data, country, area, storeys, rates, picks);
       if (!est) { out.innerHTML = "<p>Choose a country we cover.</p>"; return; }
       var s = sender();
       var sendAmt = s ? fx(est.total, est.currency, s.currency, rates) : null;
@@ -185,7 +220,13 @@
         if (l.group && l.group !== lastGroup) { lastGroup = l.group; head = '<div class="build-group">' + esc(l.group) + "</div>"; }
         var tag = l.slab ? "" : l.cost > 0 ? (l.quoted ? '<span class="build-tag is-quoted">Listed price</span>' : '<span class="build-tag is-guide">Guide</span>') : '<span class="build-tag">No price</span>';
         var cost = l.slab ? "Included above" : l.cost > 0 ? money(l.cost, est.currency) : "–";
-        return head + '<div class="build-line"><div><strong>' + esc(l.label) + "</strong> " + tag + '<span class="build-qty">' + esc(l.qtyLabel) + "</span></div><div class=\"num\">" + esc(cost) + "</div></div>";
+        var pickHtml = "";
+        if (l.choices) {
+          pickHtml = '<label class="build-pick">Type <select data-pick="' + esc(l.key) + '">' + l.choices.map(function (o) {
+            return '<option value="' + esc(o.id) + '"' + (o.id === l.choice ? " selected" : "") + ">" + esc(o.name) + " · " + esc(money(o.price, est.currency)) + (l.unitName ? " " + esc(l.unitName) : "") + "</option>";
+          }).join("") + "</select></label>";
+        }
+        return head + '<div class="build-line"><div><strong>' + esc(l.label) + "</strong> " + tag + '<span class="build-qty">' + esc(l.qtyLabel) + "</span>" + pickHtml + '</div><div class="num">' + esc(cost) + "</div></div>";
       }).join("");
       var fin = est.country.finished;
       var finHtml = "";
@@ -231,6 +272,7 @@
       if (custom) q.set("m2", String(Math.round(m2()) || 120));
       var fromId = document.getElementById("sf-build-from").value;
       if (fromId && fromId !== "uk") q.set("from", fromId);
+      Object.keys(picks).forEach(function (k) { if (picks[k]) q.set("opt_" + k, picks[k]); });
       var s = q.toString();
       return s ? "?" + s : "";
     }
@@ -255,6 +297,12 @@
       draw();
     });
     document.getElementById("sf-build-m2").addEventListener("input", draw);
+    out.addEventListener("change", function (e) {
+      var sel = e.target.closest("select[data-pick]");
+      if (!sel) return;
+      picks[sel.getAttribute("data-pick")] = sel.value;
+      draw();
+    });
     draw();
   }).catch(function () {
     out.innerHTML = '<p class="note">Building prices could not load. Check your connection and refresh the page.</p>';

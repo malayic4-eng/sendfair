@@ -239,9 +239,10 @@ function footer(prefix) {
 <div><h3>Popular routes</h3><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, corridorPath(S, Rr))}">${esc(S.label)} to ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
 <div><h3>Services</h3><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
 <div><h3>Exchange rates</h3><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "AED-KES", "SAR-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
+<div><h3>Build a house</h3><ul>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 <nav aria-label="Footer"><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
-<p>SendFair compares money transfer services. We do not send, hold or exchange money. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
+<p>SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${config.businessName ? `, a ${esc(config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
 </div></footer>`;
@@ -325,7 +326,7 @@ function houseNote(r, prefix) {
   const est = BC.estimate(buildCosts, r.id, 110, 1, midmarket.rates || {});
   if (!est || !(est.total > 0)) return "";
   return `<h2>Building a house in ${esc(r.name)}</h2>
-<p>A 3-bedroom bungalow in ${esc(c.city)} needs about ${esc(plain(R.money(est.total, est.currency)))} for the build, on prices checked ${esc(buildCosts.updated)}. Land and the contractor's fee are not included. <a href="${link(prefix, `cost-to-build/${r.id}/`)}">See the bags, the blocks and the days</a> before you send a lump sum.</p>`;
+<p>A 3-bedroom bungalow in ${esc(c.city)} needs about ${esc(plain(R.money(est.total, est.currency)))} for the build, on prices checked ${esc(buildCosts.updated)}. You can switch the roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not included. <a href="${link(prefix, `cost-to-build/${r.id}/`)}">Open the ${esc(r.name)} house calculator</a> before you send a lump sum.</p>`;
 }
 
 function buildWidget(prefix, countryId) {
@@ -350,16 +351,18 @@ function buildTeaser(prefix) {
     return `<a class="build-card" href="${link(prefix, `cost-to-build/${id}/`)}"><span class="k">3-bedroom bungalow · ${esc(est.country.name)}</span><strong class="num">${esc(plain(R.money(est.total, est.currency)))}</strong><span class="s">Walls, roof, finishes and services. Land and the contractor's fee are not included.</span></a>`;
   }).join("");
   return `<section class="block" id="build-home"><div class="wrap">
-<div class="section-head"><h2>Cost to build a house back home</h2><p class="lede">Building is one of the main reasons people send money, and a round sum is where quotes get inflated. See the materials and the trade days for a house in the country you send to, from prices checked this month. Land and the contractor's fee are not in the figure.</p></div>
+<div class="section-head"><h2>Cost to build a house back home</h2><p class="lede">SendFair is not only a transfer comparison. Building is one of the main reasons people send money, and a round sum is where quotes get inflated. Pick the country, then switch the roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not in the figure. Prices checked ${esc(buildCosts.updated)}.</p></div>
 <div class="build-tease">${cards}</div>
 <p><a class="btn" href="${link(prefix, "cost-to-build/")}">Open the building calculator</a></p>
+<ul class="route-links">${Object.keys(buildCosts.countries).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">Cost to build in ${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul>
 </div></section>`;
 }
 
 function writeBuildPages() {
-  const intro = `A receipt check for a simple house: structure, block walls, roof, windows, doors, plaster, tiles, paint, wiring, plumbing and the trade days to fix them. The plot of land and the contractor's fee are not included.`;
+  const intro = `A receipt check for a simple house: structure, block walls, roof, windows, doors, plaster, tiles, paint, wiring, plumbing and the trade days to fix them. On each line you can switch to another published type, such as a different roof sheet, window, door, tile, ceiling or paint. The plot of land and the contractor's fee are not included.`;
   const faqs = [
-    ["What does this cost include?", "Cement, steel, ballast, sand, blocks, roof sheets or a concrete slab, roof timber where the roof is sheets, windows, doors, floor tiles, ceiling boards, paint, wiring, plumbing, a water tank, and the mason, labourer, carpenter, painter, electrician and plumber days. Match those quantities to yard receipts."],
+    ["What does this cost include?", "Cement, steel, ballast, sand, blocks, roof sheets or a concrete slab, roof timber where the roof is sheets, windows, doors, floor tiles, ceiling boards, paint, wiring, plumbing, a water tank, and the mason, labourer, carpenter, painter, electrician and plumber days. Where a published list has more than one type, the menu on that line switches the price. Match the quantities to yard receipts."],
+    ["Can I choose the type of roof, windows or tiles?", "Yes. Roof sheets, blocks, windows, doors, tiles, ceiling boards, paint and several other lines have a menu. The first choice is the figure this page was checked with. Other choices are named types, or the ends of a published price range. A guide tag means the figure was scaled from another country, or that a box or sheet was turned into a price per square metre."],
     ["What is left out?", "The plot of land and the contractor's own fee. Also left out: permits, a septic tank, kitchen cupboards, wardrobes, a boundary wall, and the metal frame that holds the ceiling boards."],
     ["Why might a contractor still quote more?", "Their fee, transport to site and a septic tank sit on top of this list. If the gap is large, ask which line it pays for. A round sum with no bags, blocks or days is the usual way a quote gets inflated."],
     ["How current are the prices?", `The lists were checked on ${buildCosts.updated}. We refresh them monthly. A town away from the city on the page can pay more, especially for sand, ballast and haulage.`],
@@ -378,8 +381,8 @@ ${faqBlock(faqs)}
   write("cost-to-build/index.html", page({
     prefix: "../", canonical: "cost-to-build/", buildPage: true, og: "home",
     title: `Cost to build a house back home · ${config.siteName}`,
-    description: "Estimate the cost to build a house in Nigeria, Kenya, Ghana and 14 other African countries, without land or the contractor's fee. Prices checked monthly.",
-    jsonld: [faqLd(faqs)],
+    description: "Estimate a house in Nigeria, Kenya, Ghana and 14 other African countries. Switch roof sheets, windows, doors, tiles, ceiling and paint. No land or contractor's fee.",
+    jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"]])],
     body: bodyFor(null, "../")
   }));
   urls.push("cost-to-build/");
@@ -389,7 +392,8 @@ ${faqBlock(faqs)}
     write(rel + "index.html", page({
       prefix: "../../", canonical: rel, buildPage: true, og: "home",
       title: `Cost to build a house in ${c.name} · ${config.siteName}`,
-      description: `What it costs to build a house in ${c.name}, without land or the contractor's fee. Each price has a source. Checked ${buildCosts.updated}.`,
+      description: `What a house costs to build in ${c.name}, with a choice of roof sheets, windows, doors, tiles, ceiling and paint. No land or contractor's fee. Checked ${buildCosts.updated}.`,
+      jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], [c.name, rel]])],
       body: bodyFor(id, "../../")
     }));
     urls.push(rel);
@@ -610,17 +614,23 @@ const homeProof = quotedProviders > 1
   ? `${quotedProviders} services on ${quotedRoutes} routes, updated through the day.`
   : "Commissions never change the order.";
 const homeCtx = routeContext(S0, R0, "", config.defaultAmounts[S0.currency]);
+const homeFaqs = [
+  ["What does SendFair do?", "Two things. It compares money transfer services to Africa by the amount that arrives, after the fee and the exchange-rate markup. It also estimates what it costs to build a simple house in the country you send to, so a lump-sum quote can be checked against materials and trade days."],
+  ["Does SendFair send the money or build the house?", "No. We do not send, hold or exchange money, and we do not build houses. The ranking sends you to the provider to complete the transfer. The house figure is a receipt check, not a contractor's quote."],
+  ["How much does it cost to build a house back home?", "Open the house calculator, pick the country and the size, then choose the type of roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not included, and every line shows its quantity and its source."],
+  ["Do commissions change which service ranks first?", "No. The transfer ranking is sorted only by how much your family receives."]
+];
 write("index.html", page({
   prefix: "", canonical: "", bodyOnly: PREVIEW, og: "home",
-  title: PREVIEW ? config.siteName : `Compare money transfers to Africa: best rates today | ${config.siteName}`,
-  description: `See which service delivers the most money to ${corridors.receivers.length} African countries, including Nigeria, Kenya, Ghana, Egypt and Morocco, from the UK, US, Europe, Canada, Australia and the Gulf.`,
-  jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/" },
+  title: PREVIEW ? config.siteName : `Compare transfers to Africa and house-build costs | ${config.siteName}`,
+  description: `See which service delivers the most to ${corridors.receivers.length} African countries, then estimate what a house back home costs. Switch roof, windows, doors, tiles and paint. No land or contractor's fee.`,
+  jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/", description: "Compare money transfers to Africa by what arrives, and estimate the cost to build a house back home." },
     { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail,
-      ...(config.businessName ? { legalName: config.businessName } : {}), ...(config.founderName ? { founder: { "@type": "Person", name: config.founderName } } : {}), areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) }],
+      ...(config.businessName ? { legalName: config.businessName } : {}), ...(config.founderName ? { founder: { "@type": "Person", name: config.founderName } } : {}), areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) }, faqLd(homeFaqs)],
   body: tool({
     ctx: homeCtx,
     heading: "Send more home.",
-    sub: `Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup. ${homeProof}`
+    sub: `Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup. ${homeProof} SendFair also prices what a house back home costs to build.`
   }) + buildTeaser("") + corridorGrid("") + `
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
@@ -639,6 +649,8 @@ ${corridors.senders.map((s) => { const rs = corridors.receivers.filter((r) => ro
 <ul class="route-links">${vsPairs().map(([a, b]) => `<li><a href="${link("", vsPath(a, b))}">${esc(a.name)} vs ${esc(b.name)}</a></li>`).join("")}</ul>
 <div class="section-head" style="margin-top:32px"><h2>Exchange rates today</h2></div>
 <ul class="route-links">${ratePairs.map(({ s, r }) => `<li><a href="${link("", ratePath(s, r))}">${s.currency} to ${r.currency}</a></li>`).join("")}</ul>
+<div class="section-head" style="margin-top:32px"><h2>Questions</h2></div>
+${faqBlock(homeFaqs)}
 </div></section>` + alerts()
 }));
 urls.push("");
@@ -671,7 +683,12 @@ for (const s of corridors.senders) {
       [`How long does a transfer from ${s.short} to ${r.name} take?`, `Mobile money transfers usually arrive within minutes once the provider has verified your payment. Bank deposits take from a few minutes to two working days, and cash pickup is usually ready the same day. Your first transfer can take longer while the provider checks your identity.`],
       [`How can people in ${r.name} receive the money?`, Object.entries(r.payout).map(([k, v]) => `${R.LABEL[k]}: ${v}`).join(". ") + "."],
       [`Why compare against the mid-market rate?`, `The mid-market rate is the midpoint between buying and selling prices on currency markets. Providers add a margin on top of it, so the gap between their rate and the mid-market rate is a hidden cost, even when the fee says zero.`],
-      [`Is ${config.siteName} a money transfer service?`, `No. We compare services and send you to the provider to complete your transfer. We never hold your money or your card details.`]
+      [`Is ${config.siteName} a money transfer service?`, `No. We compare services and send you to the provider to complete your transfer. We never hold your money or your card details. SendFair also estimates what it costs to build a house in ${r.name}.`],
+      ...(() => {
+        const est = BC.estimate(buildCosts, r.id, 110, 1, midmarket.rates || {});
+        if (!est || !(est.total > 0)) return [];
+        return [[`How much does it cost to build a house in ${r.name}?`, `A 3-bedroom bungalow, one floor, comes to about ${plain(R.money(est.total, est.currency))} for materials and trade days on prices checked ${buildCosts.updated}, without land or the contractor's fee. You can switch the roof sheet, windows, doors, tiles, ceiling and paint. The full list is on the Cost to build a house in ${r.name} page.`]];
+      })()
     ];
     const trail = [[config.siteName, ""], [`Send money to ${r.name}`, hubPath(r)], [`${s.label} to ${r.name}`, rel]];
     const body = tool({
@@ -732,13 +749,18 @@ for (const r of corridors.receivers) {
   const faqs = [
     [`What is the cheapest way to send money to ${r.name}?`, `It depends on where you send from and how much. Today: ${lines.filter((l) => l.top).map((l) => `from ${l.s.short}, ${l.lead.length > 1 ? R.names(l.lead) + " (tied)" : l.top.p.name} (${plain(R.money(l.top.gets, r.currency))} for ${plain(R.money(l.ctx.amount, l.s.currency, 0))})`).join("; ") || "rates are being checked"}.`],
     [`How can people in ${r.name} receive money from abroad?`, Object.entries(r.payout).map(([k, v]) => `${R.LABEL[k]}: ${v}`).join(". ") + "."],
-    [`Which services send money to ${r.name}?`, names.length ? `We compare ${joinList(names)} on routes to ${r.name}, ranked by the amount that arrives.` : `Several international services send to ${r.name}; we are checking today's rates.`]
+    [`Which services send money to ${r.name}?`, names.length ? `We compare ${joinList(names)} on routes to ${r.name}, ranked by the amount that arrives.` : `Several international services send to ${r.name}; we are checking today's rates.`],
+    ...(() => {
+      const est = BC.estimate(buildCosts, r.id, 110, 1, midmarket.rates || {});
+      if (!est || !(est.total > 0)) return [];
+      return [[`How much does a house cost to build in ${r.name}?`, `A 3-bedroom bungalow, one floor, comes to about ${plain(R.money(est.total, est.currency))} for materials and trade days on prices checked ${buildCosts.updated}, without land or the contractor's fee. SendFair is a transfer comparison and a house-cost check. Open Cost to build a house in ${r.name} to switch the roof sheet, windows, doors, tiles, ceiling and paint.`]];
+    })()
   ];
   const trail = [[config.siteName, ""], [`Send money to ${r.name}`, rel]];
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>Send money to ${esc(r.name)}</h1>
-<p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Europe, Canada, Australia and the Gulf states, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, rates checked ${esc(dateLong)}.</p>
+<p class="lede">Compare what arrives in ${esc(r.name)} from the UK, the US, Europe, Canada, Australia and the Gulf states, in ${esc(rCur)}${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. Ranked by the amount your family receives, rates checked ${esc(dateLong)}. If the money is for a house, the calculator further down prices the build in ${esc(r.name)}.</p>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">Sending from</th><th scope="col">You pay</th><th scope="col">Best today</th><th scope="col" class="num">They get</th><th scope="col"></th></tr></thead>
 <tbody>${lines.filter((l) => l.s.region !== "gulf" || lines.some((m) => m.s.region === "gulf" && m.ctx.anyQuotes)).map((l, i, arr) => `${i && l.s.region !== arr[i - 1].s.region ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}<tr><th scope="row">${esc(l.s.name)}</th><td class="num">${esc(plain(R.money(l.ctx.amount, l.s.currency, 0)))}</td><td>${l.top ? esc(l.lead.length > 1 ? l.lead.map((x) => x.p.name).join(", ") + " (tie)" : l.top.p.name) : "Being checked"}</td><td class="num top">${l.top ? esc(plain(R.money(l.top.gets, r.currency))) : "–"}</td><td><a href="${link(prefix, corridorPath(l.s, r))}">Compare all</a></td></tr>`).join("")}${lines.some((m) => m.s.region === "gulf") && !lines.some((m) => m.s.region === "gulf" && m.ctx.anyQuotes) ? `<tr class="group"><th scope="rowgroup" colspan="5">From the Gulf: rates are being added · <a href="${link(prefix, GULF_GUIDE)}">ways of sending compared</a></th></tr>` : ""}</tbody>
@@ -825,6 +847,7 @@ ${watch.length ? `<h2>Worth knowing</h2><ul class="tips">${watch.map((t) => `<li
 </table></div>
 ${notes.length ? `<p class="note">${notes.map(esc).join(" ")}</p>` : ""}
 <p><a class="btn" href="${esc(hrefFor(prefix)(p, "provider-page"))}" target="_blank" rel="sponsored nofollow noopener">Go to ${esc(p.name)}</a></p>
+<p class="note">Sending the money to build? <a href="${link(prefix, "cost-to-build/")}">Estimate the cost of a house back home</a>, then come back here to see which service delivers the most of it.</p>
 <h2>${esc(p.name)} compared with</h2>
 <ul class="route-links">${others.filter((o) => vsPairs().some(([a, b]) => (a.id === p.id && b.id === o.id) || (b.id === p.id && a.id === o.id))).map((o) => { const [a, b] = vsPairs().find(([a, b]) => (a.id === p.id && b.id === o.id) || (b.id === p.id && a.id === o.id)); return `<li><a href="${link(prefix, vsPath(a, b))}">${esc(p.name)} vs ${esc(o.name)}</a></li>`; }).join("")}</ul>
 <h2>Questions about ${esc(p.name)}</h2>
@@ -931,6 +954,7 @@ ${histChart(ctx)}
 <h2>Mid-market rate vs the rate you get</h2>
 <p>The mid-market rate above is the midpoint between what banks pay to buy and sell ${esc(rCur)} on the currency market. No transfer service gives exactly this rate for long: each adds a margin, and some also charge a fee. A service advertising "zero fees" can still cost more than one with a small fee, if its rate is lower. That is why SendFair ranks services by the amount that actually arrives in ${esc(r.name)}.</p>
 <p>${s.region === "gulf" ? `The ${esc(sCur.replace(/s$/, ""))} is pegged to the US dollar, so day-to-day moves come from the ${esc(rCur.replace(/s$/, ""))} itself.` : `Both currencies float, so the rate moves through the day with the markets.`} Our copy of the mid-market rate is refreshed every few hours; service rates are updated through the day, so compare on the day you send.</p>
+<p class="note">If this transfer is for a house, <a href="${link(prefix, `cost-to-build/${r.id}/`)}">see what it costs to build in ${esc(r.name)}</a>. SendFair compares transfer rates and house-build costs.</p>
 <h2>Questions</h2>
 ${faqBlock(faqs)}
 <h2>Send money from ${esc(s.short)} to ${esc(r.name)}</h2>
@@ -1034,10 +1058,12 @@ const privacyItems = [
 ].filter(Boolean).join("");
 
 const trust = {
-  "about/": ["About SendFair", "Who runs SendFair and why it exists.", `
+  "about/": ["About SendFair", "SendFair compares money transfers to Africa and estimates what it costs to build a house back home.", `
 <h1>About SendFair</h1>
-<p>Sending money home is one of the most regular bills in a diaspora household, and one of the least transparent. A transfer that says "zero fees" can still lose several percent in the exchange rate.</p>
-<p>SendFair shows one number clearly: how much actually lands at home. We cover the routes most used by Africans in the United States, the United Kingdom, Europe, Canada and Australia, and by the many who work in the Gulf (the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman), sending to ${esc(joinList(corridors.receivers.map((r) => r.name)))}.</p>
+<p>Sending money home is one of the most regular bills in a diaspora household, and one of the least transparent. A transfer that says "zero fees" can still lose several percent in the exchange rate. A lot of that money is meant for a house, and a contractor's lump sum is just as hard to check.</p>
+<p>SendFair does two things. It shows how much of a transfer actually lands at home, and it estimates what a simple house costs to build in the country you send to. We cover the routes most used by Africans in the United States, the United Kingdom, Europe, Canada and Australia, and by the many who work in the Gulf (the UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman), sending to ${esc(joinList(corridors.receivers.map((r) => r.name)))}.</p>
+<h2>Cost to build a house back home</h2>
+<p>The <a href="${link("../", "cost-to-build/")}">house calculator</a> prices cement, steel, blocks, roof sheets, windows, doors, tiles, ceiling boards, paint, wiring, plumbing and the trade days. On each line you can switch to another published type, or to the ends of a published price range, and the total follows what you pick. Land and the contractor's fee are not included. Every line shows a quantity, so a round sum can be checked against receipts. Prices are refreshed monthly.</p>
 <p>SendFair is run by ${esc(config.businessName || "")}${config.founderName ? `, founded by ${esc(config.founderName)}` : ""}, independently from Nairobi, Kenya. We are not owned by any transfer company.</p>
 <h2>Who's behind SendFair</h2>
 <p>SendFair was founded by ${esc(config.founderName || "")} to make the true cost of sending money home easy to compare. ${esc(config.businessName || "")} runs the site, checks the rates and handles corrections.</p>
@@ -1048,7 +1074,7 @@ const trust = {
 <h2>Corrections</h2>
 <p>If a figure here doesn't match what a provider shows you, tell us with the route, the amount and a screenshot if you can. We recheck it and fix the page, usually the same day.</p>
 <h2>Contact</h2><p>Corrections, partnership enquiries and provider updates: <span class="email">${esc(config.contactEmail)}</span></p>`],
-  "methodology/": ["How we rank", "How SendFair collects rates and ranks money transfer services.", `
+  "methodology/": ["How we rank", "How SendFair ranks money transfers, and how the house-cost estimate is built.", `
 <h1>How we rank</h1>
 <h2>What we collect</h2>
 <ul><li>The exchange rate each provider quotes on each route, and the amount we checked it for.</li><li>The transfer fee: a fixed amount, a percentage, or both.</li><li>The ways the money can be received (mobile money, bank, cash pickup). Where a provider's rate differs by payout method, we record each one separately.</li><li>The typical delivery time and when we checked.</li></ul>
@@ -1064,12 +1090,15 @@ const trust = {
 <h2>Delivery times from senders</h2><p>Where at least three senders have reported how long a transfer took on a route in the last two months, we show the most common answer.</p>
 <h2>Regional benchmark</h2>
 <p>We show what the same transfer would deliver at ${config.regionalAverageCost.percent}% total cost, the ${esc(config.regionalAverageCost.label)}, from the World Bank's Remittance Prices Worldwide report.</p>
-<h2>Commissions never change the order</h2><p>Results are sorted only by the amount received. See <a href="${link("../", "disclosure/")}">how we make money</a>.</p>`],
+<h2>Commissions never change the order</h2><p>Results are sorted only by the amount received. See <a href="${link("../", "disclosure/")}">how we make money</a>.</p>
+<h2>The house estimate</h2>
+<p>The <a href="${link("../", "cost-to-build/")}">cost to build a house</a> is a separate check. It is not a transfer rate. Quantities are for a simple rectangular house. Where a shop list publishes more than one type, the page lets you choose, and the total changes. A listed price is a published figure. A guide is scaled from another country's figure at the mid-market rate, or assumes how much a box, sheet or load covers. Land, the contractor's fee, permits, a septic tank, kitchen cupboards, wardrobes, a boundary wall and the metal ceiling frame are left out. It is not a structural design.</p>`],
   "disclosure/": ["How we make money", "SendFair's affiliate and advertising disclosure.", `
 <h1>How we make money</h1>
 <p>SendFair is free to use. We earn money in two ways:</p>
 <ul><li><strong>Referral commissions.</strong> Some "Go to" buttons are affiliate links. If you open an account and make your first transfer, the provider may pay us a fee. You pay the same either way.</li>${config.adsenseClient ? `<li><strong>Advertising.</strong> Some pages show ads served by Google. Ads are labelled as ads, are never placed inside the ranking, and advertisers cannot choose or influence where a service ranks.</li>` : `<li><strong>Advertising.</strong> We don't show ads at the moment. If we ever do, they will be labelled, kept out of the ranking, and this page will say so.</li>`}</ul>
-<p>Neither affects the ranking. Results are sorted only by how much your recipient receives. Providers that pay us nothing appear and rank on the same terms.</p>`],
+<p>Neither affects the ranking. Results are sorted only by how much your recipient receives. Providers that pay us nothing appear and rank on the same terms.</p>
+<p>The house-cost pages are not paid for by a supplier or a contractor. Choosing a roof sheet, a door or a tile does not earn us a fee.</p>`],
   "privacy/": ["Privacy policy", "How SendFair handles your data.", `
 <h1>Privacy policy</h1>
 <p>Last updated ${today}.</p>
@@ -1082,7 +1111,8 @@ const trust = {
   "terms/": ["Terms of use", "Terms for using SendFair.", `
 <h1>Terms of use</h1>
 <p>Last updated ${today}.</p>
-<p>SendFair provides information to help you compare money transfer services. It is not financial advice, and we are not a money transfer business.</p>
+<p>SendFair provides information to help you compare money transfer services, and an estimate of what it costs to build a simple house back home. It is not financial advice, we are not a money transfer business, and the house figure is not a contractor's quote.</p>
+<p>The house estimate leaves out land, the contractor's fee and several other costs named on that page. Material menus use published types and published ranges. A guide is not a shop receipt. Always check the current price at the yard before you buy or send.</p>
 <p>We work to keep rates accurate, but they change through the day and can differ on the provider's site. Always confirm the final amount, fee and delivery time with the provider before paying. We are not responsible for transfers you make with any provider, or for losses from relying on a rate shown here.</p>
 <p>Delivery-time reports come from other visitors and are shown as they are given.</p>
 <p>Provider names belong to their owners. Their appearance here does not mean they endorse SendFair.</p>`]
@@ -1093,7 +1123,7 @@ for (const [rel, [title, desc, html]] of Object.entries(trust)) {
 }
 
 write("offline.html", page({ prefix: "/", canonical: null, title: `You're offline · ${config.siteName}`, description: "No connection.", noindex: true, body: `<section class="block page"><div class="wrap"><article class="prose"><h1>You're offline</h1><p>SendFair needs a connection to show today's rates. Pages you opened recently still work; this one wasn't saved yet.</p><p><a class="btn" href="/">Try again</a></p></article></div></section>` }));
-write("404.html", page({ prefix: "/", canonical: null, title: `Page not found · ${config.siteName}`, description: "Page not found.", noindex: true, body: `<section class="block page"><div class="wrap"><article class="prose"><h1>That page isn't here</h1><p>The link may be old or mistyped. Today's rankings are one click away.</p><p><a class="btn" href="/">Compare transfers</a></p></article></div></section>` }));
+write("404.html", page({ prefix: "/", canonical: null, title: `Page not found · ${config.siteName}`, description: "Page not found.", noindex: true, body: `<section class="block page"><div class="wrap"><article class="prose"><h1>That page isn't here</h1><p>The link may be old or mistyped.</p><p><a class="btn" href="/">Compare transfers</a> <a class="btn" href="/cost-to-build/">Cost to build a house</a></p></article></div></section>` }));
 
 // Rate Desk (never indexed)
 fs.mkdirSync(path.join(OUT, "admin"), { recursive: true });
@@ -1108,8 +1138,8 @@ write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="htt
 write("robots.txt", `User-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nAllow: /\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nSitemap: ${site}/sitemap.xml\n`);
 // Installable app: the manifest and a small service worker that keeps the last pages viewed for offline use.
 write("manifest.webmanifest", JSON.stringify({
-  name: "SendFair: compare money transfers to Africa", short_name: "SendFair",
-  description: "See which service delivers the most money home today.",
+  name: "SendFair: compare transfers and house-build costs", short_name: "SendFair",
+  description: "See which service delivers the most money home, and what a house back home costs to build.",
   start_url: "/?source=app", scope: "/", display: "standalone", background_color: "#ffffff", theme_color: "#ffffff",
   icons: [
     { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

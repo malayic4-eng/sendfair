@@ -4,7 +4,7 @@
   "barKg": 10.65,
   "model": {
     "one": {
-      "cementBags": 2.0,
+      "cementBags": 2,
       "cementFinish": 0.7,
       "steelKg": 16,
       "roofM2": 1.35,
@@ -19,7 +19,7 @@
       "windows": 0.08,
       "doorsIn": 0.05,
       "tilesM2": 0.9,
-      "ceilingM2": 1.0,
+      "ceilingM2": 1,
       "paintL": 0.8,
       "elecPoints": 0.32,
       "pipeM": 0.45,
@@ -111,7 +111,7 @@
       "currency": "GHS",
       "city": "Greater Accra",
       "roof": "sheet",
-      "note": "Greater Accra lists cover cement, steel, blocks, roofing, sand, ballast, windows, doors, paint, a tank and the trade day rates. Roof timber is scaled from Nairobi. Tiles, ceiling boards, wiring and pipe are guides because the shop price is per box, sheet or coil and the coverage is assumed. The metal ceiling frame is not priced.",
+      "note": "Greater Accra lists cover cement, steel, blocks, roofing, sand, ballast, windows, doors, paint, a tank and the trade day rates. Roof timber is scaled from Nairobi. Tiles, ceiling boards, wiring and pipe are guides because the shop price is per box, sheet or coil and the coverage is assumed. The metal ceiling frame is not priced. Each line with a menu lets you switch to another published type or to the ends of that published range.",
       "finished": {
         "low": 3300,
         "high": 6800,
@@ -123,17 +123,126 @@
         "cement": {
           "price": 109,
           "source": "50kg bag, middle of the Sept 2026 market average: 32.5R about GH₵100 and 42.5R about GH₵117 (Channel One / Accra Street Journal).",
-          "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+          "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/",
+          "options": [
+            {
+              "id": "c325",
+              "name": "Cement 32.5R",
+              "price": 100,
+              "source": "50kg bag, GH₵100, the September 2026 market average for 32.5R (Channel One / Accra Street Journal).",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            },
+            {
+              "id": "cmix",
+              "name": "Middle of 32.5R and 42.5R",
+              "price": 109,
+              "default": true,
+              "source": "50kg bag, middle of the Sept 2026 market average: 32.5R about GH₵100 and 42.5R about GH₵117 (Channel One / Accra Street Journal).",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            },
+            {
+              "id": "c425",
+              "name": "Cement 42.5R",
+              "price": 117,
+              "source": "50kg bag, GH₵117, the September 2026 market average for 42.5R (Channel One / Accra Street Journal).",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            }
+          ]
         },
         "steel": {
           "price": 13.15,
           "source": "Retail 12mm bar, middle of GH₵110–170 per 12m length (about 10.65kg), Sept 2026. A tonne at the mill was about GH₵7,500, which is cheaper than a single bar at a hardware.",
-          "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+          "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/",
+          "options": [
+            {
+              "id": "bar12-low",
+              "name": "12mm bar, lower retail",
+              "price": 10.33,
+              "source": "Bottom of GH₵110–170 for a 12m length of 12mm, September 2026, divided by 10.65kg.",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            },
+            {
+              "id": "bar12",
+              "name": "12mm bar, typical",
+              "price": 13.15,
+              "default": true,
+              "source": "Retail 12mm bar, middle of GH₵110–170 per 12m length (about 10.65kg), Sept 2026. A tonne at the mill was about GH₵7,500, which is cheaper than a single bar at a hardware.",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            },
+            {
+              "id": "bar12-high",
+              "name": "12mm bar, upper retail",
+              "price": 15.96,
+              "source": "Top of GH₵110–170 for a 12m length of 12mm, September 2026, divided by 10.65kg.",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            },
+            {
+              "id": "bar16",
+              "name": "16mm bar, typical",
+              "price": 12.41,
+              "source": "Middle of GH₵190–280 for a 12m length of 16mm, September 2026. A 16mm bar of that length weighs about 18.9kg, so this is the price per kilogram.",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            }
+          ]
         },
         "roof": {
           "price": 190,
           "source": "Aluminium roofing, middle of GH₵120–260 per m², Sept 2026.",
-          "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+          "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/",
+          "options": [
+            {
+              "id": "aluzinc04",
+              "name": "Aluzinc, about 0.4 mm",
+              "price": 75,
+              "guide": true,
+              "source": "Middle of GHS 55–95 per m², Rosa Roofing's Q1 2026 estimate for standard aluzinc. A supplier estimate, not a shop receipt. Battens are not included.",
+              "url": "https://rosaroof.com/roofing-systems-in-ghana/"
+            },
+            {
+              "id": "aluzinc045",
+              "name": "Aluzinc, 0.45 mm",
+              "price": 165,
+              "source": "Iridak sales desk, GHS 165 per m² for 0.45 mm aluzinc, checked 11 September 2026.",
+              "url": "https://iridakroof.com/prices-of-roofing-sheets-in-ghana/"
+            },
+            {
+              "id": "alu-low",
+              "name": "Aluminium sheet, lighter",
+              "price": 120,
+              "source": "Bottom of the September 2026 aluminium range, GHS 120–260 per m².",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            },
+            {
+              "id": "alu",
+              "name": "Aluminium sheet, typical",
+              "price": 190,
+              "default": true,
+              "source": "Aluminium roofing, middle of GH₵120–260 per m², Sept 2026.",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            },
+            {
+              "id": "alu-high",
+              "name": "Aluminium sheet, heavier",
+              "price": 260,
+              "source": "Top of the September 2026 aluminium range, GHS 120–260 per m².",
+              "url": "https://accrastreetjournal.com/2026/11/01/building-materials-prices-in-ghana/"
+            },
+            {
+              "id": "colorbond",
+              "name": "COLORBOND Ultra, 0.50 mm",
+              "price": 183,
+              "source": "Iridak, genuine BlueScope COLORBOND Ultra Activate AM150, GHS 183 per m², checked 11 September 2026.",
+              "url": "https://iridakroof.com/prices-of-roofing-sheets-in-ghana/"
+            },
+            {
+              "id": "stone",
+              "name": "Stone-coated steel tile",
+              "price": 165,
+              "guide": true,
+              "source": "Middle of GHS 140–190 per m², Rosa Roofing's Q1 2026 estimate for stone-coated steel tiles. Battens and ridge pieces are not included.",
+              "url": "https://rosaroof.com/roofing-systems-in-ghana/"
+            }
+          ]
         },
         "sand": {
           "price": 233,
@@ -143,17 +252,110 @@
         "mason": {
           "price": 220,
           "source": "Mason day rate, middle of GH₵180–260, Greater Accra, Q3 2026.",
-          "url": "https://design.gabochie.com/building-cost-board/"
+          "url": "https://design.gabochie.com/building-cost-board/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower published day rate",
+              "price": 180,
+              "source": "Bottom of GH₵180–260 a day for a mason, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "mid",
+              "name": "Typical day rate",
+              "price": 220,
+              "default": true,
+              "source": "Mason day rate, middle of GH₵180–260, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "high",
+              "name": "Upper published day rate",
+              "price": 260,
+              "source": "Top of GH₵180–260 a day for a mason, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            }
+          ]
         },
         "hand": {
           "price": 115,
           "source": "General labourer day rate, middle of GH₵90–140, Q3 2026.",
-          "url": "https://design.gabochie.com/building-cost-board/"
+          "url": "https://design.gabochie.com/building-cost-board/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower published day rate",
+              "price": 90,
+              "source": "Bottom of GH₵90–140 a day for a general labourer, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "mid",
+              "name": "Typical day rate",
+              "price": 115,
+              "default": true,
+              "source": "General labourer day rate, middle of GH₵90–140, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "high",
+              "name": "Upper published day rate",
+              "price": 140,
+              "source": "Top of GH₵90–140 a day for a general labourer, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            }
+          ]
         },
         "blocks": {
           "price": 6.5,
           "source": "6-inch cement block, middle of GH₵5–8, September 2026. A Q3 Greater Accra survey put the same block at GH₵6.20–7.80.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "b6-low",
+              "name": "6-inch block, lower",
+              "price": 5,
+              "source": "Bottom of GH₵5–8 for a 6-inch cement block, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "b6",
+              "name": "6-inch block, typical",
+              "price": 6.5,
+              "default": true,
+              "source": "6-inch cement block, middle of GH₵5–8, September 2026. A Q3 Greater Accra survey put the same block at GH₵6.20–7.80.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "b6-high",
+              "name": "6-inch block, upper",
+              "price": 8,
+              "source": "Top of GH₵5–8 for a 6-inch cement block, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "b9-low",
+              "name": "9-inch block, lower",
+              "price": 7,
+              "source": "Bottom of GH₵7–11 for a 9-inch cement block, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "b9",
+              "name": "9-inch block, typical",
+              "price": 9,
+              "source": "Middle of GH₵7–11 for a 9-inch cement block, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "b9-high",
+              "name": "9-inch block, upper",
+              "price": 11,
+              "source": "Top of GH₵7–11 for a 9-inch cement block, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "ballast": {
           "price": 200,
@@ -163,34 +365,192 @@
         "window": {
           "price": 1300,
           "source": "Aluminium sliding window, middle of GH₵600–2,000 each, September 2026.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "win-low",
+              "name": "Smaller aluminium slider",
+              "price": 600,
+              "source": "Bottom of GH₵600–2,000 for an aluminium sliding window, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "win",
+              "name": "Typical aluminium slider",
+              "price": 1300,
+              "default": true,
+              "source": "Aluminium sliding window, middle of GH₵600–2,000 each, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "win-high",
+              "name": "Larger aluminium slider",
+              "price": 2000,
+              "source": "Top of GH₵600–2,000 for an aluminium sliding window, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "doorIn": {
           "price": 1650,
           "source": "Interior wooden door, middle of GH₵800–2,500 each, September 2026.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "din-low",
+              "name": "Basic wooden door",
+              "price": 800,
+              "source": "Bottom of GH₵800–2,500 for an interior wooden door, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "din",
+              "name": "Typical wooden door",
+              "price": 1650,
+              "default": true,
+              "source": "Interior wooden door, middle of GH₵800–2,500 each, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "din-high",
+              "name": "Better wooden door",
+              "price": 2500,
+              "source": "Top of GH₵800–2,500 for an interior wooden door, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "doorOut": {
           "price": 1750,
           "source": "Metal security door at the bottom of the published GH₵1,750–8,000 range, September 2026. Premium doors in that list cost more.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "dout",
+              "name": "Plain metal security door",
+              "price": 1750,
+              "default": true,
+              "source": "Metal security door at the bottom of the published GH₵1,750–8,000 range, September 2026. Premium doors in that list cost more.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "dout-mid",
+              "name": "Mid-range security door",
+              "price": 4875,
+              "source": "Middle of the published GH₵1,750–8,000 range for a metal security door, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "dout-high",
+              "name": "Premium security door",
+              "price": 8000,
+              "source": "Top of the published GH₵1,750–8,000 range for a metal security door, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "tiles": {
           "price": 144,
           "guide": true,
           "source": "60×60 porcelain, middle of GH₵155–260 a box, September 2026, taken as 1.44 m² a box (four tiles). A box that covers less makes this line low.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "tile40",
+              "name": "40×40 ceramic",
+              "price": 121.53,
+              "guide": true,
+              "source": "Middle of GH₵165–185 a box of 40×40 ceramic, September 2026, taken as 1.44 m² a box. A box that covers less makes this line low.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "tile60-low",
+              "name": "60×60 porcelain, lower",
+              "price": 107.64,
+              "guide": true,
+              "source": "Bottom of GH₵155–260 a box of 60×60 porcelain, September 2026, taken as 1.44 m² a box.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "tile60",
+              "name": "60×60 porcelain, typical",
+              "price": 144,
+              "guide": true,
+              "default": true,
+              "source": "60×60 porcelain, middle of GH₵155–260 a box, September 2026, taken as 1.44 m² a box (four tiles). A box that covers less makes this line low.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "tile60-high",
+              "name": "60×60 porcelain, upper",
+              "price": 180.56,
+              "guide": true,
+              "source": "Top of GH₵155–260 a box of 60×60 porcelain, September 2026, taken as 1.44 m² a box.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "ceiling": {
           "price": 64,
           "guide": true,
           "source": "Gypsum plasterboard, middle of GH₵180–200 a sheet, September 2026, taken as 3 m² a sheet. The metal frame is not included.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "gyp-low",
+              "name": "Gypsum board, lower",
+              "price": 60,
+              "guide": true,
+              "source": "Bottom of GH₵180–200 a gypsum sheet, September 2026, taken as 3 m² a sheet. The metal frame is not included.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "gyp",
+              "name": "Gypsum board, typical",
+              "price": 64,
+              "guide": true,
+              "default": true,
+              "source": "Gypsum plasterboard, middle of GH₵180–200 a sheet, September 2026, taken as 3 m² a sheet. The metal frame is not included.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "gyp-high",
+              "name": "Gypsum board, upper",
+              "price": 66.67,
+              "guide": true,
+              "source": "Top of GH₵180–200 a gypsum sheet, September 2026, taken as 3 m² a sheet. The metal frame is not included.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "paint": {
           "price": 14.5,
           "source": "Interior emulsion, middle of GH₵281–300 per 20 litres, September 2026, so about GH₵14.50 a litre. Exterior tins in the same list are GH₵401–511 per 20 litres.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "paint-in-low",
+              "name": "Interior emulsion, lower",
+              "price": 14.05,
+              "source": "Bottom of GH₵281–300 per 20 litres of interior emulsion, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "paint-in",
+              "name": "Interior emulsion, typical",
+              "price": 14.5,
+              "default": true,
+              "source": "Interior emulsion, middle of GH₵281–300 per 20 litres, September 2026, so about GH₵14.50 a litre. Exterior tins in the same list are GH₵401–511 per 20 litres.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "paint-ex",
+              "name": "Exterior emulsion, typical",
+              "price": 22.8,
+              "source": "Middle of GH₵401–511 per 20 litres of exterior emulsion, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "elecPoint": {
           "price": 110,
@@ -202,37 +562,216 @@
           "price": 5.4,
           "guide": true,
           "source": "Half-inch PVC, middle of GH₵25–40 a length, September 2026, taken as a 6 metre length.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "pipe-low",
+              "name": "Half-inch PVC, lower",
+              "price": 4.17,
+              "guide": true,
+              "source": "Bottom of GH₵25–40 a length of half-inch PVC, September 2026, taken as 6 metres.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "pipe",
+              "name": "Half-inch PVC, typical",
+              "price": 5.4,
+              "guide": true,
+              "default": true,
+              "source": "Half-inch PVC, middle of GH₵25–40 a length, September 2026, taken as a 6 metre length.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "pipe-high",
+              "name": "Half-inch PVC, upper",
+              "price": 6.67,
+              "guide": true,
+              "source": "Top of GH₵25–40 a length of half-inch PVC, September 2026, taken as 6 metres.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "pipe3",
+              "name": "Three-inch PVC, typical",
+              "price": 18.33,
+              "guide": true,
+              "source": "Middle of GH₵95–125 a length of three-inch PVC, September 2026, taken as 6 metres. Waste pipes are a different job from the small supply line.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "wc": {
           "price": 1625,
           "source": "Water closet with cistern, middle of GH₵750–2,500, September 2026. A basic suite can sit near the bottom of that range.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "wc-low",
+              "name": "Basic WC and cistern",
+              "price": 750,
+              "source": "Bottom of GH₵750–2,500 for a water closet with cistern, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "wc",
+              "name": "Typical WC and cistern",
+              "price": 1625,
+              "default": true,
+              "source": "Water closet with cistern, middle of GH₵750–2,500, September 2026. A basic suite can sit near the bottom of that range.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "wc-high",
+              "name": "Better WC and cistern",
+              "price": 2500,
+              "source": "Top of GH₵750–2,500 for a water closet with cistern, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "tank": {
           "price": 2008,
           "source": "1,000 litre tank, middle of GH₵1,200–2,815, September 2026.",
-          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+          "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/",
+          "options": [
+            {
+              "id": "tank-low",
+              "name": "1,000 litre tank, lower",
+              "price": 1200,
+              "source": "Bottom of GH₵1,200–2,815 for a 1,000 litre tank, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "tank",
+              "name": "1,000 litre tank, typical",
+              "price": 2008,
+              "default": true,
+              "source": "1,000 litre tank, middle of GH₵1,200–2,815, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            },
+            {
+              "id": "tank-high",
+              "name": "1,000 litre tank, upper",
+              "price": 2815,
+              "source": "Top of GH₵1,200–2,815 for a 1,000 litre tank, September 2026.",
+              "url": "https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"
+            }
+          ]
         },
         "painter": {
           "price": 200,
           "source": "Painter day rate, middle of GH₵160–240, Greater Accra, Q3 2026.",
-          "url": "https://design.gabochie.com/building-cost-board/"
+          "url": "https://design.gabochie.com/building-cost-board/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower published day rate",
+              "price": 160,
+              "source": "Bottom of GH₵160–240 a day for a painter, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "mid",
+              "name": "Typical day rate",
+              "price": 200,
+              "default": true,
+              "source": "Painter day rate, middle of GH₵160–240, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "high",
+              "name": "Upper published day rate",
+              "price": 240,
+              "source": "Top of GH₵160–240 a day for a painter, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            }
+          ]
         },
         "spark": {
           "price": 280,
           "source": "Electrician rough-in day rate, middle of GH₵220–340, Greater Accra, Q3 2026.",
-          "url": "https://design.gabochie.com/building-cost-board/"
+          "url": "https://design.gabochie.com/building-cost-board/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower published day rate",
+              "price": 220,
+              "source": "Bottom of GH₵220–340 a day for an electrician, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "mid",
+              "name": "Typical day rate",
+              "price": 280,
+              "default": true,
+              "source": "Electrician rough-in day rate, middle of GH₵220–340, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "high",
+              "name": "Upper published day rate",
+              "price": 340,
+              "source": "Top of GH₵220–340 a day for an electrician, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            }
+          ]
         },
         "plumber": {
           "price": 280,
           "source": "Plumber rough-in day rate, middle of GH₵220–340, Greater Accra, Q3 2026.",
-          "url": "https://design.gabochie.com/building-cost-board/"
+          "url": "https://design.gabochie.com/building-cost-board/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower published day rate",
+              "price": 220,
+              "source": "Bottom of GH₵220–340 a day for a plumber, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "mid",
+              "name": "Typical day rate",
+              "price": 280,
+              "default": true,
+              "source": "Plumber rough-in day rate, middle of GH₵220–340, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "high",
+              "name": "Upper published day rate",
+              "price": 340,
+              "source": "Top of GH₵220–340 a day for a plumber, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            }
+          ]
         },
         "carpenter": {
           "price": 230,
           "source": "Carpenter day rate, middle of GH₵180–280, Greater Accra, Q3 2026.",
-          "url": "https://design.gabochie.com/building-cost-board/"
+          "url": "https://design.gabochie.com/building-cost-board/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower published day rate",
+              "price": 180,
+              "source": "Bottom of GH₵180–280 a day for a carpenter, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "mid",
+              "name": "Typical day rate",
+              "price": 230,
+              "default": true,
+              "source": "Carpenter day rate, middle of GH₵180–280, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            },
+            {
+              "id": "high",
+              "name": "Upper published day rate",
+              "price": 280,
+              "source": "Top of GH₵180–280 a day for a carpenter, Greater Accra, Q3 2026.",
+              "url": "https://design.gabochie.com/building-cost-board/"
+            }
+          ]
         },
         "timber": {
           "guideFrom": "kenya"
@@ -244,22 +783,87 @@
       "currency": "KES",
       "city": "Nairobi",
       "roof": "sheet",
-      "note": "Cement, steel, blocks, sand, ballast, roofing, trusses, windows, internal doors, tiles, paint and pipe are Nairobi retail ranges. The external door is the bottom of a wide published range. Wiring, ceiling boards and several trade day rates are guides. The metal ceiling frame is not priced.",
+      "note": "Cement, steel, blocks, sand, ballast, roofing, trusses, windows, internal doors, tiles, paint and pipe are Nairobi retail ranges. The external door is the bottom of a wide published range. Wiring, ceiling boards and several trade day rates are guides. The metal ceiling frame is not priced. Each line with a menu lets you switch to another point in the published Nairobi range.",
       "items": {
         "cement": {
           "price": 780,
           "source": "50kg general-purpose bag, top of the Bamburi Fundi range KES 750–780, Nairobi retail checked 28 Oct 2026.",
-          "url": "https://fixit-construction.com/prices"
+          "url": "https://fixit-construction.com/prices",
+          "options": [
+            {
+              "id": "cem-low",
+              "name": "Bamburi Fundi, lower",
+              "price": 750,
+              "source": "Bottom of the Bamburi Fundi range, KES 750–780 for a 50kg bag, Nairobi retail checked 28 Oct 2026.",
+              "url": "https://fixit-construction.com/prices"
+            },
+            {
+              "id": "cem",
+              "name": "Bamburi Fundi, top of the range",
+              "price": 780,
+              "default": true,
+              "source": "50kg general-purpose bag, top of the Bamburi Fundi range KES 750–780, Nairobi retail checked 28 Oct 2026.",
+              "url": "https://fixit-construction.com/prices"
+            }
+          ]
         },
         "steel": {
           "price": 126.8,
           "source": "12mm bar, 12m, middle of KES 1,240–1,450 (about 10.65kg), Nairobi, 2026.",
-          "url": "https://fixit-construction.com/prices"
+          "url": "https://fixit-construction.com/prices",
+          "options": [
+            {
+              "id": "bar12-low",
+              "name": "12mm bar, lower",
+              "price": 116.43,
+              "source": "Bottom of KES 1,240–1,450 for a 12m length of 12mm, Nairobi, 2026, divided by 10.65kg.",
+              "url": "https://fixit-construction.com/prices"
+            },
+            {
+              "id": "bar12",
+              "name": "12mm bar, typical",
+              "price": 126.8,
+              "default": true,
+              "source": "12mm bar, 12m, middle of KES 1,240–1,450 (about 10.65kg), Nairobi, 2026.",
+              "url": "https://fixit-construction.com/prices"
+            },
+            {
+              "id": "bar12-high",
+              "name": "12mm bar, upper",
+              "price": 136.15,
+              "source": "Top of KES 1,240–1,450 for a 12m length of 12mm, Nairobi, 2026, divided by 10.65kg.",
+              "url": "https://fixit-construction.com/prices"
+            }
+          ]
         },
         "roof": {
           "price": 580,
           "source": "Gauge-30 box profile, about KES 1,500–1,600 for a 3m sheet, taken as roughly 2.7 m² of cover.",
-          "url": "https://fixit-construction.com/prices"
+          "url": "https://fixit-construction.com/prices",
+          "options": [
+            {
+              "id": "box-low",
+              "name": "Gauge-30 box profile, lower",
+              "price": 555.56,
+              "source": "Bottom of KES 1,500–1,600 for a 3m gauge-30 box sheet, taken as about 2.7 m² of cover.",
+              "url": "https://fixit-construction.com/prices"
+            },
+            {
+              "id": "box",
+              "name": "Gauge-30 box profile, typical",
+              "price": 580,
+              "default": true,
+              "source": "Gauge-30 box profile, about KES 1,500–1,600 for a 3m sheet, taken as roughly 2.7 m² of cover.",
+              "url": "https://fixit-construction.com/prices"
+            },
+            {
+              "id": "box-high",
+              "name": "Gauge-30 box profile, upper",
+              "price": 592.59,
+              "source": "Top of KES 1,500–1,600 for a 3m gauge-30 box sheet, taken as about 2.7 m² of cover.",
+              "url": "https://fixit-construction.com/prices"
+            }
+          ]
         },
         "sand": {
           "price": 3910,
@@ -269,17 +873,89 @@
         "mason": {
           "price": 1600,
           "source": "Mason day rate, middle of KES 1,200–2,000, 2026 trade ranges.",
-          "url": "https://jengahub.co.ke/blog/contractor-rates-kenya"
+          "url": "https://jengahub.co.ke/blog/contractor-rates-kenya",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower published day rate",
+              "price": 1200,
+              "source": "Bottom of KES 1,200–2,000 a day for a mason, 2026 trade ranges.",
+              "url": "https://jengahub.co.ke/blog/contractor-rates-kenya"
+            },
+            {
+              "id": "mid",
+              "name": "Typical day rate",
+              "price": 1600,
+              "default": true,
+              "source": "Mason day rate, middle of KES 1,200–2,000, 2026 trade ranges.",
+              "url": "https://jengahub.co.ke/blog/contractor-rates-kenya"
+            },
+            {
+              "id": "high",
+              "name": "Upper published day rate",
+              "price": 2000,
+              "source": "Top of KES 1,200–2,000 a day for a mason, 2026 trade ranges.",
+              "url": "https://jengahub.co.ke/blog/contractor-rates-kenya"
+            }
+          ]
         },
         "hand": {
           "price": 800,
           "source": "Casual labourer, middle of KES 600–1,000 a day, 2026.",
-          "url": "https://jengahub.co.ke/blog/contractor-rates-kenya"
+          "url": "https://jengahub.co.ke/blog/contractor-rates-kenya",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower published day rate",
+              "price": 600,
+              "source": "Bottom of KES 600–1,000 a day for a casual labourer, 2026.",
+              "url": "https://jengahub.co.ke/blog/contractor-rates-kenya"
+            },
+            {
+              "id": "mid",
+              "name": "Typical day rate",
+              "price": 800,
+              "default": true,
+              "source": "Casual labourer, middle of KES 600–1,000 a day, 2026.",
+              "url": "https://jengahub.co.ke/blog/contractor-rates-kenya"
+            },
+            {
+              "id": "high",
+              "name": "Upper published day rate",
+              "price": 1000,
+              "source": "Top of KES 600–1,000 a day for a casual labourer, 2026.",
+              "url": "https://jengahub.co.ke/blog/contractor-rates-kenya"
+            }
+          ]
         },
         "blocks": {
           "price": 35,
           "source": "6-inch concrete block, middle of KES 25–42, Nairobi, August 2026.",
-          "url": "https://suimas.co.ke/shop/house-construction/"
+          "url": "https://suimas.co.ke/shop/house-construction/",
+          "options": [
+            {
+              "id": "b6-low",
+              "name": "6-inch block, lower",
+              "price": 25,
+              "source": "Bottom of KES 25–42 for a 6-inch concrete block, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "b6",
+              "name": "6-inch block, typical",
+              "price": 35,
+              "default": true,
+              "source": "6-inch concrete block, middle of KES 25–42, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "b6-high",
+              "name": "6-inch block, upper",
+              "price": 42,
+              "source": "Top of KES 25–42 for a 6-inch concrete block, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            }
+          ]
         },
         "ballast": {
           "price": 2250,
@@ -289,38 +965,209 @@
         "timber": {
           "price": 2500,
           "source": "Timber roof trusses, middle of KES 1,800–3,200 per m², Nairobi, August 2026.",
-          "url": "https://suimas.co.ke/shop/house-construction/"
+          "url": "https://suimas.co.ke/shop/house-construction/",
+          "options": [
+            {
+              "id": "truss-low",
+              "name": "Lighter timber trusses",
+              "price": 1800,
+              "source": "Bottom of KES 1,800–3,200 per m² for timber roof trusses, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "truss",
+              "name": "Typical timber trusses",
+              "price": 2500,
+              "default": true,
+              "source": "Timber roof trusses, middle of KES 1,800–3,200 per m², Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "truss-high",
+              "name": "Heavier timber trusses",
+              "price": 3200,
+              "source": "Top of KES 1,800–3,200 per m² for timber roof trusses, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            }
+          ]
         },
         "window": {
           "price": 13250,
           "source": "Aluminium window, middle of KES 8,500–18,000 an opening, Nairobi, August 2026.",
-          "url": "https://suimas.co.ke/shop/house-construction/"
+          "url": "https://suimas.co.ke/shop/house-construction/",
+          "options": [
+            {
+              "id": "win-low",
+              "name": "Smaller aluminium window",
+              "price": 8500,
+              "source": "Bottom of KES 8,500–18,000 for an aluminium window, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "win",
+              "name": "Typical aluminium window",
+              "price": 13250,
+              "default": true,
+              "source": "Aluminium window, middle of KES 8,500–18,000 an opening, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "win-high",
+              "name": "Larger aluminium window",
+              "price": 18000,
+              "source": "Top of KES 8,500–18,000 for an aluminium window, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            }
+          ]
         },
         "doorIn": {
           "price": 6250,
           "source": "Interior flush door, middle of KES 3,500–9,000, Nairobi, August 2026.",
-          "url": "https://suimas.co.ke/shop/house-construction/"
+          "url": "https://suimas.co.ke/shop/house-construction/",
+          "options": [
+            {
+              "id": "din-low",
+              "name": "Basic flush door",
+              "price": 3500,
+              "source": "Bottom of KES 3,500–9,000 for an interior flush door, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "din",
+              "name": "Typical flush door",
+              "price": 6250,
+              "default": true,
+              "source": "Interior flush door, middle of KES 3,500–9,000, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "din-high",
+              "name": "Better flush door",
+              "price": 9000,
+              "source": "Top of KES 3,500–9,000 for an interior flush door, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            }
+          ]
         },
         "doorOut": {
           "price": 15000,
           "source": "Plain steel security door at the bottom of the KES 15,000–60,000 range published for March 2026. Most doors in that range cost more.",
-          "url": "https://aalisstudios.com/blog/materials-needed-to-build-a-3-bedroom-house-kenya/"
+          "url": "https://aalisstudios.com/blog/materials-needed-to-build-a-3-bedroom-house-kenya/",
+          "options": [
+            {
+              "id": "dout",
+              "name": "Plain steel security door",
+              "price": 15000,
+              "default": true,
+              "source": "Plain steel security door at the bottom of the KES 15,000–60,000 range published for March 2026. Most doors in that range cost more.",
+              "url": "https://aalisstudios.com/blog/materials-needed-to-build-a-3-bedroom-house-kenya/"
+            },
+            {
+              "id": "dout-mid",
+              "name": "Mid-range security door",
+              "price": 37500,
+              "source": "Middle of the KES 15,000–60,000 range published for a steel security door, March 2026.",
+              "url": "https://aalisstudios.com/blog/materials-needed-to-build-a-3-bedroom-house-kenya/"
+            },
+            {
+              "id": "dout-high",
+              "name": "Premium security door",
+              "price": 60000,
+              "source": "Top of the KES 15,000–60,000 range published for a steel security door, March 2026.",
+              "url": "https://aalisstudios.com/blog/materials-needed-to-build-a-3-bedroom-house-kenya/"
+            }
+          ]
         },
         "tiles": {
           "price": 1500,
           "source": "Ceramic floor tiles, middle of KES 800–2,200 per m², Nairobi, August 2026.",
-          "url": "https://suimas.co.ke/shop/house-construction/"
+          "url": "https://suimas.co.ke/shop/house-construction/",
+          "options": [
+            {
+              "id": "tile-low",
+              "name": "Ceramic floor tile, lower",
+              "price": 800,
+              "source": "Bottom of KES 800–2,200 per m² for ceramic floor tiles, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "tile",
+              "name": "Ceramic floor tile, typical",
+              "price": 1500,
+              "default": true,
+              "source": "Ceramic floor tiles, middle of KES 800–2,200 per m², Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "tile-high",
+              "name": "Ceramic floor tile, upper",
+              "price": 2200,
+              "source": "Top of KES 800–2,200 per m² for ceramic floor tiles, Nairobi, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            }
+          ]
         },
         "ceiling": {
           "price": 182,
           "guide": true,
           "source": "Gypsum board, middle of KES 460–620 for a 4×8 ft sheet, August 2026, taken as 3 m². The metal frame is not included.",
-          "url": "https://suimas.co.ke/shop/house-construction/"
+          "url": "https://suimas.co.ke/shop/house-construction/",
+          "options": [
+            {
+              "id": "gyp-low",
+              "name": "Gypsum board, lower",
+              "price": 153.33,
+              "guide": true,
+              "source": "Bottom of KES 460–620 for a 4×8 ft gypsum sheet, August 2026, taken as 3 m². The metal frame is not included.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "gyp",
+              "name": "Gypsum board, typical",
+              "price": 182,
+              "guide": true,
+              "default": true,
+              "source": "Gypsum board, middle of KES 460–620 for a 4×8 ft sheet, August 2026, taken as 3 m². The metal frame is not included.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "gyp-high",
+              "name": "Gypsum board, upper",
+              "price": 206.67,
+              "guide": true,
+              "source": "Top of KES 460–620 for a 4×8 ft gypsum sheet, August 2026, taken as 3 m². The metal frame is not included.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            }
+          ]
         },
         "paint": {
           "price": 100,
           "source": "Interior emulsion, middle of KES 1,200–2,800 per 20 litres, August 2026, so about KES 100 a litre.",
-          "url": "https://suimas.co.ke/shop/house-construction/"
+          "url": "https://suimas.co.ke/shop/house-construction/",
+          "options": [
+            {
+              "id": "paint-low",
+              "name": "Interior emulsion, lower",
+              "price": 60,
+              "source": "Bottom of KES 1,200–2,800 per 20 litres of interior emulsion, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "paint",
+              "name": "Interior emulsion, typical",
+              "price": 100,
+              "default": true,
+              "source": "Interior emulsion, middle of KES 1,200–2,800 per 20 litres, August 2026, so about KES 100 a litre.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            },
+            {
+              "id": "paint-high",
+              "name": "Interior emulsion, upper",
+              "price": 140,
+              "source": "Top of KES 1,200–2,800 per 20 litres of interior emulsion, August 2026.",
+              "url": "https://suimas.co.ke/shop/house-construction/"
+            }
+          ]
         },
         "elecPoint": {
           "price": 770,
@@ -331,7 +1178,31 @@
         "pipe": {
           "price": 100,
           "source": "PPR pipe, 1/2 inch, middle of KES 80–120 a metre, Nairobi.",
-          "url": "https://jengahub.co.ke/blog/building-materials-price-list-nairobi"
+          "url": "https://jengahub.co.ke/blog/building-materials-price-list-nairobi",
+          "options": [
+            {
+              "id": "pipe-low",
+              "name": "Half-inch PPR, lower",
+              "price": 80,
+              "source": "Bottom of KES 80–120 a metre for 1/2 inch PPR pipe, Nairobi.",
+              "url": "https://jengahub.co.ke/blog/building-materials-price-list-nairobi"
+            },
+            {
+              "id": "pipe",
+              "name": "Half-inch PPR, typical",
+              "price": 100,
+              "default": true,
+              "source": "PPR pipe, 1/2 inch, middle of KES 80–120 a metre, Nairobi.",
+              "url": "https://jengahub.co.ke/blog/building-materials-price-list-nairobi"
+            },
+            {
+              "id": "pipe-high",
+              "name": "Half-inch PPR, upper",
+              "price": 120,
+              "source": "Top of KES 80–120 a metre for 1/2 inch PPR pipe, Nairobi.",
+              "url": "https://jengahub.co.ke/blog/building-materials-price-list-nairobi"
+            }
+          ]
         },
         "wc": {
           "guideFrom": "ghana"
@@ -364,7 +1235,31 @@
         "cement": {
           "price": 38500,
           "source": "Tororo 32.5R, 50kg, Kitende Hardware listing observed 23 Jun 2026 (other 2026 lists run about UGX 30,000–39,000).",
-          "url": "https://ugandaprices.ug/construction-price-checker/"
+          "url": "https://ugandaprices.ug/construction-price-checker/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower 2026 list",
+              "price": 30000,
+              "source": "Bottom of other 2026 Kampala lists, about UGX 30,000–39,000 a 50kg bag.",
+              "url": "https://ugandaprices.ug/construction-price-checker/"
+            },
+            {
+              "id": "listed",
+              "name": "Tororo 32.5R listing",
+              "price": 38500,
+              "source": "Tororo 32.5R, 50kg, Kitende Hardware listing observed 23 Jun 2026 (other 2026 lists run about UGX 30,000–39,000).",
+              "url": "https://ugandaprices.ug/construction-price-checker/",
+              "default": true
+            },
+            {
+              "id": "high",
+              "name": "Upper 2026 list",
+              "price": 39000,
+              "source": "Top of other 2026 Kampala lists, about UGX 39,000 a 50kg bag.",
+              "url": "https://ugandaprices.ug/construction-price-checker/"
+            }
+          ]
         },
         "steel": {
           "price": 3615,
@@ -394,7 +1289,24 @@
         "cement": {
           "price": 197,
           "source": "50kg bag, national average retail K197 in Oct 2026. Some dealers were nearer K180 after the shortage eased.",
-          "url": "https://www.katondostreet.com/analytics/zs_cement_50kg"
+          "url": "https://www.katondostreet.com/analytics/zs_cement_50kg",
+          "options": [
+            {
+              "id": "dealer",
+              "name": "Lower dealer price",
+              "price": 180,
+              "source": "Some dealers were nearer K180 after the shortage eased, October 2026.",
+              "url": "https://www.katondostreet.com/analytics/zs_cement_50kg"
+            },
+            {
+              "id": "avg",
+              "name": "National average retail",
+              "price": 197,
+              "source": "50kg bag, national average retail K197 in Oct 2026. Some dealers were nearer K180 after the shortage eased.",
+              "url": "https://www.katondostreet.com/analytics/zs_cement_50kg",
+              "default": true
+            }
+          ]
         }
       }
     },
@@ -438,7 +1350,31 @@
         "cement": {
           "price": 78,
           "source": "CPJ 45, 50kg, middle of MAD 72–85, distributor prices surveyed 10 Oct 2026.",
-          "url": "https://lechantier.ma/en/prix/ciment"
+          "url": "https://lechantier.ma/en/prix/ciment",
+          "options": [
+            {
+              "id": "low",
+              "name": "CPJ 45, lower",
+              "price": 72,
+              "source": "Bottom of MAD 72–85 for CPJ 45, 50kg, distributor prices surveyed 10 Oct 2026.",
+              "url": "https://lechantier.ma/en/prix/ciment"
+            },
+            {
+              "id": "mid",
+              "name": "CPJ 45, typical",
+              "price": 78,
+              "source": "CPJ 45, 50kg, middle of MAD 72–85, distributor prices surveyed 10 Oct 2026.",
+              "url": "https://lechantier.ma/en/prix/ciment",
+              "default": true
+            },
+            {
+              "id": "high",
+              "name": "CPJ 45, upper",
+              "price": 85,
+              "source": "Top of MAD 72–85 for CPJ 45, 50kg, distributor prices surveyed 10 Oct 2026.",
+              "url": "https://lechantier.ma/en/prix/ciment"
+            }
+          ]
         }
       }
     },
@@ -453,7 +1389,31 @@
         "cement": {
           "price": 4075,
           "source": "50kg bag in Dakar, middle of FCFA 3,650–4,500 in 2026. The regulated 32.5 ceiling is about FCFA 3,650.",
-          "url": "https://isd-groups.sn/ciment-a-dakar-prix-marques-et-guide-dachat-complet-2026/"
+          "url": "https://isd-groups.sn/ciment-a-dakar-prix-marques-et-guide-dachat-complet-2026/",
+          "options": [
+            {
+              "id": "cap",
+              "name": "Regulated 32.5 ceiling",
+              "price": 3650,
+              "source": "Regulated 32.5 ceiling, about FCFA 3,650 a 50kg bag.",
+              "url": "https://isd-groups.sn/ciment-a-dakar-prix-marques-et-guide-dachat-complet-2026/"
+            },
+            {
+              "id": "retail",
+              "name": "Typical Dakar retail",
+              "price": 4075,
+              "source": "50kg bag in Dakar, middle of FCFA 3,650–4,500 in 2026. The regulated 32.5 ceiling is about FCFA 3,650.",
+              "url": "https://isd-groups.sn/ciment-a-dakar-prix-marques-et-guide-dachat-complet-2026/",
+              "default": true
+            },
+            {
+              "id": "high",
+              "name": "Upper Dakar retail",
+              "price": 4500,
+              "source": "Top of the FCFA 3,650–4,500 Dakar range quoted for 2026.",
+              "url": "https://isd-groups.sn/ciment-a-dakar-prix-marques-et-guide-dachat-complet-2026/"
+            }
+          ]
         }
       }
     },
@@ -517,7 +1477,45 @@
         "cement": {
           "price": 105,
           "source": "50kg masonry bag, about R100–R112 for PPC Surecem 32.5 in 2026 retail and wholesale guides. Structural 42.5 bags are nearer R115–R133.",
-          "url": "https://sahomebuilderstore.com/cement-price-south-africa-2026/"
+          "url": "https://sahomebuilderstore.com/cement-price-south-africa-2026/",
+          "options": [
+            {
+              "id": "c325-low",
+              "name": "Masonry 32.5, lower",
+              "price": 100,
+              "source": "Bottom of about R100–R112 for a 50kg PPC Surecem 32.5 bag in 2026 retail guides.",
+              "url": "https://sahomebuilderstore.com/cement-price-south-africa-2026/"
+            },
+            {
+              "id": "c325",
+              "name": "Masonry 32.5, typical",
+              "price": 105,
+              "source": "50kg masonry bag, about R100–R112 for PPC Surecem 32.5 in 2026 retail and wholesale guides. Structural 42.5 bags are nearer R115–R133.",
+              "url": "https://sahomebuilderstore.com/cement-price-south-africa-2026/",
+              "default": true
+            },
+            {
+              "id": "c325-high",
+              "name": "Masonry 32.5, upper",
+              "price": 112,
+              "source": "Top of about R100–R112 for a 50kg masonry 32.5 bag in 2026 retail guides.",
+              "url": "https://sahomebuilderstore.com/cement-price-south-africa-2026/"
+            },
+            {
+              "id": "c425-low",
+              "name": "Structural 42.5, lower",
+              "price": 115,
+              "source": "Bottom of about R115–R133 for a structural 42.5 bag in the same 2026 guides.",
+              "url": "https://sahomebuilderstore.com/cement-price-south-africa-2026/"
+            },
+            {
+              "id": "c425-high",
+              "name": "Structural 42.5, upper",
+              "price": 133,
+              "source": "Top of about R115–R133 for a structural 42.5 bag in the same 2026 guides.",
+              "url": "https://sahomebuilderstore.com/cement-price-south-africa-2026/"
+            }
+          ]
         },
         "steel": {
           "price": 15.5,
@@ -542,7 +1540,38 @@
         "cement": {
           "price": 20000,
           "source": "Twiga said its factory price was TSh 11,227 a bag while some Dar shops were selling at TSh 16,940–23,000. This uses TSh 20,000 as a retail planning figure from that report.",
-          "url": "https://www.thecitizen.co.tz/tanzania/news/national/twiga-cement-distances-itself-from-retail-cement-price-increases-5598412"
+          "url": "https://www.thecitizen.co.tz/tanzania/news/national/twiga-cement-distances-itself-from-retail-cement-price-increases-5598412",
+          "options": [
+            {
+              "id": "factory",
+              "name": "Twiga factory price",
+              "price": 11227,
+              "source": "Twiga's stated factory price, TSh 11,227 a bag, from the same report. Shops were selling higher.",
+              "url": "https://www.thecitizen.co.tz/tanzania/news/national/twiga-cement-distances-itself-from-retail-cement-price-increases-5598412"
+            },
+            {
+              "id": "shop-low",
+              "name": "Lower Dar shop price",
+              "price": 16940,
+              "source": "Bottom of the Dar shop range in that report, TSh 16,940–23,000.",
+              "url": "https://www.thecitizen.co.tz/tanzania/news/national/twiga-cement-distances-itself-from-retail-cement-price-increases-5598412"
+            },
+            {
+              "id": "shop",
+              "name": "Dar retail planning figure",
+              "price": 20000,
+              "source": "Twiga said its factory price was TSh 11,227 a bag while some Dar shops were selling at TSh 16,940–23,000. This uses TSh 20,000 as a retail planning figure from that report.",
+              "url": "https://www.thecitizen.co.tz/tanzania/news/national/twiga-cement-distances-itself-from-retail-cement-price-increases-5598412",
+              "default": true
+            },
+            {
+              "id": "shop-high",
+              "name": "Upper Dar shop price",
+              "price": 23000,
+              "source": "Top of the Dar shop range in that report, TSh 23,000.",
+              "url": "https://www.thecitizen.co.tz/tanzania/news/national/twiga-cement-distances-itself-from-retail-cement-price-increases-5598412"
+            }
+          ]
         }
       }
     },
@@ -566,7 +1595,31 @@
         "cement": {
           "price": 15000,
           "source": "50kg bag, 32.5R, RWF 15,000 on a Kigali supplier listing reported for October 2026. Other listings that month ran about RWF 8,500–14,500.",
-          "url": "https://kigaliconstruction.com/building-materials-kigali/"
+          "url": "https://kigaliconstruction.com/building-materials-kigali/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Lower Kigali listing",
+              "price": 8500,
+              "source": "Bottom of other October 2026 Kigali listings, about RWF 8,500–14,500.",
+              "url": "https://kigaliconstruction.com/building-materials-kigali/"
+            },
+            {
+              "id": "mid",
+              "name": "Upper of the other listings",
+              "price": 14500,
+              "source": "Top of other October 2026 Kigali listings, about RWF 8,500–14,500.",
+              "url": "https://kigaliconstruction.com/building-materials-kigali/"
+            },
+            {
+              "id": "listed",
+              "name": "Supplier listing used here",
+              "price": 15000,
+              "source": "50kg bag, 32.5R, RWF 15,000 on a Kigali supplier listing reported for October 2026. Other listings that month ran about RWF 8,500–14,500.",
+              "url": "https://kigaliconstruction.com/building-materials-kigali/",
+              "default": true
+            }
+          ]
         }
       }
     }
