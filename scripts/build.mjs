@@ -240,7 +240,7 @@ function footer(prefix) {
 <div><h3>Popular routes</h3><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, corridorPath(S, Rr))}">${esc(S.label)} to ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
 <div><h3>Services</h3><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
 <div><h3>Exchange rates</h3><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "AED-KES", "SAR-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
-<div><h3>Build a house</h3><ul>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
+<div><h3>Build a house</h3><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 <nav aria-label="Footer"><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
@@ -335,10 +335,23 @@ function buildWidget(prefix, countryId) {
 <div class="build-controls">
   <label>Country <select id="sf-build-country"></select></label>
   <label>Sending the money from <select id="sf-build-from"></select></label>
-  <div class="field"><span class="label" id="sf-storey-label">Floors</span><div class="payout-tabs" id="sf-build-storey" role="group" aria-labelledby="sf-storey-label"><button type="button" data-storeys="1" aria-pressed="true">One floor</button><button type="button" data-storeys="2" aria-pressed="false">Two floors</button></div></div>
+</div>
+<div class="build-controls">
+  <div class="field"><span class="label" id="sf-storey-label">House</span><div class="payout-tabs" id="sf-build-storey" role="group" aria-labelledby="sf-storey-label"><button type="button" data-storeys="1" aria-pressed="true">Bungalow</button><button type="button" data-storeys="2" aria-pressed="false">Maisonette</button></div><span class="hint">Same floor area. A maisonette is two floors on a smaller footprint.</span></div>
+  <div class="field"><span class="label" id="sf-finish-label">Finish</span><div class="payout-tabs" id="sf-build-finish" role="group" aria-labelledby="sf-finish-label"><button type="button" data-finish="economy">Economy</button><button type="button" data-finish="standard" aria-pressed="true">Standard</button><button type="button" data-finish="luxury">Luxury</button></div><span class="hint">Standard is the listed price. Economy and luxury change tiles, paint, doors, windows and fittings only.</span></div>
+  <div class="field"><span class="label" id="sf-site-label">Plot</span><div class="payout-tabs" id="sf-build-site" role="group" aria-labelledby="sf-site-label"><button type="button" data-site="flat" aria-pressed="true">Flat, on a road</button><button type="button" data-site="steep">Steep or far</button></div><span class="hint">Steep or far adds a planning allowance to sand and ballast. A soil test is still required.</span></div>
 </div>
 <div class="size-picks" id="sf-build-sizes" role="group" aria-label="House size"></div>
 <div id="sf-build-custom" hidden><label>Floor area, square metres <input id="sf-build-m2" type="number" min="20" max="500" step="1" value="120"></label></div>
+<div class="build-side">
+  <label>Their lump sum, in this country's currency <input id="sf-build-quote" inputmode="decimal" placeholder="Paste their figure" autocomplete="off"></label>
+  <fieldset>
+    <legend>Under the receipt. Off until you include them.</legend>
+    <label><input id="sf-x-contingency" type="checkbox"> 10% contingency</label>
+    <label><input id="sf-x-contractor" type="checkbox"> Contractor's fee, where a margin is published</label>
+    <label><input id="sf-x-professional" type="checkbox"> Architect and engineer</label>
+  </fieldset>
+</div>
 <div id="sf-build-out"><p class="note">Working out the quantities…</p></div>
 </div>`;
 }
@@ -360,13 +373,14 @@ function buildTeaser(prefix) {
 }
 
 function writeBuildPages() {
-  const intro = `A receipt check for a simple house, including the finish, the plot works and the building permit: structure, block walls, roof, windows, doors, plaster, floor and wall tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, a basin, a shower, a kitchen sink, a septic tank, a boundary wall and a gate. The permit is that country's own published fee. On each line you can switch to another published type. The plot of land and the contractor's fee are not included.`;
+  const intro = `A receipt check for a simple house, including the finish, the plot works and the building permit: structure, block walls, roof, windows, doors, plaster, floor and wall tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, a basin, a shower, a kitchen sink, a septic tank, a boundary wall and a gate. The permit is that country's own published fee. On each line you can switch to another published type. Bungalow and maisonette are one floor and two floors of the same floor area. Standard finish is the listed price. Where a published whole-house band exists, it sits beside the receipt and includes a contractor. The plot of land and the contractor's fee are not in the receipt.`;
   const faqs = [
     ["What does this cost include?", "Cement, steel, ballast, sand, blocks, roof sheets or a concrete slab, upper-floor formwork where there is a suspended slab, roof timber, gutters, windows, doors, floor tiles, wall tiles in the wet rooms, ceiling boards and their metal frame, primer and two coats of paint, kitchen cupboards, a fitted wardrobe in each bedroom, wiring, plumbing, a WC, a basin, a shower, a kitchen sink, a water tank, a septic tank, a boundary wall, a gate, the building permit published for that country, and the mason, labourer, carpenter, painter, electrician and plumber days. Materials use the same quantities everywhere. The permit does not: each country keeps its own fee, and a country with no published tariff is left unpriced rather than copied from somewhere else. Where a published list has more than one type, the menu on that line switches the price."],
-    ["Can I choose the type of roof, windows or tiles?", "Yes. Roof sheets, blocks, windows, doors, tiles, ceiling boards, paint and several other lines have a menu. The first choice is the figure this page was checked with. Other choices are named types, or the ends of a published price range. A guide tag means the figure was scaled from another country, or that a box or sheet was turned into a price per square metre."],
-    ["What is left out?", "The plot of land and the contractor's own fee. Also left out: appliances, and the architect's or engineer's professional fee. A permit with no published tariff is shown and not guessed. Where a published whole-house rate is shown, that band includes a builder and this page does not."],
-    ["Why might a contractor still quote more?", "Their fee and transport to site sit on top of this list. If the gap is large, ask which line it pays for. A round sum with no bags, blocks or days is the usual way a quote gets inflated."],
-    ["How current are the prices?", `The lists were checked on ${buildCosts.updated}. We refresh them monthly. A town away from the city on the page can pay more, especially for sand, ballast and haulage.`],
+    ["Can I choose the type of roof, windows or tiles?", "Yes. Roof sheets, blocks, windows, doors, tiles, ceiling boards, paint and several other lines have a menu. The first choice is the figure this page was checked with. Other choices are named types, or the ends of a published price range. A guide tag means the figure was scaled from another country, or that a box or sheet was turned into a price per square metre. Economy and luxury move only the finish lines. A line you pick yourself stays as you picked it."],
+    ["What is a bungalow and a maisonette here?", "A bungalow is one floor. A maisonette is two floors of the same total floor area, so the footprint and the roof are smaller and the upper slab and staircase are included. The two prices are not double."],
+    ["What is left out?", "The plot of land and the contractor's own fee stay out of the receipt. Appliances stay out. A 10% contingency, a contractor margin where one is published, and the architect's or engineer's fee sit under the receipt and stay off until you include them. A permit with no published tariff is shown and not guessed. Where a published whole-house rate is shown, that band includes a builder and the receipt does not."],
+    ["Why might a contractor still quote more?", "Their fee, haulage and a contingency sit on top of this list. Paste their lump sum and the page sets it against the receipt and, where we have one, the published band. If the gap is large, ask which line it pays for. A round sum with no bags, blocks or days is the usual way a quote gets inflated."],
+    ["How current are the prices?", `The lists were checked on ${buildCosts.updated}. We refresh them monthly. A town away from the city on the page can pay more, especially for sand, ballast and haulage. The steep-or-far switch adds a planning allowance to sand and ballast only. It is not a soil test.`],
     ["Is this a structural design?", "No. The quantities are for a simple rectangular family house so you can budget and check receipts. A structural engineer sizes the steel for your soil and your drawing."]
   ];
   const bodyFor = (id, prefix) => `<section class="block page"><div class="wrap"><div class="prose wide">
@@ -374,6 +388,7 @@ function writeBuildPages() {
 <h1>${id ? `Cost to build a house in ${esc(buildCosts.countries[id].name)}` : "Cost to build a house back home"}</h1>
 <p class="lede">${esc(intro)}</p>
 ${buildWidget(prefix, id || "kenya")}
+<p class="build-links"><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a> <a href="${link(prefix, "cost-to-build/same-house/")}">The same 3-bedroom bungalow in every country</a></p>
 <h2>Other countries</h2>
 <ul class="route-links">${Object.keys(buildCosts.countries).map((cid) => `<li><a href="${link(prefix, `cost-to-build/${cid}/`)}">${esc(buildCosts.countries[cid].name)}</a></li>`).join("")}</ul>
 <h2>Questions</h2>
@@ -399,6 +414,78 @@ ${faqBlock(faqs)}
     }));
     urls.push(rel);
   }
+  writeMaterialPrices();
+  writeSameHouse();
+}
+
+function moneyPlain(n, cur) {
+  return esc(plain(R.money(n, cur)));
+}
+
+function writeMaterialPrices() {
+  const rates = midmarket.rates || {};
+  const materials = [
+    ["cement", "Cement, 50kg", "per bag"],
+    ["steel", "Steel", "per kg"],
+    ["blocks", "Blocks", "each"],
+    ["sand", "Sand", "per m³"],
+    ["mason", "Mason", "per day"]
+  ];
+  const rows = Object.keys(buildCosts.countries).map((id) => {
+    const c = buildCosts.countries[id];
+    const cells = materials.map(([key, label]) => {
+      const priced = BC.priceOf(buildCosts, id, key, rates);
+      const choices = BC.choicesFor(buildCosts, id, key, rates);
+      if (!priced) return `<tr><td>${esc(label)}</td><td>No price this month</td><td></td><td></td></tr>`;
+      const distinct = choices.map((o) => o.price).filter((n, i, a) => a.indexOf(n) === i);
+      const range = distinct.length > 1 ? `${moneyPlain(Math.min(...distinct), c.currency)} – ${moneyPlain(Math.max(...distinct), c.currency)}` : "One listed price";
+      const lead = priced.quoted ? "Listed price. " : "";
+      return `<tr><td>${esc(label)}</td><td class="num">${moneyPlain(priced.price, c.currency)}</td><td>${range}</td><td>${esc(lead + priced.source)}</td></tr>`;
+    }).join("");
+    return `<h2>${esc(c.name)}</h2><p>${esc(c.city)}. Checked ${esc(buildCosts.updated)}.</p><div class="table-wrap"><table class="rates-table price-sheet"><thead><tr><th>Material</th><th>Price in the receipt</th><th>Published range</th><th>Source</th></tr></thead><tbody>${cells}</tbody></table></div>`;
+  }).join("");
+  const rel = "cost-to-build/material-prices/";
+  write(rel + "index.html", page({
+    prefix: "../../", canonical: rel, buildPage: false, rank: false, og: "home",
+    title: `Construction material prices · ${config.siteName}`,
+    description: `Cement, steel, blocks, sand and a mason's day in each country SendFair prices, with the source and the date. Checked ${buildCosts.updated}.`,
+    jsonld: [crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], ["Material prices", rel]])],
+    body: `<section class="block page"><div class="wrap"><article class="prose wide">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="${link("../../", "")}">SendFair</a></li><li><a href="${link("../../", "cost-to-build/")}">Build a house</a></li><li aria-current="page">Material prices</li></ol></nav>
+<h1>Material prices inside the house receipt</h1>
+<p class="lede">Cement, steel, blocks, sand and a mason's day. The price is the one the house calculator uses. A range appears only when that line publishes more than one type. A guide was scaled from another country's figure, or read from a single list. Checked ${esc(buildCosts.updated)}.</p>
+${rows}
+<p><a href="${link("../../", "cost-to-build/")}">Open the house calculator</a> to see these prices turned into bags, bars and days.</p>
+</article></div></section>`
+  }));
+  urls.push(rel);
+}
+
+function writeSameHouse() {
+  const rates = midmarket.rates || {};
+  const rows = Object.keys(buildCosts.countries).map((id) => {
+    const est = BC.estimate(buildCosts, id, 110, 1, rates);
+    if (!est) return "";
+    const per = est.total / 110;
+    const band = est.band ? `${moneyPlain(est.band.perLow, est.currency)} – ${moneyPlain(est.band.perHigh, est.currency)} a m², includes a contractor` : "No published band in this check";
+    const why = est.country.why || "No separate published reason in this check. The receipt is materials, labour and the permit.";
+    return `<tr><th scope="row"><a href="${link("../../", `cost-to-build/${id}/`)}">${esc(est.country.name)}</a></th><td>${esc(est.country.city)}</td><td class="num">${moneyPlain(est.total, est.currency)}</td><td class="num">${moneyPlain(per, est.currency)}</td><td>${band}</td><td>${esc(why)}</td></tr>`;
+  }).join("");
+  const rel = "cost-to-build/same-house/";
+  write(rel + "index.html", page({
+    prefix: "../../", canonical: rel, buildPage: false, rank: false, og: "home",
+    title: `What the same 3-bedroom bungalow costs · ${config.siteName}`,
+    description: "One 3-bedroom bungalow, 110 square metres, one floor, priced in every country SendFair covers. The receipt leaves out land and the contractor's fee.",
+    jsonld: [crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], ["The same house", rel]])],
+    body: `<section class="block page"><div class="wrap"><article class="prose wide">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="${link("../../", "")}">SendFair</a></li><li><a href="${link("../../", "cost-to-build/")}">Build a house</a></li><li aria-current="page">The same house</li></ol></nav>
+<h1>The same 3-bedroom bungalow in every country</h1>
+<p class="lede">110 m², one floor, standard finish, the same quantities. The receipt is materials, trade days, the finish, the plot works and that country's permit. Land and the contractor's fee are not in it. A published band, where we have one, is a whole-house rate and includes a contractor. Checked ${esc(buildCosts.updated)}.</p>
+<div class="table-wrap"><table class="rates-table same-house"><caption>3-bedroom bungalow, 110 m², one floor</caption><thead><tr><th>Country</th><th>City on the price list</th><th class="num">Receipt</th><th class="num">Receipt a m²</th><th>Published band</th><th>Why the city costs what it does</th></tr></thead><tbody>${rows}</tbody></table></div>
+<p>Compare a receipt with another receipt. A band is a different kind of number. <a href="${link("../../", "cost-to-build/")}">Open the calculator</a> to change the size, the finish or the floors.</p>
+</article></div></section>`
+  }));
+  urls.push(rel);
 }
 
 function corridorGrid(prefix) {
@@ -1137,7 +1224,7 @@ const trust = {
 <p>We show what the same transfer would deliver at ${config.regionalAverageCost.percent}% total cost, the ${esc(config.regionalAverageCost.label)}, from the World Bank's Remittance Prices Worldwide report.</p>
 <h2>Commissions never change the order</h2><p>Results are sorted only by the amount received. See <a href="${link("../", "disclosure/")}">how we make money</a>.</p>
 <h2>The house estimate</h2>
-<p>The <a href="${link("../", "cost-to-build/")}">cost to build a house</a> is a separate check. It is not a transfer rate. Quantities are for a simple rectangular house. Where a shop list publishes more than one type, the page lets you choose, and the total changes. A listed price is a published figure. A guide is scaled from another country's figure at the mid-market rate, or assumes how much a box, sheet or load covers. Land and the contractor's fee are left out. The finish is in, and so are a septic tank, kitchen cupboards, a wardrobe in each bedroom, a boundary wall, a gate and the building permit published for that country. An architect's professional fee is not a permit and is not included. The wall length is a usual plot for that number of bedrooms, and the same length is used for one floor or two. It is not a structural design.</p>`],
+<p>The <a href="${link("../", "cost-to-build/")}">cost to build a house</a> is a separate check. It is not a transfer rate. Quantities are for a simple rectangular house. Where a shop list publishes more than one type, the page lets you choose, and the total changes. A listed price is a published figure. A guide is scaled from another country's figure at the mid-market rate, or assumes how much a box, sheet or load covers. Land and the contractor's fee are left out of the receipt. A published whole-house band, where we have one, is shown beside the receipt and includes a contractor. A 10% contingency, a contractor margin where one is published, and the architect's fee can be shown under the receipt and stay out of it until you include them. Economy and luxury change the finish lines only. A steep or distant plot adds a planning allowance to sand and ballast, and a soil test is still required. The finish is in, and so are a septic tank, kitchen cupboards, a wardrobe in each bedroom, a boundary wall, a gate and the building permit published for that country. An architect's professional fee is not a permit and is not included. The wall length is a usual plot for that number of bedrooms, and the same length is used for one floor or two. It is not a structural design.</p>`],
   "disclosure/": ["How we make money", "SendFair's affiliate and advertising disclosure.", `
 <h1>How we make money</h1>
 <p>SendFair is free to use. We earn money in two ways:</p>

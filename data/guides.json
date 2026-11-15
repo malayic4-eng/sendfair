@@ -61,10 +61,22 @@
       "updated": "2026-11-15",
       "lede": "Compare the amount that arrives, for the sum you will actually send and the way your family will receive it. Ignore a league table that uses a different amount or a different payout.",
       "steps": [
-        { "name": "Choose the route", "text": "Select the country you send from and the country that receives the money." },
-        { "name": "Enter your amount", "text": "Use the amount you will pay, not a round example that is far from it. Fees and rates can change with the amount." },
-        { "name": "Choose the payout", "text": "Bank, mobile money and cash pickup can carry different rates. Pick the one your family will use." },
-        { "name": "Read what arrives", "text": "The top row delivers the most on this check. Open that provider and confirm the final figure on their own screen before you pay." }
+        {
+          "name": "Choose the route",
+          "text": "Select the country you send from and the country that receives the money."
+        },
+        {
+          "name": "Enter your amount",
+          "text": "Use the amount you will pay, not a round example that is far from it. Fees and rates can change with the amount."
+        },
+        {
+          "name": "Choose the payout",
+          "text": "Bank, mobile money and cash pickup can carry different rates. Pick the one your family will use."
+        },
+        {
+          "name": "Read what arrives",
+          "text": "The top row delivers the most on this check. Open that provider and confirm the final figure on their own screen before you pay."
+        }
       ],
       "sections": [
         {
@@ -85,7 +97,16 @@
         }
       ],
       "faq": [
-        ["Does SendFair send the money?", "No. SendFair compares services. You complete the transfer on the provider's own site or app."]
+        [
+          "Does SendFair send the money?",
+          "No. SendFair compares services. You complete the transfer on the provider's own site or app."
+        ]
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "compare",
+        "amount"
       ]
     },
     {
@@ -112,6 +133,12 @@
             "A promotion that applies only to a first transfer is not treated as the everyday price unless the page says so."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "compare",
+        "fees"
       ]
     },
     {
@@ -137,6 +164,12 @@
             "In the UAE, Oman, Bahrain and Saudi Arabia the recorded fee includes VAT, because that is what you pay. The [Gulf guide](/send-money-from-the-gulf/) explains exchange houses, apps, banks and wallets."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "rate",
+        "compare"
       ]
     },
     {
@@ -163,6 +196,11 @@
             "The route page lists the payout methods that country supports."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "payout"
       ]
     },
     {
@@ -189,6 +227,12 @@
             "Confirm the received amount, the fee and the delivery time on their screen. SendFair does not move the money."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "corridor",
+        "uk"
       ]
     },
     {
@@ -215,6 +259,12 @@
             "If the figure on the provider's app disagrees, send the route, the amount and a screenshot to the [contact page](/contact/). The quote is rechecked."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "corridor",
+        "us"
       ]
     },
     {
@@ -241,6 +291,12 @@
             "The amount that arrives is still the number to compare."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "corridor",
+        "gulf"
       ]
     },
     {
@@ -267,6 +323,11 @@
             "A report is not a complaint form. Corrections to a rate go through the [contact page](/contact/)."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "delivery"
       ]
     },
     {
@@ -292,6 +353,12 @@
             "If a note on the row says the figure is promotional, treat it as one send. The [method](/methodology/) says first-transfer promotions are excluded unless noted."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "promotions",
+        "fees"
       ]
     },
     {
@@ -302,9 +369,18 @@
       "updated": "2026-11-15",
       "lede": "If the provider's screen shows a different amount, the quote needs a recheck. Send the route, the amount, the payout and a screenshot.",
       "steps": [
-        { "name": "Note the route and the amount", "text": "Write the countries and the amount you entered, including the payout method." },
-        { "name": "Capture the provider's screen", "text": "A screenshot of their calculator, with the rate and the fee visible, is enough." },
-        { "name": "Send it", "text": "Email the contact address on the contact page. The quote is rechecked, usually the same day." }
+        {
+          "name": "Note the route and the amount",
+          "text": "Write the countries and the amount you entered, including the payout method."
+        },
+        {
+          "name": "Capture the provider's screen",
+          "text": "A screenshot of their calculator, with the rate and the fee visible, is enough."
+        },
+        {
+          "name": "Send it",
+          "text": "Email the contact address on the contact page. The quote is rechecked, usually the same day."
+        }
       ],
       "sections": [
         {
@@ -323,6 +399,12 @@
             "The full rules are on [How we rank](/methodology/)."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "compare",
+        "fees"
       ]
     },
     {
@@ -333,9 +415,18 @@
       "updated": "2026-11-15",
       "lede": "A rate alert watches one route after each daily check and emails you once, when the best service reaches your target. It does not send a newsletter.",
       "steps": [
-        { "name": "Open the route", "text": "Go to the corridor you send on." },
-        { "name": "Set the target", "text": "Enter the amount you want your family to receive, and your email address." },
-        { "name": "Confirm", "text": "Use the confirmation email. After that, one email arrives if the target is hit. Every email has a remove link." }
+        {
+          "name": "Open the route",
+          "text": "Go to the corridor you send on."
+        },
+        {
+          "name": "Set the target",
+          "text": "Enter the amount you want your family to receive, and your email address."
+        },
+        {
+          "name": "Confirm",
+          "text": "Use the confirmation email. After that, one email arrives if the target is hit. Every email has a remove link."
+        }
       ],
       "sections": [
         {
@@ -346,6 +437,11 @@
             "The [privacy policy](/privacy/) is the full account of that."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "alerts"
       ]
     },
     {
@@ -356,10 +452,22 @@
       "updated": "2026-11-15",
       "lede": "The calculator prices one simple house in the country you choose. Change the size, the number of floors and the material menus, and the total changes with them.",
       "steps": [
-        { "name": "Choose the country", "text": "Open the house calculator and pick where the house will be built." },
-        { "name": "Choose the size", "text": "Use a bedroom count or type your own floor area. One floor and two floors use that same floor area." },
-        { "name": "Switch the types", "text": "Where a line has a menu, pick the roof, windows, doors, tiles or other type you intend to buy." },
-        { "name": "Read the quantities", "text": "Match bags, blocks, metres and days to receipts. The sources sit under the list." }
+        {
+          "name": "Choose the country",
+          "text": "Open the house calculator and pick where the house will be built."
+        },
+        {
+          "name": "Choose the size",
+          "text": "Use a bedroom count or type your own floor area. One floor and two floors use that same floor area."
+        },
+        {
+          "name": "Switch the types",
+          "text": "Where a line has a menu, pick the roof, windows, doors, tiles or other type you intend to buy."
+        },
+        {
+          "name": "Read the quantities",
+          "text": "Match bags, blocks, metres and days to receipts. The sources sit under the list."
+        }
       ],
       "sections": [
         {
@@ -378,6 +486,12 @@
             "Start at the [calculator](/cost-to-build/)."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "calculator",
+        "receipt"
       ]
     },
     {
@@ -404,6 +518,12 @@
             "The [method](/methodology/) says the same thing in the house section."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "calculator",
+        "receipt"
       ]
     },
     {
@@ -430,6 +550,12 @@
             "If you want a two-floor house with more than 190 square metres, type that floor area yourself. The bedroom buttons do not double the area."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "floors",
+        "calculator"
       ]
     },
     {
@@ -440,10 +566,22 @@
       "updated": "2026-11-15",
       "lede": "Ask for the quote as quantities, then set them beside the calculator. A gap is not automatically padding. It is a question: which line is the extra money paying for?",
       "steps": [
-        { "name": "Match the house", "text": "Set the calculator to the same country, floor area and number of floors." },
-        { "name": "Match the types", "text": "Pick the roof, windows, doors and tiles the quote specifies, or the closest published type." },
-        { "name": "Compare line by line", "text": "Bags of cement, tonnes of steel, blocks, sheets and trade days should be visible on both sides." },
-        { "name": "Ask about the gap", "text": "The contractor's fee, transport and anything this page leaves out will sit on top. Ask which of those the difference is." }
+        {
+          "name": "Match the house",
+          "text": "Set the calculator to the same country, floor area and number of floors."
+        },
+        {
+          "name": "Match the types",
+          "text": "Pick the roof, windows, doors and tiles the quote specifies, or the closest published type."
+        },
+        {
+          "name": "Compare line by line",
+          "text": "Bags of cement, tonnes of steel, blocks, sheets and trade days should be visible on both sides."
+        },
+        {
+          "name": "Ask about the gap",
+          "text": "The contractor's fee, transport and anything this page leaves out will sit on top. Ask which of those the difference is."
+        }
       ],
       "sections": [
         {
@@ -454,6 +592,12 @@
             "A quote that will not show bags or days is the one to treat carefully."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "quote",
+        "calculator"
       ]
     },
     {
@@ -480,6 +624,11 @@
             "Check the yard before you send the money to buy."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "prices"
       ]
     },
     {
@@ -506,6 +655,11 @@
             "Open the country on the [calculator](/cost-to-build/) and read that permit line. The source is under the list."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "permits"
       ]
     },
     {
@@ -532,6 +686,12 @@
             "You can switch the wall to chain link or to a cheaper block rate, and the kitchen to a laminate run without a stone top."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "plot",
+        "receipt"
       ]
     },
     {
@@ -557,6 +717,12 @@
             "Where another country publishes an all-in rate, it is shown the same way and labelled as including a contractor. Ghana and South Africa are examples. The line total remains the receipt."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "prices",
+        "kenya"
       ]
     },
     {
@@ -583,6 +749,12 @@
             "The [calculator](/cost-to-build/) is the place to do it."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "materials",
+        "prices"
       ]
     },
     {
@@ -609,7 +781,20 @@
             "Confirm the payout method the builder or the family can receive."
           ]
         }
+      ],
+      "author": "sendfair",
+      "status": "published",
+      "tags": [
+        "quote",
+        "transfer"
       ]
+    }
+  ],
+  "authors": [
+    {
+      "slug": "sendfair",
+      "name": "SendFair",
+      "bio": "SendFair is written by Continental Flow Ltd in Nairobi. The guides explain how to read a transfer and the house calculator. They are not a contractor's quote."
     }
   ]
 }

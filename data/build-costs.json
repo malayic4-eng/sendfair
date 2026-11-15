@@ -136,7 +136,13 @@
             "source": "Reported Abuja building-plan approval for a 5-bedroom house, middle of ₦450,000–₦650,000, 2025. The FCT assessment can differ once the volume is measured."
           }
         }
-      ]
+      ],
+      "contractor": {
+        "rate": 0.35,
+        "source": "Heirstone, Nine cities, one square metre (2026): contractors add about 35% for overheads and profit on a small job in Lagos.",
+        "url": "https://www.heirstoneconsulting.com/pages/report-africa-construction-costs"
+      },
+      "why": "Heirstone's 2026 city note puts a small-job contractor's overhead and profit at about 35% in Lagos, and interest on a two-year build at 21 to 39% of the hard cost. This receipt includes neither."
     },
     "ghana": {
       "name": "Ghana",
@@ -859,7 +865,8 @@
           "source": "Ga West draft 2026 fee-fixing, as reported by Yen.com.gh: form GH₵200, residential jacket GH₵250, site-plan check GH₵100, submission GH₵100 a bedroom, Class A development fee GH₵822.25 on one floor or GH₵1,012 on two, plus 0.63% of the cost of development.",
           "url": "https://yen.com.gh/real-estate/314630-building-permit-costs-ghana-2026-fees-requirements-how-apply/"
         }
-      ]
+      ],
+      "why": "Gabochie Design, Q3 2026, prices a Greater Accra house from GH₵3,300 to GH₵6,800 a square metre, budget to standard, and that band includes a contractor. This receipt does not."
     },
     "kenya": {
       "name": "Kenya",
@@ -1572,7 +1579,13 @@
           "source": "Nairobi City County Finance Bill 2025: public-health vetting of an architectural building plan, KES 5,000 for 1 to 10 units.",
           "url": "https://nairobiassembly.go.ke/ncca/wp-content/uploads/bill/2025/THE-NAIROBI-COUNTY-CITY-FINANCE-Bill-2025-26-final-1_compressed.pdf"
         }
-      ]
+      ],
+      "contractor": {
+        "rate": 0.15,
+        "source": "Heirstone, Nine cities, one square metre (2026): contractors add about 15% for overheads and profit on a small job in Nairobi.",
+        "url": "https://www.heirstoneconsulting.com/pages/report-africa-construction-costs"
+      },
+      "why": "Heirstone's 2026 city note: duty and VAT add 57 to 59% to imported cement, and a small-job contractor margin in Nairobi is about 15%. KenyaHub's KES 36,000 to 42,500 a square metre includes a builder. This receipt does not."
     },
     "uganda": {
       "name": "Uganda",
@@ -1753,7 +1766,8 @@
             }
           ]
         }
-      ]
+      ],
+      "why": "Heirstone's 2026 city note: a 50kg bag of cement was about US$4.13 in Egypt in 2025, the lowest of the ten cities it compared."
     },
     "morocco": {
       "name": "Morocco",
@@ -1889,7 +1903,8 @@
             }
           ]
         }
-      ]
+      ],
+      "why": "Heirstone's 2026 note: Dakar has no current published whole-house rate, only a national or regional average. This receipt is the check."
     },
     "ivorycoast": {
       "name": "Côte d'Ivoire",
@@ -1915,7 +1930,8 @@
           "source": "Service Public de Côte d'Ivoire: building permit, all types of construction, XOF 50,000. A property development is listed at XOF 100,000 and is not used for a single house.",
           "url": "https://servicepublic.gouv.ci/accueil/detaildemarcheparticulier/3/140/29"
         }
-      ]
+      ],
+      "why": "Heirstone's 2026 note: Abidjan has no current published whole-house rate, only a national or regional average. This receipt is the check."
     },
     "mali": {
       "name": "Mali",
@@ -1958,7 +1974,8 @@
           "source": "Yaoundé 1st town hall: a building permit for work over 40 m² is 1% of the estimated cost of the works, minimum XAF 25,000. A planning certificate is XAF 10,000.",
           "url": "https://www.mairie-yde1.cm/en/services/urbanisme-construction"
         }
-      ]
+      ],
+      "why": "Heirstone's 2026 note: Douala has no current published whole-house rate, only a national or regional average. This receipt is the check."
     },
     "ethiopia": {
       "name": "Ethiopia",
@@ -2062,7 +2079,8 @@
           "source": "City of Johannesburg, from 1 July 2026: R27 a square metre for the first 1,000 m², minimum R1,027. A new house of 50 m² or less is R732.",
           "url": "https://buildingplans.co.za/councils/johannesburg/"
         }
-      ]
+      ],
+      "why": "AECOM's guide to 1 July 2025 prices an economic to middle-class house at R7,920 to R11,830 a square metre excluding VAT, and the rate includes a contractor. This receipt does not."
     },
     "tanzania": {
       "name": "Tanzania",
@@ -2142,7 +2160,8 @@
             }
           ]
         }
-      ]
+      ],
+      "why": "Heirstone's 2026 city note: duty and VAT add 57 to 59% to imported cement in Tanzania, the same border cost it records for Kenya."
     },
     "drc": {
       "name": "DR Congo",
@@ -2163,7 +2182,8 @@
           "source": "Agence Nationale pour la Promotion des Investissements: a residential building of at most two floors costs USD 1.80 a square metre. Shown here in francs at the mid-market rate.",
           "url": "https://www.dev.investindrc.cd/en/Permis-de-construire"
         }
-      ]
+      ],
+      "why": "Heirstone's 2026 city note: a 50kg bag of cement cost about US$11.03 in Kinshasa in 2025, and haulage is the expensive layer. This month's receipt is scaled from Nairobi."
     },
     "rwanda": {
       "name": "Rwanda",
@@ -2236,5 +2256,12 @@
         }
       ]
     }
+  },
+  "planning": {
+    "contingencyRate": 0.1,
+    "siteHaulage": 0.4,
+    "finishEconomy": 0.65,
+    "finishLuxury": 1.65,
+    "note": "Contingency, the steep-site haulage allowance, and the economy and luxury finish spreads are planning factors. They are not shop prices. Standard finish uses the listed price."
   }
 }

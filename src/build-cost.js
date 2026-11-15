@@ -222,11 +222,25 @@
     var p = Math.pow(10, d || 0);
     return Math.round(n * p) / p;
   }
-  function estimate(data, id, m2, storeys, rates, picks) {
+  var FINISH = { windows: 1, doorIn: 1, doorOut: 1, tiles: 1, wallTiles: 1, ceiling: 1, ceilingFrame: 1, paint: 1, kitchen: 1, wardrobe: 1, wc: 1, basin: 1, shower: 1, sink: 1 };
+  function planOf(data) {
+    var p = (data && data.planning) || {};
+    return {
+      contingency: p.contingencyRate > 0 ? p.contingencyRate : 0.1,
+      haulage: p.siteHaulage > 0 ? p.siteHaulage : 0.4,
+      economy: p.finishEconomy > 0 ? p.finishEconomy : 0.65,
+      luxury: p.finishLuxury > 0 ? p.finishLuxury : 1.65
+    };
+  }
+  function estimate(data, id, m2, storeys, rates, picks, opts) {
     var c = data.countries[id];
     if (!c || !(m2 > 0)) return null;
     storeys = storeys >= 2 ? 2 : 1;
     picks = picks || {};
+    opts = opts || {};
+    var finish = opts.finish === "economy" || opts.finish === "luxury" ? opts.finish : "standard";
+    var steep = opts.site === "steep";
+    var plan = planOf(data);
     var q = quantities(data, m2, storeys, c.roof);
     var linePicks = {};
     var pk;
@@ -235,17 +249,45 @@
     var lines = [];
     function add(key, label, qty, qtyLabel, rateKey, unitName, group) {
       if (!(qty > 0)) return;
-      var unit = priceOf(data, id, rateKey, rates, null, linePicks[key]);
+      var optionId = linePicks[key];
+      var spread = false;
+      if (FINISH[key] && finish !== "standard" && !optionId) {
+        var menu = choicesFor(data, id, rateKey, rates);
+        if (menu.length > 1) {
+          var best = menu[0];
+          for (var i = 1; i < menu.length; i++) {
+            if (finish === "economy" ? menu[i].price < best.price : menu[i].price > best.price) best = menu[i];
+          }
+          optionId = best.id;
+        } else spread = true;
+      }
+      var unit = priceOf(data, id, rateKey, rates, null, optionId);
       if (!unit) {
-        lines.push({ key: key, label: label, group: group, qty: qty, qtyLabel: qtyLabel, cost: null, quoted: false, source: "No price this month." });
+        lines.push({ key: key, label: label, group: group, qty: qty, qtyLabel: qtyLabel, unitName: unitName, cost: null, quoted: false, source: "No price this month." });
         return;
       }
+      var price = unit.price;
+      var quoted = unit.quoted;
+      var source = unit.source;
+      var text = qtyLabel;
       var choices = unit.choices && unit.choices.length > 1 ? unit.choices : null;
+      if (choices) text += " · " + unit.optionName;
+      if (spread) {
+        var factor = finish === "economy" ? plan.economy : plan.luxury;
+        price = price * factor;
+        quoted = false;
+        source = "Planning spread: priced at " + Math.round(factor * 100) + "% of the listed finish price, because this line has only one published figure. It is not a second shop receipt. " + source;
+      }
+      if (steep && (key === "sand" || key === "ballast")) {
+        price = price * (1 + plan.haulage);
+        quoted = false;
+        text += ". The cubic metres are unchanged. The price includes a " + Math.round(plan.haulage * 100) + "% planning allowance for a steep plot or a long haul. A soil test is still required";
+        source = "Planning allowance for a steep site or a long haul. Not a measured delivery quote. " + source;
+      }
       lines.push({
-        key: key, label: label, group: group, qty: qty,
-        qtyLabel: qtyLabel + (choices ? " · " + unit.optionName : ""),
-        unitPrice: unit.price, unitName: unitName, cost: qty * unit.price,
-        quoted: unit.quoted, source: unit.source, url: unit.url,
+        key: key, label: label, group: group, qty: qty, qtyLabel: text,
+        unitPrice: price, unitName: unitName, cost: qty * price,
+        quoted: quoted, source: source, url: unit.url,
         choice: unit.optionId, choiceName: unit.optionName, choices: choices
       });
     }
@@ -303,11 +345,29 @@
     addPermits(c.permits, m2, storeys, q, subtotal, rates, c.currency, linePicks, lines);
     var priced = lines.filter(function (l) { return l.cost > 0; });
     var total = priced.reduce(function (s, l) { return s + l.cost; }, 0);
+    var stages = [];
+    var seenG = {};
+    lines.forEach(function (l) {
+      if (!l.group) return;
+      if (!seenG[l.group]) { seenG[l.group] = { group: l.group, cost: 0 }; stages.push(seenG[l.group]); }
+      if (l.cost > 0) seenG[l.group].cost += l.cost;
+    });
+    var band = c.finished && c.finished.low > 0 && c.finished.high > 0 ? {
+      low: c.finished.low * m2, high: c.finished.high * m2, perLow: c.finished.low, perHigh: c.finished.high,
+      label: c.finished.label, source: c.finished.source, url: c.finished.url || ""
+    } : null;
+    var contractor = c.contractor && c.contractor.rate > 0 ? {
+      rate: c.contractor.rate, amount: total * c.contractor.rate, source: c.contractor.source, url: c.contractor.url || ""
+    } : { rate: null, amount: null, source: "No published contractor margin for this country in this check.", url: "" };
     return {
-      country: c, id: id, m2: m2, storeys: storeys, lines: lines, total: total, currency: c.currency,
+      country: c, id: id, m2: m2, storeys: storeys, beds: q.beds, lines: lines, total: total, currency: c.currency,
       quotedLines: lines.filter(function (l) { return l.quoted && (l.cost > 0 || l.slab); }).length,
       guideLines: lines.filter(function (l) { return l.cost > 0 && !l.quoted; }).length,
-      missing: lines.filter(function (l) { return !(l.cost > 0) && !l.slab; }).length
+      missing: lines.filter(function (l) { return !(l.cost > 0) && !l.slab; }).length,
+      stages: stages, band: band, finish: finish, site: steep ? "steep" : "flat",
+      contingency: { rate: plan.contingency, amount: total * plan.contingency, source: "A planning allowance of " + Math.round(plan.contingency * 100) + "% of the receipt, for price movement and items this list missed. It is not a shop price." },
+      contractor: contractor,
+      professional: { amount: null, source: "No architect or engineer fee scale was published in this check. Ask for their scale. This is not a permit." }
     };
   }
   var api = { estimate: estimate, fx: fx, priceOf: priceOf, choicesFor: choicesFor };
@@ -341,6 +401,10 @@
     var storeys = qs.get("floors") === "2" ? 2 : 1;
     var custom = house === "custom";
     if (qs.get("m2")) { custom = true; house = "custom"; }
+    var finish = qs.get("finish") === "economy" || qs.get("finish") === "luxury" ? qs.get("finish") : "standard";
+    var site = qs.get("site") === "steep" ? "steep" : "flat";
+    var withSet = {};
+    String(qs.get("with") || "").split(",").forEach(function (k) { if (k) withSet[k] = 1; });
     function m2() {
       if (custom) return parseFloat(document.getElementById("sf-build-m2").value) || 0;
       var h = data.houses.filter(function (x) { return x.id === house; })[0];
@@ -350,14 +414,45 @@
       var id = document.getElementById("sf-build-from").value;
       return corridors.senders.filter(function (s) { return s.id === id; })[0];
     }
+    function sendHref(amount) {
+      var s = sender();
+      if (!s) return { s: null, amt: null, href: rootPath };
+      var amt = fx(amount, data.countries[country].currency, s.currency, rates);
+      return { s: s, amt: amt, href: rootPath + "send-money/" + s.id + "-to-" + country + "/?amount=" + Math.max(1, Math.round(amt || 0)) };
+    }
+    function quoteWords(est, amount) {
+      if (!(amount > 0)) return "";
+      var diff = amount - est.total;
+      var pct = est.total > 0 ? Math.round(Math.abs(diff) / est.total * 100) : 0;
+      var bits = ["Their figure is " + money(amount, est.currency) + ". This receipt is " + money(est.total, est.currency) + "."];
+      if (diff > est.total * 0.02) {
+        bits.push("It is " + money(diff, est.currency) + " above the receipt, about " + pct + "%.");
+        var reasons = [];
+        if (est.contractor.amount > 0) reasons.push("a published small-job contractor allowance of " + Math.round(est.contractor.rate * 100) + "% would be about " + money(est.contractor.amount, est.currency));
+        reasons.push("a " + Math.round(est.contingency.rate * 100) + "% contingency would be about " + money(est.contingency.amount, est.currency));
+        reasons.push("haulage beyond the city price");
+        bits.push("The usual reasons a quote sits above this receipt are " + reasons.join(", ") + ".");
+      } else if (diff < -est.total * 0.02) {
+        bits.push("It is " + money(-diff, est.currency) + " below the receipt, about " + pct + "%. Ask which lines are missing: the finish, the septic tank, the boundary wall, the gate or the permit.");
+      } else {
+        bits.push("It sits with this receipt. Ask them to show the same quantities.");
+      }
+      if (est.band) {
+        var band = money(est.band.low, est.currency) + " to " + money(est.band.high, est.currency);
+        if (amount < est.band.low) bits.push("It also sits below the published whole-house band of " + band + ". That band includes a contractor. This receipt does not.");
+        else if (amount > est.band.high) bits.push("It also sits above the published whole-house band of " + band + ". Ask for the quantities behind the round sum.");
+        else bits.push("It sits inside the published whole-house band of " + band + ". That band includes a contractor. This receipt does not.");
+      } else bits.push("No published whole-house band was in this check, so match their quote to the quantities on this receipt.");
+      return bits.join(" ");
+    }
     function draw() {
       var area = m2();
-      var est = estimate(data, country, area, storeys, rates, picks);
+      var est = estimate(data, country, area, storeys, rates, picks, { finish: finish, site: site });
       if (!est) { out.innerHTML = "<p>Choose a country we cover.</p>"; return; }
-      var s = sender();
-      var sendAmt = s ? fx(est.total, est.currency, s.currency, rates) : null;
-      var href = s ? rootPath + "send-money/" + s.id + "-to-" + country + "/?amount=" + Math.max(1, Math.round(sendAmt)) : rootPath;
+      var sent = sendHref(est.total);
+      var s = sent.s;
       var houseName = custom ? Math.round(area) + " m²" : (data.houses.filter(function (x) { return x.id === house; })[0] || {}).name;
+      var shape = storeys === 2 ? "maisonette, two floors" : "bungalow, one floor";
       var lastGroup = "";
       var lines = est.lines.map(function (l) {
         var head = "";
@@ -372,23 +467,75 @@
         }
         return head + '<div class="build-line"><div><strong>' + esc(l.label) + "</strong> " + tag + '<span class="build-qty">' + esc(l.qtyLabel) + "</span>" + pickHtml + '</div><div class="num">' + esc(cost) + "</div></div>";
       }).join("");
-      var fin = est.country.finished;
-      var finHtml = "";
-      if (fin) {
-        finHtml = '<div class="build-finish"><span class="k">' + esc(fin.label) + '</span><strong class="num">' + esc(money(fin.low * area, est.currency)) + " – " + esc(money(fin.high * area, est.currency)) + '</strong><span class="s">' + esc(fin.source) + "</span></div>";
+      var sheetRows = "";
+      var sheetGroup = "";
+      est.lines.forEach(function (l) {
+        if (l.group !== sheetGroup) {
+          sheetGroup = l.group;
+          sheetRows += '<tr class="sheet-group"><th colspan="4">' + esc(l.group) + "</th></tr>";
+        }
+        var rate = l.unitPrice > 0 ? money(l.unitPrice, est.currency) + (l.unitName ? " " + l.unitName : "") : "–";
+        var cost = l.slab ? "Included above" : l.cost > 0 ? money(l.cost, est.currency) : "–";
+        sheetRows += "<tr><td>" + esc(l.label) + "</td><td>" + esc(l.qtyLabel) + "</td><td class=\"num\">" + esc(rate) + "</td><td class=\"num\">" + esc(cost) + "</td></tr>";
+      });
+      var bandHtml = est.band
+        ? '<div class="build-finish"><span class="k">Published whole-house band, includes a contractor</span><strong class="num">' + esc(money(est.band.low, est.currency)) + " – " + esc(money(est.band.high, est.currency)) + '</strong><span class="s">' + esc(est.band.label) + ". " + esc(est.band.source) + "</span></div>"
+        : '<div class="build-finish"><span class="k">Published whole-house band</span><strong class="num">No band in this check</strong><span class="s">The receipt is the figure you can match to bags, blocks and days. A contractor\'s quote will sit above it.</span></div>';
+      var month = est.total / 12;
+      var monthSend = sendHref(month);
+      var stageHtml = est.stages.filter(function (g) { return g.cost > 0; }).map(function (g) {
+        var part = sendHref(g.cost);
+        var pct = est.total > 0 ? Math.round(g.cost / est.total * 100) : 0;
+        var link = part.s ? '<a href="' + esc(part.href) + '">Send this stage</a>' : "";
+        return '<div class="build-stage"><div><strong>' + esc(g.group) + "</strong><span>" + pct + "% of the receipt" + (part.amt > 0 ? " · about " + esc(money(part.amt, part.s.currency)) + " to send" : "") + "</span></div><div class=\"num\">" + esc(money(g.cost, est.currency)) + "</div>" + link + "</div>";
+      }).join("");
+      var quoteRaw = (document.getElementById("sf-build-quote").value || "").replace(/[, ]/g, "");
+      var quoteAmt = parseFloat(quoteRaw);
+      var quoteHtml = quoteAmt > 0 ? '<p class="build-quote-read">' + esc(quoteWords(est, quoteAmt)) + "</p>" : '<p class="build-quote-read">Paste their lump sum. We will set it against this receipt, and against the published band where we have one.</p>';
+      var allow = [];
+      var extraSum = 0;
+      if (withSet.contingency) {
+        extraSum += est.contingency.amount;
+        allow.push("<li><strong>Contingency, " + Math.round(est.contingency.rate * 100) + "%.</strong> " + esc(money(est.contingency.amount, est.currency)) + ". " + esc(est.contingency.source) + "</li>");
       }
+      if (withSet.contractor) {
+        if (est.contractor.amount > 0) extraSum += est.contractor.amount;
+        allow.push("<li><strong>Contractor's fee.</strong> " + (est.contractor.amount > 0 ? esc(money(est.contractor.amount, est.currency)) + ". " : "Not priced. ") + esc(est.contractor.source) + "</li>");
+      }
+      if (withSet.professional) allow.push("<li><strong>Architect and engineer.</strong> Not priced. " + esc(est.professional.source) + "</li>");
+      var allowHtml = '<div class="build-allow"><p>The receipt above does not change when you tick an allowance.</p>' +
+        (allow.length ? "<ul>" + allow.join("") + "</ul>" : "") +
+        (extraSum > 0 ? '<p><strong>Receipt plus the priced allowances: ' + esc(money(est.total + extraSum, est.currency)) + ".</strong> The receipt itself is still " + esc(money(est.total, est.currency)) + ".</p>" : "") +
+        "</div>";
+      var extraSend = "";
+      if (extraSum > 0) {
+        var both = sendHref(est.total + extraSum);
+        if (both.s) extraSend = '<a class="btn btn-ghost" href="' + esc(both.href) + '">Compare a transfer that also covers those allowances</a>';
+      }
+      var setting = "";
+      if (finish !== "standard") setting += (finish === "economy" ? "Economy" : "Luxury") + " changes tiles, paint, doors, windows and fittings only. Structure, labour and the permit stay on the listed price. A line you picked yourself stays as you picked it. ";
+      if (site === "steep") setting += "Sand and ballast include a planning allowance for a steep plot or a long haul. A soil test is still required. ";
       var shareUrl = (location.origin || "") + "/cost-to-build/" + country + "/" + pageQuery();
-      var share = "A " + (houseName || "house") + (storeys === 2 ? ", two floors," : " bungalow") + " in " + est.country.name + " comes to about " + money(est.total, est.currency) + " for the build, without land or the contractor's fee, on SendFair's " + data.updated + " check. Match the receipts to the quantities before you send. " + shareUrl;
-      out.innerHTML = '<div class="build-total"><span class="k">The build, without land or the contractor\'s fee</span><strong class="num">' + esc(money(est.total, est.currency)) + '</strong><span class="s">' + esc(houseName) + (storeys === 2 ? ", two floors" : ", one floor") + " · " + Math.round(area) + " m² in " + esc(est.country.city) + ". " + est.quotedLines + " line" + (est.quotedLines === 1 ? "" : "s") + " from a published list, " + est.guideLines + " guide" + (est.guideLines === 1 ? "" : "s") + ".</span></div>" +
+      var share = "A " + (houseName || "house") + " " + shape + " in " + est.country.name + " comes to about " + money(est.total, est.currency) + " for the build, without land or the contractor's fee, on SendFair's " + data.updated + " check. Match the receipts to the quantities before you send. " + shareUrl;
+      out.innerHTML = '<div class="build-head"><div class="build-total"><span class="k">The receipt, without land or the contractor\'s fee</span><strong class="num">' + esc(money(est.total, est.currency)) + '</strong><span class="s">' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² in " + esc(est.country.city) + ". " + est.quotedLines + " line" + (est.quotedLines === 1 ? "" : "s") + " from a published list, " + est.guideLines + " guide" + (est.guideLines === 1 ? "" : "s") + "." + (setting ? " " + esc(setting) : "") + "</span></div>" + bandHtml + "</div>" +
+        '<div class="build-stages"><div class="build-group">When the money goes out</div><p class="build-month">About ' + esc(money(month, est.currency)) + " a month for 12 months" + (monthSend.amt > 0 ? ", about " + esc(money(monthSend.amt, monthSend.s.currency)) + " to send" : "") + ". That is an even split. A real build pays the structure first, so the early transfers are larger.</p>" + stageHtml + "</div>" +
         '<div class="build-lines">' + lines + "</div>" +
+        allowHtml +
+        '<div id="sf-quote-read">' + quoteHtml + "</div>" +
         '<p class="note">' + esc(est.country.note) + "</p>" +
-        finHtml +
-        '<div class="build-send"><div><span class="k">If you sent this from ' + esc(s ? s.name : "") + '</span><strong class="num">' + esc(sendAmt ? money(sendAmt, s.currency) : "–") + '</strong><span class="s">Changed at the mid-market rate. Fees on the transfer are extra. Land and the contractor\'s fee are not in the total.</span></div><a class="btn" href="' + esc(href) + '">Compare who delivers the most</a></div>' +
+        '<div class="build-send"><div><span class="k">If you sent the receipt from ' + esc(s ? s.name : "") + '</span><strong class="num">' + esc(sent.amt ? money(sent.amt, s.currency) : "–") + '</strong><span class="s">Changed at the mid-market rate. Fees on the transfer are extra. The allowances stay out of this amount.</span></div><a class="btn" href="' + esc(sent.href) + '">Compare who delivers the most</a>' + extraSend + "</div>" +
         '<p class="build-ask">Ask for receipts that match the bags, blocks, windows and days above. A round sum with no quantities is how a quote gets inflated.</p>' +
+        '<p class="build-links"><button type="button" id="sf-build-print">Print this receipt</button> <a href="' + esc(rootPath + "cost-to-build/material-prices/") + '">Material prices</a> <a href="' + esc(rootPath + "cost-to-build/same-house/") + '">The same house in every country</a></p>' +
         '<div class="share"><a href="https://wa.me/?text=' + encodeURIComponent(share) + '" target="_blank" rel="noopener">Share on WhatsApp</a></div>' +
         '<details class="build-src"><summary>Where the prices come from</summary><ul>' + est.lines.filter(function (l) { return l.source; }).map(function (l) {
           return "<li><strong>" + esc(l.label) + ".</strong> " + esc(l.source) + (l.url ? ' <a href="' + esc(l.url) + '" target="_blank" rel="noopener">Source</a>' : "") + "</li>";
-        }).join("") + "</ul><p>Checked " + esc(data.updated) + ". Next refresh " + esc(data.nextReview) + ". City prices move, and a town away from " + esc(est.country.city) + " can differ. This is not a structural design. Left out on purpose: the plot of land and the contractor's fee. Permits are the lines above. An architect's or engineer's professional fee is not a permit and is not included.</p></details>";
+        }).join("") + "</ul><p>Checked " + esc(data.updated) + ". Next refresh " + esc(data.nextReview) + ". City prices move, and a town away from " + esc(est.country.city) + " can differ. This is not a structural design. Left out of the receipt on purpose: the plot of land, the contractor's fee, a contingency, and the architect's or engineer's fee. You can show the last three under the receipt. They do not change it.</p></details>" +
+        '<article class="build-sheet"><h2>SendFair receipt</h2><p>' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² · " + esc(est.country.name) + " · " + esc(est.country.city) + " · checked " + esc(data.updated) + "</p><p><strong>" + esc(money(est.total, est.currency)) + "</strong> for the build. Land and the contractor's fee are not included.</p>" +
+        (est.band ? "<p>Published whole-house band, which includes a contractor: " + esc(money(est.band.low, est.currency)) + " to " + esc(money(est.band.high, est.currency)) + ". " + esc(est.band.source) + "</p>" : "<p>No published whole-house band was in this check.</p>") +
+        '<table><thead><tr><th>Item</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr></thead><tbody>' + sheetRows + "</tbody></table>" +
+        (allow.length ? "<p>Allowances you turned on, not part of the receipt:</p><ul>" + allow.join("") + "</ul>" : "") +
+        "<p>Free to print. No account. " + esc(shareUrl) + "</p></article>";
+      if (history.replaceState) history.replaceState(null, "", location.pathname + pageQuery());
     }
     var countrySel = document.getElementById("sf-build-country");
     countrySel.innerHTML = Object.keys(data.countries).map(function (id) {
@@ -409,13 +556,31 @@
     document.querySelectorAll("#sf-build-storey [data-storeys]").forEach(function (x) {
       x.setAttribute("aria-pressed", String(parseInt(x.getAttribute("data-storeys"), 10) === storeys));
     });
+    document.querySelectorAll("#sf-build-finish [data-finish]").forEach(function (x) {
+      x.setAttribute("aria-pressed", String(x.getAttribute("data-finish") === finish));
+    });
+    document.querySelectorAll("#sf-build-site [data-site]").forEach(function (x) {
+      x.setAttribute("aria-pressed", String(x.getAttribute("data-site") === site));
+    });
+    var quoteInput = document.getElementById("sf-build-quote");
+    if (qs.get("quote") && quoteInput) quoteInput.value = qs.get("quote");
+    ["contingency", "contractor", "professional"].forEach(function (k) {
+      var boxEl = document.getElementById("sf-x-" + k);
+      if (boxEl) boxEl.checked = !!withSet[k];
+    });
     function pageQuery() {
       var q = new URLSearchParams();
       if (house && house !== "3") q.set("size", house);
       if (storeys === 2) q.set("floors", "2");
       if (custom) q.set("m2", String(Math.round(m2()) || 120));
+      if (finish !== "standard") q.set("finish", finish);
+      if (site === "steep") q.set("site", "steep");
       var fromId = document.getElementById("sf-build-from").value;
       if (fromId && fromId !== "uk") q.set("from", fromId);
+      var quoteNow = (document.getElementById("sf-build-quote").value || "").replace(/[, ]/g, "");
+      if (parseFloat(quoteNow) > 0) q.set("quote", quoteNow);
+      var withNow = ["contingency", "contractor", "professional"].filter(function (k) { return withSet[k]; });
+      if (withNow.length) q.set("with", withNow.join(","));
       Object.keys(picks).forEach(function (k) { if (picks[k]) q.set("opt_" + k, picks[k]); });
       var s = q.toString();
       return s ? "?" + s : "";
@@ -441,11 +606,38 @@
       draw();
     });
     document.getElementById("sf-build-m2").addEventListener("input", draw);
+    document.getElementById("sf-build-finish").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-finish]"); if (!b) return;
+      finish = b.getAttribute("data-finish") || "standard";
+      document.querySelectorAll("#sf-build-finish [data-finish]").forEach(function (x) {
+        x.setAttribute("aria-pressed", String(x === b));
+      });
+      draw();
+    });
+    document.getElementById("sf-build-site").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-site]"); if (!b) return;
+      site = b.getAttribute("data-site") === "steep" ? "steep" : "flat";
+      document.querySelectorAll("#sf-build-site [data-site]").forEach(function (x) {
+        x.setAttribute("aria-pressed", String(x === b));
+      });
+      draw();
+    });
+    document.getElementById("sf-build-quote").addEventListener("input", draw);
+    ["contingency", "contractor", "professional"].forEach(function (k) {
+      document.getElementById("sf-x-" + k).addEventListener("change", function (e) {
+        if (e.target.checked) withSet[k] = 1;
+        else delete withSet[k];
+        draw();
+      });
+    });
     out.addEventListener("change", function (e) {
       var sel = e.target.closest("select[data-pick]");
       if (!sel) return;
       picks[sel.getAttribute("data-pick")] = sel.value;
       draw();
+    });
+    out.addEventListener("click", function (e) {
+      if (e.target.closest("#sf-build-print")) window.print();
     });
     draw();
   }).catch(function () {
