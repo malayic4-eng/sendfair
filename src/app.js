@@ -59,10 +59,12 @@
     $("sf-from").innerHTML = S.corridors.senders.map(opt).join("");
     $("sf-to").innerHTML = S.corridors.receivers.map(opt).join("");
     var last = store.get("sf-last") || {};
-    $("sf-from").value = SF.from || last.from || "uk";
-    $("sf-to").value = SF.to || last.to || "kenya";
+    var qs = new URLSearchParams(location.search);
+    $("sf-from").value = qs.get("from") || SF.from || last.from || "uk";
+    $("sf-to").value = qs.get("to") || SF.to || last.to || "kenya";
     var cur = sender().currency;
-    $("sf-amount").value = last.amount && last.currency === cur ? last.amount : (cfg.defaultAmounts || {})[cur] || 300;
+    var qAmt = parseFloat(qs.get("amount"));
+    $("sf-amount").value = qAmt > 0 ? qAmt : (last.amount && last.currency === cur ? last.amount : (cfg.defaultAmounts || {})[cur] || 300);
     if (last.payout && R.LABEL[last.payout]) setPayout(last.payout);
   }
 

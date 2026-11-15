@@ -308,6 +308,38 @@ section.page { padding-block: 64px 88px; }
 .payout-list { list-style: none; padding: 0 !important; margin: 0; display: grid; gap: 0 !important; }
 .payout-list li { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 12px; border-bottom: 1px solid var(--line); padding-block: 12px; }
 .payout-list li span:first-child { font-weight: 700; }
+.build-tease { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.build-card, .build-finish, .build-send, .build-total { background: var(--paper); border-radius: 16px; padding: 14px 16px; display: grid; gap: 4px; }
+.build-card { text-decoration: none; color: var(--ink); border: 1px solid var(--line); background: var(--surface); }
+.build-card:hover { border-color: var(--line-strong); }
+.build-card .k, .build-total .k, .build-finish .k, .build-send .k { font-size: .78rem; font-weight: 650; color: var(--muted); }
+.build-card strong, .build-total strong, .build-send strong { font: 760 1.6rem/1.1 var(--font-display); letter-spacing: -0.02em; }
+.build-card .s, .build-total .s, .build-finish .s, .build-send .s { font-size: .82rem; color: var(--muted); }
+.build-tool { display: grid; gap: 14px; margin: 18px 0 28px; }
+.build-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; }
+.build-controls label, #sf-build-custom label { display: grid; gap: 4px; font-size: .78rem; font-weight: 650; color: var(--muted); }
+.build-controls select, #sf-build-custom input { font: 650 1rem var(--font-body); color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 12px; min-height: 44px; width: 100%; }
+.size-picks { display: flex; flex-wrap: wrap; gap: 8px; }
+.size-picks button { font: 650 .88rem var(--font-body); color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 12px; cursor: pointer; display: grid; text-align: left; }
+.size-picks button span { font-size: .75rem; font-weight: 550; color: var(--muted); }
+.size-picks button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+.size-picks button[aria-pressed="true"] span { color: inherit; opacity: .8; }
+.build-lines { display: grid; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface); }
+.build-group { padding: 8px 14px; font-size: .72rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--paper); border-bottom: 1px solid var(--line); }
+.build-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.build-line:last-child { border-bottom: 0; }
+.build-line strong { font-family: var(--font-display); }
+.build-qty { display: block; font-size: .82rem; color: var(--muted); font-weight: 500; }
+.build-tag { font-size: .68rem; font-weight: 700; border-radius: 999px; padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
+.build-tag.is-quoted { background: var(--leaf-soft); color: var(--leaf); }
+.build-tag.is-guide { background: var(--marigold-soft); color: var(--marigold-ink); }
+.build-send { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; }
+.build-ask { background: var(--marigold-soft); color: var(--ink); border-radius: 12px; padding: 10px 14px; font-size: .92rem; }
+.build-src { font-size: .88rem; color: var(--muted); }
+.build-src ul { margin: 8px 0; padding-left: 18px; display: grid; gap: 8px; }
+@media (max-width: 800px) {
+  .build-tease, .build-controls, .build-send { grid-template-columns: minmax(0, 1fr); }
+}
 .route-links { list-style: none; padding: 0 !important; display: flex !important; flex-wrap: wrap; gap: 8px !important; }
 .route-links a { display: inline-block; text-decoration: none; color: var(--ink); border: 1.5px solid var(--line-strong); border-radius: 999px; padding: 7px 14px; font-size: .92rem; font-weight: 600; }
 .route-links a:hover { border-color: var(--ink); }

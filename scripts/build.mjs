@@ -10,6 +10,7 @@ import { createRequire } from "node:module";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const R = require(path.join(ROOT, "src/rank.js"));
+const BC = require(path.join(ROOT, "src/build-cost.js"));
 const args = process.argv.slice(2);
 const DEMO = args.includes("--demo");
 const PREVIEW = args.includes("--preview");
@@ -30,6 +31,8 @@ const corridors = read("data/corridors.json");
 const providersFile = read("data/providers.json");
 let quotesFile = read("data/quotes.json");
 let midmarket = read("data/midmarket.json");
+let buildCosts = { countries: {}, houses: [], updated: "" };
+try { buildCosts = read("data/build-costs.json"); } catch (e) { buildCosts = { countries: {}, houses: [], updated: "" }; }
 
 // Kinds of service, used to compare ways of sending on the Gulf guide.
 const METHOD = {
@@ -224,7 +227,7 @@ function header(prefix) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="Translate this page"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">Language</span></button></nav>
+<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "cost-to-build/")}">Build a house</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="Translate this page"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">Language</span></button></nav>
 </div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">Machine translation by Google. Amounts and service names stay as they are. <a href="${link(prefix, "privacy/")}">Privacy</a></p></div></div></header>`;
 }
 
@@ -237,7 +240,7 @@ function footer(prefix) {
 <div><h3>Services</h3><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
 <div><h3>Exchange rates</h3><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "AED-KES", "SAR-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
 </div>
-<nav aria-label="Footer"><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
+<nav aria-label="Footer"><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services. We do not send, hold or exchange money. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${config.businessName ? `, a ${esc(config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
@@ -316,6 +319,83 @@ function alerts() {
   return `<section class="alerts"><div class="wrap"><h2>Know when your rate moves</h2><p>One short message each morning: which service pays the most for your route today. Unsubscribe anytime.</p>${body}</div></section>`;
 }
 
+function houseNote(r, prefix) {
+  const c = buildCosts.countries && buildCosts.countries[r.id];
+  if (!c) return "";
+  const est = BC.estimate(buildCosts, r.id, 110, 1, midmarket.rates || {});
+  if (!est || !(est.total > 0)) return "";
+  return `<h2>Building a house in ${esc(r.name)}</h2>
+<p>A 3-bedroom bungalow in ${esc(c.city)} needs about ${esc(plain(R.money(est.total, est.currency)))} for the build, on prices checked ${esc(buildCosts.updated)}. Land and the contractor's fee are not included. <a href="${link(prefix, `cost-to-build/${r.id}/`)}">See the bags, the blocks and the days</a> before you send a lump sum.</p>`;
+}
+
+function buildWidget(prefix, countryId) {
+  return `<div class="build-tool" id="sf-build" data-country="${esc(countryId)}" data-root="${prefix}">
+<div class="build-controls">
+  <label>Country <select id="sf-build-country"></select></label>
+  <label>Sending the money from <select id="sf-build-from"></select></label>
+  <div class="field"><span class="label" id="sf-storey-label">Floors</span><div class="payout-tabs" id="sf-build-storey" role="group" aria-labelledby="sf-storey-label"><button type="button" data-storeys="1" aria-pressed="true">One floor</button><button type="button" data-storeys="2" aria-pressed="false">Two floors</button></div></div>
+</div>
+<div class="size-picks" id="sf-build-sizes" role="group" aria-label="House size"></div>
+<div id="sf-build-custom" hidden><label>Floor area, square metres <input id="sf-build-m2" type="number" min="20" max="500" step="1" value="120"></label></div>
+<div id="sf-build-out"><p class="note">Working out the quantities…</p></div>
+</div>`;
+}
+
+function buildTeaser(prefix) {
+  const rates = midmarket.rates || {};
+  const picks = ["nigeria", "ghana", "kenya"].filter((id) => buildCosts.countries[id]);
+  const cards = picks.map((id) => {
+    const est = BC.estimate(buildCosts, id, 110, 1, rates);
+    if (!est) return "";
+    return `<a class="build-card" href="${link(prefix, `cost-to-build/${id}/`)}"><span class="k">3-bedroom bungalow · ${esc(est.country.name)}</span><strong class="num">${esc(plain(R.money(est.total, est.currency)))}</strong><span class="s">Walls, roof, finishes and services. Land and the contractor's fee are not included.</span></a>`;
+  }).join("");
+  return `<section class="block" id="build-home"><div class="wrap">
+<div class="section-head"><h2>Cost to build a house back home</h2><p class="lede">Building is one of the main reasons people send money, and a round sum is where quotes get inflated. See the materials and the trade days for a house in the country you send to, from prices checked this month. Land and the contractor's fee are not in the figure.</p></div>
+<div class="build-tease">${cards}</div>
+<p><a class="btn" href="${link(prefix, "cost-to-build/")}">Open the building calculator</a></p>
+</div></section>`;
+}
+
+function writeBuildPages() {
+  const intro = `A receipt check for a simple house: structure, block walls, roof, windows, doors, plaster, tiles, paint, wiring, plumbing and the trade days to fix them. The plot of land and the contractor's fee are not included.`;
+  const faqs = [
+    ["What does this cost include?", "Cement, steel, ballast, sand, blocks, roof sheets or a concrete slab, roof timber where the roof is sheets, windows, doors, floor tiles, ceiling boards, paint, wiring, plumbing, a water tank, and the mason, labourer, carpenter, painter, electrician and plumber days. Match those quantities to yard receipts."],
+    ["What is left out?", "The plot of land and the contractor's own fee. Also left out: permits, a septic tank, kitchen cupboards, wardrobes, a boundary wall, and the metal frame that holds the ceiling boards."],
+    ["Why might a contractor still quote more?", "Their fee, transport to site and a septic tank sit on top of this list. If the gap is large, ask which line it pays for. A round sum with no bags, blocks or days is the usual way a quote gets inflated."],
+    ["How current are the prices?", `The lists were checked on ${buildCosts.updated}. We refresh them monthly. A town away from the city on the page can pay more, especially for sand, ballast and haulage.`],
+    ["Is this a structural design?", "No. The quantities are for a simple rectangular family house so you can budget and check receipts. A structural engineer sizes the steel for your soil and your drawing."]
+  ];
+  const bodyFor = (id, prefix) => `<section class="block page"><div class="wrap"><div class="prose wide">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="${link(prefix, "")}">SendFair</a></li><li><a href="${link(prefix, "cost-to-build/")}">Build a house</a></li>${id ? `<li aria-current="page">${esc(buildCosts.countries[id].name)}</li>` : `<li aria-current="page">Calculator</li>`}</ol></nav>
+<h1>${id ? `Cost to build a house in ${esc(buildCosts.countries[id].name)}` : "Cost to build a house back home"}</h1>
+<p class="lede">${esc(intro)}</p>
+${buildWidget(prefix, id || "kenya")}
+<h2>Other countries</h2>
+<ul class="route-links">${Object.keys(buildCosts.countries).map((cid) => `<li><a href="${link(prefix, `cost-to-build/${cid}/`)}">${esc(buildCosts.countries[cid].name)}</a></li>`).join("")}</ul>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</div></div></section>`;
+  write("cost-to-build/index.html", page({
+    prefix: "../", canonical: "cost-to-build/", buildPage: true, og: "home",
+    title: `Cost to build a house back home · ${config.siteName}`,
+    description: "Estimate the cost to build a house in Nigeria, Kenya, Ghana and 14 other African countries, without land or the contractor's fee. Prices checked monthly.",
+    jsonld: [faqLd(faqs)],
+    body: bodyFor(null, "../")
+  }));
+  urls.push("cost-to-build/");
+  for (const id of Object.keys(buildCosts.countries)) {
+    const c = buildCosts.countries[id];
+    const rel = `cost-to-build/${id}/`;
+    write(rel + "index.html", page({
+      prefix: "../../", canonical: rel, buildPage: true, og: "home",
+      title: `Cost to build a house in ${c.name} · ${config.siteName}`,
+      description: `What it costs to build a house in ${c.name}, without land or the contractor's fee. Each price has a source. Checked ${buildCosts.updated}.`,
+      body: bodyFor(id, "../../")
+    }));
+    urls.push(rel);
+  }
+}
+
 function corridorGrid(prefix) {
   const col = (s) => {
     const amount = config.defaultAmounts[s.currency];
@@ -335,7 +415,7 @@ ${groups.map((g) => !g.list.some((s) => corridors.receivers.some((r) => (quotes[
 </div></section>`;
 }
 
-function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og }) {
+function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og, buildPage }) {
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
     routeUrl: link(prefix, "send-money/{from}-to-{to}/"),
@@ -348,6 +428,7 @@ function load(){if(loaded)return;loaded=true;window.sfTranslateInit=function(){n
 b.addEventListener("click",function(){var open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",String(open));if(open)load();});
 var m=document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);if(m&&m[1]!=="en")load();})();</script>`;
   const scripts = translate + `<script>window.SF=${JSON.stringify(sf)};</script><script src="${prefix}assets/rank.js?v=${V.rank}" defer></script><script src="${prefix}assets/app.js?v=${V.app}" defer></script>` +
+    (buildPage ? `<script src="${prefix}assets/build-cost.js?v=${V.build}" defer></script>` : "") +
     (PREVIEW || DEMO ? "" : `<script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})});addEventListener("beforeinstallprompt",function(e){e.preventDefault();var b=document.getElementById("sf-install");if(!b)return;b.hidden=false;b.onclick=function(){b.hidden=true;e.prompt();};});</script>`);
   const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og });
   const bodyStr = `${header(prefix)}\n<main>${body}</main>\n${footer(prefix)}\n${scripts}`;
@@ -370,7 +451,7 @@ function copyDir(src, dst) {
 // Each page asks for style.css?v=<hash> etc., so browsers fetch new files as soon as they change.
 import crypto from "node:crypto";
 const ver = (f) => crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, "src", f))).digest("hex").slice(0, 10);
-const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css") };
+const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css"), build: ver("build-cost.js") };
 
 // ---------- SEO helpers ----------
 const joinList = (a) => a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : a.join("");
@@ -503,7 +584,7 @@ function amountsTable(ctx) {
 // ---------- build ----------
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(path.join(OUT, "assets"), { recursive: true });
-for (const f of ["style.css", "app.js", "rank.js", "fonts.css"]) fs.copyFileSync(path.join(ROOT, "src", f), path.join(OUT, "assets", f));
+for (const f of ["style.css", "app.js", "rank.js", "fonts.css", "build-cost.js"]) fs.copyFileSync(path.join(ROOT, "src", f), path.join(OUT, "assets", f));
 copyDir(path.join(ROOT, "src/fonts"), path.join(OUT, "assets/fonts"));
 copyDir(path.join(ROOT, "src/og"), path.join(OUT, "og"));
 copyDir(path.join(ROOT, "src/icons"), OUT);
@@ -511,6 +592,7 @@ write("data/corridors.json", JSON.stringify(corridors));
 write("data/providers.json", JSON.stringify(providersFile));
 write("data/quotes.json", JSON.stringify(quotesFile));
 write("data/midmarket.json", JSON.stringify(midmarket));
+write("data/build-costs.json", JSON.stringify(buildCosts));
 write("data/history.json", JSON.stringify(history));
 const wiseFeed = path.join(ROOT, "data/wise-feed.json");
 if (fs.existsSync(wiseFeed) && !DEMO) fs.copyFileSync(wiseFeed, path.join(OUT, "data/wise-feed.json"));
@@ -539,7 +621,7 @@ write("index.html", page({
     ctx: homeCtx,
     heading: "Send more home.",
     sub: `Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup. ${homeProof}`
-  }) + corridorGrid("") + `
+  }) + buildTeaser("") + corridorGrid("") + `
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
 <ol class="steps">
@@ -619,6 +701,7 @@ ${alertForm(ctx)}
 <h2>Ways to receive money in ${esc(r.name)}</h2>
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
 ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
+${houseNote(r, prefix)}
 <h2 id="tips">Good to know before you send</h2>
 <ul class="tips">${tipsFor(s, r).map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
 ${s.region === "gulf" ? `<p class="note"><a href="${link(prefix, GULF_GUIDE)}">Exchange house, bank, wallet or app? How the ways of sending from the Gulf compare</a></p>` : ""}
@@ -663,6 +746,7 @@ ${crumbNav(prefix, trail)}
 <h2>Ways to receive money in ${esc(r.name)}</h2>
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
 ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
+${houseNote(r, prefix)}
 <h2>Good to know before you send to ${esc(r.name)}</h2>
 <ul class="tips">${[...(TIPS[r.id] || []), ...TIPS_ALL].map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
 <h2>Questions</h2>
@@ -1016,6 +1100,8 @@ fs.mkdirSync(path.join(OUT, "admin"), { recursive: true });
 fs.writeFileSync(path.join(OUT, "admin/index.html"), fs.readFileSync(path.join(ROOT, "src/admin.html"), "utf8").replace(/assets\/fonts\.css(?!\?)/g, `assets/fonts.css?v=${V.fonts}`).replace(/assets\/rank\.js(?!\?)/g, `assets/rank.js?v=${V.rank}`));
 
 // SEO and hosting files
+writeBuildPages();
+
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${site}/${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
 // AI answer engines may read the site so SendFair can be cited in their answers; model-training crawlers are
 // blocked separately by Cloudflare's managed robots.txt, which Cloudflare puts above these lines.
