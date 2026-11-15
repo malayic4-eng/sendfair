@@ -1,0 +1,65 @@
+{
+  "updatedAt": "2026-11-15",
+  "status": "prototype, estimates only, not quotes",
+  "method": "Floor area x typical material quantity per square metre x low and high unit price from published sources. Sand, aggregate, blocks, labour and finishes are not priced yet, so totals are partial.",
+  "assumptions": {
+    "floorAreaUnit": "m2",
+    "roofAreaFactor": { "value": 1.2, "confidence": "low", "note": "Assumed roof area as a multiple of floor area. Needs a surveyor's check." },
+    "roofSheetCoverWidthM": { "value": 0.9, "confidence": "low", "note": "Assumed effective cover of one metre of corrugated sheet. Needs a supplier's check." }
+  },
+  "quantities": {
+    "cementBagsPerM2": { "low": 4.0, "high": 5.4, "confidence": "low", "basis": "0.4 to 0.5 bags per sq ft of build-up area, converted to m2. Sources disagree widely (about 95 to 1,000 bags for a 3-bedroom house), so this range is only a starting point.", "sources": ["https://www.constructionkenya.com/5021/estimate-building-costs/", "https://www.houseyog.com/blog/cement-required-for-house-construction/"] },
+    "steelKgPerM2": { "low": 35, "high": 60, "confidence": "low", "basis": "About 4 kg per sq ft of build-up area, converted to m2, with a range for different designs.", "sources": ["https://www.constructionkenya.com/5021/estimate-building-costs/"] },
+    "sandM3PerM2": { "low": 0.37, "high": 0.49, "confidence": "low", "basis": "Derived from 1,200 to 1,600 cu ft of sand per 1,000 sq ft. Not priced yet.", "sources": ["https://www.bricknbolt.com/blogs-and-articles/construction-guide/construction-material-quantity-estimation-for-1000-sqft-of-house-construction"] }
+  },
+  "countries": {
+    "kenya": {
+      "name": "Kenya",
+      "currency": "KES",
+      "status": "estimate",
+      "updatedAt": "2026-11-15",
+      "prices": {
+        "cement": { "unit": "50kg bag", "low": 735, "high": 850, "date": "Jan 2026", "sources": ["https://www.constructionkenya.com/?p=3007", "https://businesstoday.co.ke/eapc-raises-cement-prices-by-ksh10/", "https://www.standardmedia.co.ke/sports/amp/real-estate/2001538513/construction-costs-rise-20pc-on-skyrocketing-cement-prices"] },
+        "steel": { "unit": "kg", "low": 100, "high": 125, "date": "2025 to 2026", "basis": "Y10 or D10 bar price of 760 to 920 per 12m bar, at about 7.4 kg per bar.", "sources": ["https://kenyansconsult.co.ke/cost-of-y10-in-kenya-tononoko-doshi-steel-bars-prices", "https://www.constructionkenya.com/?p=9613"] },
+        "roofing": { "unit": "m2 of roof", "low": 422, "high": 578, "date": "2026", "basis": "Ordinary corrugated sheet at 380 to 520 per running metre, divided by the assumed 0.9 m cover.", "sources": ["https://businessradar.co.ke/?p=11678"] },
+        "sand": null,
+        "aggregate": null,
+        "labour": null
+      }
+    },
+    "ghana": {
+      "name": "Ghana",
+      "currency": "GHS",
+      "status": "estimate",
+      "updatedAt": "2026-11-15",
+      "prices": {
+        "cement": { "unit": "50kg bag", "low": 100, "high": 100, "date": "Sept 2026", "basis": "Estimate for mainly Greater Accra. Official index shows cement prices falling.", "sources": ["https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/", "https://www.myjoyonline.com/ghanas-building-cost-inflation-rises-to-4-in-july/"] },
+        "steel": { "unit": "kg", "low": 5.45, "high": 9.8, "date": "undated", "basis": "Ordinary to high-tensile 16mm rod at 5,450 to 9,800 per tonne. The official index shows reinforcement steel rising, so check this figure first.", "sources": ["https://asetena.com/price-of-16mm-iron-rod-in-ghana", "https://www.ghanaweb.com/mobile/wap/article.php?ID=2054723&nav=next"] },
+        "roofing": { "unit": "m2 of roof", "low": 120, "high": 260, "date": "Sept 2026", "basis": "Aluminium roofing sheet, mainly Greater Accra. Other roofing types were not included.", "sources": ["https://yen.com.gh/real-estate/314452-building-materials-prices-ghana-2026-full-list-costs/"] },
+        "sand": null,
+        "aggregate": null,
+        "labour": null
+      }
+    }
+  },
+  "allAfricanCountries": [
+    { "name": "Algeria", "currency": "DZD" }, { "name": "Angola", "currency": "AOA" }, { "name": "Benin", "currency": "XOF" },
+    { "name": "Botswana", "currency": "BWP" }, { "name": "Burkina Faso", "currency": "XOF" }, { "name": "Burundi", "currency": "BIF" },
+    { "name": "Cabo Verde", "currency": "CVE" }, { "name": "Cameroon", "currency": "XAF" }, { "name": "Central African Republic", "currency": "XAF" },
+    { "name": "Chad", "currency": "XAF" }, { "name": "Comoros", "currency": "KMF" }, { "name": "DR Congo", "currency": "CDF" },
+    { "name": "Republic of the Congo", "currency": "XAF" }, { "name": "Djibouti", "currency": "DJF" }, { "name": "Egypt", "currency": "EGP" },
+    { "name": "Equatorial Guinea", "currency": "XAF" }, { "name": "Eritrea", "currency": "ERN" }, { "name": "Eswatini", "currency": "SZL" },
+    { "name": "Ethiopia", "currency": "ETB" }, { "name": "Gabon", "currency": "XAF" }, { "name": "Gambia", "currency": "GMD" },
+    { "name": "Ghana", "currency": "GHS", "key": "ghana" }, { "name": "Guinea", "currency": "GNF" }, { "name": "Guinea-Bissau", "currency": "XOF" },
+    { "name": "Ivory Coast", "currency": "XOF" }, { "name": "Kenya", "currency": "KES", "key": "kenya" }, { "name": "Lesotho", "currency": "LSL" },
+    { "name": "Liberia", "currency": "LRD" }, { "name": "Libya", "currency": "LYD" }, { "name": "Madagascar", "currency": "MGA" },
+    { "name": "Malawi", "currency": "MWK" }, { "name": "Mali", "currency": "XOF" }, { "name": "Mauritania", "currency": "MRU" },
+    { "name": "Mauritius", "currency": "MUR" }, { "name": "Morocco", "currency": "MAD" }, { "name": "Mozambique", "currency": "MZN" },
+    { "name": "Namibia", "currency": "NAD" }, { "name": "Niger", "currency": "XOF" }, { "name": "Nigeria", "currency": "NGN" },
+    { "name": "Rwanda", "currency": "RWF" }, { "name": "São Tomé and Príncipe", "currency": "STN" }, { "name": "Senegal", "currency": "XOF" },
+    { "name": "Seychelles", "currency": "SCR" }, { "name": "Sierra Leone", "currency": "SLE" }, { "name": "Somalia", "currency": "SOS" },
+    { "name": "South Africa", "currency": "ZAR" }, { "name": "South Sudan", "currency": "SSP" }, { "name": "Sudan", "currency": "SDG" },
+    { "name": "Tanzania", "currency": "TZS" }, { "name": "Togo", "currency": "XOF" }, { "name": "Tunisia", "currency": "TND" },
+    { "name": "Uganda", "currency": "UGX" }, { "name": "Zambia", "currency": "ZMW" }, { "name": "Zimbabwe", "currency": "ZWG" }
+  ]
+}

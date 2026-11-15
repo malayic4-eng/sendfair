@@ -1008,6 +1008,62 @@ for (const [rel, [title, desc, html]] of Object.entries(trust)) {
   urls.push(rel);
 }
 
+// House build-cost estimator (prototype). Country-level ESTIMATES from published prices, not quotes.
+{
+  const bc = JSON.parse(fs.readFileSync(path.join(ROOT, "data/build-costs.json"), "utf8"));
+  const hasData = (key) => !!(key && bc.countries[key] && bc.countries[key].status === "estimate");
+  const options = bc.allAfricanCountries.map((c) => {
+    const ok = hasData(c.key);
+    return `<option value="${esc(ok ? c.key : "")}"${ok ? "" : " disabled"}>${esc(c.name)}${ok ? "" : " (no data yet)"}</option>`;
+  }).join("");
+  const payload = JSON.stringify(bc).replace(/</g, "\\u003c");
+  const body = `<section class="block page"><div class="wrap"><article class="prose">
+<h1>House build-cost estimate</h1>
+<p class="note"><strong>Estimate only, not a quote.</strong> Built from published online prices and rough material quantities. Every figure is a range. Check it with a quantity surveyor and written quotes before you commit money. Last updated ${esc(bc.updatedAt)}.</p>
+<form id="bc-form" class="bc-form" onsubmit="return false">
+<label>Country <select id="bc-country">${options}</select></label>
+<label>Floor area (m²) <input id="bc-area" type="number" min="20" max="1000" step="1" value="100"></label>
+</form>
+<div id="bc-out" aria-live="polite"></div>
+<h2>What is included and what is missing</h2>
+<p>Included: cement, steel, roofing sheets, with quantities scaled to the floor area. Not yet priced: sand, aggregate, blocks, labour, plumbing, electrical, doors, windows, tiles and paint. Totals therefore understate the full cost.</p>
+<h2>How the estimate is made</h2>
+<p>Each price is a low and high figure taken from a published source, with its date. Quantities are rough rules of thumb, not a bill of quantities. Sources disagree widely, so the quantities carry low confidence. The full method and every source are in the data file.</p>
+<script id="bc-data" type="application/json">${payload}</script>
+<script>(function(){
+var D=JSON.parse(document.getElementById("bc-data").textContent);
+var sel=document.getElementById("bc-country"),area=document.getElementById("bc-area"),out=document.getElementById("bc-out");
+function fmt(n,cur){return cur+" "+Math.round(n).toLocaleString("en-GB");}
+function draw(){
+  var key=sel.value,c=D.countries[key];
+  if(!c){out.innerHTML="";return;}
+  var a=Math.max(20,Math.min(1000,Number(area.value)||0));
+  var q=D.quantities,p=c.prices,lines=[],lo=0,hi=0,missing=[];
+  function add(label,qLo,qHi,price,unit){
+    if(!price){missing.push(label);return;}
+    var l=qLo*price.low,h=qHi*price.high;
+    lo+=l;hi+=h;
+    lines.push("<tr><td>"+label+"</td><td>"+fmt(l,c.currency)+" to "+fmt(h,c.currency)+"</td></tr>");
+  }
+  add("Cement ("+Math.round(a*q.cementBagsPerM2.low)+" to "+Math.round(a*q.cementBagsPerM2.high)+" bags)",a*q.cementBagsPerM2.low,a*q.cementBagsPerM2.high,p.cement);
+  add("Steel ("+Math.round(a*q.steelKgPerM2.low)+" to "+Math.round(a*q.steelKgPerM2.high)+" kg)",a*q.steelKgPerM2.low,a*q.steelKgPerM2.high,p.steel);
+  var roof=a*D.assumptions.roofAreaFactor.value;
+  add("Roofing ("+Math.round(roof)+" m² of roof)",roof,roof,p.roofing);
+  missing=missing.concat(["sand","aggregate","labour"].filter(function(k){return !p[k];}));
+  out.innerHTML="<h2>Estimated range for "+a+" m² in "+c.name+"</h2>"
+    +"<p class=\"bc-total\"><strong>"+fmt(lo,c.currency)+" to "+fmt(hi,c.currency)+"</strong> for the priced items only.</p>"
+    +"<table class=\"bc-table\"><thead><tr><th>Item</th><th>Range</th></tr></thead><tbody>"+lines.join("")+"</tbody></table>"
+    +"<p class=\"note\">Not priced yet: "+missing.join(", ")+". Prices dated: cement "+(p.cement?p.cement.date:"n/a")+", steel "+(p.steel?p.steel.date:"n/a")+", roofing "+(p.roofing?p.roofing.date:"n/a")+".</p>";
+}
+sel.addEventListener("change",draw);area.addEventListener("input",draw);
+var first=Array.prototype.find.call(sel.options,function(o){return !o.disabled;});
+if(first){sel.value=first.value;draw();}
+})();</script>
+</article></div></section>`;
+  write("build-cost/index.html", page({ prefix: "../", canonical: "build-cost/", title: `House build-cost estimate · ${config.siteName}`, description: "Rough estimates of what a house costs to build in African countries, from published material prices. Estimates, not quotes.", body }));
+  urls.push("build-cost/");
+}
+
 write("offline.html", page({ prefix: "/", canonical: null, title: `You're offline · ${config.siteName}`, description: "No connection.", noindex: true, body: `<section class="block page"><div class="wrap"><article class="prose"><h1>You're offline</h1><p>SendFair needs a connection to show today's rates. Pages you opened recently still work; this one wasn't saved yet.</p><p><a class="btn" href="/">Try again</a></p></article></div></section>` }));
 write("404.html", page({ prefix: "/", canonical: null, title: `Page not found · ${config.siteName}`, description: "Page not found.", noindex: true, body: `<section class="block page"><div class="wrap"><article class="prose"><h1>That page isn't here</h1><p>The link may be old or mistyped. Today's rankings are one click away.</p><p><a class="btn" href="/">Compare transfers</a></p></article></div></section>` }));
 
