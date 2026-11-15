@@ -181,7 +181,7 @@ function routeContext(s, r, prefix, amount) {
 }
 
 function head({ title, description, canonical, prefix, jsonld = [], noindex = false, og = "home", ogType = "website" }) {
-  const ads = "";
+  const ads = config.adsenseClient && !DEMO ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(config.adsenseClient)}" crossorigin="anonymous"></script>` : "";
   const cfa = config.cfAnalyticsToken && !DEMO ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${esc(config.cfAnalyticsToken)}"}'></script>` : "";
   // Impact (affiliate network, used by Remitly and others): site verification and link tracking.
   const impact = config.impactScriptId && !DEMO ? `<script type="text/javascript">(function(i,m,p,a,c,t){c.ire_o=p;c[p]=c[p]||function(){(c[p].a=c[p].a||[]).push(arguments)};t=a.createElement(m);var z=a.getElementsByTagName(m)[0];t.async=1;t.src=i;z.parentNode.insertBefore(t,z)})('https://utt.impactcdn.com/P-${esc(config.impactScriptId)}.js','script','impactStat',document,window);impactStat('transformLinks');impactStat('trackImpression');</script>` : "";
@@ -613,8 +613,7 @@ function adManagerHtml() {
 }
 function adBoot() {
   if (!config.adsenseClient || DEMO) return "";
-  const client = esc(config.adsenseClient);
-  return `<script>(function(){var done=false;function start(){if(done||!document.querySelector(".ad-slot"))return;done=true;var s=document.createElement("script");s.async=true;s.crossOrigin="anonymous";s.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}";s.onload=function(){document.querySelectorAll(".ad-slot ins").forEach(function(){(window.adsbygoogle=window.adsbygoogle||[]).push({})})};document.head.appendChild(s);}addEventListener("scroll",start,{once:true,passive:true});addEventListener("pointerdown",start,{once:true});addEventListener("load",function(){setTimeout(start,5000)});})();</script>`;
+  return `<script>(function(){var done=false;function start(){if(done||!document.querySelector(".ad-slot ins"))return;done=true;document.querySelectorAll(".ad-slot ins").forEach(function(){(window.adsbygoogle=window.adsbygoogle||[]).push({})})}addEventListener("scroll",start,{once:true,passive:true});addEventListener("pointerdown",start,{once:true});addEventListener("load",function(){setTimeout(start,5000)});})();</script>`;
 }
 
 // Practical tips per receiving country, plus general ones for every route.
