@@ -44,6 +44,75 @@ async function logo(id, request, ctx) {
   return out;
 }
 
+// ---- Rate Desk sign-in ----
+const SESSION_COOKIE = "sf_admin";
+const SESSION_DAYS = 30;
+const enc = new TextEncoder();
+
+function sameBytes(x, y) {
+  const a = enc.encode(x), b = enc.encode(y);
+  let same = a.length === b.length;
+  for (let i = 0; i < b.length; i++) same = same && a[i] === b[i];
+  return same;
+}
+async function sign(secret, text) {
+  const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(text));
+  return btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function readCookie(request, name) {
+  for (const part of (request.headers.get("Cookie") || "").split(";")) {
+    const [k, ...v] = part.trim().split("=");
+    if (k === name) return v.join("=");
+  }
+  return "";
+}
+async function validSession(request, env) {
+  const raw = readCookie(request, SESSION_COOKIE);
+  const [exp, sig] = raw.split(".");
+  if (!exp || !sig || !(Number(exp) > Date.now())) return false;
+  return sameBytes(sig, await sign(env.ADMIN_PASSWORD, "rate-desk:" + exp));
+}
+function loginPage(message, status = 401) {
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Rate Desk sign-in · SendFair</title>
+<style>body{font-family:system-ui,sans-serif;background:#f6f5f1;color:#1a1a1a;display:grid;place-items:center;min-height:100vh;margin:0}
+form{background:#fff;padding:2rem;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);width:min(320px,90vw)}
+h1{font-size:1.25rem;margin:0 0 1rem}label{display:block;font-size:.9rem;margin-bottom:.4rem}
+input{width:100%;box-sizing:border-box;padding:.6rem;font-size:1rem;border:1px solid #ccc;border-radius:8px}
+button{margin-top:1rem;width:100%;padding:.65rem;font-size:1rem;border:0;border-radius:8px;background:#0b6e4f;color:#fff;cursor:pointer}
+p{color:#b00020;font-size:.9rem;margin:.75rem 0 0}</style></head><body>
+<form method="post" action="/admin/login"><h1>SendFair Rate Desk</h1>
+<label for="pw">Password</label><input id="pw" name="password" type="password" autocomplete="current-password" autofocus required>
+<button type="submit">Sign in</button>${message ? `<p>${message}</p>` : ""}</form></body></html>`;
+  return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
+}
+// Returns a Response to send instead of the Rate Desk, or null when the visitor is signed in.
+async function adminGate(request, env, url) {
+  const noStore = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
+  if (!env.ADMIN_PASSWORD) return new Response("The Rate Desk is locked. Add the secret ADMIN_PASSWORD in Cloudflare to open it.", { status: 401, headers: noStore });
+  const path = url.pathname.replace(/\/+$/, "");
+  if (path === "/admin/logout") {
+    return new Response(null, { status: 303, headers: { ...noStore, Location: "/admin/", "Set-Cookie": `${SESSION_COOKIE}=; Path=/admin; Max-Age=0; HttpOnly; Secure; SameSite=Strict` } });
+  }
+  if (path === "/admin/login") {
+    if (request.method !== "POST") return Response.redirect(url.origin + "/admin/", 303);
+    let pass = "";
+    try { pass = String((await request.formData()).get("password") || ""); } catch (e) {}
+    if (!sameBytes(pass, env.ADMIN_PASSWORD)) return loginPage("Wrong password. Try again.");
+    const exp = String(Date.now() + SESSION_DAYS * 86400000);
+    const cookie = `${SESSION_COOKIE}=${exp}.${await sign(env.ADMIN_PASSWORD, "rate-desk:" + exp)}; Path=/admin; Max-Age=${SESSION_DAYS * 86400}; HttpOnly; Secure; SameSite=Strict`;
+    return new Response(null, { status: 303, headers: { ...noStore, Location: "/admin/", "Set-Cookie": cookie } });
+  }
+  if (await validSession(request, env)) return null;
+  // Older browser pop-up sign-in still works if a browser sends it.
+  const auth = request.headers.get("Authorization") || "";
+  let basic = "";
+  try { basic = auth.startsWith("Basic ") ? atob(auth.slice(6)).split(":").slice(1).join(":") : ""; } catch (e) {}
+  if (basic && sameBytes(basic, env.ADMIN_PASSWORD)) return null;
+  return loginPage("");
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -52,16 +121,10 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     // The Rate Desk is private: it asks for a password set in Cloudflare as the secret ADMIN_PASSWORD.
+    // Sign-in is a normal page with a password box; a signed cookie then keeps the browser signed in for 30 days.
     if (/^\/admin(\/|$)/.test(url.pathname)) {
-      const denied = (msg) => new Response(msg, { status: 401, headers: { "WWW-Authenticate": 'Basic realm="SendFair Rate Desk", charset="UTF-8"', "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
-      if (!env.ADMIN_PASSWORD) return denied("The Rate Desk is locked. Add the secret ADMIN_PASSWORD in Cloudflare to open it.");
-      const auth = request.headers.get("Authorization") || "";
-      let pass = "";
-      try { pass = auth.startsWith("Basic ") ? atob(auth.slice(6)).split(":").slice(1).join(":") : ""; } catch (e) {}
-      const a = new TextEncoder().encode(pass), b = new TextEncoder().encode(env.ADMIN_PASSWORD);
-      let same = a.length === b.length;
-      for (let i = 0; i < b.length; i++) same = same && a[i] === b[i];
-      if (!same) return denied("Password needed for the Rate Desk.");
+      const gate = await adminGate(request, env, url);
+      if (gate) return gate;
     }
     const context = { request, env, params: {}, waitUntil: (p) => ctx.waitUntil(p) };
     const path = url.pathname.replace(/\/+$/, "");
