@@ -4,58 +4,62 @@
   "barKg": 10.65,
   "model": {
     "one": {
-      "cementBags": 2,
-      "cementFinish": 0.7,
-      "steelKg": 16,
-      "roofM2": 1.35,
-      "sandM3": 0.3,
-      "sandFinish": 0.1,
-      "masonDays": 0.4,
-      "masonFinish": 0.38,
-      "handDays": 0.65,
-      "handFinish": 0.45,
-      "blocks": 22,
-      "ballastM3": 0.15,
-      "windows": 0.08,
-      "doorsIn": 0.05,
-      "tilesM2": 0.9,
-      "ceilingM2": 1,
-      "paintL": 0.8,
-      "elecPoints": 0.32,
-      "pipeM": 0.45,
-      "carpenterDays": 0.08,
-      "painterDays": 0.08,
-      "sparkDays": 0.06,
-      "plumbDays": 0.05
-    },
-    "two": {
-      "cementBags": 2.6,
-      "cementFinish": 0.85,
-      "steelKg": 30,
-      "roofM2": 1.35,
-      "sandM3": 0.34,
-      "sandFinish": 0.12,
+      "cementBags": 3.8,
+      "cementFinish": 1.8,
+      "steelKg": 28,
+      "roofM2": 1.85,
+      "sandM3": 0.22,
+      "sandFinish": 0.18,
       "masonDays": 0.55,
-      "masonFinish": 0.48,
+      "masonFinish": 0.5,
       "handDays": 0.85,
       "handFinish": 0.55,
-      "blocks": 28,
-      "ballastM3": 0.15,
+      "blocks": 30,
+      "ballastM3": 0.22,
       "windows": 0.09,
-      "doorsIn": 0.055,
-      "tilesM2": 0.9,
-      "ceilingM2": 0.55,
-      "paintL": 0.95,
-      "elecPoints": 0.36,
-      "pipeM": 0.5,
-      "carpenterDays": 0.07,
-      "painterDays": 0.09,
-      "sparkDays": 0.07,
-      "plumbDays": 0.06
+      "doorsIn": 0.05,
+      "tilesM2": 1.08,
+      "wallTilesM2": 0.35,
+      "ceilingM2": 1,
+      "paintL": 1.15,
+      "elecPoints": 0.5,
+      "pipeM": 0.9,
+      "carpenterDays": 0.14,
+      "painterDays": 0.14,
+      "sparkDays": 0.12,
+      "plumbDays": 0.1,
+      "gutterM": 0.45
+    },
+    "two": {
+      "cementBags": 5.4,
+      "cementFinish": 2,
+      "steelKg": 50,
+      "roofM2": 1.85,
+      "sandM3": 0.28,
+      "sandFinish": 0.2,
+      "masonDays": 0.75,
+      "masonFinish": 0.55,
+      "handDays": 1.05,
+      "handFinish": 0.65,
+      "blocks": 32,
+      "ballastM3": 0.22,
+      "windows": 0.1,
+      "doorsIn": 0.06,
+      "tilesM2": 1.08,
+      "wallTilesM2": 0.4,
+      "ceilingM2": 0.65,
+      "paintL": 1.3,
+      "elecPoints": 0.55,
+      "pipeM": 1,
+      "carpenterDays": 0.16,
+      "painterDays": 0.16,
+      "sparkDays": 0.14,
+      "plumbDays": 0.12,
+      "gutterM": 0.55
     },
     "slabExtra": {
-      "cementBags": 0.7,
-      "steelKg": 12
+      "cementBags": 1.3,
+      "steelKg": 22
     }
   },
   "houses": [
@@ -111,7 +115,7 @@
       "currency": "GHS",
       "city": "Greater Accra",
       "roof": "sheet",
-      "note": "Greater Accra lists cover cement, steel, blocks, roofing, sand, ballast, windows, doors, paint, a tank and the trade day rates. Roof timber is scaled from Nairobi. Tiles, ceiling boards, wiring and pipe are guides because the shop price is per box, sheet or coil and the coverage is assumed. The metal ceiling frame is not priced. Each line with a menu lets you switch to another published type or to the ends of that published range.",
+      "note": "Greater Accra lists cover cement, steel, blocks, roofing, sand, ballast, windows, doors, paint, a tank and the trade day rates. Roof timber, the ceiling frame, gutters, a septic tank, kitchen cupboards, wardrobes, the boundary wall and the gate are scaled from Nairobi. Tiles, ceiling boards, wiring and pipe are guides because the shop price is per box, sheet or coil and the coverage is assumed. Each line with a menu lets you switch to another published type or to the ends of that published range.",
       "finished": {
         "low": 3300,
         "high": 6800,
@@ -775,6 +779,39 @@
         },
         "timber": {
           "guideFrom": "kenya"
+        },
+        "ceilingFrame": {
+          "guideFrom": "kenya"
+        },
+        "gutter": {
+          "guideFrom": "kenya"
+        },
+        "formwork": {
+          "guideFrom": "kenya"
+        },
+        "basin": {
+          "guideFrom": "kenya"
+        },
+        "shower": {
+          "guideFrom": "kenya"
+        },
+        "sink": {
+          "guideFrom": "kenya"
+        },
+        "septic": {
+          "guideFrom": "kenya"
+        },
+        "kitchen": {
+          "guideFrom": "kenya"
+        },
+        "wardrobe": {
+          "guideFrom": "kenya"
+        },
+        "boundary": {
+          "guideFrom": "kenya"
+        },
+        "gate": {
+          "guideFrom": "kenya"
         }
       }
     },
@@ -783,7 +820,7 @@
       "currency": "KES",
       "city": "Nairobi",
       "roof": "sheet",
-      "note": "Cement, steel, blocks, sand, ballast, roofing, trusses, windows, internal doors, tiles, paint and pipe are Nairobi retail ranges. The external door is the bottom of a wide published range. Wiring, ceiling boards and several trade day rates are guides. The metal ceiling frame is not priced. Each line with a menu lets you switch to another point in the published Nairobi range.",
+      "note": "Cement, steel, blocks, sand, ballast, roofing, trusses, windows, internal doors, tiles, paint and pipe are Nairobi retail ranges. The external door is the bottom of a wide published range. Wiring, ceiling boards, the ceiling frame and several trade day rates are guides. Kitchen cupboards are a guide built from published per-metre rates. The septic tank, wardrobes, boundary wall and gate use the middle or the ends of a published range, and the plot size is the usual Kenyan plot for that number of bedrooms. Each line with a menu lets you switch to another point in the published range. Quantities follow published planning takeoffs for a simple Nairobi bungalow: about 4 to 6 bags of cement per square metre of floor, 2.5 to 4 tonnes of steel on a 120 m² house, plus the finish and the plot works. A published all-in band is shown separately because it includes a builder's overhead and does not itemise this wall.",
       "items": {
         "cement": {
           "price": 780,
@@ -1221,7 +1258,245 @@
         },
         "carpenter": {
           "guideFrom": "ghana"
+        },
+        "ceilingFrame": {
+          "price": 325,
+          "guide": true,
+          "source": "Middle of KES 250–400 per m² for metal ceiling framework, screws and jointing, from a 2026 Nairobi split of a plain gypsum ceiling. The board is a separate line. Fixing labour is with the carpenter, not in this rate.",
+          "url": "https://interiors.hauzisha.co.ke/gypsum-ceiling-price-kenya/"
+        },
+        "gutter": {
+          "price": 1060,
+          "source": "140mm PVC half-round gutter, KES 1,060 a metre, the 2026 Nairobi and Central all-in rate in the Integrum construction costs handbook. Downpipes are allowed at the same rate. Brackets are inside that all-in figure.",
+          "url": "https://integrum.co.ke/2026-construction-costs-handbook-kenya-nairobi-central/"
+        },
+        "formwork": {
+          "price": 2560,
+          "source": "Slab soffit formwork, KES 2,560 per m² for a single use, Integrum 2026 Nairobi handbook, including erection, striking and cleaning down. A deck reused three or more times is listed there at KES 1,600.",
+          "url": "https://integrum.co.ke/2026-construction-costs-handbook-kenya-nairobi-central/"
+        },
+        "basin": {
+          "price": 2180,
+          "source": "Wash hand basin KES 1,600 plus a pillar tap KES 580, Buy More Mall Kenya list of 28 September 2026.",
+          "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya",
+          "options": [
+            {
+              "id": "basic",
+              "name": "Basin and brass tap",
+              "price": 1800,
+              "source": "Hanzach small hand basin KES 1,200 plus a half-inch brass tap around KES 600.",
+              "url": "https://hanzach.com/category/sanitary-ware"
+            },
+            {
+              "id": "listed",
+              "name": "Basin and pillar tap",
+              "price": 2180,
+              "default": true,
+              "source": "Wash hand basin KES 1,600 plus a pillar tap KES 580, Buy More Mall Kenya, 28 September 2026.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            }
+          ]
+        },
+        "shower": {
+          "price": 2500,
+          "source": "Instant electric shower, KES 2,500, Buy More Mall Kenya list of 28 September 2026. The cable for it is not in this line.",
+          "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya",
+          "options": [
+            {
+              "id": "instant",
+              "name": "Instant electric shower",
+              "price": 2500,
+              "default": true,
+              "source": "Instant shower (Ducha), KES 2,500, Buy More Mall Kenya, 28 September 2026.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            },
+            {
+              "id": "mixer",
+              "name": "Mixer shower",
+              "price": 6500,
+              "source": "Taps mixer, KES 6,500, on the same Buy More Mall list.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            }
+          ]
+        },
+        "sink": {
+          "price": 1300,
+          "source": "Single kitchen sink, KES 1,300, Buy More Mall Kenya list of 28 September 2026. The kitchen tap is not in this line.",
+          "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya",
+          "options": [
+            {
+              "id": "single",
+              "name": "Single bowl sink",
+              "price": 1300,
+              "default": true,
+              "source": "Single kitchen sink, KES 1,300, Buy More Mall Kenya, 28 September 2026.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            },
+            {
+              "id": "large",
+              "name": "Larger sink",
+              "price": 1800,
+              "source": "Larger single-bowl sink, KES 1,800, on the same list.",
+              "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+            }
+          ]
+        },
+        "septic": {
+          "price": 140000,
+          "source": "Middle of KES 80,000–200,000 for a standard concrete septic tank in Kenya, 2026, the range given for size and construction together.",
+          "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/",
+          "options": [
+            {
+              "id": "small",
+              "name": "Smaller concrete septic",
+              "price": 80000,
+              "source": "Bottom of KES 80,000–200,000 for a standard concrete septic tank in Kenya, 2026.",
+              "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/"
+            },
+            {
+              "id": "mid",
+              "name": "Concrete septic, middle of the range",
+              "price": 140000,
+              "default": true,
+              "source": "Middle of KES 80,000–200,000 for a standard concrete septic tank in Kenya, 2026.",
+              "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/"
+            },
+            {
+              "id": "large",
+              "name": "Larger concrete septic",
+              "price": 200000,
+              "source": "Top of KES 80,000–200,000 for a standard concrete septic tank in Kenya, 2026.",
+              "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/"
+            }
+          ]
+        },
+        "kitchen": {
+          "price": 67550,
+          "guide": true,
+          "source": "Guide per metre of base run. Nairobi 2026: granite-top lower cupboards, middle of KES 40,000–65,000 a metre, plus wall cupboards, middle of KES 15,000–28,000, on 70% of that run. Fitting is inside those rates. Appliances are not.",
+          "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/",
+          "options": [
+            {
+              "id": "basic",
+              "name": "Basic laminate, no stone top",
+              "price": 57550,
+              "guide": true,
+              "source": "Guide. Basic lower cupboards, middle of KES 35,000–50,000 a metre with no worktop, plus wall cupboards, middle of KES 15,000–28,000, on 70% of the run. Aalis Studios, Nairobi, 2026.",
+              "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/"
+            },
+            {
+              "id": "granite",
+              "name": "Granite top, typical",
+              "price": 67550,
+              "guide": true,
+              "default": true,
+              "source": "Guide. Granite-top lower cupboards, middle of KES 40,000–65,000 a metre, plus wall cupboards, middle of KES 15,000–28,000, on 70% of the run. Aalis Studios, Nairobi, 2026.",
+              "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/"
+            },
+            {
+              "id": "premium",
+              "name": "Sintered stone top",
+              "price": 87550,
+              "guide": true,
+              "source": "Guide. Sintered-stone lower cupboards, middle of KES 55,000–90,000 a metre, plus wall cupboards, middle of KES 15,000–28,000, on 70% of the run. Aalis Studios, Nairobi, 2026.",
+              "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/"
+            }
+          ]
+        },
+        "wardrobe": {
+          "price": 25000,
+          "source": "Fitted wardrobe, middle of KES 15,000–35,000 a running metre, Nairobi, 2026. A 2.4 m bedroom run at this rate is KES 60,000, the bottom of the published bedroom total. Fitting is inside the rate.",
+          "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/",
+          "options": [
+            {
+              "id": "budget",
+              "name": "Melamine sliding, budget",
+              "price": 18500,
+              "source": "Middle of KES 15,000–22,000 a running metre for a budget melamine sliding wardrobe, Nairobi, 2026.",
+              "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/"
+            },
+            {
+              "id": "typical",
+              "name": "Fitted wardrobe, typical",
+              "price": 25000,
+              "default": true,
+              "source": "Middle of KES 15,000–35,000 a running metre for a fitted wardrobe, Nairobi, 2026.",
+              "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/"
+            },
+            {
+              "id": "mid",
+              "name": "Laminate with drawers",
+              "price": 26000,
+              "source": "Middle of KES 22,000–30,000 a running metre for laminate doors with drawers, Nairobi, 2026.",
+              "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/"
+            }
+          ]
+        },
+        "boundary": {
+          "price": 6000,
+          "source": "Machine-cut stone boundary wall, middle of KES 5,400–6,600 a metre near Nairobi, September 2026. Plaster, paint and the gate are not in this rate. A 50 by 100 ft plot at this rate lands inside the published KES 480,000–560,000 total.",
+          "url": "https://swiftpesa.co.ke/calculator/perimeter-wall-cost-calculator/",
+          "options": [
+            {
+              "id": "chain",
+              "name": "Chain-link fence",
+              "price": 1000,
+              "source": "Middle of KES 700–1,300 a metre for chain link, Kenya, 2026.",
+              "url": "https://burhayadevelopers.co.ke/blogs/perimeter_walls.html"
+            },
+            {
+              "id": "block",
+              "name": "Stone or interlocking blocks",
+              "price": 3750,
+              "source": "Middle of KES 2,500–5,000 a metre for stone or interlocking blocks, including the foundation, Kenya, 2026.",
+              "url": "https://burhayadevelopers.co.ke/blogs/perimeter_walls.html"
+            },
+            {
+              "id": "stone",
+              "name": "Machine-cut stone, Nairobi",
+              "price": 6000,
+              "default": true,
+              "source": "Middle of KES 5,400–6,600 a metre for a machine-cut stone wall near Nairobi, September 2026.",
+              "url": "https://swiftpesa.co.ke/calculator/perimeter-wall-cost-calculator/"
+            }
+          ]
+        },
+        "gate": {
+          "price": 115000,
+          "source": "One vehicle gate, middle of about KES 80,000–150,000, the range a September 2026 Nairobi wall calculator leaves out of the per-metre rate.",
+          "url": "https://swiftpesa.co.ke/calculator/perimeter-wall-cost-calculator/",
+          "options": [
+            {
+              "id": "low",
+              "name": "Simpler vehicle gate",
+              "price": 80000,
+              "source": "Bottom of about KES 80,000–150,000 for a vehicle gate, September 2026.",
+              "url": "https://swiftpesa.co.ke/calculator/perimeter-wall-cost-calculator/"
+            },
+            {
+              "id": "mid",
+              "name": "Typical vehicle gate",
+              "price": 115000,
+              "default": true,
+              "source": "Middle of about KES 80,000–150,000 for a vehicle gate, September 2026.",
+              "url": "https://swiftpesa.co.ke/calculator/perimeter-wall-cost-calculator/"
+            },
+            {
+              "id": "high",
+              "name": "Heavier vehicle gate",
+              "price": 150000,
+              "source": "Top of about KES 80,000–150,000 for a vehicle gate, September 2026.",
+              "url": "https://swiftpesa.co.ke/calculator/perimeter-wall-cost-calculator/"
+            }
+          ]
         }
+      },
+      "finished": {
+        "low": 36000,
+        "high": 42500,
+        "label": "Published range for an economy to standard finish in Kenya, for a house of this floor area",
+        "source": "KenyaHub 2026, citing BORAQS and KNBS benchmarks: KES 36,000–42,500 per m² for box-profile roofing, ceramic tiles, ordinary doors and standard sanitaryware. That band is a whole-build planning rate. This page still leaves out the contractor's fee and the land.",
+        "url": "https://kenyahub.me/blog/cost-of-building-a-house-in-kenya-mjengo-guide-2026/"
       }
     },
     "uganda": {
