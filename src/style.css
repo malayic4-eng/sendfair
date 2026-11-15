@@ -388,6 +388,12 @@ section.page { padding-block: 64px 88px; }
 .build-stage { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--line); }
 .build-stage span { display: block; font-size: .8rem; color: var(--muted); font-weight: 500; }
 .build-stage a { font-size: .82rem; font-weight: 700; }
+.build-check { display: block; margin-top: 4px; font-size: .8rem; color: var(--muted); font-weight: 500; }
+.build-order, .build-left { border: 1px solid var(--line); border-radius: 16px; background: var(--surface); padding: 12px 14px; }
+.build-order ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.build-order li { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: .86rem; }
+.build-left ul { margin: 8px 0 0; padding: 0 0 0 18px; }
+.build-left li { margin: 0 0 8px; }
 .build-allow ul { margin: 0; padding: 0 14px 12px 32px; display: grid; gap: 6px; }
 .build-quote-read { background: var(--paper); border-radius: 12px; color: var(--ink); }
 .build-links { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; }
@@ -400,7 +406,7 @@ section.page { padding-block: 64px 88px; }
   .build-tease, .build-controls, .build-send, .build-head, .build-side, .build-stage { grid-template-columns: minmax(0, 1fr); }
 }
 @media print {
-  header, footer, .skip, .crumbs, .lede, .prose > h1, .build-controls, .size-picks, #sf-build-custom, .build-side, .build-head, .build-stages, .build-lines, .build-allow, #sf-quote-read, .note, .build-send, .build-ask, .build-links, .share, .build-src, .route-links, details, h2 { display: none !important; }
+  header, footer, .skip, .crumbs, .lede, .prose > h1, .build-controls, .size-picks, #sf-build-custom, .build-side, .build-head, .build-order, .build-stages, .build-lines, .build-allow, .build-left, #sf-quote-read, .note, .build-send, .build-ask, .build-links, .share, .build-src, .route-links, details, h2 { display: none !important; }
   .build-sheet { display: block !important; }
   .build-sheet h2 { display: block !important; font-size: 1.4rem; }
   .build-sheet table { width: 100%; border-collapse: collapse; font-size: 11px; }

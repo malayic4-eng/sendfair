@@ -180,7 +180,7 @@ function routeContext(s, r, prefix, amount) {
   };
 }
 
-function head({ title, description, canonical, prefix, jsonld = [], noindex = false, og = "home", ogType = "website" }) {
+function head({ title, description, canonical, prefix, jsonld = [], noindex = false, og = "home", ogType = "website", alternates = [] }) {
   const ads = config.adsenseClient && !DEMO ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(config.adsenseClient)}" crossorigin="anonymous"></script>` : "";
   const cfa = config.cfAnalyticsToken && !DEMO ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${esc(config.cfAnalyticsToken)}"}'></script>` : "";
   // Impact (affiliate network, used by Remitly and others): site verification and link tracking.
@@ -199,6 +199,7 @@ function head({ title, description, canonical, prefix, jsonld = [], noindex = fa
 ${PREVIEW ? '<meta name="claude:viewport-fit-sides" content="cover">' : ""}
 ${noindex || DEMO ? '<meta name="robots" content="noindex">' : '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">'}
 ${canonical != null ? `<link rel="canonical" href="${site}/${canonical}">` : ""}
+${alternates.map((a) => `<link rel="alternate" hreflang="${esc(a.lang)}" href="${esc(a.href)}">`).join("\n")}
 <meta property="og:site_name" content="${esc(config.siteName)}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
@@ -242,7 +243,7 @@ function footer(prefix) {
 <div><h3>Popular routes</h3><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, corridorPath(S, Rr))}">${esc(S.label)} to ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
 <div><h3>Services</h3><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
 <div><h3>Exchange rates</h3><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "AED-KES", "SAR-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
-<div><h3>Build a house</h3><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
+<div><h3>Build a house</h3><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li><li><a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What the receipt prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 <nav aria-label="Footer"><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "sitemap/")}">All pages</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
@@ -334,29 +335,30 @@ function houseNote(r, prefix) {
 <p>A 3-bedroom bungalow in ${esc(c.city)} needs about ${esc(plain(R.money(est.total, est.currency)))} for the build, on prices checked ${esc(buildCosts.updated)}. You can switch the roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not included. <a href="${link(prefix, `cost-to-build/${r.id}/`)}">Open the ${esc(r.name)} house calculator</a> before you send a lump sum.</p>`;
 }
 
-function buildWidget(prefix, countryId) {
-  return `<div class="build-tool" id="sf-build" data-country="${esc(countryId)}" data-root="${prefix}">
+function buildWidget(prefix, countryId, lang) {
+  const fr = lang === "fr";
+  return `<div class="build-tool" id="sf-build" data-country="${esc(countryId)}" data-root="${prefix}" data-lang="${fr ? "fr" : "en"}">
 <div class="build-controls">
-  <label>Country <select id="sf-build-country"></select></label>
-  <label>Sending the money from <select id="sf-build-from"></select></label>
+  <label>${fr ? "Pays" : "Country"} <select id="sf-build-country"></select></label>
+  <label>${fr ? "Envoi depuis" : "Sending the money from"} <select id="sf-build-from"></select></label>
 </div>
 <div class="build-controls">
-  <div class="field"><span class="label" id="sf-storey-label">House</span><div class="payout-tabs" id="sf-build-storey" role="group" aria-labelledby="sf-storey-label"><button type="button" data-storeys="1" aria-pressed="true">Bungalow</button><button type="button" data-storeys="2" aria-pressed="false">Maisonette</button></div><span class="hint">Same floor area. A maisonette is two floors on a smaller footprint.</span></div>
-  <div class="field"><span class="label" id="sf-finish-label">Finish</span><div class="payout-tabs" id="sf-build-finish" role="group" aria-labelledby="sf-finish-label"><button type="button" data-finish="economy">Economy</button><button type="button" data-finish="standard" aria-pressed="true">Standard</button><button type="button" data-finish="luxury">Luxury</button></div><span class="hint">Standard is the listed price. Economy and luxury change tiles, paint, doors, windows and fittings only.</span></div>
-  <div class="field"><span class="label" id="sf-site-label">Plot</span><div class="payout-tabs" id="sf-build-site" role="group" aria-labelledby="sf-site-label"><button type="button" data-site="flat" aria-pressed="true">Flat, on a road</button><button type="button" data-site="steep">Steep or far</button></div><span class="hint">Steep or far adds a planning allowance to sand and ballast. A soil test is still required.</span></div>
+  <div class="field"><span class="label" id="sf-storey-label">${fr ? "Maison" : "House"}</span><div class="payout-tabs" id="sf-build-storey" role="group" aria-labelledby="sf-storey-label"><button type="button" data-storeys="1" aria-pressed="true">${fr ? "Plain-pied" : "Bungalow"}</button><button type="button" data-storeys="2" aria-pressed="false">${fr ? "Deux niveaux" : "Maisonette"}</button></div><span class="hint">${fr ? "Même surface. Deux niveaux, c'est la même surface sur une emprise plus petite." : "Same floor area. A maisonette is two floors on a smaller footprint."}</span></div>
+  <div class="field"><span class="label" id="sf-finish-label">${fr ? "Finition" : "Finish"}</span><div class="payout-tabs" id="sf-build-finish" role="group" aria-labelledby="sf-finish-label"><button type="button" data-finish="economy">${fr ? "Économie" : "Economy"}</button><button type="button" data-finish="standard" aria-pressed="true">${fr ? "Standard" : "Standard"}</button><button type="button" data-finish="luxury">${fr ? "Luxe" : "Luxury"}</button></div><span class="hint">${fr ? "Le standard est le prix affiché. Économie et luxe ne changent que le carrelage, la peinture, les portes, les fenêtres et les appareils. La structure, la main-d'œuvre et le permis restent au prix affiché." : "Standard is the listed price. Economy and luxury change tiles, paint, doors, windows and fittings only. Structure, labour and the permit stay on the listed price."}</span></div>
+  <div class="field"><span class="label" id="sf-site-label">${fr ? "Terrain" : "Plot"}</span><div class="payout-tabs" id="sf-build-site" role="group" aria-labelledby="sf-site-label"><button type="button" data-site="flat" aria-pressed="true">${fr ? "Plat, sur une route" : "Flat, on a road"}</button><button type="button" data-site="steep">${fr ? "Pentu ou loin" : "Steep or far"}</button></div><span class="hint">${fr ? "Pentu ou loin ajoute une marge sur le sable et le gravier. Une étude de sol reste nécessaire." : "Steep or far adds a planning allowance to sand and ballast. A soil test is still required."}</span></div>
 </div>
-<div class="size-picks" id="sf-build-sizes" role="group" aria-label="House size"></div>
-<div id="sf-build-custom" hidden><label>Floor area, square metres <input id="sf-build-m2" type="number" min="20" max="500" step="1" value="120"></label></div>
+<div class="size-picks" id="sf-build-sizes" role="group" aria-label="${fr ? "Taille" : "House size"}"></div>
+<div id="sf-build-custom" hidden><label>${fr ? "Surface, mètres carrés" : "Floor area, square metres"} <input id="sf-build-m2" type="number" min="20" max="500" step="1" value="120"></label></div>
 <div class="build-side">
-  <label>Their lump sum, in this country's currency <input id="sf-build-quote" inputmode="decimal" placeholder="Paste their figure" autocomplete="off"></label>
+  <label>${fr ? "Leur somme, dans la monnaie du pays" : "Their lump sum, in this country's currency"} <input id="sf-build-quote" inputmode="decimal" placeholder="${fr ? "Collez leur chiffre" : "Paste their figure"}" autocomplete="off"></label>
   <fieldset>
-    <legend>Under the receipt. Off until you include them.</legend>
-    <label><input id="sf-x-contingency" type="checkbox"> 10% contingency</label>
-    <label><input id="sf-x-contractor" type="checkbox"> Contractor's fee, where a margin is published</label>
-    <label><input id="sf-x-professional" type="checkbox"> Architect and engineer</label>
+    <legend>${fr ? "Sous le reçu. Hors du total tant que vous ne les cochez pas." : "Under the receipt. Off until you include them."}</legend>
+    <label><input id="sf-x-contingency" type="checkbox"> ${fr ? "Imprévus de 10 %" : "10% contingency"}</label>
+    <label><input id="sf-x-contractor" type="checkbox"> ${fr ? "Marge de l'entrepreneur, là où elle est publiée" : "Contractor's fee, where a margin is published"}</label>
+    <label><input id="sf-x-professional" type="checkbox"> ${fr ? "Architecte et ingénieur" : "Architect and engineer"}</label>
   </fieldset>
 </div>
-<div id="sf-build-out"><p class="note">Working out the quantities…</p></div>
+<div id="sf-build-out"><p class="note">${fr ? "Calcul des quantités…" : "Working out the quantities…"}</p></div>
 </div>`;
 }
 
@@ -392,7 +394,8 @@ function writeBuildPages() {
 <h1>${id ? `Cost to build a house in ${esc(buildCosts.countries[id].name)}` : "Cost to build a house back home"}</h1>
 <p class="lede">${esc(intro)}</p>
 ${buildWidget(prefix, id || "kenya")}
-<p class="build-links"><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a> <a href="${link(prefix, "cost-to-build/same-house/")}">The same 3-bedroom bungalow in every country</a></p>
+<p class="build-links"><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a> <a href="${link(prefix, "cost-to-build/same-house/")}">The same 3-bedroom bungalow in every country</a> <a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What this receipt prices</a></p>
+${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(id) ? `<p><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">Lire cette page en français</a></p>` : ""}
 <h2>Other countries</h2>
 <ul class="route-links">${Object.keys(buildCosts.countries).map((cid) => `<li><a href="${link(prefix, `cost-to-build/${cid}/`)}">${esc(buildCosts.countries[cid].name)}</a></li>`).join("")}</ul>
 <h2>Questions</h2>
@@ -409,8 +412,11 @@ ${faqBlock(faqs)}
   for (const id of Object.keys(buildCosts.countries)) {
     const c = buildCosts.countries[id];
     const rel = `cost-to-build/${id}/`;
+    const alts = ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(id)
+      ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/fr/${rel}` }, { lang: "x-default", href: `${site}/${rel}` }]
+      : [];
     write(rel + "index.html", page({
-      prefix: "../../", canonical: rel, buildPage: true, rank: false, og: "home",
+      prefix: "../../", canonical: rel, buildPage: true, rank: false, og: "home", alternates: alts,
       title: `Cost to build a house in ${c.name} · ${config.siteName}`,
       description: `What a house costs to build in ${c.name}, with a choice of roof sheets, windows, doors, tiles, ceiling and paint. No land or contractor's fee. Checked ${buildCosts.updated}.`,
       jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], [c.name, rel]]), appLd(`House calculator for ${c.name}`, `${site}/${rel}`, `Estimate a simple house in ${c.name}, with that country's prices and permit fee.`)],
@@ -420,6 +426,101 @@ ${faqBlock(faqs)}
   }
   writeMaterialPrices();
   writeSameHouse();
+  writeReceiptPage();
+  writeFrenchHouses();
+}
+
+function writeReceiptPage() {
+  const en = "cost-to-build/what-this-receipt-is/";
+  const fr = "fr/cost-to-build/what-this-receipt-is/";
+  const alts = [
+    { lang: "en", href: `${site}/${en}` },
+    { lang: "fr", href: `${site}/${fr}` },
+    { lang: "x-default", href: `${site}/${en}` }
+  ];
+  write(en + "index.html", page({
+    prefix: "../../", canonical: en, buildPage: false, rank: false, og: "home", alternates: alts,
+    title: `What this receipt prices · ${config.siteName}`,
+    description: "The house receipt prices a block-and-sheet house built with site trades. Factory systems are a different product, and this page states no saving.",
+    jsonld: [crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], ["What this receipt prices", en]])],
+    body: `<section class="block page"><div class="wrap"><article class="prose wide">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="${link("../../", "")}">SendFair</a></li><li><a href="${link("../../", "cost-to-build/")}">Build a house</a></li><li aria-current="page">What this receipt prices</li></ol></nav>
+<h1>What this receipt prices</h1>
+<p class="lede">A simple house of block walls, a sheet roof or a concrete slab where that is the local roof, site-mixed concrete, and the trade days on the list. It is the list to match against deliveries.</p>
+<p>These are different products. This receipt does not price them:</p>
+<ul>
+<li>Precast panels cast in a factory and lifted into place.</li>
+<li>Light-gauge steel frames.</li>
+<li>Volumetric modules, finished rooms delivered whole.</li>
+<li>Buildings made from shipping containers.</li>
+<li>Walls printed on site.</li>
+</ul>
+<p>A contractor who proposes one of those should price that system on its own drawing. Their lump sum and this receipt are not the same house. This page states no saving, because a difference depends on the drawing, the factory and the road to the plot.</p>
+<p>The receipt also leaves out the plot of land, the contractor's fee, and the architect's or engineer's fee. <a href="${link("../../", "cost-to-build/")}">Open the calculator</a>.</p>
+<p><a href="${link("../../", fr)}">Lire cette page en français</a></p>
+</article></div></section>`
+  }));
+  urls.push(en);
+  write(fr + "index.html", page({
+    prefix: "../../../", canonical: fr, buildPage: false, rank: false, og: "home", lang: "fr", alternates: alts,
+    title: `Ce que ce reçu chiffre · ${config.siteName}`,
+    description: "Le reçu chiffre une maison en blocs et en tôles, bâtie avec les corps de métier sur le chantier. Un système d'usine est un autre produit. Cette page n'annonce aucune économie.",
+    jsonld: [crumbs([[config.siteName, ""], ["Construire", "cost-to-build/"], ["Ce que ce reçu chiffre", fr]])],
+    body: `<section class="block page"><div class="wrap"><article class="prose wide">
+<nav class="crumbs" aria-label="Fil d'Ariane"><ol><li><a href="${link("../../../", "")}">SendFair</a></li><li><a href="${link("../../../", "cost-to-build/")}">Construire une maison</a></li><li aria-current="page">Ce que ce reçu chiffre</li></ol></nav>
+<h1>Ce que ce reçu chiffre</h1>
+<p class="lede">Une maison simple : murs en blocs, toiture en tôles ou dalle béton là où c'est la toiture locale, béton préparé sur place, et les jours de métier de la liste. C'est la liste à rapprocher des livraisons.</p>
+<p>Ce sont d'autres produits. Ce reçu ne les chiffre pas :</p>
+<ul>
+<li>Des panneaux préfabriqués coulés en usine et posés à la grue.</li>
+<li>Une ossature en acier léger.</li>
+<li>Des modules volumétriques, des pièces finies livrées entières.</li>
+<li>Un bâtiment fait de conteneurs.</li>
+<li>Des murs imprimés sur le chantier.</li>
+</ul>
+<p>Un entrepreneur qui en propose un doit chiffrer ce système sur son propre plan. Sa somme et ce reçu ne décrivent pas la même maison. Cette page n'annonce aucune économie : l'écart dépend du plan, de l'usine et de la route jusqu'au terrain.</p>
+<p>Le reçu laisse aussi de côté le terrain, la marge de l'entrepreneur, et les honoraires de l'architecte ou de l'ingénieur. <a href="${link("../../../", "cost-to-build/senegal/")}">Ouvrir le calculateur</a>.</p>
+<p><a href="${link("../../../", en)}">Read this page in English</a></p>
+</article></div></section>`
+  }));
+  urls.push(fr);
+}
+
+function writeFrenchHouses() {
+  const ids = ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"];
+  const nameIn = { senegal: "au Sénégal", ivorycoast: "en Côte d'Ivoire", mali: "au Mali", cameroon: "au Cameroun", drc: "en RD Congo", rwanda: "au Rwanda" };
+  const intro = "Un reçu pour une maison simple : structure, murs en blocs, toiture, fenêtres, portes, carrelage, plafond, peinture, cuisine, placards, électricité, plomberie, fosse septique, mur de clôture et portail. Le permis est le tarif publié dans le pays. Le terrain et la marge de l'entrepreneur ne sont pas dans le reçu. Le standard est le prix affiché. Économie et luxe ne changent que les finitions.";
+  const faqs = [
+    ["Que contient ce reçu ?", "Le ciment, l'acier, le sable, le gravier, les blocs, la toiture, les menuiseries, le carrelage, la peinture, la cuisine, les placards, les réseaux, une fosse, un mur de clôture, un portail, le permis publié et les jours de métier. Les quantités sont les mêmes partout. Le permis garde le tarif du pays."],
+    ["Qu'est-ce qui reste dehors ?", "Le terrain, la marge de l'entrepreneur, les imprévus et les honoraires. Ils peuvent s'afficher sous le reçu sans le modifier. Une étude de sol, un bornage, l'eau au-delà du réservoir, l'électricité, un mur de soutènement, le mouvement des prix et les intérêts d'un prêt restent aussi dehors, sans chiffre."],
+    ["Comment envoyer l'argent ?", "Chaque groupe du reçu a un lien vers la comparaison de transfert pour cette étape. La somme mensuelle sur douze mois est une répartition égale. Un chantier paie le gros œuvre d'abord."]
+  ];
+  for (const id of ids) {
+    const c = buildCosts.countries[id];
+    if (!c) continue;
+    const rel = `fr/cost-to-build/${id}/`;
+    const en = `cost-to-build/${id}/`;
+    const alts = [{ lang: "fr", href: `${site}/${rel}` }, { lang: "en", href: `${site}/${en}` }, { lang: "x-default", href: `${site}/${en}` }];
+    write(rel + "index.html", page({
+      prefix: "../../../", canonical: rel, buildPage: true, rank: false, og: "home", lang: "fr", alternates: alts,
+      title: `Coût pour construire une maison ${nameIn[id]} · ${config.siteName}`,
+      description: `Reçu pour une maison simple ${nameIn[id]}, avec les quantités, le permis publié et le lien pour envoyer chaque étape. Sans le terrain ni la marge de l'entrepreneur.`,
+      jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Construire", "cost-to-build/"], [c.name, rel]])],
+      body: `<section class="block page"><div class="wrap"><div class="prose wide">
+<nav class="crumbs" aria-label="Fil d'Ariane"><ol><li><a href="${link("../../../", "")}">SendFair</a></li><li><a href="${link("../../../", "cost-to-build/")}">Construire une maison</a></li><li aria-current="page">${esc(nameIn[id].replace(/^(au|en) /, ""))}</li></ol></nav>
+<h1>Coût pour construire une maison ${esc(nameIn[id])}</h1>
+<p class="lede">${esc(intro)}</p>
+<p>La navigation du site est en anglais. Cette page et le reçu sont en français. <a href="${link("../../../", en)}">Read this page in English</a>.</p>
+${buildWidget("../../../", id, "fr")}
+<p class="build-links"><a href="${link("../../../", "cost-to-build/material-prices/")}">Prix des matériaux</a> <a href="${link("../../../", "cost-to-build/same-house/")}">La même maison</a> <a href="${link("../../../", "fr/cost-to-build/what-this-receipt-is/")}">Ce que ce reçu chiffre</a></p>
+<h2>Autres pays en français</h2>
+<ul class="route-links">${ids.filter((x) => x !== id).map((x) => `<li><a href="${link("../../../", `fr/cost-to-build/${x}/`)}">${esc(nameIn[x])}</a></li>`).join("")}</ul>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</div></div></section>`
+    }));
+    urls.push(rel);
+  }
 }
 
 function moneyPlain(n, cur) {
@@ -485,6 +586,7 @@ function writeSameHouse() {
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="${link("../../", "")}">SendFair</a></li><li><a href="${link("../../", "cost-to-build/")}">Build a house</a></li><li aria-current="page">The same house</li></ol></nav>
 <h1>The same 3-bedroom bungalow in every country</h1>
 <p class="lede">110 m², one floor, standard finish, the same quantities. The receipt is materials, trade days, the finish, the plot works and that country's permit. Land and the contractor's fee are not in it. A published band, where we have one, is a whole-house rate and includes a contractor. Checked ${esc(buildCosts.updated)}.</p>
+<p>Heirstone's 2026 note, <a href="https://www.heirstoneconsulting.com/pages/report-africa-construction-costs">Nine cities, one square metre</a>, finds a different expensive layer in each city. In Lagos it is the contractor's margin and the cost of a slow loan. In Nairobi and Dar es Salaam it is duty and VAT on imported cement. In Kinshasa it is haulage. In Casablanca the cost of borrowing is the low end of that set, about 5% of the hard cost on a two-year loan. Those notes explain the city. They are not added to the receipt.</p>
 <div class="table-wrap"><table class="rates-table same-house"><caption>3-bedroom bungalow, 110 m², one floor</caption><thead><tr><th>Country</th><th>City on the price list</th><th class="num">Receipt</th><th class="num">Receipt a m²</th><th>Published band</th><th>Why the city costs what it does</th></tr></thead><tbody>${rows}</tbody></table></div>
 <p>Compare a receipt with another receipt. A band is a different kind of number. <a href="${link("../../", "cost-to-build/")}">Open the calculator</a> to change the size, the finish or the floors.</p>
 </article></div></section>`
@@ -511,7 +613,7 @@ ${groups.map((g) => !g.list.some((s) => corridors.receivers.some((r) => (quotes[
 </div></section>`;
 }
 
-function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og, ogType, buildPage, rank = true }) {
+function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og, ogType, buildPage, lang = "en", alternates = [], rank = true }) {
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
     routeUrl: link(prefix, "send-money/{from}-to-{to}/"),
@@ -522,7 +624,7 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
     ...(init || {})
   };
   const translate = `<script>(function(){var b=document.getElementById("sf-lang"),box=document.getElementById("sf-lang-box"),loaded=false;if(!b)return;
-function load(){if(loaded)return;loaded=true;window.sfTranslateInit=function(){new google.translate.TranslateElement({pageLanguage:"en",autoDisplay:false},"google_translate_element");};var s=document.createElement("script");s.src="https://translate.google.com/translate_a/element.js?cb=sfTranslateInit";s.async=true;document.head.appendChild(s);}
+function load(){if(loaded)return;loaded=true;window.sfTranslateInit=function(){new google.translate.TranslateElement({pageLanguage:"${lang === "fr" ? "fr" : "en"}",autoDisplay:false},"google_translate_element");};var s=document.createElement("script");s.src="https://translate.google.com/translate_a/element.js?cb=sfTranslateInit";s.async=true;document.head.appendChild(s);}
 b.addEventListener("click",function(){var open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",String(open));if(open)load();});
 var m=document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);if(m&&m[1]!=="en")load();})();</script>`;
   const scripts = translate + adBoot() + `<script>window.SF=${JSON.stringify(sf)};</script>` +
@@ -530,10 +632,10 @@ var m=document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);if(m&&m[1]!=="en")load
     `<script src="${prefix}assets/app.js?v=${V.app}" defer></script>` +
     (buildPage ? `<script src="${prefix}assets/build-cost.js?v=${V.build}" defer></script>` : "") +
     (PREVIEW || DEMO ? "" : `<script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})});addEventListener("beforeinstallprompt",function(e){e.preventDefault();var b=document.getElementById("sf-install");if(!b)return;b.hidden=false;b.onclick=function(){b.hidden=true;e.prompt();};});</script>`);
-  const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og, ogType });
-  const bodyStr = `<a class="skip" href="#content">Skip to content</a>\n${header(prefix)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix)}\n${scripts}`;
+  const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og, ogType, alternates });
+  const bodyStr = `<a class="skip" href="#content">${lang === "fr" ? "Aller au contenu" : "Skip to content"}</a>\n${header(prefix)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix)}\n${scripts}`;
   if (bodyOnly) return `${headStr}\n${bodyStr}`;
-  return `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n${headStr}\n</head>\n<body>\n${bodyStr}\n</body>\n</html>\n`;
+  return `<!doctype html>\n<html lang="${lang === "fr" ? "fr" : "en"}">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n${headStr}\n</head>\n<body>\n${bodyStr}\n</body>\n</html>\n`;
 }
 
 function write(rel, content) {
@@ -1456,6 +1558,13 @@ function writeGuides() {
     { kind: "house", slug: "material-prices", title: "Material prices", description: "Cement, steel, blocks, sand and a mason day.", url: "cost-to-build/material-prices/", tags: ["prices"] },
     { kind: "house", slug: "same-house", title: "The same house in every country", description: "One floor area priced in each country.", url: "cost-to-build/same-house/", tags: ["prices"] },
     { kind: "house", slug: "calculator", title: "Cost to build a house", description: "The house calculator.", url: "cost-to-build/", tags: ["calculator"] },
+    { kind: "house", slug: "what-this-receipt-is", title: "What this receipt prices", description: "A block-and-sheet house. Factory systems are a different product.", url: "cost-to-build/what-this-receipt-is/", tags: ["receipt"] },
+    { kind: "house", slug: "senegal-fr", title: "Coût pour construire au Sénégal", description: "Reçu en français pour une maison à Dakar.", url: "fr/cost-to-build/senegal/", tags: ["senegal", "fr"] },
+    { kind: "house", slug: "ivorycoast-fr", title: "Coût pour construire en Côte d'Ivoire", description: "Reçu en français pour une maison à Abidjan.", url: "fr/cost-to-build/ivorycoast/", tags: ["ivorycoast", "fr"] },
+    { kind: "house", slug: "mali-fr", title: "Coût pour construire au Mali", description: "Reçu en français pour une maison à Bamako.", url: "fr/cost-to-build/mali/", tags: ["mali", "fr"] },
+    { kind: "house", slug: "cameroon-fr", title: "Coût pour construire au Cameroun", description: "Reçu en français pour une maison à Douala et Yaoundé.", url: "fr/cost-to-build/cameroon/", tags: ["cameroon", "fr"] },
+    { kind: "house", slug: "drc-fr", title: "Coût pour construire en RD Congo", description: "Reçu en français. Le reçu est un guide converti depuis Nairobi.", url: "fr/cost-to-build/drc/", tags: ["drc", "fr"] },
+    { kind: "house", slug: "rwanda-fr", title: "Coût pour construire au Rwanda", description: "Reçu en français pour une maison à Kigali.", url: "fr/cost-to-build/rwanda/", tags: ["rwanda", "fr"] },
     ...corridors.receivers.map((r) => ({ kind: "money", slug: r.id, title: `Send money to ${r.name}`, description: `Compare transfers into ${r.name}.`, url: hubPath(r), tags: [r.id] })),
     { kind: "page", slug: "methodology", title: "How we rank", description: "How SendFair orders a transfer.", url: "methodology/", tags: [] },
     { kind: "page", slug: "contact", title: "Contact", description: "Email SendFair.", url: "contact/", tags: [] }

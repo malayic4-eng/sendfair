@@ -367,7 +367,9 @@
       stages: stages, band: band, finish: finish, site: steep ? "steep" : "flat",
       contingency: { rate: plan.contingency, amount: total * plan.contingency, source: "A planning allowance of " + Math.round(plan.contingency * 100) + "% of the receipt, for price movement and items this list missed. It is not a shop price." },
       contractor: contractor,
-      professional: { amount: null, source: "No architect or engineer fee scale was published in this check. Ask for their scale. This is not a permit." }
+      professional: id === "kenya"
+        ? { amount: null, source: "Legal Notice 188 of 2023 sets the BORAQS minimum for an architect's normal service on new works: 6% when the works cost KES 10 million to 100 million. Below that the minimum is higher, including 8% from KES 2 million to 4 million and 7.5% from KES 4 million to 6 million. A quantity surveyor and an engineer have separate scales. This line does not add a fee.", url: "https://boraqs.go.ke/wp-content/uploads/2023/09/L.-N.-188-THE-ARCHITECTS-AND-QUANTITY-SURVEYORS-ACT.pdf" }
+        : { amount: null, source: "No architect or engineer fee scale was published in this check. Ask for their scale. This is not a permit.", url: "" }
     };
   }
   var api = { estimate: estimate, fx: fx, priceOf: priceOf, choicesFor: choicesFor };
@@ -394,6 +396,70 @@
   Promise.all([getJSON("data/build-costs.json"), getJSON("data/midmarket.json"), getJSON("data/corridors.json")]).then(function (res) {
     var data = res[0], rates = (res[1] && res[1].rates) || {}, corridors = res[2];
     var country = box.getAttribute("data-country") || "kenya";
+    var lang = box.getAttribute("data-lang") === "fr" ? "fr" : "en";
+    var frPage = { senegal: 1, ivorycoast: 1, mali: 1, cameroon: 1, drc: 1, rwanda: 1 };
+    var frCountry = { senegal: "Sénégal", ivorycoast: "Côte d'Ivoire", mali: "Mali", cameroon: "Cameroun", drc: "RD Congo", rwanda: "Rwanda" };
+    var frNote = {
+      senegal: "Le ciment est la fourchette de détail à Dakar. Les autres lignes sont converties depuis le Grand Accra.",
+      ivorycoast: "Le ciment est le plafond officiel : une boutique doit être à ce prix ou en dessous. Les autres lignes sont converties depuis le Grand Accra.",
+      mali: "Pas de liste de boutique à Bamako dans ce contrôle. Le ciment suit le plafond d'Abidjan et les autres lignes suivent ce guide. Le transport jusqu'à Bamako coûte en général en plus.",
+      cameroon: "Pas de liste de boutique à Douala dans ce contrôle. Le franc d'Afrique centrale est arrimé au franc d'Afrique de l'Ouest, donc le plafond du ciment d'Abidjan sert seulement de guide.",
+      drc: "Pas de liste de prix à Kinshasa ni à Lubumbashi dans ce contrôle. Chaque ligne est un guide converti depuis Nairobi, et le transport à l'intérieur de la RD Congo peut le dépasser.",
+      rwanda: "Le ciment est une annonce d'un fournisseur à Kigali. Les autres lignes sont converties depuis Nairobi."
+    };
+    var frGroup = { "Structure": "Gros œuvre", "Walls and roof": "Murs et toiture", "Windows and doors": "Fenêtres et portes", "Finishes": "Finitions", "Services": "Réseaux", "Plot": "Parcelle", "Labour": "Main-d'œuvre", "Permits": "Permis" };
+    var frLine = { cement: "Ciment", steel: "Acier", ballast: "Gravier", sand: "Sable", formwork: "Coffrage de dalle", blocks: "Blocs", roof: "Toiture", timber: "Bois de charpente", gutter: "Gouttières", windows: "Fenêtres", doorIn: "Portes intérieures", doorOut: "Portes extérieures", tiles: "Carrelage de sol", wallTiles: "Carrelage mural", ceiling: "Plafond", ceilingFrame: "Ossature de plafond", paint: "Peinture", kitchen: "Cuisine", wardrobe: "Placards", elec: "Électricité", pipe: "Tuyauterie", wc: "WC", basin: "Lavabos", shower: "Douches", sink: "Évier", tank: "Réservoir", septic: "Fosse septique", boundary: "Mur de clôture", gate: "Portail", mason: "Maçons", hand: "Manœuvres", carpenter: "Menuisier", painter: "Peintre", spark: "Électricien", plumber: "Plombier" };
+    var orderKeys = [["cement", "bags", "sacs"], ["steel", "kg", "kg"], ["sand", "m³", "m³"], ["ballast", "m³", "m³"], ["blocks", "blocks", "blocs"], ["roof", "m² of sheet", "m² de tôle"], ["timber", "m² of truss", "m² de charpente"], ["windows", "windows", "fenêtres"], ["doorIn", "internal doors", "portes intérieures"], ["doorOut", "external doors", "portes extérieures"], ["tiles", "m² of floor tile", "m² de carrelage"], ["mason", "mason days", "jours de maçon"], ["hand", "labourer days", "jours de manœuvre"], ["carpenter", "carpenter days", "jours de menuisier"], ["painter", "painter days", "jours de peintre"], ["spark", "electrician days", "jours d'électricien"], ["plumber", "plumber days", "jours de plombier"]];
+    var stageCheck = {
+      en: {
+        "Structure": "Photograph the footing trenches and the steel before the concrete goes in. Keep the cement and steel receipts.",
+        "Walls and roof": "Photograph the walls at plate height and the roof before it is covered. Keep the block and sheet receipts.",
+        "Windows and doors": "Photograph each frame in its opening. Keep the supplier's receipt.",
+        "Finishes": "Photograph one wet room and one finished room. Keep the tile and paint receipts.",
+        "Services": "Photograph the pipes and the distribution board before they are closed up. Keep the fitting receipts.",
+        "Plot": "Photograph the septic tank before it is buried, and the boundary wall. Keep those receipts.",
+        "Labour": "Keep a note of who was on site and for how many days. A round weekly sum with no names is the figure to question.",
+        "Permits": "Keep the official receipt and the stamped approved plan. Cash with no receipt is not this fee."
+      },
+      fr: {
+        "Structure": "Photographiez les fouilles et l'acier avant de couler le béton. Gardez les reçus du ciment et de l'acier.",
+        "Walls and roof": "Photographiez les murs à la panne sablière et la toiture avant de la couvrir. Gardez les reçus des blocs et des tôles.",
+        "Windows and doors": "Photographiez chaque cadre dans son ouverture. Gardez le reçu du fournisseur.",
+        "Finishes": "Photographiez une pièce d'eau et une pièce finie. Gardez les reçus du carrelage et de la peinture.",
+        "Services": "Photographiez les tuyaux et le tableau avant de les fermer. Gardez les reçus des appareils.",
+        "Plot": "Photographiez la fosse avant de la remblayer, et le mur de clôture. Gardez ces reçus.",
+        "Labour": "Notez qui était sur le chantier et pendant combien de jours. Une somme ronde sans noms est le chiffre à questionner.",
+        "Permits": "Gardez le reçu officiel et le plan approuvé cacheté. De l'argent liquide sans reçu n'est pas ce frais."
+      }
+    };
+    var leftOut = {
+      en: [
+        ["A soil test", "The steep-or-far switch is a planning allowance on sand and ballast. It is not a soil test."],
+        ["A land survey", "Beacons and a survey stay out of the receipt."],
+        ["Water beyond the tank", "The receipt has one tank. A borehole, a pump or a long connection is extra."],
+        ["Power", "A grid connection, or solar where there is no grid, is not in the receipt."],
+        ["A retaining wall", "A steep plot may need one. This receipt does not price it."],
+        ["Price movement", "Cement and steel can move before a long build ends. This list is the month it was checked."],
+        ["Borrowing", "Interest on a loan is not in the receipt."]
+      ],
+      fr: [
+        ["Une étude de sol", "Le bouton terrain pentu est une marge sur le sable et le gravier. Ce n'est pas une étude de sol."],
+        ["Un bornage", "Les bornes et le levé restent hors du reçu."],
+        ["L'eau au-delà du réservoir", "Le reçu compte un réservoir. Un forage, une pompe ou un long branchement est en plus."],
+        ["L'électricité", "Un branchement au réseau, ou le solaire hors réseau, n'est pas dans le reçu."],
+        ["Un mur de soutènement", "Un terrain pentu peut en exiger un. Ce reçu ne le chiffre pas."],
+        ["Le mouvement des prix", "Le ciment et l'acier peuvent bouger avant la fin d'un long chantier. Cette liste est celle du mois du contrôle."],
+        ["L'emprunt", "Les intérêts d'un prêt ne sont pas dans le reçu."]
+      ]
+    };
+    var lastCsv = "";
+    var lastLink = "";
+    function shownGroup(name) { return lang === "fr" && frGroup[name] ? frGroup[name] : name; }
+    function shownLabel(l) { return lang === "fr" && frLine[l.key] ? frLine[l.key] : l.label; }
+    function csvCell(value) {
+      var s = String(value == null ? "" : value);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }
     var qs = new URLSearchParams(location.search);
     var picks = {};
     qs.forEach(function (v, k) { if (k.indexOf("opt_") === 0 && v) picks[k.slice(4)] = v; });
@@ -422,6 +488,21 @@
     }
     function quoteWords(est, amount) {
       if (!(amount > 0)) return "";
+      if (lang === "fr") {
+        var diffFr = amount - est.total;
+        var pctFr = est.total > 0 ? Math.round(Math.abs(diffFr) / est.total * 100) : 0;
+        var bitsFr = ["Leur chiffre est " + money(amount, est.currency) + ". Ce reçu est " + money(est.total, est.currency) + "."];
+        if (diffFr > est.total * 0.02) bitsFr.push("Il dépasse le reçu de " + money(diffFr, est.currency) + ", environ " + pctFr + " %. Demandez quelle ligne paie l'écart : la marge de l'entrepreneur, le transport, ou une réserve.");
+        else if (diffFr < -est.total * 0.02) bitsFr.push("Il est sous le reçu de " + money(-diffFr, est.currency) + ", environ " + pctFr + " %. Demandez ce qui manque : les finitions, la fosse, le mur, le portail ou le permis.");
+        else bitsFr.push("Il rejoint ce reçu. Demandez les mêmes quantités.");
+        if (est.band) {
+          var bandFr = money(est.band.low, est.currency) + " à " + money(est.band.high, est.currency);
+          if (amount < est.band.low) bitsFr.push("Il est aussi sous la fourchette publiée de " + bandFr + ". Cette fourchette inclut un entrepreneur. Ce reçu non.");
+          else if (amount > est.band.high) bitsFr.push("Il est aussi au-dessus de la fourchette publiée de " + bandFr + ". Demandez les quantités derrière le chiffre rond.");
+          else bitsFr.push("Il est dans la fourchette publiée de " + bandFr + ". Cette fourchette inclut un entrepreneur. Ce reçu non.");
+        }
+        return bitsFr.join(" ");
+      }
       var diff = amount - est.total;
       var pct = est.total > 0 ? Math.round(Math.abs(diff) / est.total * 100) : 0;
       var bits = ["Their figure is " + money(amount, est.currency) + ". This receipt is " + money(est.total, est.currency) + "."];
@@ -452,95 +533,151 @@
       var sent = sendHref(est.total);
       var s = sent.s;
       var houseName = custom ? Math.round(area) + " m²" : (data.houses.filter(function (x) { return x.id === house; })[0] || {}).name;
-      var shape = storeys === 2 ? "maisonette, two floors" : "bungalow, one floor";
+      var shape = storeys === 2 ? (lang === "fr" ? "maison à deux niveaux" : "maisonette, two floors") : (lang === "fr" ? "plain-pied" : "bungalow, one floor");
       var lastGroup = "";
       var lines = est.lines.map(function (l) {
         var head = "";
-        if (l.group && l.group !== lastGroup) { lastGroup = l.group; head = '<div class="build-group">' + esc(l.group) + "</div>"; }
-        var tag = l.slab ? "" : l.cost > 0 ? (l.quoted ? '<span class="build-tag is-quoted">Listed price</span>' : '<span class="build-tag is-guide">Guide</span>') : '<span class="build-tag">No price</span>';
-        var cost = l.slab ? "Included above" : l.cost > 0 ? money(l.cost, est.currency) : "–";
+        if (l.group && l.group !== lastGroup) { lastGroup = l.group; head = '<div class="build-group">' + esc(shownGroup(l.group)) + "</div>"; }
+        var tag = l.slab ? "" : l.cost > 0 ? (l.quoted ? '<span class="build-tag is-quoted">' + (lang === "fr" ? "Prix affiché" : "Listed price") + "</span>" : '<span class="build-tag is-guide">' + (lang === "fr" ? "Guide" : "Guide") + "</span>") : '<span class="build-tag">' + (lang === "fr" ? "Sans prix" : "No price") + "</span>";
+        var cost = l.slab ? (lang === "fr" ? "Compris au-dessus" : "Included above") : l.cost > 0 ? money(l.cost, est.currency) : "–";
         var pickHtml = "";
         if (l.choices) {
-          pickHtml = '<label class="build-pick">Type <select data-pick="' + esc(l.key) + '">' + l.choices.map(function (o) {
+          pickHtml = '<label class="build-pick">' + (lang === "fr" ? "Type" : "Type") + ' <select data-pick="' + esc(l.key) + '">' + l.choices.map(function (o) {
             return '<option value="' + esc(o.id) + '"' + (o.id === l.choice ? " selected" : "") + ">" + esc(o.name) + " · " + esc(money(o.price, est.currency)) + (l.unitName ? " " + esc(l.unitName) : "") + "</option>";
           }).join("") + "</select></label>";
         }
-        return head + '<div class="build-line"><div><strong>' + esc(l.label) + "</strong> " + tag + '<span class="build-qty">' + esc(l.qtyLabel) + "</span>" + pickHtml + '</div><div class="num">' + esc(cost) + "</div></div>";
+        return head + '<div class="build-line"><div><strong>' + esc(shownLabel(l)) + "</strong> " + tag + '<span class="build-qty">' + esc(l.qtyLabel) + "</span>" + pickHtml + '</div><div class="num">' + esc(cost) + "</div></div>";
       }).join("");
       var sheetRows = "";
       var sheetGroup = "";
       est.lines.forEach(function (l) {
         if (l.group !== sheetGroup) {
           sheetGroup = l.group;
-          sheetRows += '<tr class="sheet-group"><th colspan="4">' + esc(l.group) + "</th></tr>";
+          sheetRows += '<tr class="sheet-group"><th colspan="4">' + esc(shownGroup(l.group)) + "</th></tr>";
         }
         var rate = l.unitPrice > 0 ? money(l.unitPrice, est.currency) + (l.unitName ? " " + l.unitName : "") : "–";
-        var cost = l.slab ? "Included above" : l.cost > 0 ? money(l.cost, est.currency) : "–";
-        sheetRows += "<tr><td>" + esc(l.label) + "</td><td>" + esc(l.qtyLabel) + "</td><td class=\"num\">" + esc(rate) + "</td><td class=\"num\">" + esc(cost) + "</td></tr>";
+        var cost = l.slab ? (lang === "fr" ? "Compris au-dessus" : "Included above") : l.cost > 0 ? money(l.cost, est.currency) : "–";
+        sheetRows += "<tr><td>" + esc(shownLabel(l)) + "</td><td>" + esc(l.qtyLabel) + "</td><td class=\"num\">" + esc(rate) + "</td><td class=\"num\">" + esc(cost) + "</td></tr>";
       });
+      var byKey = {};
+      est.lines.forEach(function (l) { byKey[l.key] = l; });
+      var orderBits = [];
+      var orderCsv = [];
+      orderKeys.forEach(function (row) {
+        var l = byKey[row[0]];
+        if (!l || !(l.qty > 0)) return;
+        var unit = lang === "fr" ? row[2] : row[1];
+        if (l.qty === 1) {
+          var one = { "external doors": "external door", "internal doors": "internal door", windows: "window", blocks: "block", "portes extérieures": "porte extérieure", "portes intérieures": "porte intérieure", "fenêtres": "fenêtre", blocs: "bloc" };
+          if (one[unit]) unit = one[unit];
+        }
+        var bit = shownLabel(l) + " " + l.qty + " " + unit;
+        orderBits.push(bit);
+        orderCsv.push("<li>" + esc(shownLabel(l)) + " <strong>" + esc(String(l.qty)) + "</strong> " + esc(unit) + "</li>");
+      });
+      var slabNote = byKey.roof && byKey.roof.slab ? (lang === "fr" ? " Toiture en dalle : pas de tôles dans cette liste." : " Concrete roof: no sheets on this list.") : "";
+      var orderTitle = lang === "fr" ? "À commander" : "Order list";
+      var orderLead = lang === "fr" ? "Les quantités de ce reçu, à envoyer à la personne sur le terrain. Ce n'est pas un devis." : "The quantities on this receipt, for the person on the plot. This is not a quote.";
+      var orderHtml = '<div class="build-order"><div class="build-group">' + orderTitle + "</div><p>" + esc(orderLead + slabNote) + "</p><ul>" + orderCsv.join("") + "</ul></div>";
       var bandHtml = est.band
-        ? '<div class="build-finish"><span class="k">Published whole-house band, includes a contractor</span><strong class="num">' + esc(money(est.band.low, est.currency)) + " – " + esc(money(est.band.high, est.currency)) + '</strong><span class="s">' + esc(est.band.label) + ". " + esc(est.band.source) + "</span></div>"
-        : '<div class="build-finish"><span class="k">Published whole-house band</span><strong class="num">No band in this check</strong><span class="s">The receipt is the figure you can match to bags, blocks and days. A contractor\'s quote will sit above it.</span></div>';
+        ? '<div class="build-finish"><span class="k">' + (lang === "fr" ? "Fourchette publiée, entrepreneur inclus" : "Published whole-house band, includes a contractor") + '</span><strong class="num">' + esc(money(est.band.low, est.currency)) + " – " + esc(money(est.band.high, est.currency)) + '</strong><span class="s">' + esc(est.band.label) + ". " + esc(est.band.source) + "</span></div>"
+        : '<div class="build-finish"><span class="k">' + (lang === "fr" ? "Fourchette publiée" : "Published whole-house band") + '</span><strong class="num">' + (lang === "fr" ? "Aucune dans ce contrôle" : "No band in this check") + '</strong><span class="s">' + (lang === "fr" ? "Le reçu est le chiffre à rapprocher des sacs, des blocs et des jours. Le devis d'un entrepreneur sera au-dessus." : "The receipt is the figure you can match to bags, blocks and days. A contractor's quote will sit above it.") + "</span></div>";
       var month = est.total / 12;
       var monthSend = sendHref(month);
+      var checks = stageCheck[lang] || stageCheck.en;
       var stageHtml = est.stages.filter(function (g) { return g.cost > 0; }).map(function (g) {
         var part = sendHref(g.cost);
         var pct = est.total > 0 ? Math.round(g.cost / est.total * 100) : 0;
-        var link = part.s ? '<a href="' + esc(part.href) + '">Send this stage</a>' : "";
-        return '<div class="build-stage"><div><strong>' + esc(g.group) + "</strong><span>" + pct + "% of the receipt" + (part.amt > 0 ? " · about " + esc(money(part.amt, part.s.currency)) + " to send" : "") + "</span></div><div class=\"num\">" + esc(money(g.cost, est.currency)) + "</div>" + link + "</div>";
+        var linkWord = lang === "fr" ? "Envoyer cette étape" : "Send this stage";
+        var link = part.s ? '<a href="' + esc(part.href) + '">' + linkWord + "</a>" : "";
+        var check = checks[g.group] ? '<span class="build-check">' + esc(checks[g.group]) + "</span>" : "";
+        var pctBit = lang === "fr" ? pct + " % du reçu" : pct + "% of the receipt";
+        var sendBit = part.amt > 0 ? (lang === "fr" ? " · environ " + money(part.amt, part.s.currency) + " à envoyer" : " · about " + money(part.amt, part.s.currency) + " to send") : "";
+        return '<div class="build-stage"><div><strong>' + esc(shownGroup(g.group)) + "</strong><span>" + esc(pctBit + sendBit) + "</span>" + check + '</div><div class="num">' + esc(money(g.cost, est.currency)) + "</div>" + link + "</div>";
       }).join("");
+      var monthLine = lang === "fr"
+        ? "Environ " + money(month, est.currency) + " par mois sur 12 mois" + (monthSend.amt > 0 ? ", environ " + money(monthSend.amt, monthSend.s.currency) + " à envoyer" : "") + ". C'est une répartition égale. Un vrai chantier paie le gros œuvre d'abord, donc les premiers envois sont plus gros."
+        : "About " + money(month, est.currency) + " a month for 12 months" + (monthSend.amt > 0 ? ", about " + money(monthSend.amt, monthSend.s.currency) + " to send" : "") + ". That is an even split. A real build pays the structure first, so the early transfers are larger.";
       var quoteRaw = (document.getElementById("sf-build-quote").value || "").replace(/[, ]/g, "");
       var quoteAmt = parseFloat(quoteRaw);
-      var quoteHtml = quoteAmt > 0 ? '<p class="build-quote-read">' + esc(quoteWords(est, quoteAmt)) + "</p>" : '<p class="build-quote-read">Paste their lump sum. We will set it against this receipt, and against the published band where we have one.</p>';
+      var quoteEmpty = lang === "fr" ? "Collez leur somme. La page la compare à ce reçu et, s'il y en a une, à la fourchette publiée." : "Paste their lump sum. We will set it against this receipt, and against the published band where we have one.";
+      var quoteHtml = quoteAmt > 0 ? '<p class="build-quote-read">' + esc(quoteWords(est, quoteAmt)) + "</p>" : '<p class="build-quote-read">' + esc(quoteEmpty) + "</p>";
       var allow = [];
       var extraSum = 0;
       if (withSet.contingency) {
         extraSum += est.contingency.amount;
-        allow.push("<li><strong>Contingency, " + Math.round(est.contingency.rate * 100) + "%.</strong> " + esc(money(est.contingency.amount, est.currency)) + ". " + esc(est.contingency.source) + "</li>");
+        allow.push("<li><strong>" + (lang === "fr" ? "Imprévus, " : "Contingency, ") + Math.round(est.contingency.rate * 100) + "%.</strong> " + esc(money(est.contingency.amount, est.currency)) + ". " + esc(est.contingency.source) + "</li>");
       }
       if (withSet.contractor) {
         if (est.contractor.amount > 0) extraSum += est.contractor.amount;
-        allow.push("<li><strong>Contractor's fee.</strong> " + (est.contractor.amount > 0 ? esc(money(est.contractor.amount, est.currency)) + ". " : "Not priced. ") + esc(est.contractor.source) + "</li>");
+        allow.push("<li><strong>" + (lang === "fr" ? "Marge de l'entrepreneur." : "Contractor's fee.") + "</strong> " + (est.contractor.amount > 0 ? esc(money(est.contractor.amount, est.currency)) + ". " : (lang === "fr" ? "Non chiffrée. " : "Not priced. ")) + esc(est.contractor.source) + "</li>");
       }
-      if (withSet.professional) allow.push("<li><strong>Architect and engineer.</strong> Not priced. " + esc(est.professional.source) + "</li>");
-      var allowHtml = '<div class="build-allow"><p>The receipt above does not change when you tick an allowance.</p>' +
+      if (withSet.professional) allow.push("<li><strong>" + (lang === "fr" ? "Architecte et ingénieur." : "Architect and engineer.") + "</strong> " + (lang === "fr" ? "Non chiffré. " : "Not priced. ") + esc(est.professional.source) + (est.professional.url ? ' <a href="' + esc(est.professional.url) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Texte" : "Scale") + "</a>" : "") + "</li>");
+      var allowHtml = '<div class="build-allow"><p>' + (lang === "fr" ? "Le reçu ci-dessus ne change pas quand vous cochez une marge." : "The receipt above does not change when you tick an allowance.") + "</p>" +
         (allow.length ? "<ul>" + allow.join("") + "</ul>" : "") +
-        (extraSum > 0 ? '<p><strong>Receipt plus the priced allowances: ' + esc(money(est.total + extraSum, est.currency)) + ".</strong> The receipt itself is still " + esc(money(est.total, est.currency)) + ".</p>" : "") +
+        (extraSum > 0 ? "<p><strong>" + (lang === "fr" ? "Reçu plus les marges chiffrées : " : "Receipt plus the priced allowances: ") + esc(money(est.total + extraSum, est.currency)) + ".</strong> " + (lang === "fr" ? "Le reçu lui-même reste " : "The receipt itself is still ") + esc(money(est.total, est.currency)) + ".</p>" : "") +
         "</div>";
+      var leftItems = (leftOut[lang] || leftOut.en).map(function (row) {
+        return "<li><strong>" + esc(row[0]) + ".</strong> " + esc(row[1]) + "</li>";
+      }).join("");
+      var leftHtml = '<div class="build-left"><div class="build-group">' + (lang === "fr" ? "Hors du reçu" : "Left out of the receipt") + "</div><ul>" + leftItems + "</ul></div>";
       var extraSend = "";
       if (extraSum > 0) {
         var both = sendHref(est.total + extraSum);
-        if (both.s) extraSend = '<a class="btn btn-ghost" href="' + esc(both.href) + '">Compare a transfer that also covers those allowances</a>';
+        if (both.s) extraSend = '<a class="btn btn-ghost" href="' + esc(both.href) + '">' + (lang === "fr" ? "Comparer un envoi qui couvre aussi ces marges" : "Compare a transfer that also covers those allowances") + "</a>";
       }
-      var setting = "";
-      if (finish !== "standard") setting += (finish === "economy" ? "Economy" : "Luxury") + " changes tiles, paint, doors, windows and fittings only. Structure, labour and the permit stay on the listed price. A line you picked yourself stays as you picked it. ";
-      if (site === "steep") setting += "Sand and ballast include a planning allowance for a steep plot or a long haul. A soil test is still required. ";
-      var shareUrl = (location.origin || "") + "/cost-to-build/" + country + "/" + pageQuery();
-      var share = "A " + (houseName || "house") + " " + shape + " in " + est.country.name + " comes to about " + money(est.total, est.currency) + " for the build, without land or the contractor's fee, on SendFair's " + data.updated + " check. Match the receipts to the quantities before you send. " + shareUrl;
-      out.innerHTML = '<div class="build-head"><div class="build-total"><span class="k">The receipt, without land or the contractor\'s fee</span><strong class="num">' + esc(money(est.total, est.currency)) + '</strong><span class="s">' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² in " + esc(est.country.city) + ". " + est.quotedLines + " line" + (est.quotedLines === 1 ? "" : "s") + " from a published list, " + est.guideLines + " guide" + (est.guideLines === 1 ? "" : "s") + "." + (setting ? " " + esc(setting) : "") + "</span></div>" + bandHtml + "</div>" +
-        '<div class="build-stages"><div class="build-group">When the money goes out</div><p class="build-month">About ' + esc(money(month, est.currency)) + " a month for 12 months" + (monthSend.amt > 0 ? ", about " + esc(money(monthSend.amt, monthSend.s.currency)) + " to send" : "") + ". That is an even split. A real build pays the structure first, so the early transfers are larger.</p>" + stageHtml + "</div>" +
+      var setting = lang === "fr"
+        ? "Le standard est le prix affiché. Économie et luxe ne changent que le carrelage, la peinture, les portes, les fenêtres et les appareils. La structure, la main-d'œuvre et le permis restent au prix affiché. Une ligne choisie à la main reste celle que vous avez choisie. "
+        : "Standard is the listed price. Economy and luxury change tiles, paint, doors, windows and fittings only. Structure, labour and the permit stay on the listed price. A line you pick yourself stays as you picked it. ";
+      if (site === "steep") setting += lang === "fr" ? "Le sable et le gravier incluent une marge pour un terrain pentu ou un long transport. Une étude de sol reste nécessaire. " : "Sand and ballast include a planning allowance for a steep plot or a long haul. A soil test is still required. ";
+      var shareUrl = (location.origin || "") + (lang === "fr" ? "/fr" : "") + "/cost-to-build/" + country + "/" + pageQuery();
+      var placeName = lang === "fr" && frCountry[country] ? frCountry[country] : est.country.name;
+      var orderMessage = (lang === "fr" ? "Liste SendFair, pas un devis. " : "SendFair order list, not a quote. ") + (houseName || "") + " " + shape + ", " + placeName + ", " + est.country.city + ". " + orderBits.join(". ") + "." + slabNote + (lang === "fr" ? " Rapprochez les bons de livraison de ces quantités. " : " Match the delivery notes to these quantities. ") + shareUrl;
+      var share = (lang === "fr" ? "Une " : "A ") + (houseName || (lang === "fr" ? "maison" : "house")) + " " + shape + (lang === "fr" ? " en " : " in ") + placeName + (lang === "fr" ? " revient à environ " : " comes to about ") + money(est.total, est.currency) + (lang === "fr" ? " pour le bâti, sans le terrain ni la marge de l'entrepreneur, contrôle SendFair du " : " for the build, without land or the contractor's fee, on SendFair's ") + data.updated + (lang === "fr" ? ". Rapprochez les reçus des quantités avant d'envoyer. " : " check. Match the receipts to the quantities before you send. ") + shareUrl;
+      lastLink = shareUrl;
+      var csvRows = [["Item", "Quantity", "Rate", "Source", "Amount"]];
+      est.lines.forEach(function (l) {
+        csvRows.push([shownLabel(l), l.slab ? "" : l.qtyLabel, l.unitPrice > 0 ? l.unitPrice : "", l.source || "", l.slab ? "" : (l.cost > 0 ? l.cost : "")]);
+      });
+      csvRows.push(["Receipt total", "", "", est.currency, est.total]);
+      csvRows.push(["Left out", "Land, the contractor's fee, contingency, architect and engineer", "", "", ""]);
+      lastCsv = csvRows.map(function (row) { return row.map(csvCell).join(","); }).join("\n");
+      var listedWord = lang === "fr" ? " lignes au prix affiché, " : " lines from a published list, ";
+      var guideWord = lang === "fr" ? " guides." : " guides.";
+      var headK = lang === "fr" ? "Le reçu, sans le terrain ni la marge de l'entrepreneur" : "The receipt, without land or the contractor's fee";
+      var stageTitle = lang === "fr" ? "Quand l'argent sort" : "When the money goes out";
+      var sendK = lang === "fr" ? "Si vous envoyiez le reçu depuis " : "If you sent the receipt from ";
+      var sendS = lang === "fr" ? "Converti au taux de milieu de marché. Les frais de transfert sont en plus. Les marges restent hors de ce montant." : "Changed at the mid-market rate. Fees on the transfer are extra. The allowances stay out of this amount.";
+      var sendBtn = lang === "fr" ? "Comparer qui remet le plus" : "Compare who delivers the most";
+      var ask = lang === "fr" ? "Demandez des reçus qui correspondent aux sacs, aux blocs, aux fenêtres et aux jours ci-dessus. Une somme ronde sans quantités est la façon habituelle de gonfler un devis." : "Ask for receipts that match the bags, blocks, windows and days above. A round sum with no quantities is how a quote gets inflated.";
+      var receiptPage = rootPath + (lang === "fr" ? "fr/" : "") + "cost-to-build/what-this-receipt-is/";
+      out.innerHTML = '<div class="build-head"><div class="build-total"><span class="k">' + esc(headK) + '</span><strong class="num">' + esc(money(est.total, est.currency)) + '</strong><span class="s">' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² · " + esc(placeName) + " · " + esc(est.country.city) + ". " + est.quotedLines + listedWord + est.guideLines + guideWord + " " + esc(setting) + "</span></div>" + bandHtml + "</div>" +
+        orderHtml +
+        '<div class="build-stages"><div class="build-group">' + esc(stageTitle) + "</div>" + stageHtml + '<p class="build-month">' + esc(monthLine) + "</p></div>" +
         '<div class="build-lines">' + lines + "</div>" +
         allowHtml +
+        leftHtml +
         '<div id="sf-quote-read">' + quoteHtml + "</div>" +
-        '<p class="note">' + esc(est.country.note) + "</p>" +
-        '<div class="build-send"><div><span class="k">If you sent the receipt from ' + esc(s ? s.name : "") + '</span><strong class="num">' + esc(sent.amt ? money(sent.amt, s.currency) : "–") + '</strong><span class="s">Changed at the mid-market rate. Fees on the transfer are extra. The allowances stay out of this amount.</span></div><a class="btn" href="' + esc(sent.href) + '">Compare who delivers the most</a>' + extraSend + "</div>" +
-        '<p class="build-ask">Ask for receipts that match the bags, blocks, windows and days above. A round sum with no quantities is how a quote gets inflated.</p>' +
-        '<p class="build-links"><button type="button" id="sf-build-print">Print this receipt</button> <a href="' + esc(rootPath + "cost-to-build/material-prices/") + '">Material prices</a> <a href="' + esc(rootPath + "cost-to-build/same-house/") + '">The same house in every country</a></p>' +
-        '<div class="share"><a href="https://wa.me/?text=' + encodeURIComponent(share) + '" target="_blank" rel="noopener">Share on WhatsApp</a></div>' +
-        '<details class="build-src"><summary>Where the prices come from</summary><ul>' + est.lines.filter(function (l) { return l.source; }).map(function (l) {
-          return "<li><strong>" + esc(l.label) + ".</strong> " + esc(l.source) + (l.url ? ' <a href="' + esc(l.url) + '" target="_blank" rel="noopener">Source</a>' : "") + "</li>";
-        }).join("") + "</ul><p>Checked " + esc(data.updated) + ". Next refresh " + esc(data.nextReview) + ". City prices move, and a town away from " + esc(est.country.city) + " can differ. This is not a structural design. Left out of the receipt on purpose: the plot of land, the contractor's fee, a contingency, and the architect's or engineer's fee. You can show the last three under the receipt. They do not change it.</p></details>" +
-        '<article class="build-sheet"><h2>SendFair receipt</h2><p>' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² · " + esc(est.country.name) + " · " + esc(est.country.city) + " · checked " + esc(data.updated) + "</p><p><strong>" + esc(money(est.total, est.currency)) + "</strong> for the build. Land and the contractor's fee are not included.</p>" +
-        (est.band ? "<p>Published whole-house band, which includes a contractor: " + esc(money(est.band.low, est.currency)) + " to " + esc(money(est.band.high, est.currency)) + ". " + esc(est.band.source) + "</p>" : "<p>No published whole-house band was in this check.</p>") +
+        '<p class="note">' + esc(lang === "fr" && frNote[country] ? frNote[country] : est.country.note) + "</p>" +
+        '<div class="build-send"><div><span class="k">' + esc(sendK + (s ? s.name : "")) + '</span><strong class="num">' + esc(sent.amt ? money(sent.amt, s.currency) : "–") + '</strong><span class="s">' + esc(sendS) + '</span></div><a class="btn" href="' + esc(sent.href) + '">' + esc(sendBtn) + "</a>" + extraSend + "</div>" +
+        '<p class="build-ask">' + esc(ask) + "</p>" +
+        '<p class="build-links"><button type="button" id="sf-build-print">' + (lang === "fr" ? "Imprimer ce reçu" : "Print this receipt") + '</button> <button type="button" id="sf-build-csv">' + (lang === "fr" ? "Télécharger le tableur" : "Download the spreadsheet") + '</button> <a href="' + esc(rootPath + "cost-to-build/material-prices/") + '">' + (lang === "fr" ? "Prix des matériaux" : "Material prices") + '</a> <a href="' + esc(rootPath + "cost-to-build/same-house/") + '">' + (lang === "fr" ? "La même maison dans chaque pays" : "The same house in every country") + '</a> <a href="' + esc(receiptPage) + '">' + (lang === "fr" ? "Ce que ce reçu chiffre" : "What this receipt prices") + "</a></p>" +
+        '<div class="share"><a href="https://wa.me/?text=' + encodeURIComponent(orderMessage) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Envoyer la liste sur WhatsApp" : "Send the order list on WhatsApp") + '</a> <a href="https://wa.me/?text=' + encodeURIComponent(share) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Partager le total" : "Share the total") + '</a> <button type="button" id="sf-build-copy">' + (lang === "fr" ? "Copier le lien" : "Copy the link") + "</button></div>" +
+        '<details class="build-src"><summary>' + (lang === "fr" ? "D'où viennent les prix" : "Where the prices come from") + "</summary><ul>" + est.lines.filter(function (l) { return l.source; }).map(function (l) {
+          return "<li><strong>" + esc(shownLabel(l)) + ".</strong> " + esc(l.source) + (l.url ? ' <a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Source" : "Source") + "</a>" : "") + "</li>";
+        }).join("") + "</ul><p>" + (lang === "fr" ? "Contrôlé le " : "Checked ") + esc(data.updated) + (lang === "fr" ? ". Prochain contrôle le " : ". Next refresh ") + esc(data.nextReview) + ".</p></details>" +
+        '<article class="build-sheet"><h2>SendFair receipt</h2><p>' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² · " + esc(placeName) + " · " + esc(est.country.city) + " · " + esc(data.updated) + "</p><p><strong>" + esc(money(est.total, est.currency)) + "</strong></p><p>" + esc(orderBits.join(" · ")) + esc(slabNote) + "</p>" +
+        (est.band ? "<p>" + esc(money(est.band.low, est.currency)) + " – " + esc(money(est.band.high, est.currency)) + ". " + esc(est.band.source) + "</p>" : "") +
         '<table><thead><tr><th>Item</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr></thead><tbody>' + sheetRows + "</tbody></table>" +
-        (allow.length ? "<p>Allowances you turned on, not part of the receipt:</p><ul>" + allow.join("") + "</ul>" : "") +
-        "<p>Free to print. No account. " + esc(shareUrl) + "</p></article>";
+        (allow.length ? "<ul>" + allow.join("") + "</ul>" : "") +
+        "<p>" + esc(shareUrl) + "</p></article>";
       if (history.replaceState) history.replaceState(null, "", location.pathname + pageQuery());
     }
     var countrySel = document.getElementById("sf-build-country");
     countrySel.innerHTML = Object.keys(data.countries).map(function (id) {
       var c = data.countries[id];
-      return '<option value="' + id + '"' + (id === country ? " selected" : "") + ">" + esc(c.name) + "</option>";
+      var name = lang === "fr" && frCountry[id] ? frCountry[id] : c.name;
+      return '<option value="' + id + '"' + (id === country ? " selected" : "") + ">" + esc(name) + "</option>";
     }).join("");
     var fromSel = document.getElementById("sf-build-from");
     var fromId = qs.get("from") || "uk";
@@ -548,9 +685,11 @@
       return '<option value="' + s.id + '"' + (s.id === fromId ? " selected" : "") + ">" + esc(s.name) + "</option>";
     }).join("");
     var sizes = document.getElementById("sf-build-sizes");
+    var frHouse = { "1": "1 chambre", "2": "2 chambres", "3": "3 chambres", "4": "4 chambres", "5": "5 chambres" };
     sizes.innerHTML = data.houses.map(function (h) {
-      return '<button type="button" data-house="' + h.id + '" aria-pressed="' + (h.id === house && !custom) + '">' + esc(h.name) + '<span>' + h.m2 + " m²</span></button>";
-    }).join("") + '<button type="button" data-house="custom" aria-pressed="' + custom + '">Your size</button>';
+      var name = lang === "fr" && frHouse[h.id] ? frHouse[h.id] : h.name;
+      return '<button type="button" data-house="' + h.id + '" aria-pressed="' + (h.id === house && !custom) + '">' + esc(name) + '<span>' + h.m2 + " m²</span></button>";
+    }).join("") + '<button type="button" data-house="custom" aria-pressed="' + custom + '">' + (lang === "fr" ? "Votre surface" : "Your size") + "</button>";
     document.getElementById("sf-build-custom").hidden = !custom;
     if (qs.get("m2")) document.getElementById("sf-build-m2").value = qs.get("m2");
     document.querySelectorAll("#sf-build-storey [data-storeys]").forEach(function (x) {
@@ -586,7 +725,8 @@
       return s ? "?" + s : "";
     }
     countrySel.addEventListener("change", function () {
-      location.assign("/cost-to-build/" + countrySel.value + "/" + pageQuery());
+      var id = countrySel.value;
+      location.assign((lang === "fr" && frPage[id] ? "/fr" : "") + "/cost-to-build/" + id + "/" + pageQuery());
     });
     fromSel.addEventListener("change", draw);
     document.getElementById("sf-build-storey").addEventListener("click", function (e) {
@@ -638,6 +778,31 @@
     });
     out.addEventListener("click", function (e) {
       if (e.target.closest("#sf-build-print")) window.print();
+      var csvBtn = e.target.closest("#sf-build-csv");
+      if (csvBtn && lastCsv) {
+        var blob = new Blob([lastCsv], { type: "text/csv;charset=utf-8" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "sendfair-receipt.csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      var copyBtn = e.target.closest("#sf-build-copy");
+      if (copyBtn && lastLink) {
+        var done = function () { copyBtn.textContent = lang === "fr" ? "Lien copié" : "Link copied"; };
+        var fallback = function () {
+          var ta = document.createElement("textarea");
+          ta.value = lastLink;
+          ta.setAttribute("readonly", "");
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand("copy"); done(); } catch (err) { copyBtn.textContent = lastLink; }
+          ta.remove();
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(lastLink).then(done).catch(fallback);
+        else fallback();
+      }
     });
     draw();
   }).catch(function () {
