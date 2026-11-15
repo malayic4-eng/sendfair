@@ -549,6 +549,8 @@ write("index.html", page({
 </ol></div></section>
 <section class="block"><div class="wrap"><div class="section-head"><h2>Send money to</h2></div>
 <ul class="route-links big">${corridors.receivers.map((r) => `<li><a href="${link("", hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul>
+<div class="section-head" style="margin-top:32px"><h2>Compare by route</h2></div>
+${corridors.senders.map((s) => { const rs = corridors.receivers.filter((r) => routeContext(s, r, "", config.defaultAmounts[s.currency]).rows.some((x) => !x.stale)); return rs.length ? `<h3 class="route-from">From ${esc(s.short)}</h3><ul class="route-links">${rs.map((r) => `<li><a href="${link("", corridorPath(s, r))}">${esc(s.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>` : ""; }).join("")}
 <div class="section-head" style="margin-top:32px"><h2>Services we compare</h2></div>
 <ul class="route-links big">${providersWithQuotes().map((p) => `<li><a class="with-badge" href="${link("", provPath(p))}">${R.badge(p)}${esc(p.name)} review</a></li>`).join("")}</ul>
 <div class="section-head" style="margin-top:32px"><h2>Head to head</h2></div>
