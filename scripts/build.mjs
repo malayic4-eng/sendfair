@@ -316,7 +316,8 @@ function alerts() {
   if (DEMO) {
     body = `<form id="sf-alert-form" data-demo="1"><label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form><p id="sf-alert-msg" aria-live="polite"></p>`;
   } else if (config.newsletterFormAction) {
-    body = `<form id="sf-alert-form" action="${esc(config.newsletterFormAction)}" method="post"><label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form>`;
+    const embed = String(config.newsletterFormAction).includes("embed-subscribe") ? `<input type="hidden" name="embed" value="1"><p><a href="https://buttondown.com/${esc(String(config.newsletterFormAction).split("/").pop())}">SendFair on Buttondown</a></p>` : "";
+    body = `<form id="sf-alert-form" action="${esc(config.newsletterFormAction)}" method="post">${embed}<label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form>`;
   } else if (config.whatsappChannelUrl) {
     body = `<div><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>`;
   } else return "";
@@ -1348,7 +1349,7 @@ function writeGuides() {
     const text = encodeURIComponent(title);
     return `<div class="share"><a href="https://wa.me/?text=${encodeURIComponent(title + " " + url)}" target="_blank" rel="noopener">WhatsApp</a><a href="https://www.facebook.com/sharer/sharer.php?u=${u}" target="_blank" rel="noopener">Facebook</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=${u}" target="_blank" rel="noopener">LinkedIn</a><a href="https://twitter.com/intent/tweet?url=${u}&text=${text}" target="_blank" rel="noopener">X</a><a href="mailto:?subject=${text}&body=${u}">Email</a><button type="button" data-copy="${esc(url)}">Copy link</button><button type="button" data-save="${esc(urlPath)}" data-title="${esc(title)}">Save</button><span class="share-msg" aria-live="polite"></span></div>`;
   };
-  const newsForm = () => config.newsletterFormAction ? `<form class="news-form" action="${esc(config.newsletterFormAction)}" method="post"><h2>Morning rate</h2><p>One email. We ask you to confirm the address before the first message. Unsubscribe in every message.</p><label class="label" for="sf-news-email">Email</label><input id="sf-news-email" name="email" type="email" required autocomplete="email"><button type="submit">Send me the rate</button></form>` : "";
+  const newsForm = () => config.newsletterFormAction ? `<form class="news-form" action="${esc(config.newsletterFormAction)}" method="post"><h2>Morning rate</h2><p>One email. We ask you to confirm the address before the first message. Unsubscribe in every message.</p>${String(config.newsletterFormAction).includes("embed-subscribe") ? `<input type="hidden" name="embed" value="1">` : ""}<label class="label" for="sf-news-email">Email</label><input id="sf-news-email" name="email" type="email" required autocomplete="email"><button type="submit">Send me the rate</button></form>` : "";
   const render = (item, prefix, crumbsItems, siblings) => {
     const isArticle = !!item.pillar;
     const steps = (item.steps || []).length ? `<h2 id="steps">Steps</h2><ol class="howto">${item.steps.map((s) => `<li><h3>${esc(s.name)}</h3><p>${esc(s.text)}</p></li>`).join("")}</ol>` : "";

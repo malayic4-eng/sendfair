@@ -310,7 +310,8 @@
         try { if (sessionStorage.getItem("sf-exit")) return; sessionStorage.setItem("sf-exit", "1"); } catch (err) { return; }
         var box = document.createElement("div");
         box.className = "exit";
-        box.innerHTML = "<form id=\"sf-exit-form\" action=\"" + escText(cfg.newsletter) + "\" method=\"post\"><h2>Before you go</h2><p>One morning email with the rate. We ask you to confirm the address first. Unsubscribe in every message.</p><label class=\"label\" for=\"sf-exit-email\">Email</label><input id=\"sf-exit-email\" name=\"email\" type=\"email\" required><button type=\"submit\">Send me the rate</button> <button type=\"button\" data-exit-close>Not now</button></form>";
+        var embed = String(cfg.newsletter).indexOf("embed-subscribe") !== -1 ? "<input type=\"hidden\" name=\"embed\" value=\"1\">" : "";
+        box.innerHTML = "<form id=\"sf-exit-form\" action=\"" + escText(cfg.newsletter) + "\" method=\"post\"><h2>Before you go</h2><p>One morning email with the rate. We ask you to confirm the address first. Unsubscribe in every message.</p>" + embed + "<label class=\"label\" for=\"sf-exit-email\">Email</label><input id=\"sf-exit-email\" name=\"email\" type=\"email\" required><button type=\"submit\">Send me the rate</button> <button type=\"button\" data-exit-close>Not now</button></form>";
         document.body.appendChild(box);
         box.addEventListener("click", function (ev) { if (ev.target === box || (ev.target.closest && ev.target.closest("[data-exit-close]"))) box.remove(); });
       });
