@@ -16,4 +16,9 @@ jobs:
           node-version: 20
       - name: Check the key file is live
         run: curl -sS -D - https://sendfair.africa/058640bd53ad01bd934b671764bc57dd.txt
+      - name: Check crawlers can read the sitemap
+        run: |
+          for ua in "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" "Mozilla/5.0"; do
+            echo "$ua -> $(curl -s -o /dev/null -w '%{http_code}' -A "$ua" https://sendfair.africa/sitemap.xml) sitemap, $(curl -s -o /dev/null -w '%{http_code}' -A "$ua" https://sendfair.africa/) home"
+          done
       - run: node scripts/indexnow.mjs
