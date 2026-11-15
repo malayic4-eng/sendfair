@@ -180,7 +180,7 @@ function routeContext(s, r, prefix, amount) {
   };
 }
 
-function head({ title, description, canonical, prefix, jsonld = [], noindex = false, og = "home" }) {
+function head({ title, description, canonical, prefix, jsonld = [], noindex = false, og = "home", ogType = "website" }) {
   const ads = "";
   const cfa = config.cfAnalyticsToken && !DEMO ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${esc(config.cfAnalyticsToken)}"}'></script>` : "";
   // Impact (affiliate network, used by Remitly and others): site verification and link tracking.
@@ -202,7 +202,7 @@ ${canonical != null ? `<link rel="canonical" href="${site}/${canonical}">` : ""}
 <meta property="og:site_name" content="${esc(config.siteName)}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
-<meta property="og:type" content="website">
+<meta property="og:type" content="${esc(ogType)}">
 ${canonical != null ? `<meta property="og:url" content="${site}/${canonical}">` : ""}
 ${ogImg}
 <meta name="color-scheme" content="light dark"><meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#101428" media="(prefers-color-scheme: dark)">
@@ -212,6 +212,8 @@ ${ogImg}
 ${fonts}
 <link rel="stylesheet" href="${prefix}assets/style.css?v=${V.css}">
 ${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j)}</script>`).join("\n")}
+${config.googleSiteVerification ? `<meta name="google-site-verification" content="${esc(config.googleSiteVerification)}">` : ""}
+${config.bingSiteVerification ? `<meta name="msvalidate.01" content="${esc(config.bingSiteVerification)}">` : ""}
 ${ads}${cfa}${impact}`;
 }
 
@@ -228,7 +230,7 @@ function header(prefix) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "cost-to-build/")}">Build a house</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="Translate this page"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">Language</span></button></nav>
+<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "cost-to-build/")}">Build a house</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="Translate this page"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">Language</span></button></nav>
 </div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">Machine translation by Google. Amounts and service names stay as they are. <a href="${link(prefix, "privacy/")}">Privacy</a></p></div></div></header>`;
 }
 
@@ -242,7 +244,7 @@ function footer(prefix) {
 <div><h3>Exchange rates</h3><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "AED-KES", "SAR-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
 <div><h3>Build a house</h3><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
-<nav aria-label="Footer"><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
+<nav aria-label="Footer"><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "sitemap/")}">All pages</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
@@ -318,7 +320,8 @@ function alerts() {
   } else if (config.whatsappChannelUrl) {
     body = `<div><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>`;
   } else return "";
-  return `<section class="alerts"><div class="wrap"><h2>Know when your rate moves</h2><p>One short message each morning: which service pays the most for your route today. Unsubscribe anytime.</p>${body}</div></section>`;
+  const confirm = config.newsletterFormAction ? " We ask you to confirm the address before the first message." : "";
+  return `<section class="alerts"><div class="wrap"><h2>Know when your rate moves</h2><p>One short message each morning: which service pays the most for your route today. Unsubscribe anytime.${confirm}</p>${body}</div></section>`;
 }
 
 function houseNote(r, prefix) {
@@ -507,12 +510,14 @@ ${groups.map((g) => !g.list.some((s) => corridors.receivers.some((r) => (quotes[
 </div></section>`;
 }
 
-function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og, buildPage, rank = true }) {
+function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og, ogType, buildPage, rank = true }) {
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
     routeUrl: link(prefix, "send-money/{from}-to-{to}/"),
     config: { quickAmounts: STEP_AMOUNTS, defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost,
-      trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO },
+      trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO,
+      ga4: config.ga4MeasurementId || "", gtm: config.gtmContainerId || "", clarity: config.clarityProjectId || "",
+      newsletter: config.newsletterFormAction || "" },
     ...(init || {})
   };
   const translate = `<script>(function(){var b=document.getElementById("sf-lang"),box=document.getElementById("sf-lang-box"),loaded=false;if(!b)return;
@@ -524,7 +529,7 @@ var m=document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);if(m&&m[1]!=="en")load
     `<script src="${prefix}assets/app.js?v=${V.app}" defer></script>` +
     (buildPage ? `<script src="${prefix}assets/build-cost.js?v=${V.build}" defer></script>` : "") +
     (PREVIEW || DEMO ? "" : `<script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})});addEventListener("beforeinstallprompt",function(e){e.preventDefault();var b=document.getElementById("sf-install");if(!b)return;b.hidden=false;b.onclick=function(){b.hidden=true;e.prompt();};});</script>`);
-  const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og });
+  const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og, ogType });
   const bodyStr = `<a class="skip" href="#content">Skip to content</a>\n${header(prefix)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix)}\n${scripts}`;
   if (bodyOnly) return `${headStr}\n${bodyStr}`;
   return `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n${headStr}\n</head>\n<body>\n${bodyStr}\n</body>\n</html>\n`;
@@ -595,7 +600,16 @@ function insertContentAds(html) {
     const second = first >= 0 ? out.indexOf("</h2>", first + 5) : -1;
     out = second >= 0 ? out.slice(0, second + 5) + mid + out.slice(second + 5) : out + mid;
   }
-  return out + foot;
+  return out + foot + adManagerHtml();
+}
+function adManagerHtml() {
+  const net = config.adManagerNetwork;
+  const slot = config.adManagerSlot;
+  if (!net || !slot || DEMO) return "";
+  const id = "sf-gam";
+  return `<aside class="ad-slot" aria-label="Advertisement"><span class="ad-label">Advertisement</span><div id="${id}"></div></aside>
+<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>window.googletag=window.googletag||{cmd:[]};googletag.cmd.push(function(){googletag.defineSlot(${JSON.stringify("/" + String(net).replace(/^\//, "") + "/" + String(slot).replace(/^\//, ""))},[[300,250],[336,280],"fluid"],${JSON.stringify(id)}).addService(googletag.pubads());googletag.enableServices();googletag.display(${JSON.stringify(id)});});</script>`;
 }
 function adBoot() {
   if (!config.adsenseClient || DEMO) return "";
@@ -713,6 +727,13 @@ function amountsTable(ctx) {
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(path.join(OUT, "assets"), { recursive: true });
 for (const f of ["style.css", "app.js", "rank.js", "fonts.css", "build-cost.js"]) fs.copyFileSync(path.join(ROOT, "src", f), path.join(OUT, "assets", f));
+function minifyCss(s) {
+  return s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{}:;,])\s*/g, "$1").replace(/;}/g, "}").trim();
+}
+for (const f of ["style.css", "fonts.css"]) {
+  const file = path.join(OUT, "assets", f);
+  fs.writeFileSync(file, minifyCss(fs.readFileSync(file, "utf8")));
+}
 copyDir(path.join(ROOT, "src/fonts"), path.join(OUT, "assets/fonts"));
 copyDir(path.join(ROOT, "src/og"), path.join(OUT, "og"));
 copyDir(path.join(ROOT, "src/logos"), path.join(OUT, "logos"));
@@ -1185,6 +1206,9 @@ const privacyItems = [
   config.cfAnalyticsToken ? `<li><strong>Visit statistics.</strong> We use Cloudflare Web Analytics, which counts visits without cookies and without building a profile of you.</li>` : "",
   config.adsenseClient ? `<li><strong>Advertising.</strong> Some pages show ads from Google. Visitors in the UK and Europe are asked for consent before Google uses cookies for personalised ads. You can change your choice at any time from the privacy link Google adds to the page, and manage ads at adssettings.google.com.</li>` : "",
   `<li><strong>Translation.</strong> If you choose a language from the Language button, the page is translated by Google Translate. Your browser then loads Google's translation script and sends the page's text to Google, and a cookie (googtrans) remembers your language. Nothing is sent to Google unless you choose a language.</li>`,
+  `<li><strong>Search and saved guides on this device.</strong> Search words, saved guides and which guides you opened stay in this browser. They are not sent to SendFair.</li>`,
+  `<li><strong>Page speed on this device.</strong> The browser can note how fast the last page felt. That note stays on the device. It is not a published traffic report, and it is not a 75th-percentile field measurement.</li>`,
+  (config.ga4MeasurementId || config.gtmContainerId || config.clarityProjectId) ? `<li><strong>Optional analytics.</strong> If you accept optional cookies, the analytics tools named in the consent bar load. They stay off when you choose essential only, and they are not loaded while their IDs are blank.</li>` : "",
   `<li><strong>Offline copies and logos.</strong> Your browser keeps a copy of the pages you open on SendFair so they still load without a connection; this stays on your device. Service logos are fetched by our server from each provider's public website, so your browser only ever connects to sendfair.africa for them.</li>`,
   `<li><strong>Hosting.</strong> The site is hosted by Cloudflare, which processes basic technical data (such as IP address) to deliver pages and protect against abuse.</li>`
 ].filter(Boolean).join("");
@@ -1292,20 +1316,51 @@ function guideTeaser(prefix) {
 <div class="guide-grid">${guides.pillars.map((p) => `<a class="guide-card" href="${link(prefix, `guides/${p.slug}/`)}"><span class="k">Guide</span><strong>${esc(p.title)}</strong><span class="s">${esc(p.description)}</span></a>`).join("")}</div>
 </div></section>`;
 }
+function tagLabel(tag) {
+  const names = { uk: "UK", us: "US" };
+  return names[tag] || tag.charAt(0).toUpperCase() + tag.slice(1);
+}
+function guideLive(article) {
+  if (!article || article.status === "draft") return false;
+  if (article.publishAt && article.publishAt > today) return false;
+  return true;
+}
 function writeGuides() {
   const guides = read("data/guides.json");
-  const prefixFor = (depth) => "../".repeat(depth);
-  const articleLd = (item, rel) => ({
-    "@context": "https://schema.org", "@type": "Article", headline: item.title, description: item.description,
-    dateModified: item.updated, datePublished: item.updated, author: { "@type": "Organization", name: config.siteName, url: site + "/" },
-    publisher: { "@type": "Organization", name: config.siteName, url: site + "/" }, mainEntityOfPage: `${site}/${rel}`
-  });
+  const authors = guides.authors || [{ slug: "sendfair", name: "SendFair", bio: "SendFair is written by Continental Flow Ltd in Nairobi." }];
+  const authorOf = (slug) => authors.find((a) => a.slug === slug) || authors[0];
+  const articleLd = (item, rel) => {
+    const author = authorOf(item.author);
+    return {
+      "@context": "https://schema.org", "@type": "Article", headline: item.seoTitle || item.title, description: item.seoDescription || item.description,
+      dateModified: item.updated, datePublished: item.updated,
+      author: { "@type": "Organization", name: author.name, url: `${site}/guides/author/${author.slug}/` },
+      publisher: { "@type": "Organization", name: config.siteName, url: site + "/" }, mainEntityOfPage: `${site}/${rel}`
+    };
+  };
+  const subBlocks = (parts, prefix, level) => (parts || []).map((part) => {
+    const heading = level === 4 ? `<h4>${esc(part.h)}</h4>` : `<h3>${esc(part.h)}</h3>`;
+    const paras = (part.paragraphs || []).map((p) => `<p>${inlineLinks(prefix, p)}</p>`).join("");
+    return heading + paras + (level === 3 ? subBlocks(part.points, prefix, 4) : "");
+  }).join("");
+  const guideShare = (urlPath, title) => {
+    const url = `${site}/${urlPath}`;
+    const u = encodeURIComponent(url);
+    const text = encodeURIComponent(title);
+    return `<div class="share"><a href="https://wa.me/?text=${encodeURIComponent(title + " " + url)}" target="_blank" rel="noopener">WhatsApp</a><a href="https://www.facebook.com/sharer/sharer.php?u=${u}" target="_blank" rel="noopener">Facebook</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=${u}" target="_blank" rel="noopener">LinkedIn</a><a href="https://twitter.com/intent/tweet?url=${u}&text=${text}" target="_blank" rel="noopener">X</a><a href="mailto:?subject=${text}&body=${u}">Email</a><button type="button" data-copy="${esc(url)}">Copy link</button><button type="button" data-save="${esc(urlPath)}" data-title="${esc(title)}">Save</button><span class="share-msg" aria-live="polite"></span></div>`;
+  };
+  const newsForm = () => config.newsletterFormAction ? `<form class="news-form" action="${esc(config.newsletterFormAction)}" method="post"><h2>Morning rate</h2><p>One email. We ask you to confirm the address before the first message. Unsubscribe in every message.</p><label class="label" for="sf-news-email">Email</label><input id="sf-news-email" name="email" type="email" required autocomplete="email"><button type="submit">Send me the rate</button></form>` : "";
   const render = (item, prefix, crumbsItems, siblings) => {
-    const steps = (item.steps || []).length ? `<h2 id="steps">Steps</h2><ol class="howto">${item.steps.map((s) => `<li><strong>${esc(s.name)}.</strong> ${esc(s.text)}</li>`).join("")}</ol>` : "";
-    const sections = (item.sections || []).map((s) => `<h2 id="${esc(s.id)}">${esc(s.h)}</h2>${(s.paragraphs || []).map((p) => `<p>${inlineLinks(prefix, p)}</p>`).join("")}`).join("");
+    const isArticle = !!item.pillar;
+    const steps = (item.steps || []).length ? `<h2 id="steps">Steps</h2><ol class="howto">${item.steps.map((s) => `<li><h3>${esc(s.name)}</h3><p>${esc(s.text)}</p></li>`).join("")}</ol>` : "";
+    const sections = (item.sections || []).map((s) => `<h2 id="${esc(s.id)}">${esc(s.h)}</h2>${(s.paragraphs || []).map((p) => `<p>${inlineLinks(prefix, p)}</p>`).join("")}${subBlocks(s.subs, prefix, 3)}`).join("");
     const more = siblings.length ? `<h2 id="related">Related guides</h2><ul class="route-links">${siblings.map((s) => `<li><a href="${link(prefix, s.href)}">${esc(s.title)}</a></li>`).join("")}</ul>` : "";
     const faqs = item.faq || [];
     const faqHtml = faqs.length ? `<h2 id="questions">Questions</h2>${faqBlock(faqs)}` : "";
+    const author = isArticle ? authorOf(item.author) : null;
+    const byline = author ? `<p class="note">By <a href="${link(prefix, `guides/author/${author.slug}/`)}">${esc(author.name)}</a>. Updated ${esc(item.updated || "")}.</p>` : "";
+    const tags = isArticle && (item.tags || []).length ? `<p class="tag-row">${item.tags.map((t) => `<a href="${link(prefix, `guides/tag/${t}/`)}">${esc(tagLabel(t))}</a>`).join("")}</p>` : "";
+    const share = isArticle ? guideShare(crumbsItems[crumbsItems.length - 1][1], item.title) : "";
     const tocItems = [
       ...(item.steps && item.steps.length ? [["steps", "Steps"]] : []),
       ...(item.sections || []).map((s) => [s.id, s.h]),
@@ -1313,46 +1368,152 @@ function writeGuides() {
       ...(faqs.length ? [["questions", "Questions"]] : [])
     ];
     const toc = tocItems.length > 1 ? `<nav class="secnav" aria-label="On this page"><div class="wrap">${tocItems.map(([id, label]) => `<a href="#${esc(id)}">${esc(label)}</a>`).join("")}</div></nav>` : "";
-    const html = `${crumbNav(prefix, crumbsItems)}<h1>${esc(item.title)}</h1><p class="lede">${inlineLinks(prefix, item.lede)}</p>${steps}${sections}${more}${faqHtml}`;
+    const html = `${crumbNav(prefix, crumbsItems)}<h1>${esc(item.title)}</h1>${byline}${tags}<p class="lede">${inlineLinks(prefix, item.lede || "")}</p>${share}${steps}${sections}${isArticle ? newsForm() : ""}${more}${faqHtml}`;
     const rel = crumbsItems[crumbsItems.length - 1][1];
     const ld = [articleLd(item, rel), crumbs(crumbsItems)];
-    if (item.steps && item.steps.length) ld.push(howToLd(item.title, item.description, item.steps));
+    if (item.steps && item.steps.length) ld.push(howToLd(item.seoTitle || item.title, item.seoDescription || item.description, item.steps));
     if (faqs.length) ld.push(faqLd(faqs));
     return { html: insertContentAds(html), ld, rel, toc };
   };
+  const live = (guides.articles || []).filter(guideLive);
+  const relatedOf = (article) => {
+    const tags = new Set(article.tags || []);
+    const scored = live.filter((a) => a.slug !== article.slug).map((a) => ({
+      a, score: (a.tags || []).filter((t) => tags.has(t)).length + (a.pillar === article.pillar ? 0.25 : 0)
+    })).filter((x) => x.score >= 1).sort((a, b) => b.score - a.score || String(b.a.updated).localeCompare(String(a.a.updated)));
+    const picks = (scored.length ? scored.slice(0, 4).map((x) => x.a) : live.filter((a) => a.pillar === article.pillar && a.slug !== article.slug).slice(0, 4));
+    const pillar = guides.pillars.find((p) => p.slug === article.pillar);
+    return [{ href: `guides/${article.pillar}/`, title: pillar ? pillar.title : "Guide" }].concat(picks.map((a) => ({ href: `guides/${a.pillar}/${a.slug}/`, title: a.title })));
+  };
   const indexRel = "guides/";
   const pillarCards = guides.pillars.map((p) => `<a class="guide-card" href="${link("../", `guides/${p.slug}/`)}"><span class="k">Guide</span><strong>${esc(p.title)}</strong><span class="s">${esc(p.lede)}</span></a>`).join("");
+  const latest = live.slice().sort((a, b) => String(b.updated).localeCompare(String(a.updated))).slice(0, 6);
+  const mentions = {};
+  const linkRe = /\]\((\/[^)]+)\)/g;
+  const rawGuides = JSON.stringify(live);
+  let found;
+  while ((found = linkRe.exec(rawGuides))) mentions[found[1]] = (mentions[found[1]] || 0) + 1;
+  const mentioned = Object.entries(mentions).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const latestHtml = `<h2>Recently updated</h2><ul class="route-links">${latest.map((a) => `<li><a href="${link("../", `guides/${a.pillar}/${a.slug}/`)}">${esc(a.title)}</a> <span class="note">${esc(a.updated || "")}</span></li>`).join("")}</ul>`;
+  const linkedHtml = mentioned.length ? `<h2>Linked from the guides</h2><p class="note">Counted from links written in the guides. This is not a most-read list.</p><ul class="route-links">${mentioned.map(([href, n]) => `<li><a href="${link("../", href.replace(/^\//, ""))}">${esc(href)}</a> <span class="note">${n} link${n === 1 ? "" : "s"}</span></li>`).join("")}</ul>` : `<h2>Linked from the guides</h2><p>None of the guides link to another guide yet. They point at the comparison and the calculator.</p>`;
+  const savedHtml = `<div id="sf-saved" hidden><h2>Saved on this device</h2><ul class="route-links" id="sf-saved-list"></ul></div>`;
   write(indexRel + "index.html", page({
     prefix: "../", canonical: indexRel, rank: false, title: `Guides · ${config.siteName}`,
     description: "How to compare a transfer by what arrives, and how to read the house-cost calculator.",
     jsonld: [crumbs([[config.siteName, ""], ["Guides", indexRel]])],
-    body: `<section class="block page"><div class="wrap"><article class="prose wide">${insertContentAds(`${crumbNav("../", [[config.siteName, ""], ["Guides", indexRel]])}<h1>Guides</h1><p class="lede">Two subjects: comparing a transfer by the amount that arrives, and checking what a house back home costs to build. Each article links to the live page that holds the current figures.</p><div class="guide-grid">${pillarCards}</div>`)}</article></div></section>`
+    body: `<section class="block page"><div class="wrap"><article class="prose wide">${insertContentAds(`${crumbNav("../", [[config.siteName, ""], ["Guides", indexRel]])}<h1>Guides</h1><p class="lede">Two subjects: comparing a transfer by the amount that arrives, and checking what a house back home costs to build. Each article links to the live page that holds the current figures.</p>${savedHtml}<div class="guide-grid">${pillarCards}</div>${latestHtml}${linkedHtml}`)}</article></div></section>`
   }));
   urls.push(indexRel);
   for (const pillar of guides.pillars) {
-    const children = guides.articles.filter((a) => a.pillar === pillar.slug);
+    const children = live.filter((a) => a.pillar === pillar.slug);
     const rel = `guides/${pillar.slug}/`;
     const built = render({ ...pillar, sections: pillar.sections.concat([{ id: "articles", h: "Articles", paragraphs: ["Open the article that matches the question you have. The calculator or the route page next to it is the current figure."] }]) }, "../../", [[config.siteName, ""], ["Guides", "guides/"], [pillar.title, rel]], []);
     const list = `<ul class="route-links">${children.map((a) => `<li><a href="${link("../../", `guides/${pillar.slug}/${a.slug}/`)}">${esc(a.title)}</a></li>`).join("")}</ul>`;
     write(rel + "index.html", page({
-      prefix: "../../", canonical: rel, rank: false, title: `${pillar.title} · ${config.siteName}`, description: pillar.description,
+      prefix: "../../", canonical: rel, rank: false, title: `${pillar.seoTitle || pillar.title} · ${config.siteName}`, description: pillar.seoDescription || pillar.description,
       jsonld: built.ld, body: `${built.toc}<section class="block page"><div class="wrap"><article class="prose wide">${built.html}${list}</article></div></section>`
     }));
     urls.push(rel);
     for (const article of children) {
       const aRel = `guides/${pillar.slug}/${article.slug}/`;
-      const related = children.filter((a) => a.slug !== article.slug).slice(0, 6).map((a) => ({ href: `guides/${pillar.slug}/${a.slug}/`, title: a.title }));
-      related.unshift({ href: rel, title: pillar.title });
-      const pageBuilt = render(article, "../../../", [[config.siteName, ""], ["Guides", "guides/"], [pillar.title, rel], [article.title, aRel]], related);
+      const pageBuilt = render(article, "../../../", [[config.siteName, ""], ["Guides", "guides/"], [pillar.title, rel], [article.title, aRel]], relatedOf(article));
+      const ogName = article.og || `guide-${article.pillar}-${article.slug}`;
       write(aRel + "index.html", page({
-        prefix: "../../../", canonical: aRel, rank: false, title: `${article.title} · ${config.siteName}`, description: article.description,
-        jsonld: pageBuilt.ld, body: `${pageBuilt.toc}<section class="block page"><div class="wrap"><article class="prose">${pageBuilt.html}</article></div></section>`
+        prefix: "../../../", canonical: aRel, rank: false, og: ogName, ogType: "article",
+        title: `${article.seoTitle || article.title} · ${config.siteName}`, description: article.seoDescription || article.description,
+        jsonld: pageBuilt.ld, body: `${pageBuilt.toc}<section class="block page"><div class="wrap"><article class="prose" data-guide="${esc(article.slug)}" data-tags="${esc((article.tags || []).join(","))}">${pageBuilt.html}</article></div></section>`
       }));
       urls.push(aRel);
     }
   }
+  const tagSet = [...new Set(live.flatMap((a) => a.tags || []))].sort();
+  for (const tag of tagSet) {
+    const rel = `guides/tag/${tag}/`;
+    const rows = live.filter((a) => (a.tags || []).includes(tag));
+    write(rel + "index.html", page({
+      prefix: "../../../", canonical: rel, rank: false, title: `${tagLabel(tag)} · Guides · ${config.siteName}`,
+      description: `SendFair guides tagged ${tagLabel(tag)}.`,
+      jsonld: [crumbs([[config.siteName, ""], ["Guides", "guides/"], [tagLabel(tag), rel]])],
+      body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav("../../../", [[config.siteName, ""], ["Guides", "guides/"], [tagLabel(tag), rel]])}<h1>${esc(tagLabel(tag))}</h1><p class="lede">Guides that share this topic. The order is the order they were written, not a popularity ranking.</p><ul class="route-links">${rows.map((a) => `<li><a href="${link("../../../", `guides/${a.pillar}/${a.slug}/`)}">${esc(a.title)}</a></li>`).join("")}</ul></article></div></section>`
+    }));
+    urls.push(rel);
+  }
+  for (const author of authors) {
+    const rel = `guides/author/${author.slug}/`;
+    const rows = live.filter((a) => (a.author || "sendfair") === author.slug);
+    write(rel + "index.html", page({
+      prefix: "../../../", canonical: rel, rank: false, title: `${author.name} · ${config.siteName}`,
+      description: author.bio,
+      jsonld: [crumbs([[config.siteName, ""], ["Guides", "guides/"], [author.name, rel]])],
+      body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav("../../../", [[config.siteName, ""], ["Guides", "guides/"], [author.name, rel]])}<h1>${esc(author.name)}</h1><p class="lede">${esc(author.bio || "")}</p><ul class="route-links">${rows.map((a) => `<li><a href="${link("../../../", `guides/${a.pillar}/${a.slug}/`)}">${esc(a.title)}</a></li>`).join("")}</ul></article></div></section>`
+    }));
+    urls.push(rel);
+  }
+  const searchItems = [
+    ...live.map((a) => ({ kind: "guide", slug: a.slug, title: a.title, description: a.description || "", url: `guides/${a.pillar}/${a.slug}/`, tags: a.tags || [] })),
+    ...guides.pillars.map((p) => ({ kind: "guide", slug: p.slug, title: p.title, description: p.description || "", url: `guides/${p.slug}/`, tags: [] })),
+    ...Object.entries(buildCosts.countries || {}).map(([id, c]) => ({ kind: "house", slug: id, title: `Cost to build a house in ${c.name}`, description: `Receipt check for a simple house in ${c.name}.`, url: `cost-to-build/${id}/`, tags: [id] })),
+    { kind: "house", slug: "material-prices", title: "Material prices", description: "Cement, steel, blocks, sand and a mason day.", url: "cost-to-build/material-prices/", tags: ["prices"] },
+    { kind: "house", slug: "same-house", title: "The same house in every country", description: "One floor area priced in each country.", url: "cost-to-build/same-house/", tags: ["prices"] },
+    { kind: "house", slug: "calculator", title: "Cost to build a house", description: "The house calculator.", url: "cost-to-build/", tags: ["calculator"] },
+    ...corridors.receivers.map((r) => ({ kind: "money", slug: r.id, title: `Send money to ${r.name}`, description: `Compare transfers into ${r.name}.`, url: hubPath(r), tags: [r.id] })),
+    { kind: "page", slug: "methodology", title: "How we rank", description: "How SendFair orders a transfer.", url: "methodology/", tags: [] },
+    { kind: "page", slug: "contact", title: "Contact", description: "Email SendFair.", url: "contact/", tags: [] }
+  ];
+  write("data/search.json", JSON.stringify({ items: searchItems }));
+  write("search/index.html", page({
+    prefix: "../", canonical: "search/", rank: false, title: `Search · ${config.siteName}`,
+    description: "Search SendFair guides, house costs and receiving countries. The words you type stay in this browser.",
+    jsonld: [crumbs([[config.siteName, ""], ["Search", "search/"]])],
+    body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav("../", [[config.siteName, ""], ["Search", "search/"]])}<h1>Search</h1><p class="lede">Guides, house-cost pages and receiving countries. A search is saved only in this browser.</p><form id="sf-search" class="search-form" role="search"><label class="label" for="sf-q">Search</label><input id="sf-q" name="q" type="search" autocomplete="off"><label class="label" for="sf-search-section">Section</label><select id="sf-search-section"><option value="">All</option><option value="guide">Guides</option><option value="house">House costs</option><option value="money">Send money</option></select><button type="submit">Search</button></form><p id="sf-search-suggest" class="tag-row"></p><div id="sf-search-out"></div></article></div></section>`
+  }));
+  urls.push("search/");
+  const blank = (value, label) => `<li>${esc(label)}: ${value ? "set" : "not set"}</li>`;
+  const deskRows = (guides.articles || []).map((a) => {
+    const liveRow = guideLive(a);
+    const state = a.status === "draft" ? "Draft" : (a.publishAt && a.publishAt > today ? `Scheduled ${a.publishAt}` : "Published");
+    const days = a.updated ? Math.round((Date.parse(today) - Date.parse(a.updated)) / 86400000) : null;
+    const notes = [
+      !liveRow ? "Held out of the site and the sitemap" : "",
+      days != null && days > 90 ? `Updated ${days} days ago` : "",
+      !(a.tags || []).length ? "No tags" : "",
+      !(a.description || "").trim() ? "No description" : "",
+      (a.seoDescription || a.description || "").length > 170 ? "Description is long for a search result" : ""
+    ].filter(Boolean).join(". ");
+    const titleCell = liveRow ? `<a href="${link("../../", `guides/${a.pillar}/${a.slug}/`)}">${esc(a.title)}</a>` : esc(a.title);
+    return `<tr><td>${titleCell}</td><td>${esc(state)}</td><td>${esc(a.updated || "")}</td><td>${esc((a.tags || []).join(", "))}</td><td>${a.seoTitle ? "Custom" : "Headline"}</td><td>${esc(notes || "OK")}</td></tr>`;
+  }).join("");
+  const redirectRows = readOptional("data/redirects.json", []).filter((r) => r && r.from && r.to && !r.example);
+  write("admin/guides/index.html", page({
+    prefix: "../../", canonical: "admin/guides/", noindex: true, rank: false, title: `Guide checklist · ${config.siteName}`,
+    description: "Editorial checklist for SendFair guides. Not indexed.",
+    body: `<section class="block page"><div class="wrap"><article class="prose wide"><h1>Guide checklist</h1><p class="lede">A static reading of the guide file. There is no login and no traffic count. Drafts and future dates are left out of the public pages.</p><div class="table-wrap"><table class="desk"><thead><tr><th>Guide</th><th>Status</th><th>Updated</th><th>Tags</th><th>Title tag</th><th>Notes</th></tr></thead><tbody>${deskRows}</tbody></table></div><h2>On this browser</h2><p id="sf-vitals">No speed note in this browser yet.</p><p id="sf-desk-searches">No searches stored in this browser.</p><h2>Advertising</h2><p>Slots are edited in config.json. Nothing here is invented.</p><ul>${blank(config.adsenseClient, "AdSense publisher ID")}${blank(config.adsenseSlots && config.adsenseSlots.afterIntro, "Slot after the introduction")}${blank(config.adsenseSlots && config.adsenseSlots.midPage, "Mid-page slot")}${blank(config.adsenseSlots && config.adsenseSlots.sticky, "Sticky slot")}${blank(config.adManagerNetwork, "Google Ad Manager network")}${blank(config.adManagerSlot, "Google Ad Manager slot")}${blank(config.ga4MeasurementId, "Google Analytics")}${blank(config.gtmContainerId, "Tag Manager")}${blank(config.clarityProjectId, "Clarity")}${blank(config.newsletterFormAction, "Newsletter form")}</ul><h2>Redirects</h2>${redirectRows.length ? `<ul>${redirectRows.map((r) => `<li>${esc(r.from)} → ${esc(r.to)} (${esc(String(r.code || 301))})</li>`).join("")}</ul>` : "<p>No redirects are published. Rows marked example in data/redirects.json are skipped.</p>"}<h2>Pictures</h2><p>Each guide can set og to a file name in src/og. Otherwise the build looks for a title card named guide-{pillar}-{slug}.png. That card is type, not a photograph. A featured picture is not used as the share image unless og is set to it.</p></article></div></section>`
+  }));
 }
 
+function writeHtmlSitemap() {
+  const pretty = (u) => (u === "" ? "Home" : u.replace(/\/$/, "").split("/").pop().replace(/-/g, " "));
+  const groups = [
+    ["Guides", (u) => u.startsWith("guides/")],
+    ["Cost to build", (u) => u.startsWith("cost-to-build/")],
+    ["Send money", (u) => u.startsWith("send-money")],
+    ["Services and rates", (u) => u.startsWith("providers/") || u.startsWith("compare/") || u.startsWith("rates/")],
+    ["About this site", (u) => !u.startsWith("guides/") && !u.startsWith("cost-to-build/") && !u.startsWith("send-money") && !u.startsWith("providers/") && !u.startsWith("compare/") && !u.startsWith("rates/")]
+  ];
+  const body = groups.map(([name, test]) => {
+    const list = urls.filter(test);
+    if (!list.length) return "";
+    return `<h2>${esc(name)}</h2><ul class="route-links">${list.map((u) => `<li><a href="${link("../", u)}">${esc(pretty(u))}</a></li>`).join("")}</ul>`;
+  }).join("");
+  write("sitemap/index.html", page({
+    prefix: "../", canonical: "sitemap/", rank: false, title: `All pages · ${config.siteName}`,
+    description: "Every public SendFair page: guides, house costs, routes, services and the pages about the site.",
+    jsonld: [crumbs([[config.siteName, ""], ["All pages", "sitemap/"]])],
+    body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav("../", [[config.siteName, ""], ["All pages", "sitemap/"]])}<h1>All pages</h1><p class="lede">The public pages on SendFair. The machine-readable list is <a href="${site}/sitemap.xml">sitemap.xml</a>.</p>${body}</article></div></section>`
+  }));
+  urls.push("sitemap/");
+}
+writeHtmlSitemap();
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${site}/${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
 // AI answer engines may read the site so SendFair can be cited in their answers; model-training crawlers are
 // blocked separately by Cloudflare's managed robots.txt, which Cloudflare puts above these lines.
@@ -1372,6 +1533,8 @@ if (!PREVIEW) {
   const shell = ["/", "/offline", `/assets/style.css?v=${V.css}`, `/assets/fonts.css?v=${V.fonts}`, `/assets/app.js?v=${V.app}`, `/assets/rank.js?v=${V.rank}`, `/assets/build-cost.js?v=${V.build}`, "/assets/fonts/figtree-latin-wght-normal.woff2", "/assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2", "/favicon.svg", "/manifest.webmanifest"];
   write("sw.js", fs.readFileSync(path.join(ROOT, "src/sw.js"), "utf8").replace("__VERSION__", V.css + V.app + V.rank).replace("__SHELL__", JSON.stringify(shell)));
 }
+const redirectRows = readOptional("data/redirects.json", []).filter((r) => r && r.from && r.to && !r.example);
+write("_redirects", redirectRows.map((r) => `${r.from} ${r.to} ${r.code || 301}`).join("\n") + (redirectRows.length ? "\n" : ""));
 write("_headers", `/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

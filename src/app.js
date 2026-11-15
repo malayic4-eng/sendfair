@@ -125,6 +125,225 @@
     if (m && m[1] !== "en" && allowOptional()) loadGoogle();
   }
 
+  function trackerOn() { return !!(cfg.ga4 || cfg.gtm || cfg.clarity); }
+  function sfEvent(name, params) {
+    if (!allowOptional() || !trackerOn()) return;
+    window.dataLayer = window.dataLayer || [];
+    var payload = { event: name };
+    if (params) Object.keys(params).forEach(function (k) { payload[k] = params[k]; });
+    window.dataLayer.push(payload);
+    if (window.gtag) window.gtag("event", name, params || {});
+  }
+  function loadTrackers() {
+    if (!allowOptional() || !trackerOn() || window.__sfTrackers) return;
+    window.__sfTrackers = true;
+    window.dataLayer = window.dataLayer || [];
+    if (cfg.gtm) {
+      window.dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
+      var g = document.createElement("script");
+      g.async = true;
+      g.src = "https://www.googletagmanager.com/gtm.js?id=" + encodeURIComponent(cfg.gtm);
+      document.head.appendChild(g);
+    }
+    if (cfg.ga4) {
+      var s = document.createElement("script");
+      s.async = true;
+      s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(cfg.ga4);
+      document.head.appendChild(s);
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      window.gtag("js", new Date());
+      window.gtag("config", cfg.ga4);
+    }
+    if (cfg.clarity) {
+      (function (c, l, a, r, i) {
+        c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+        var t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + encodeURIComponent(i);
+        var y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+      })(window, document, "clarity", "script", cfg.clarity);
+    }
+  }
+  function escText(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function readList(key) {
+    try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; }
+  }
+  function setupDiscovery() {
+    loadTrackers();
+    var article = document.querySelector("[data-guide]");
+    if (article) {
+      var slug = article.getAttribute("data-guide");
+      var read = readList("sf-read").filter(function (s) { return s !== slug; });
+      read.unshift(slug);
+      try { localStorage.setItem("sf-read", JSON.stringify(read.slice(0, 30))); } catch (e) {}
+      sfEvent("article_view", { article: slug });
+      var saveBtn = document.querySelector("[data-save]");
+      if (saveBtn && readList("sf-saved").some(function (x) { return x.path === saveBtn.getAttribute("data-save"); })) saveBtn.textContent = "Saved";
+    }
+    var savedBox = document.getElementById("sf-saved");
+    if (savedBox) {
+      var saved = readList("sf-saved");
+      if (saved.length) {
+        document.getElementById("sf-saved-list").innerHTML = saved.map(function (x) {
+          return "<li><a href=\"" + escText((root || "/") + x.path) + "\">" + escText(x.title) + "</a></li>";
+        }).join("");
+        savedBox.hidden = false;
+      }
+    }
+    if (article) {
+      fetch((root || "/") + "data/search.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (data) {
+        var items = (data.items || []).filter(function (it) { return it.kind === "guide" && it.slug; });
+        var interest = readList("sf-saved").map(function (x) { return x.slug; }).concat(readList("sf-read"));
+        var tags = {};
+        items.forEach(function (it) {
+          if (interest.indexOf(it.slug) !== -1 && it.slug !== article.getAttribute("data-guide")) (it.tags || []).forEach(function (t) { tags[t] = 1; });
+        });
+        if (!Object.keys(tags).length) return;
+        var recs = items.filter(function (it) {
+          return it.slug !== article.getAttribute("data-guide") && (it.tags || []).some(function (t) { return tags[t]; });
+        }).slice(0, 4);
+        if (!recs.length) return;
+        var box = document.createElement("div");
+        box.id = "sf-also";
+        box.innerHTML = "<h2>From guides you opened</h2><ul class=\"route-links\">" + recs.map(function (it) {
+          return "<li><a href=\"" + escText((root || "/") + it.url) + "\">" + escText(it.title) + "</a></li>";
+        }).join("") + "</ul><p class=\"note\">Chosen on this device from guides you opened or saved that share a topic. Nothing is sent to SendFair.</p>";
+        var related = document.getElementById("related");
+        if (related && related.parentNode) related.parentNode.insertBefore(box, related);
+        else article.appendChild(box);
+      }).catch(function () {});
+    }
+    document.addEventListener("click", function (e) {
+      var save = e.target.closest && e.target.closest("[data-save]");
+      if (save) {
+        var path = save.getAttribute("data-save");
+        var list = readList("sf-saved");
+        var at = list.findIndex(function (x) { return x.path === path; });
+        if (at >= 0) { list.splice(at, 1); save.textContent = "Save"; }
+        else list.unshift({ path: path, title: save.getAttribute("data-title") || "", slug: article ? article.getAttribute("data-guide") : "" });
+        try { localStorage.setItem("sf-saved", JSON.stringify(list.slice(0, 40))); } catch (err) {}
+      }
+      var copy = e.target.closest && e.target.closest("[data-copy]");
+      if (copy) {
+        var url = copy.getAttribute("data-copy");
+        var msg = copy.parentNode.querySelector(".share-msg");
+        var done = function () { if (msg) msg.textContent = "Link copied."; };
+        if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, function () { if (msg) msg.textContent = url; });
+        else if (msg) msg.textContent = url;
+        sfEvent("share", { method: "copy" });
+      }
+      var shareA = e.target.closest && e.target.closest(".share a");
+      if (shareA) sfEvent("share", { method: (shareA.textContent || "").trim() });
+      var go = e.target.closest && e.target.closest('a[href*="/go/"]');
+      if (go) sfEvent("cta", { link: go.getAttribute("href") });
+    });
+    document.addEventListener("submit", function (e) {
+      var f = e.target;
+      if (f && (f.id === "sf-alert-form" || f.id === "sf-exit-form" || (f.classList && f.classList.contains("news-form")))) sfEvent("newsletter", {});
+    });
+    var form = document.getElementById("sf-search");
+    if (form) {
+      var input = document.getElementById("sf-q");
+      var section = document.getElementById("sf-search-section");
+      var out = document.getElementById("sf-search-out");
+      var suggest = document.getElementById("sf-search-suggest");
+      var index = [];
+      function recent() {
+        var list = readList("sf-searches");
+        if (!suggest || input.value || !list.length) { if (suggest && !input.value) suggest.innerHTML = ""; return; }
+        suggest.innerHTML = list.slice(0, 6).map(function (q) { return "<button type=\"button\" data-q=\"" + escText(q) + "\">" + escText(q) + "</button>"; }).join("");
+      }
+      function run(q) {
+        var words = q.toLowerCase().split(/\s+/).filter(Boolean);
+        var kind = section ? section.value : "";
+        var hits = index.filter(function (item) {
+          if (kind && item.kind !== kind) return false;
+          var hay = (item.title + " " + (item.description || "") + " " + (item.tags || []).join(" ")).toLowerCase();
+          return words.every(function (w) { return hay.indexOf(w) !== -1; });
+        }).slice(0, 20);
+        if (!hits.length) {
+          out.innerHTML = "<p>Nothing matched. Try a country, a fee, or a permit. Start from the <a href=\"" + escText(root || "/") + "guides/\">guides</a> or the <a href=\"" + escText(root || "/") + "cost-to-build/\">house calculator</a>.</p>";
+          return;
+        }
+        out.innerHTML = "<ul class=\"route-links\">" + hits.map(function (h) {
+          return "<li><a href=\"" + escText((root || "/") + h.url) + "\">" + escText(h.title) + "</a></li>";
+        }).join("") + "</ul>";
+      }
+      fetch((root || "/") + "data/search.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (data) {
+        index = data.items || [];
+        var params = new URLSearchParams(location.search);
+        if (params.get("section") && section) section.value = params.get("section");
+        if (params.get("q")) { input.value = params.get("q"); run(params.get("q")); }
+        recent();
+      }).catch(function () { out.textContent = "Search could not load on this copy of the page."; });
+      input.addEventListener("input", function () {
+        var q = input.value.trim().toLowerCase();
+        if (!suggest) return;
+        if (q.length < 2) { recent(); return; }
+        var tips = index.filter(function (item) { return item.title.toLowerCase().indexOf(q) !== -1; }).slice(0, 5);
+        suggest.innerHTML = tips.map(function (item) { return "<button type=\"button\" data-q=\"" + escText(item.title) + "\">" + escText(item.title) + "</button>"; }).join("");
+      });
+      suggest && suggest.addEventListener("click", function (e) {
+        var b = e.target.closest && e.target.closest("[data-q]");
+        if (!b) return;
+        input.value = b.getAttribute("data-q");
+        form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable: true }));
+      });
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var q = input.value.trim();
+        if (!q) return;
+        var list = [q].concat(readList("sf-searches").filter(function (x) { return x !== q; })).slice(0, 8);
+        try { localStorage.setItem("sf-searches", JSON.stringify(list)); } catch (err) {}
+        var query = "?q=" + encodeURIComponent(q) + (section && section.value ? "&section=" + encodeURIComponent(section.value) : "");
+        history.replaceState(null, "", query);
+        run(q);
+        if (suggest) suggest.innerHTML = "";
+        sfEvent("search", { search_term: q });
+      });
+    }
+    if (cfg.newsletter && window.matchMedia("(min-width: 900px)").matches) {
+      document.addEventListener("mouseout", function (e) {
+        if (e.clientY > 8 || e.relatedTarget) return;
+        try { if (sessionStorage.getItem("sf-exit")) return; sessionStorage.setItem("sf-exit", "1"); } catch (err) { return; }
+        var box = document.createElement("div");
+        box.className = "exit";
+        box.innerHTML = "<form id=\"sf-exit-form\" action=\"" + escText(cfg.newsletter) + "\" method=\"post\"><h2>Before you go</h2><p>One morning email with the rate. We ask you to confirm the address first. Unsubscribe in every message.</p><label class=\"label\" for=\"sf-exit-email\">Email</label><input id=\"sf-exit-email\" name=\"email\" type=\"email\" required><button type=\"submit\">Send me the rate</button> <button type=\"button\" data-exit-close>Not now</button></form>";
+        document.body.appendChild(box);
+        box.addEventListener("click", function (ev) { if (ev.target === box || (ev.target.closest && ev.target.closest("[data-exit-close]"))) box.remove(); });
+      });
+    }
+    var vitals = {};
+    try { vitals = JSON.parse(localStorage.getItem("sf-vitals") || "{}"); } catch (e) { vitals = {}; }
+    function storeVitals() {
+      vitals.at = new Date().toISOString();
+      try { localStorage.setItem("sf-vitals", JSON.stringify(vitals)); } catch (e) {}
+    }
+    if (window.PerformanceObserver) {
+      try { new PerformanceObserver(function (list) { var entries = list.getEntries(); var last = entries[entries.length - 1]; if (last) { vitals.lcp = Math.round(last.startTime); storeVitals(); } }).observe({ type: "largest-contentful-paint", buffered: true }); } catch (e) {}
+      try { var cls = 0; new PerformanceObserver(function (list) { list.getEntries().forEach(function (en) { if (!en.hadRecentInput) cls += en.value; }); vitals.cls = Math.round(cls * 1000) / 1000; storeVitals(); }).observe({ type: "layout-shift", buffered: true }); } catch (e) {}
+      try { new PerformanceObserver(function (list) { var entries = list.getEntries(); var last = entries[entries.length - 1]; if (last) { vitals.inp = Math.round(last.duration || 0); storeVitals(); } }).observe({ type: "event", buffered: true, durationThreshold: 40 }); } catch (e) {}
+    }
+    var vbox = document.getElementById("sf-vitals");
+    if (vbox) vbox.textContent = (vitals.lcp || vitals.inp || vitals.cls != null) ? ("Last note in this browser: " + (vitals.lcp ? "largest paint " + vitals.lcp + " ms. " : "") + (vitals.inp ? "slow input " + vitals.inp + " ms. " : "") + (vitals.cls != null ? "layout shift " + vitals.cls + ". " : "") + "This is not a 75th-percentile field report.") : "No speed note in this browser yet. Open a public page, then come back. The note stays on this device.";
+    var deskSearch = document.getElementById("sf-desk-searches");
+    if (deskSearch) {
+      var words = readList("sf-searches");
+      deskSearch.textContent = words.length ? "Searches in this browser: " + words.join(", ") : "No searches stored in this browser.";
+    }
+  }
+  function consentCopy() {
+    var line = "SendFair uses Google Translate if you pick a language, and Impact so a provider can credit a signup.";
+    var extra = [];
+    if (cfg.ga4) extra.push("Google Analytics");
+    if (cfg.gtm) extra.push("Google Tag Manager");
+    if (cfg.clarity) extra.push("Microsoft Clarity");
+    if (extra.length) line += " If you accept, it also loads " + extra.join(", ") + ".";
+    line += " You can compare rates without the optional tools.";
+    return line;
+  }
   function setupConsentBar() {
     if (document.getElementById("sf-consent") || consentChoice()) {
       if (consentChoice() === "all" && cfg.impactSrc && !document.querySelector('script[src*="impactcdn.com"]')) {
@@ -133,12 +352,13 @@
         s.src = cfg.impactSrc;
         document.head.appendChild(s);
       }
+      if (consentChoice() === "all") loadTrackers();
       return;
     }
     var bar = document.createElement("div");
     bar.id = "sf-consent";
     bar.className = "consent";
-    bar.innerHTML = '<div class="wrap"><p>SendFair uses Google Translate if you pick a language, and Impact so a provider can credit a signup. You can compare rates without either. <a href="' + (root || "") + 'privacy/">Privacy</a></p><div class="consent-actions"><button type="button" data-c="essential">Essential only</button><button type="button" class="btn" data-c="all">Accept</button></div></div>';
+    bar.innerHTML = '<div class="wrap"><p>' + consentCopy() + ' <a href="' + (root || "") + 'privacy/">Privacy</a></p><div class="consent-actions"><button type="button" data-c="essential">Essential only</button><button type="button" class="btn" data-c="all">Accept</button></div></div>';
     (document.body || document.documentElement).appendChild(bar);
     bar.addEventListener("click", function (e) {
       var b = e.target.closest("[data-c]"); if (!b) return;
@@ -152,6 +372,7 @@
         s.src = cfg.impactSrc;
         document.head.appendChild(s);
       }
+      if (choice === "all") loadTrackers();
     });
   }
 
@@ -174,6 +395,7 @@
   fixAvatars();
   setupLanguage();
   setupConsentBar();
+  setupDiscovery();
   if (location.pathname.indexOf("/cost-to-build/") === -1) prefetch([root + "cost-to-build/"]);
 
   if (!$("sf-results") || !R) return;

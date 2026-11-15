@@ -636,3 +636,17 @@ details p { margin-top: 10px; color: var(--muted); }
 @media (max-width: 560px) { .board.board-3 { grid-template-columns: minmax(0, 1fr); } }
 
 .route-from { font-size: 1rem; margin: 20px 0 10px; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
+.tag-row a, .tag-row button { font: inherit; font-size: .82rem; font-weight: 650; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; text-decoration: none; cursor: pointer; }
+.search-form { display: grid; gap: 8px; max-width: 36rem; margin: 12px 0 18px; }
+.search-form input, .search-form select { font: inherit; font-size: 1.05rem; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--page); color: var(--ink); }
+.news-form { display: grid; gap: 8px; max-width: 28rem; margin: 22px 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.news-form input { font: inherit; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 12px; }
+.desk { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.desk th, .desk td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.exit { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 18px; background: rgba(16, 20, 40, .45); }
+.exit form { display: grid; gap: 8px; width: min(420px, 100%); background: var(--page); color: var(--ink); border-radius: 16px; padding: 22px; }
+.exit input { font: inherit; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 12px; }
+.howto h3 { font-size: 1.05rem; margin: 0 0 4px; }
+.prose h3 { font-size: 1.2rem; margin: 18px 0 6px; }
+.prose h4 { font-size: 1.02rem; margin: 14px 0 4px; }

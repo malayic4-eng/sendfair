@@ -160,7 +160,7 @@
   }
   function badge(p, cls) {
     return '<span class="avatar' + (cls ? " " + cls : "") + '" aria-hidden="true" data-initials="' + esc(initials(p.name)) + '" style="background:' + hue(p.id) + '">' +
-      '<picture><source srcset="/logos/' + esc(p.id) + '.webp" type="image/webp"><img src="/logos/' + esc(p.id) + '.png" alt="' + esc(p.name) + ' logo" width="22" height="22" loading="lazy" decoding="async" onerror="this.remove()"></picture></span>';
+      '<picture><source srcset="/logos/' + esc(p.id) + '-22.avif 22w, /logos/' + esc(p.id) + '-44.avif 44w" sizes="22px" type="image/avif"><source srcset="/logos/' + esc(p.id) + '-22.webp 22w, /logos/' + esc(p.id) + '-44.webp 44w" sizes="22px" type="image/webp"><img src="/logos/' + esc(p.id) + '.png" alt="' + esc(p.name) + ' logo" width="22" height="22" loading="lazy" decoding="async" onerror="this.remove()"></picture></span>';
   }
   function hue(id) { var h = 0; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0; return HUES[h % HUES.length]; }
   // Notes that say the same thing for most services are summed up once under the table instead of as footnotes.
