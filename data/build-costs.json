@@ -133,11 +133,6 @@
      "source": "60×60 ceramic floor tile, middle of ₦5,400–11,800 a square metre (TilesNG, Dec 2025).",
      "url": "https://tilesng.com"
     },
-    "wallTiles": {
-     "price": 4000,
-     "source": "25×40 wall tile, about ₦4,000 a square metre (TilesNG, Sep 2025).",
-     "url": "https://tilesng.com/index.php/property/high-grade-golden-crown-wall-tile/"
-    },
     "ceiling": {
      "price": 6500,
      "source": "Fibre-cement ceiling board, middle of ₦4,000–9,000 a square metre (Build With Ease, Jul 2026).",
@@ -168,7 +163,7 @@
      "source": "Electrician day rate, middle of ₦12,000–25,000 (OwnKey, Sep 2026).",
      "url": "https://ownkey.com/ng/blog/how-much-does-it-cost-to-hire-artisan-nigeria"
     },
-    "plumb": {
+    "plumber": {
      "price": 16000,
      "source": "Plumber day rate, middle of ₦10,000–22,000 (OwnKey, Sep 2026).",
      "url": "https://ownkey.com/ng/blog/how-much-does-it-cost-to-hire-artisan-nigeria"
@@ -1682,7 +1677,7 @@
      "source": "Electrician day rate, middle of UGX 45,000–80,000 (BilaFundi Uganda, 2026).",
      "url": "https://bilafundi.com/articles/labour-rates-in-uganda-what-contractors-and-clients-should-budget-for"
     },
-    "plumb": {
+    "plumber": {
      "price": 57500,
      "source": "Plumber day rate, middle of UGX 40,000–75,000 (BilaFundi Uganda, 2026).",
      "url": "https://bilafundi.com/articles/labour-rates-in-uganda-what-contractors-and-clients-should-budget-for"
@@ -1772,7 +1767,7 @@
    "city": "national bulletin",
    "roof": "slab",
    "guideFrom": "kenya",
-   "note": "Egyptian houses usually have a concrete roof, so the extra cement and steel stand in for the slab and there is no iron-sheet, timber or board-ceiling line. Cement and steel are from the May 2026 bulletin. Blocks, finishes, services and labour are guides.",
+   "note": "Cement, steel, blocks, roofing, sand, ballast, floor tiles, ceiling boards, paint, kitchen cupboards, internal doors and the trade day rates are published Cairo prices. Windows, wiring, pipe and some finishes remain guides scaled from Nairobi.",
    "items": {
     "cement": {
      "price": 214.4,
@@ -1783,6 +1778,71 @@
      "price": 41.3,
      "source": "Reinforcing steel, about EGP 41,300 a tonne in the same May 2026 bulletin.",
      "url": "https://enterpriseam.com/egypt/hardhats/real-estate-price-gains-are-masking-a-liquidity-crunch-for-developers/"
+    },
+    "blocks": {
+     "price": 6.25,
+     "source": "Hollow cement block 40×20×12cm, about EGP 6.25 each (EGP 6,000–6,500 per 1,000, Dostor).",
+     "url": "https://www.dostor.org/5279957"
+    },
+    "roof": {
+     "price": 117,
+     "source": "Corrugated galvanised sheet 1.06×6m, EGP 741.51, about EGP 117 a square metre (Elsabtiya).",
+     "url": "https://elsabtiya.com/product/"
+    },
+    "sand": {
+     "price": 127,
+     "source": "Fine sand, middle of EGP 95–160 a cubic metre (Dostor / Ahram Business).",
+     "url": "https://www.dostor.org/5279974"
+    },
+    "ballast": {
+     "price": 390,
+     "source": "Gravel, middle of EGP 380–400 a cubic metre (Ahram Business).",
+     "url": "https://business.ahram.org.eg/News/28009.aspx"
+    },
+    "tiles": {
+     "price": 260,
+     "source": "First-grade floor ceramic, middle of EGP 200–320 a square metre (Dostor).",
+     "url": "https://www.dostor.org/5279948"
+    },
+    "ceiling": {
+     "price": 175,
+     "source": "Gypsum board, middle of EGP 100–250 a square metre (Betelhandasa).",
+     "url": "https://betelhandasa.com/"
+    },
+    "paint": {
+     "price": 108,
+     "source": "Jotun Easy Coat Plus matt, EGP 1,085 for 10 litres, about EGP 108 a litre (Waffar2Cash).",
+     "url": "https://waffar2cash.net/product-category/department-paints-and-decoration/structural-paints/jotun/"
+    },
+    "kitchen": {
+     "price": 3250,
+     "source": "MDF kitchen cupboards, middle of EGP 2,500–4,000 a metre (Light Star).",
+     "url": "https://www.lightstaregypt.com/"
+    },
+    "mason": {
+     "price": 400,
+     "source": "Skilled craftsman day rate, about EGP 400 (Zawia3).",
+     "url": "https://zawia3.com/workers-3/"
+    },
+    "hand": {
+     "price": 175,
+     "source": "General labourer day rate, middle of EGP 150–200 (Zawia3).",
+     "url": "https://zawia3.com/workers-3/"
+    },
+    "plumber": {
+     "price": 435,
+     "source": "Plumber day rate, middle of EGP 420–450 (Ministry of Labour via Dostor).",
+     "url": "https://www.dostor.org/5030740"
+    },
+    "spark": {
+     "price": 435,
+     "source": "Electrician day rate, middle of EGP 420–450 (Ministry of Labour via Dostor).",
+     "url": "https://www.dostor.org/5030740"
+    },
+    "doorIn": {
+     "price": 11700,
+     "source": "Internal flush door, middle of EGP 9,955–13,500 (Picnic Table Factory).",
+     "url": "https://www.thepicnictablefactory.com/product-page/bedroom-door"
     }
    },
    "permits": [
@@ -1823,7 +1883,7 @@
    "city": "Casablanca–Rabat",
    "roof": "slab",
    "guideFrom": "egypt",
-   "note": "A concrete roof is assumed, as on most Moroccan houses, so there is no iron-sheet line. Cement is a published bag price. The other lines are scaled from Egypt or, where Egypt has no price, from Nairobi.",
+   "note": "Cement, steel, blocks, roofing, sand, ballast, floor tiles, ceiling boards, paint, kitchen cupboards, internal doors and the mason and electrician day rates are published Casablanca–Rabat prices. Windows, wiring, pipe and some finishes remain guides scaled from Egypt.",
    "why": "Heirstone's 2026 note: interest on a two-year, fully debt-funded build is about 5% of the hard cost in Casablanca, the low end of the ten cities it compared. The report found no published construction-cost figure for the city. This receipt includes neither the interest nor a contractor's fee.",
    "items": {
     "cement": {
@@ -1854,6 +1914,66 @@
        "url": "https://lechantier.ma/en/prix/ciment"
       }
      ]
+    },
+    "steel": {
+     "price": 9.85,
+     "source": "Rebar, about MAD 9.85 a kg, middle of MAD 9,500–10,200 a tonne (Akhbarona / CYPE).",
+     "url": "https://www.akhbarona.com/economy/433633.html"
+    },
+    "blocks": {
+     "price": 5.4,
+     "source": "Hollow concrete block 20×20×40cm, about MAD 5.4 (CITURBAREA).",
+     "url": "https://citurbarea.com/donnees/prix-materiaux-maroc"
+    },
+    "roof": {
+     "price": 67,
+     "source": "Galvanised steel roof sheet 0.6mm, about MAD 67 a square metre (CYPE Maroc).",
+     "url": "https://maroc.prix-construction.info/"
+    },
+    "sand": {
+     "price": 167,
+     "source": "Sand, about MAD 167 a cubic metre (CITURBAREA).",
+     "url": "https://citurbarea.com/donnees/prix-materiaux-maroc"
+    },
+    "ballast": {
+     "price": 167,
+     "source": "Gravel 5/15, about MAD 167 a cubic metre (CITURBAREA).",
+     "url": "https://citurbarea.com/donnees/prix-materiaux-maroc"
+    },
+    "tiles": {
+     "price": 68,
+     "source": "Floor ceramic 60×60, about MAD 68 a square metre (CITURBAREA).",
+     "url": "https://citurbarea.com/guide/prix-carrelage-maroc"
+    },
+    "ceiling": {
+     "price": 105,
+     "source": "Plasterboard ceiling, middle of MAD 80–130 a square metre (Aplacados).",
+     "url": "https://aplacados.ma/prix-faux-plafond-maroc/"
+    },
+    "paint": {
+     "price": 55,
+     "source": "Interior acrylic paint, middle of MAD 30–80 a litre (EnginLoc).",
+     "url": "https://enginloc.ma/materiaux/peinture/peinture-interieure-acrylique"
+    },
+    "kitchen": {
+     "price": 8000,
+     "source": "MDF kitchen cupboards, middle of MAD 6,000–10,000 a metre (Fixeo).",
+     "url": "https://www.fixeo.ma/blog/prix-menuisier-maroc"
+    },
+    "mason": {
+     "price": 165,
+     "source": "Mason day rate, middle of MAD 150–180 (Le360 / HCP).",
+     "url": "https://fr.le360.ma/"
+    },
+    "spark": {
+     "price": 400,
+     "source": "Electrician day rate, middle of MAD 300–500 (lechantier.ma).",
+     "url": "https://lechantier.ma/en/blog/prix-main-oeuvre-btp-maroc-2026"
+    },
+    "doorIn": {
+     "price": 1150,
+     "source": "Internal MDF door, middle of MAD 800–1,500 (Fixeo).",
+     "url": "https://www.fixeo.ma/blog/prix-menuisier-maroc"
     }
    },
    "permits": [
@@ -2051,7 +2171,7 @@
    "city": "Gauteng",
    "roof": "sheet",
    "guideFrom": "kenya",
-   "note": "Cement, steel and blocks are published Gauteng or national retail prices. The other lines are scaled from Nairobi and will often be low next to a Gauteng artisan or tile price. Tile roofs cost more than the sheet line.",
+   "note": "Cement, steel, blocks, sand, ballast, floor tiles, ceiling boards, paint, kitchen cupboards, internal doors and the mason and plumber day rates are published Gauteng prices. Roofing, windows, external doors, wiring, pipe and the other trade days remain guides scaled from Nairobi.",
    "finished": {
     "low": 7920,
     "high": 11830,
@@ -2112,6 +2232,51 @@
      "price": 14,
      "source": "6-inch hollow concrete block, 390×140×190, Cashbuild listed price R14 including VAT. Branch prices can differ.",
      "url": "https://www.cashbuild.co.za/shop/cement-blocks/1272-block-concrete-hollow-6-2050000036859.html"
+    },
+    "sand": {
+     "price": 349,
+     "source": "Building sand, about R349 a cubic metre (Leroy Merlin, Gauteng).",
+     "url": "https://leroymerlin.co.za/local-building-sand-per-m3-minimum-12m3-direct-delivery-customer-81499260"
+    },
+    "ballast": {
+     "price": 371,
+     "source": "19mm concrete stone, middle of R350–392 a cubic metre (SA Home Builder Store / Binclean).",
+     "url": "https://sahomebuilderstore.com/product/19-mm-grey-concrete-stone-aggregate-for-construction-and-drainage-bulk-price-per-m3/"
+    },
+    "tiles": {
+     "price": 149,
+     "source": "Ceramic floor tile, about R149 a square metre (Leroy Merlin Kirstenbosch, Gauteng).",
+     "url": "https://leroymerlin.co.za/floor-tile-ceramic-kirstenbosch-saw-cut-280x710mm-1-59m2-box-81503155"
+    },
+    "ceiling": {
+     "price": 74,
+     "source": "Rhinoboard 6.4mm, R199.95 for a 900×3000mm board, about R74 a square metre (Cashbuild).",
+     "url": "https://www.cashbuild.co.za/gypsum/220-rhinoboard-64mm-900-x-3000mm"
+    },
+    "paint": {
+     "price": 102,
+     "source": "Plascon Polvin Super Acrylic, R512 for 5 litres, about R102 a litre (AHM).",
+     "url": "https://www.ahm.co.za/collections/promotions-main/products/plascon-polvin-super-acrylic-white-5l"
+    },
+    "kitchen": {
+     "price": 7000,
+     "source": "Kitchen cupboards, middle of R4,000–10,000 a metre (Cupboard Doctor / FadiOrHome).",
+     "url": "https://www.fadiorhome.com/journal/kitchen-designs-south-africa-prices"
+    },
+    "mason": {
+     "price": 425,
+     "source": "Mason day rate, middle of R300–550 (Indeed, Jul 2026).",
+     "url": "https://za.indeed.com/q-mason-jobs.html"
+    },
+    "plumber": {
+     "price": 500,
+     "source": "Plumber day rate, about R500 (Trasa, Johannesburg).",
+     "url": "https://www.trasa.co.za/job/dynamic-maintenance-plumber-laser-park-honeydew/"
+    },
+    "doorIn": {
+     "price": 890,
+     "source": "Semi-solid Masonite flush internal door, R890 (K Parker Joinery).",
+     "url": "https://www.kparkerjoinery.co.za/product/semi-solid-masonite-flush-interior-door-813-x-2032mm/"
     }
    },
    "permits": [
@@ -2205,11 +2370,6 @@
      "source": "60×60 ceramic floor tile, about TZS 59,600 a square metre (CTM Tanzania, Dar es Salaam).",
      "url": "https://www.ctm.co.tz/floors/tiles-by-room/living-area-floor-tiles/indoorfloor-matt-category.html"
     },
-    "wallTiles": {
-     "price": 57000,
-     "source": "30×60 wall tile, about TZS 57,000 a square metre (CTM Tanzania, Dar es Salaam).",
-     "url": "https://www.ctm.co.tz/wall-tiles/tiles-by-room/all-wall-tiles-category.html"
-    },
     "paint": {
      "price": 6975,
      "source": "Emulsion paint, TZS 139,500 for 20 litres, about TZS 6,975 a litre (Impala, Dar es Salaam).",
@@ -2230,7 +2390,7 @@
      "source": "Electrician day rate, middle of TZS 25,000–55,000 (BilaFundi, 2025).",
      "url": "https://bilafundi.com/articles/labour-rates-in-tanzania-2025-what-contractors-and-clients-should-budget-for"
     },
-    "plumb": {
+    "plumber": {
      "price": 37500,
      "source": "Plumber day rate, middle of TZS 25,000–50,000 (BilaFundi, 2025).",
      "url": "https://bilafundi.com/articles/labour-rates-in-tanzania-2025-what-contractors-and-clients-should-budget-for"
@@ -2300,7 +2460,7 @@
    "city": "Kigali",
    "roof": "sheet",
    "guideFrom": "kenya",
-   "note": "Cement is a Kigali supplier listing. The other lines are scaled from Nairobi.",
+   "note": "Cement, internal doors and the mason, labourer and electrician day rates are published Kigali prices. Most material lines remain guides scaled from Nairobi because Rwanda publishes few retail material prices.",
    "items": {
     "cement": {
      "price": 15000,
@@ -2330,6 +2490,26 @@
        "default": true
       }
      ]
+    },
+    "mason": {
+     "price": 7000,
+     "source": "Mason day rate, about RWF 7,000 in Kigali (World Bank RUDP II Labour Management Plan).",
+     "url": "https://loda.gov.rw/fileadmin/documents/RUDPII/Final_LMP-Second-Rwanda-Urban-Development-Project-P165017.pdf"
+    },
+    "hand": {
+     "price": 2250,
+     "source": "Labourer day rate, middle of RWF 2,000–2,500 in Kigali (World Bank RUDP II).",
+     "url": "https://loda.gov.rw/fileadmin/documents/RUDPII/Final_LMP-Second-Rwanda-Urban-Development-Project-P165017.pdf"
+    },
+    "spark": {
+     "price": 9000,
+     "source": "Electrician day rate, middle of RWF 8,000–10,000 (KaziSpace).",
+     "url": "https://kazispace.com/en/workers/thierry-ndayishimiye"
+    },
+    "doorIn": {
+     "price": 150000,
+     "source": "Internal flush door, from RWF 150,000 (Kalka+Partner, Kigali).",
+     "url": "https://kalka.rw/category/developers/"
     }
    },
    "permits": [
