@@ -25,18 +25,16 @@ const RECV = {
   drc: { cc: "cd", cur: "USD" }, rwanda: { cc: "rw", cur: "RWF" },
 };
 
-// Each operator: a URL builder from the send/receive currency pair + amount. v1 best-guesses;
-// the debug dump reveals the real page structure for tuning.
+// Operators that survived testing. The rest were removed:
+// - Ria, Mukuru, ACE Money Transfer: blocked by Cloudflare bot protection (anti-bot page).
+// - Sigue: the company has shut down ("Sigue Corporation is no longer operating").
+// - Small World: smallworldfs.com is now a finance content farm, not the remitter.
+// - OFX: public page shows only the interbank rate, not their actual customer rate.
+// - Xe: URL params are ignored (returns a default India quote -> wrong data).
+// TransferGo and Paysend need correct calculator URLs (the ones below 404 for now); fix before re-enabling.
 const OPERATORS = [
-  { id: "ria", name: "Ria", url: (f, t, a) => `https://www.riamoneytransfer.com/en-us/send-money?sendCurrency=${f.cur}&receiveCurrency=${t.cur}&sendAmount=${a}` },
-  { id: "mukuru", name: "Mukuru", url: (f, t, a) => `https://www.mukuru.com/send-money-to-${t.cc}/` },
   { id: "transfergo", name: "TransferGo", url: (f, t, a) => `https://www.transfergo.com/en?from=${f.cc.toUpperCase()}&to=${t.cc.toUpperCase()}&amount=${a}` },
   { id: "paysend", name: "Paysend", url: (f, t, a) => `https://paysend.com/en/send-money` },
-  { id: "xe", name: "Xe", url: (f, t, a) => `https://www.xe.com/send-money/?Amount=${a}&From=${f.cur}&To=${t.cur}` },
-  { id: "smallworld", name: "Small World", url: (f, t, a) => `https://www.smallworldfs.com/en` },
-  { id: "ace", name: "ACE Money Transfer", url: (f, t, a) => `https://acemoneytransfer.com` },
-  { id: "sigue", name: "Sigue", url: (f, t, a) => `https://sigue.com` },
-  { id: "ofx", name: "OFX", url: (f, t, a) => `https://www.ofx.com/en-us/send-money/` },
 ];
 
 function parseRate(text, fromCur, toCur) {
