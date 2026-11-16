@@ -22,6 +22,8 @@
   // Outbound email for rate alerts (Cloudflare Email Service). The domain must be
   // onboarded for Email Sending (Compute > Email Service > Email Sending) before emails send.
   "send_email": [{ "name": "EMAIL" }],
+  // AI helper (chat assistant) powered by Cloudflare Workers AI.
+  "ai": { "binding": "AI" },
   // Rate alerts run after the morning (09:37) and evening (19:37) Nairobi rate checks.
   "triggers": { "crons": ["30 8 * * *", "30 18 * * *"] },
   "observability": { "enabled": true },

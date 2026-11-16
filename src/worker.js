@@ -6,6 +6,7 @@ import * as reports from "../functions/api/reports.js";
 import * as stats from "../functions/api/stats.js";
 import * as go from "../functions/go/[provider].js";
 import * as alert from "../functions/api/alert.js";
+import * as ask from "../functions/api/ask.js";
 
 // Each service's own icon, as published on its website, fetched once by this Worker (via Google's
 // favicon service) and cached at Cloudflare. Visitors' browsers only ever talk to sendfair.africa.
@@ -135,6 +136,7 @@ export default {
     if (path === "/api/reports" && request.method === "GET") return reports.onRequestGet(context);
     if (path === "/api/stats" && request.method === "GET") return stats.onRequestGet(context);
     if (path === "/api/alert") return request.method === "POST" ? alert.onRequestPost(context) : new Response("Use POST.", { status: 405 });
+    if (path === "/api/ask" && request.method === "POST") return ask.onRequestPost(context);
     if (path === "/api/alert/confirm") return alert.onConfirm(context);
     if (path === "/api/alert/stop") return alert.onStop(context);
     if (path === "/api/alerts" && request.method === "GET") return alert.onStats(context);

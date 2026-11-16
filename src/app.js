@@ -408,6 +408,59 @@
       location.reload();
     });
   }
+  function setupAiHelper() {
+    if (document.getElementById("sf-ai-btn")) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "sf-ai-btn";
+    btn.className = "ai-btn";
+    btn.setAttribute("aria-label", "Ask SendFair");
+    btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H8l-4 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+    var panel = document.createElement("div");
+    panel.id = "sf-ai";
+    panel.className = "ai-panel";
+    panel.hidden = true;
+    panel.innerHTML = '<div class="ai-head"><strong>Ask SendFair</strong><button type="button" id="sf-ai-close" aria-label="Close">×</button></div>' +
+      '<div class="ai-msgs" id="sf-ai-msgs"><div class="ai-msg ai-bot">Hi! Ask me about a route (e.g. "UK to Kenya for 250") or building a house.</div></div>' +
+      '<form class="ai-form" id="sf-ai-form"><input id="sf-ai-input" placeholder="e.g. UK to Kenya for 250" autocomplete="off" aria-label="Your question"><button type="submit">Send</button></form>';
+    document.body.appendChild(btn);
+    document.body.appendChild(panel);
+    function add(cls, text) {
+      var d = document.createElement("div");
+      d.className = "ai-msg " + cls;
+      d.textContent = text;
+      var box = document.getElementById("sf-ai-msgs");
+      box.appendChild(d);
+      box.scrollTop = box.scrollHeight;
+    }
+    btn.addEventListener("click", function () {
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) document.getElementById("sf-ai-input").focus();
+    });
+    document.getElementById("sf-ai-close").addEventListener("click", function () { panel.hidden = true; });
+    document.getElementById("sf-ai-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var input = document.getElementById("sf-ai-input");
+      var q = input.value.trim();
+      if (!q) return;
+      input.value = "";
+      add("ai-user", q);
+      add("ai-bot", "…");
+      fetch(root + "api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q })
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        var msgs = document.getElementById("sf-ai-msgs");
+        msgs.lastElementChild.textContent = d.answer || "Sorry, something went wrong.";
+        msgs.scrollTop = msgs.scrollHeight;
+      }).catch(function () {
+        var msgs = document.getElementById("sf-ai-msgs");
+        msgs.lastElementChild.textContent = "Sorry, couldn't reach the assistant. Try again.";
+      });
+    });
+  }
+  setupAiHelper();
   setupNav();
   fixAvatars();
   setupLanguage();

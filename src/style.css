@@ -532,6 +532,18 @@ details p { margin-top: 10px; color: var(--muted); }
 .consent-actions button { border: 1px solid var(--line); background: transparent; color: var(--on-band); padding: 8px 14px; border-radius: 8px; cursor: pointer; font: inherit; }
 .consent-actions button.btn { background: #f6b52b; color: #111853; border-color: #f6b52b; font-weight: 700; }
 .cookie-settings { background: none; border: 0; color: inherit; cursor: pointer; text-decoration: underline; font: inherit; padding: 0; }
+.ai-btn { position: fixed; right: 16px; bottom: 16px; z-index: 70; width: 52px; height: 52px; border-radius: 50%; border: 0; background: #111853; color: #f6b52b; cursor: pointer; box-shadow: 0 4px 16px rgba(0, 0, 0, .25); display: flex; align-items: center; justify-content: center; }
+.ai-panel { position: fixed; right: 16px; bottom: 80px; z-index: 70; width: min(360px, calc(100vw - 32px)); background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 32px rgba(0, 0, 0, .22); overflow: hidden; display: flex; flex-direction: column; }
+.ai-panel[hidden] { display: none; }
+.ai-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #111853; color: #fff; }
+.ai-head button { background: none; border: 0; color: #fff; font-size: 1.4rem; cursor: pointer; line-height: 1; }
+.ai-msgs { height: 280px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: #f6f5f1; }
+.ai-msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: .9rem; line-height: 1.4; white-space: pre-wrap; }
+.ai-user { align-self: flex-end; background: #111853; color: #fff; border-bottom-right-radius: 4px; }
+.ai-bot { align-self: flex-start; background: #fff; border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.ai-form { display: flex; border-top: 1px solid var(--line); }
+.ai-form input { flex: 1; border: 0; padding: 12px; font: inherit; outline: none; }
+.ai-form button { border: 0; background: #f6b52b; color: #111853; font-weight: 700; padding: 0 16px; cursor: pointer; }
 .hr-tabs { display: flex; gap: 6px; margin: 4px 0 12px; flex-wrap: wrap; }
 .hr-tab { border: 1px solid var(--line); background: transparent; color: inherit; padding: 5px 13px; border-radius: 999px; cursor: pointer; font: inherit; font-size: .85rem; }
 .hr-tab.is-on { background: var(--band-deep, #111853); color: #fff; border-color: transparent; }
