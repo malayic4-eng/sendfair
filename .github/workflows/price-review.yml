@@ -1,0 +1,37 @@
+name: House price review
+
+on:
+  schedule:
+    # Daily check (04:30 UTC); opens one reminder issue when the monthly review is due.
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check review date
+        id: check
+        run: node scripts/price-review-check.mjs
+        continue-on-error: true
+      - name: Open reminder issue
+        if: steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh issue list --label "price-review" --state open --json number | grep -q '"number"'; then
+            echo "Reminder already open"
+          else
+            gh issue create \
+              --title "House prices need their monthly refresh" \
+              --label "price-review" \
+              --body "The build-cost data in data/build-costs.json has passed its \`nextReview\` date. Refresh the material prices and bump \`updated\` and \`nextReview\` (set the next review ~30 days out)."
+          fi
