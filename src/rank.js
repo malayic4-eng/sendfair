@@ -257,7 +257,7 @@
     if (x.q.speed) extra.push(esc(x.q.speed));
     if (how) extra.push(how);
     if (rep && rep.n >= 3) extra.push("usually arrives " + esc(rep.typical));
-    if (checked && !x.stale) extra.push(checked + (isAuto(x.q) ? " (auto)" : ""));
+    if (checked) extra.push(checked + (isAuto(x.q) ? " (auto)" : " (hand-checked)"));
     var ref = Number(x.q.refAmount) || 0, shownAmt = x.pay || c.amount;
     if (ref && shownAmt > 0 && Math.abs(shownAmt - ref) / ref > 0.15) bits.push('<span class="ref-txt" title="The rate and fee were read for this amount; they can differ for yours">checked for ' + esc(money(ref, c.s.currency, 0)) + "</span>");
     if (extra.length) bits.push('<span class="xtra">' + extra.join(DOT) + "</span>");
