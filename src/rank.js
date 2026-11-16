@@ -7,7 +7,7 @@
   var PAYIN = { all: "Any", bank: "Bank transfer", card: "Card", cash: "Cash at an agent" };
   var DOT = " · ";
   var SSA = { nigeria: 1, ghana: 1, kenya: 1, uganda: 1, zambia: 1, zimbabwe: 1, senegal: 1, ivorycoast: 1, mali: 1, cameroon: 1, ethiopia: 1, southafrica: 1, tanzania: 1, drc: 1, rwanda: 1 };
-  function isAuto(q) { return !!(q && (q.source === "wise-feed" || /^Updated automatically from Wise/.test(q.note || ""))); }
+  function isAuto(q) { return !!(q && (q.source === "wise-feed" || q.source === "worldremit" || /^Updated automatically from (Wise|WorldRemit)/.test(q.note || ""))); }
   function payMethodOf(q, p) {
     if (q && q.payMethod && q.payMethod !== "any") return q.payMethod;
     var list = (p && p.payIn) || [];
@@ -173,7 +173,7 @@
     "economy": "Slower delivery, usually for a better rate or lower fee"
   };
   function variantHint(v) { return VARIANT_HINT[String(v || "").toLowerCase()] || ""; }
-  var GENERAL_NOTE = /^(Standard rate;|Fee read at (two amounts|the reference amount)|Updated automatically from Wise|No transfer fees shown|Payout method not shown)/;
+  var GENERAL_NOTE = /^(Standard rate;|Fee read at (two amounts|the reference amount)|Updated automatically from Wise|Updated automatically from WorldRemit|No transfer fees shown|Payout method not shown)/;
   function promoRate(q) {
     if (Number(q.promoRate) > 0) return Number(q.promoRate);
     var n = q.note || "";
@@ -359,7 +359,7 @@
       html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>' + (c.target ? "You pay" : "They get") + '</span><span></span></div>' + rows + "</div>";
       html += amountNote(c);
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
-      if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are updated every 30 minutes from Wise\'s comparison data, which collects each provider\'s advertised rate and fee. Payout options on those rows may be incomplete.</p>';
+      if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are refreshed automatically — most every 30 minutes from Wise\'s comparison data, and WorldRemit directly from its own site. Payout options on those rows may be incomplete.</p>';
       if (c.rows.some(function (x) { return x.tied; })) html += '<p class="note tie-note">"=" means tied: the same amount arrives. Tied services are listed with the lower fee first.</p>';
       var reg = REGISTER[c.s.id];
       html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") +

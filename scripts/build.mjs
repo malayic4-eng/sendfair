@@ -152,6 +152,12 @@ if (DEMO) {
   quotesFile = { updatedAt: new Date(NOW - 2 * 3600000).toISOString(), coverage, quotes: out };
   demoReports = { routes: reps };
 }
+// Merge WorldRemit quotes scraped directly from its site (data/worldremit-quotes.json),
+// so WorldRemit appears on more routes than the Wise feed alone provides.
+const worldremitQuotes = readOptional("data/worldremit-quotes.json", { quotes: {} });
+for (const [k, list] of Object.entries(worldremitQuotes.quotes || {})) {
+  quotesFile.quotes[k] = [...(list || []), ...(quotesFile.quotes[k] || []).filter((q) => q.provider !== "worldremit")];
+}
 const quotes = quotesFile.quotes || {};
 const coverage = quotesFile.coverage || {};
 
