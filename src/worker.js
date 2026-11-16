@@ -120,11 +120,6 @@ async function adminGate(request, env, url) {
     return new Response(null, { status: 303, headers: { ...noStore, Location: "/admin/", "Set-Cookie": cookie } });
   }
   if (await validSession(request, env)) return null;
-  // Older browser pop-up sign-in still works if a browser sends it.
-  const auth = request.headers.get("Authorization") || "";
-  let basic = "";
-  try { basic = auth.startsWith("Basic ") ? atob(auth.slice(6)).split(":").slice(1).join(":") : ""; } catch (e) {}
-  if (basic && sameBytes(basic, env.ADMIN_PASSWORD)) return null;
   return loginPage("");
 }
 
@@ -132,7 +127,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     // The Rate Desk is private: it asks for a password set in Cloudflare as the secret ADMIN_PASSWORD.
-    // Sign-in is a normal page with a password box; a signed cookie then keeps the browser signed in for 30 days.
+    // Sign-in is a normal page with a password box; a signed cookie then keeps the browser signed in for 7 days. Cloudflare Access also sits in front of /admin.
     if (/^\/admin(\/|$)/.test(url.pathname)) {
       const gate = await adminGate(request, env, url);
       if (gate) return gate;

@@ -365,7 +365,7 @@
       html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>' + (c.target ? "You pay" : "They get") + '</span><span></span></div>' + rows + "</div>";
       html += amountNote(c);
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
-      if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are refreshed automatically from the providers\' own sites. Payout options on those rows may be incomplete.</p>';
+      if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are refreshed automatically from Wise\'s comparison data or the provider\'s own website. Payout options on those rows may be incomplete.</p>';
       if (c.rows.some(function (x) { return x.tied; })) html += '<p class="note tie-note">"=" means tied: the same amount arrives. Tied services are listed with the lower fee first.</p>';
       var reg = REGISTER[c.s.id];
       html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") +
