@@ -1,0 +1,30 @@
+name: Post to Facebook
+
+on:
+  schedule:
+    # Daily (05:30 UTC) - generates the queue fresh, then posts it to the Page.
+    - cron: "30 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: post-facebook
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Generate today's queue
+        run: node scripts/social-posts.mjs
+      - name: Post to Facebook Page
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+        run: node scripts/post-facebook.mjs

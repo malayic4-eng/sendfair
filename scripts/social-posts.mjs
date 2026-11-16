@@ -133,5 +133,6 @@ for (const b of blocks) {
 }
 fs.mkdirSync("data/social", { recursive: true });
 fs.writeFileSync("data/social/queue.md", out.join("\n") + "\n");
+fs.writeFileSync("data/social/queue.json", JSON.stringify({ date: iso, generatedAt: new Date().toISOString(), posts: blocks }, null, 1) + "\n");
 console.log(`Social queue: ${blocks.length} post(s) written to data/social/queue.md`);
 blocks.forEach((b) => console.log(`  - ${b.kind}: ${b.title}`));
