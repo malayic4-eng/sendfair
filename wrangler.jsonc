@@ -19,6 +19,9 @@
   ],
   // Storage for delivery reports and click counts (namespace "sendfair").
   "kv_namespaces": [{ "binding": "SENDFAIR_KV", "id": "4184f9d4de9440119baf9408cecc938a" }],
+  // Outbound email for rate alerts (Cloudflare Email Service). The "from" address must be
+  // a verified destination address in Email Routing before this deploy will succeed.
+  "send_email": [{ "name": "EMAIL", "destination_address": "hello@sendfair.africa" }],
   // Rate alerts run after the morning (09:37) and evening (19:37) Nairobi rate checks.
   "triggers": { "crons": ["30 8 * * *", "30 18 * * *"] },
   "observability": { "enabled": true },

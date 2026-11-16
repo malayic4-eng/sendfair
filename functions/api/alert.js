@@ -8,7 +8,7 @@
 // honestly with a 503 so the visitor is never left waiting for a confirmation that can't be sent.
 import { json, siteData, sha256 } from "../_lib.js";
 
-const FROM = { email: "alerts@sendfair.africa", name: "SendFair rate alerts" };
+const FROM = { email: "hello@sendfair.africa", name: "SendFair rate alerts" };
 const DAY = 86400;
 
 const page = (title, body) => new Response(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title>
