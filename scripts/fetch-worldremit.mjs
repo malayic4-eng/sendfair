@@ -1,7 +1,6 @@
 // Scrapes WorldRemit's public web quote for each SendFair route using a headless browser
 // (WorldRemit renders its rate with JavaScript, so a plain fetch returns no rate).
-// Writes data/worldremit-quotes.json (merged into the comparison by the build) and, for the
-// first few routes, data/worldremit-debug.txt (the raw page text, used to tune fee parsing).
+// Writes data/worldremit-quotes.json (merged into the comparison by the build).
 // Run by .github/workflows/worldremit.yml on a schedule.
 import fs from "node:fs";
 import path from "node:path";
@@ -42,6 +41,11 @@ function parseRate(text, fromCur, toCur) {
     || text.match(/1\s*[A-Z]{3}\s*=\s*([\d,.]+)\s*[A-Z]{3}/);
   return m ? parseFloat(m[1].replace(/,/g, "")) : null;
 }
+function parseFee(text) {
+  // WorldRemit renders the fee as a line: "Fee" then, on the next line, "0 USD" / "1.99 GBP".
+  const m = text.match(/Fee\s*\n+\s*([\d,.]+)\s*[A-Z]{3}/);
+  return m ? parseFloat(m[1].replace(/,/g, "")) : 0;
+}
 
 async function scrape(browser, job) {
   const url = `https://www.worldremit.com/en?selectfrom=${job.from.cc}&selectto=${job.to.cc}&amountfrom=${job.amount}&currencyfrom=${job.from.cur.toLowerCase()}&currencyto=${job.to.cur.toLowerCase()}`;
@@ -51,9 +55,10 @@ async function scrape(browser, job) {
     await page.waitForTimeout(6000);
     const text = await page.evaluate(() => (document.body ? document.body.innerText : ""));
     const rate = parseRate(text, job.from.cur, job.to.cur);
-    const quote = (rate && rate > 0)
-      ? { provider: "worldremit", rate, feeFixed: 0, feePct: 0, payout: ["bank"], speed: "", note: "Updated automatically from WorldRemit; confirm on the provider's site", refAmount: job.amount, checkedAt: new Date().toISOString(), source: "worldremit" }
-      : null;
+    const promo = /First Transfer Rate/i.test(text);
+    if (!rate || rate <= 0 || promo) return { quote: null, text };
+    const fee = parseFee(text);
+    const quote = { provider: "worldremit", rate, feeFixed: fee, feePct: 0, payout: ["bank"], speed: "", note: "Updated automatically from WorldRemit; confirm on the provider's site", refAmount: job.amount, checkedAt: new Date().toISOString(), source: "worldremit" };
     return { quote, text };
   } catch (e) {
     console.log(`${job.route}: ${e && e.message}`);
@@ -74,15 +79,21 @@ async function pool(jobs, limit, fn) {
 }
 
 const browser = await chromium.launch();
+// Warm up once so WorldRemit's "First Transfer Rate" first-visit promo is consumed and the
+// routes below are scraped at the standard rate, not the promotional one.
+{
+  const warm = await browser.newPage();
+  try { await warm.goto("https://www.worldremit.com/en", { waitUntil: "domcontentloaded", timeout: 45000 }); await warm.waitForTimeout(4000); } catch {}
+  await warm.close();
+}
+
 const out = { updatedAt: new Date().toISOString(), quotes: {} };
-const debug = [];
 let ok = 0, failed = 0;
 try {
   const results = await pool(jobs, 6, (job) => scrape(browser, job));
   for (let i = 0; i < jobs.length; i++) {
     if (results[i] && results[i].quote) { out.quotes[jobs[i].route] = [results[i].quote]; ok++; }
     else failed++;
-    if (i < 4) debug.push("===== " + jobs[i].route + " (" + jobs[i].from.cur + " " + jobs[i].amount + " -> " + jobs[i].to.cur + ") =====\n" + (results[i] ? results[i].text : "(no text)"));
   }
 } finally {
   await browser.close();
@@ -93,6 +104,5 @@ if (!ok) {
   process.exitCode = 1;
 } else {
   fs.writeFileSync(path.join(ROOT, "data/worldremit-quotes.json"), JSON.stringify(out, null, 1) + "\n");
-  fs.writeFileSync(path.join(ROOT, "data/worldremit-debug.txt"), debug.join("\n\n") + "\n");
   console.log(`WorldRemit: ${ok} quotes scraped, ${failed} failed.`);
 }
