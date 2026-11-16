@@ -43,8 +43,13 @@ async function resolvePageToken() {
 
 async function postOne(p) {
   const pageToken = await resolvePageToken();
-  const message = [p.long, p.tags].filter(Boolean).join("\n\n");
+  // Text without the URL, plus `link` so Facebook shows a preview card (title, image) for the page.
+  // utm_* tags let analytics show how many visits each kind of post brings.
+  const campaign = String(p.kind || "post").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const link = p.link ? `${p.link}${p.link.includes("?") ? "&" : "?"}utm_source=facebook&utm_medium=social&utm_campaign=${campaign}` : "";
+  const message = [p.text || p.long, p.text && link ? "Compare your own amount:" : "", p.tags].filter(Boolean).join("\n\n");
   const body = new URLSearchParams({ message, access_token: pageToken });
+  if (link) body.set("link", link);
   const res = await fetch(`https://graph.facebook.com/${version}/${pageId}/feed`, { method: "POST", body });
   const data = await res.json();
   if (!res.ok || data.error) {

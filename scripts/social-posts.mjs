@@ -6,6 +6,9 @@
 //   - 1st of the month: monthly trend
 // Output: data/social/queue.md (ASCII-only, platform-ready copy). Only factual, cited numbers.
 import fs from "node:fs";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const R = require("../src/rank.js");
 
 const read = (p) => JSON.parse(fs.readFileSync(p, "utf8"));
 const corridors = read("data/corridors.json");
@@ -24,20 +27,27 @@ const dayOfMonth = now.getUTCDate();
 
 const money = (v, cur) => `${cur} ${Math.round(v).toLocaleString("en")}`;
 
+const midmarket = read("data/midmarket.json");
+// Same correction the site applies (data/mid-overrides.json, kept for up to 36 hours).
+try { const ov = read("data/mid-overrides.json"); if (ov && ov.rates && Date.now() - new Date(ov.updatedAt).getTime() < 36 * 3600000) Object.assign(midmarket.rates, ov.rates); } catch {}
+let feed = { routes: {} };
+try { feed = read("data/wise-feed.json"); } catch {}
+const pmap = Object.fromEntries(providers.map((p) => [p.id, p]));
+// Same ranking the site shows: fresh quotes only, Wise feed merged, sanity check against mid-market.
 function topFor(route, amount) {
-  const list = (quotes.quotes || {})[route] || [];
-  let best = null;
-  for (const q of list) {
-    const fixed = Number(q.feeFixed ?? q.fee ?? 0) || 0;
-    const pct = Number(q.feePct) || 0;
-    const rate = Number(q.rate) || 0;
-    const sent = (amount - fixed) / (1 + pct / 100);
-    if (!(sent > 0) || !(rate > 0)) continue;
-    const gets = sent * rate;
-    if (!best || gets > best.gets) best = { id: q.provider, gets, rate, fee: fixed };
-  }
-  return best;
+  const parts = routeParts(route);
+  if (!parts) return null;
+  const mid = R.midRate(midmarket, parts.s.currency, parts.r.currency);
+  const rows = R.rank({ list: (quotes.quotes || {})[route] || [], feed: (feed.routes || {})[route] || null, providers: pmap, amount, payout: "all", mid, now: Date.now(), staleH: config.staleAfterHours || 36, hideH: config.hideAfterHours || 72 });
+  const best = rows.filter((x) => !x.stale)[0];
+  return best ? { id: best.p.id, gets: best.gets, rate: best.ev.rate, fee: best.ev.fee, count: rows.filter((x) => !x.stale).length } : null;
 }
+// Public page for a route key like "uk-nigeria" is /send-money/uk-to-nigeria/.
+const routeUrl = (route) => { const [sid, rid] = route.split("-"); return `${site}/send-money/${sid}-to-${rid}/`; };
+// Instagram needs a JPEG: each route has a branded card in /social/routes/, else the generic square card.
+const routeImage = (route) => { const [sid, rid] = route.split("-"); const f = `src/social/routes/${sid}-to-${rid}.jpg`; return fs.existsSync(f) ? `${site}/social/routes/${sid}-to-${rid}.jpg` : `${site}/social-card.jpg`; };
+const COUNTRY_TAGS = { nigeria: "#naija #nigerians", kenya: "#kenyandiaspora #mpesa", ghana: "#ghanaians #ghanadiaspora", zimbabwe: "#zimbabweans #zimdiaspora", uganda: "#ugandans", zambia: "#zambians" };
+const tagsFor = (r, extra) => [extra, "#" + r.id, COUNTRY_TAGS[r.id] || "", "#diaspora #remittances #moneytransfer"].filter(Boolean).join(" ");
 
 function routeParts(route) {
   const [sid, rid] = route.split("-");
@@ -66,14 +76,18 @@ const rp = routeParts(route);
 const amount = rp ? config.defaultAmounts[rp.s.currency] : 250;
 const top = rp ? topFor(route, amount) : null;
 if (rp && top) {
-  const url = `${site}/send-money/${route}/`;
+  const url = routeUrl(route);
+  const lead = `${rp.s.label} to ${rp.r.name}: ${pname(top.id)} delivers the most today - ${money(top.gets, rp.r.currency)} for ${money(amount, rp.s.currency)}.`;
+  const body = `${top.count >= 3 ? `We compared ${top.count} services` : "We compared the services we could price"} by what actually arrives after fees and the exchange-rate margin. Check the ranking for your own amount before you send.`;
   blocks.push({
     kind: "Daily rate",
     title: `${rp.s.label} to ${rp.r.name}: ${pname(top.id)} pays the most today`,
+    text: `${lead}\n\n${body}`,
     short: `${pname(top.id)} pays the most ${rp.s.label} to ${rp.r.name} today: ${money(top.gets, rp.r.currency)} for ${money(amount, rp.s.currency)}. Full ranking: ${url}`,
-    long: `${rp.s.label} to ${rp.r.name}: ${pname(top.id)} delivers the most today - ${money(top.gets, rp.r.currency)} for ${money(amount, rp.s.currency)}. We compared every service; see the full ranking or check your own amount: ${url}`,
+    long: `${lead} ${body} ${url}`,
     link: url,
-    tags: "#remittances #diaspora #sendmoney #africa #" + rp.r.id,
+    image: routeImage(route),
+    tags: tagsFor(rp.r, "#sendmoney"),
   });
 }
 
@@ -89,8 +103,10 @@ if (dayOfYear % 3 === 0) {
       kind: "House build",
       title: `What a house really costs in ${c.name}`,
       short: `Building back home in ${c.name}? See the itemised receipt for a 3-bedroom bungalow - materials, trade days and the permit, line by line: ${url}`,
+      text: `Building back home in ${c.name}? Before you send a lump sum, check the itemised receipt: every bag of cement, block, roof sheet, window, tile and trade day, plus the building permit (prices checked ${bcs.updated}). Land and the contractor's fee are not included.`,
       long: `Building back home in ${c.name}? Before you send a lump sum, check the itemised receipt: every bag of cement, block, roof sheet, window, tile and trade day, plus the building permit (prices checked ${bcs.updated}). Land and the contractor's fee are not included: ${url}`,
       link: url,
+      image: `${site}/social-card.jpg`,
       tags: "#buildbackhome #diaspora #construction #africa #" + id,
     });
   }
@@ -98,31 +114,39 @@ if (dayOfYear % 3 === 0) {
 
 // --- Weekly trend (Mondays) ---
 if (weekday === 1) {
-  const t = trend(route, 7);
-  if (t && rp) {
+  const tRoute = priority[(dayOfYear + 1) % priority.length];
+  const trp = routeParts(tRoute);
+  const t = trend(tRoute, 7);
+  if (t && trp && Math.abs(t.pct) <= 3) {
     const dir = t.pct >= 0 ? "up" : "down";
     blocks.push({
       kind: "Weekly trend",
-      title: `This week's rate: ${rp.s.label} to ${rp.r.name}`,
-      short: `The ${rp.s.currency} to ${rp.r.currency} rate is ${dir} ${Math.abs(t.pct).toFixed(1)}% this week. See how today compares: ${site}/send-money/${route}/`,
-      long: `This week the mid-market ${rp.s.currency} to ${rp.r.currency} rate is ${dir} ${Math.abs(t.pct).toFixed(1)}% (${t.from} to ${t.to}). Rates move - compare what actually arrives before you send: ${site}/send-money/${route}/`,
-      link: `${site}/send-money/${route}/`,
-      tags: "#exchangerate #weekly #diaspora #" + rp.r.id,
+      title: `This week's rate: ${trp.s.label} to ${trp.r.name}`,
+      short: `The ${trp.s.currency} to ${trp.r.currency} rate is ${dir} ${Math.abs(t.pct).toFixed(1)}% this week. See how today compares: ${routeUrl(tRoute)}`,
+      text: `This week the mid-market ${trp.s.currency} to ${trp.r.currency} rate is ${dir} ${Math.abs(t.pct).toFixed(1)}% (${t.from} to ${t.to}). Rates move, so compare what actually arrives before you send.`,
+      long: `This week the mid-market ${trp.s.currency} to ${trp.r.currency} rate is ${dir} ${Math.abs(t.pct).toFixed(1)}% (${t.from} to ${t.to}). Rates move - compare what actually arrives before you send: ${routeUrl(tRoute)}`,
+      link: `${routeUrl(tRoute)}`,
+      image: routeImage(tRoute),
+      tags: tagsFor(trp.r, "#exchangerate"),
     });
   }
 }
 
 // --- Monthly trend (1st) ---
 if (dayOfMonth === 1) {
-  const t = trend(route, 30);
-  if (t && rp) {
+  const tRoute = priority[(dayOfYear + 2) % priority.length];
+  const trp = routeParts(tRoute);
+  const t = trend(tRoute, 30);
+  if (t && trp) {
     blocks.push({
       kind: "Monthly trend",
-      title: `${rp.s.label} to ${rp.r.name}: the month in rates`,
-      short: `Over the past month the ${rp.s.currency} to ${rp.r.currency} rate moved ${t.pct >= 0 ? "+" : ""}${t.pct.toFixed(1)}%. Full history and today's ranking: ${site}/send-money/${route}/`,
-      long: `Over the past month the mid-market ${rp.s.currency} to ${rp.r.currency} rate moved ${t.pct >= 0 ? "+" : ""}${t.pct.toFixed(1)}% (${t.from} to ${t.to}). See the full rate history and today's best service on the route page: ${site}/send-money/${route}/`,
-      link: `${site}/send-money/${route}/`,
-      tags: "#monthlyrecap #exchangerate #diaspora #" + rp.r.id,
+      title: `${trp.s.label} to ${trp.r.name}: the month in rates`,
+      short: `Over the past month the ${trp.s.currency} to ${trp.r.currency} rate moved ${t.pct >= 0 ? "+" : ""}${t.pct.toFixed(1)}%. Full history and today's ranking: ${routeUrl(tRoute)}`,
+      text: `Over the past month the mid-market ${trp.s.currency} to ${trp.r.currency} rate moved ${t.pct >= 0 ? "+" : ""}${t.pct.toFixed(1)}% (${t.from} to ${t.to}). See the full rate history and today's best service on the route page.`,
+      long: `Over the past month the mid-market ${trp.s.currency} to ${trp.r.currency} rate moved ${t.pct >= 0 ? "+" : ""}${t.pct.toFixed(1)}% (${t.from} to ${t.to}). See the full rate history and today's best service on the route page: ${routeUrl(tRoute)}`,
+      link: `${routeUrl(tRoute)}`,
+      image: routeImage(tRoute),
+      tags: tagsFor(trp.r, "#exchangerate"),
     });
   }
 }
