@@ -299,7 +299,7 @@ function tool({ heading, sub, ctx, after = "" }) {
 </div>
 <ul class="trustbar" aria-label="Why you can trust these rankings">
   <li><strong>Independent.</strong> Run from Nairobi; no provider owns us.</li>
-  <li><strong>${handCheckedRoutes === 0 ? "Updated automatically" : "Updated every 30 minutes"}</strong>${handCheckedRoutes === 0 ? " from the providers' own sites" : ` for the big providers, and ${handCheckedRoutes} routes checked by hand`}; each row shows when.</li>
+  <li><strong>${handCheckedRoutes === 0 ? "Updated automatically" : "Updated every 30 minutes"}</strong>${handCheckedRoutes === 0 ? " every 30 minutes, mostly from Wise's comparison data" : ` for the big providers, and ${handCheckedRoutes} routes checked by hand`}; each row shows when.</li>
   <li><strong>Standard rates only.</strong> No paid placements; commissions never change the order.</li>
   <li><strong>Ratings shown</strong> from Trustpilot, so you see what customers say.</li>
 </ul>
@@ -1388,7 +1388,7 @@ const trust = {
 <h1>How we rank</h1>
 <h2>What we collect</h2>
 <ul><li>The exchange rate each provider quotes on each route, and the amount we checked it for.</li><li>The transfer fee: a fixed amount, a percentage, or both.</li><li>The ways the money can be received (mobile money, bank, cash pickup). Where a provider's rate differs by payout method, we record each one separately.</li><li>The typical delivery time and when we checked.</li></ul>
-<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are updated automatically every 30 minutes from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. Those rows are marked "(auto)". ${handCheckedRoutes === 0 ? "Every price is collected automatically from the providers' own sites." : `Other services are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data.`} Automatic rates far from the mid-market rate are held back as likely errors.</p>
+<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are updated automatically every 30 minutes from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. Those rows are marked "(auto)". ${handCheckedRoutes === 0 ? "No routes are checked by hand at the moment: every price comes from Wise's comparison data or from WorldRemit's own website." : `Other services are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data.`} Automatic rates far from the mid-market rate are held back as likely errors.</p>
 <h2>How the amount received is calculated</h2>
 <p>You enter the total you plan to pay. We take off the provider's fee and convert the rest at the provider's rate. Where the fee is a percentage, it is worked out on the amount sent.</p>
 <p>Total cost is the gap between that and converting your full amount at the mid-market rate with no fee.</p>
@@ -1709,6 +1709,8 @@ if (!PREVIEW) {
   const shell = ["/", "/offline", `/assets/style.css?v=${V.css}`, `/assets/fonts.css?v=${V.fonts}`, `/assets/app.js?v=${V.app}`, `/assets/rank.js?v=${V.rank}`, `/assets/build-cost.js?v=${V.build}`, "/assets/fonts/figtree-latin-wght-normal.woff2", "/assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2", "/favicon.svg", "/manifest.webmanifest"];
   write("sw.js", fs.readFileSync(path.join(ROOT, "src/sw.js"), "utf8").replace("__VERSION__", V.css + V.app + V.rank).replace("__SHELL__", JSON.stringify(shell)));
 }
+// ads.txt lets AdSense confirm this site may show the publisher's ads.
+if (config.adsenseClient && !DEMO) write("ads.txt", `google.com, ${config.adsenseClient.replace(/^ca-/, "")}, DIRECT, f08c47fec0942fa0\n`);
 const redirectRows = readOptional("data/redirects.json", []).filter((r) => r && r.from && r.to && !r.example);
 write("_redirects", redirectRows.map((r) => `${r.from} ${r.to} ${r.code || 301}`).join("\n") + (redirectRows.length ? "\n" : ""));
 write("_headers", `/*
@@ -1716,7 +1718,7 @@ write("_headers", `/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://pagead2.googlesyndication.com https://adtrafficquality.google https://static.cloudflareinsights.com https://translate.google.com https://impactcdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://pagead2.googlesyndication.com https://www.googletagmanager.com https://www.clarity.ms https://translate.google.com https://adtrafficquality.google https://www.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://www.clarity.ms https://pagead2.googlesyndication.com https://adtrafficquality.google https://static.cloudflareinsights.com https://translate.google.com https://impactcdn.com; frame-src https://pagead2.googlesyndication.com https://www.doubleclick.net; font-src 'self' https://fonts.gstatic.com data:
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://utt.impactcdn.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://translate.googleapis.com https://utt.impactcdn.com https://*.impact.com; frame-src https://*.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com https://challenges.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self' https://buttondown.com; object-src 'none'
 /data/*
   Cache-Control: public, max-age=300
 /assets/fonts/*
