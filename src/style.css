@@ -532,6 +532,10 @@ details p { margin-top: 10px; color: var(--muted); }
 .consent-actions button { border: 1px solid var(--line); background: transparent; color: var(--on-band); padding: 8px 14px; border-radius: 8px; cursor: pointer; font: inherit; }
 .consent-actions button.btn { background: #f6b52b; color: #111853; border-color: #f6b52b; font-weight: 700; }
 .cookie-settings { background: none; border: 0; color: inherit; cursor: pointer; text-decoration: underline; font: inherit; padding: 0; }
+.hr-tabs { display: flex; gap: 6px; margin: 4px 0 12px; flex-wrap: wrap; }
+.hr-tab { border: 1px solid var(--line); background: transparent; color: inherit; padding: 5px 13px; border-radius: 999px; cursor: pointer; font: inherit; font-size: .85rem; }
+.hr-tab.is-on { background: var(--band-deep, #111853); color: #fff; border-color: transparent; }
+.hr-panel[hidden] { display: none; }
 
 /* Smaller screens */
 @media (max-width: 960px) {

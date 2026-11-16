@@ -763,10 +763,11 @@ const TIPS_FROM = {
 const tipsFor = (s, r) => [...(TIPS[r.id] || []), ...(TIPS_FROM[s.region || "west"] || []), ...TIPS_ALL];
 
 // Daily history chart: mid-market rate (line) and the best rate a service gave (dots), server-drawn SVG.
-function histChart(ctx) {
-  const pts = ctx.hist.filter((h) => h.mid || h.best);
+function histSvg(ctx, days) {
+  const all = ctx.hist.filter((h) => h.mid || h.best);
+  const pts = days ? all.slice(-days) : all;
   const effective = (h) => (h.best && h.amount ? h.best / h.amount : null);
-  if (!pts.length) return `<p class="note">History starts with the next rate check.</p>`;
+  if (!pts.length) return `<p class="note">No checks in the last ${days} days yet.</p>`;
   const vals = pts.flatMap((h) => [h.mid, effective(h)]).filter(Boolean);
   const lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.15 || hi * 0.002;
   const fmtD = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
@@ -786,6 +787,19 @@ function histChart(ctx) {
   };
   return `<figure class="hchart">${draw(960, 210, "hc-wide")}${draw(380, 200, "hc-narrow")}
 <figcaption><span class="key mid">Mid-market rate</span><span class="key best">Best rate a service gave, for ${esc(plain(R.money(ctx.amount, ctx.s.currency, 0)))}</span>${pts.length < 7 ? `<span class="key-note">History began ${fmtD(pts[0].d)}; one point is added after each daily check.</span>` : ""}</figcaption></figure>`;
+}
+
+function histChart(ctx) {
+  const all = ctx.hist.filter((h) => h.mid || h.best);
+  if (!all.length) return `<p class="note">History starts with the next rate check.</p>`;
+  const windows = [7, 30, 90];
+  const tabs = windows.map((d, i) => `<button type="button" class="hr-tab${i === 1 ? " is-on" : ""}" data-days="${d}">${d} days</button>`).join("");
+  const panels = windows.map((d, i) => `<div class="hr-panel" data-days="${d}"${i === 1 ? "" : " hidden"}>${histSvg(ctx, d)}</div>`).join("");
+  return `<div class="hist-range" data-hr>
+<div class="hr-tabs" role="tablist" aria-label="Rate history range">${tabs}</div>
+${panels}
+</div>
+<script>(function(){var r=document.querySelector('[data-hr]');if(!r)return;var t=r.querySelectorAll('.hr-tab'),p=r.querySelectorAll('.hr-panel');function s(d){for(var i=0;i<t.length;i++){t[i].classList.toggle('is-on',t[i].getAttribute('data-days')===d);p[i].hidden=p[i].getAttribute('data-days')!==d;}}for(var j=0;j<t.length;j++)t[j].addEventListener('click',function(){s(this.getAttribute('data-days'));});})();</script>`;
 }
 
 // Rate alert sign-up for one route.
