@@ -1704,7 +1704,7 @@
    "city": "national average",
    "roof": "sheet",
    "guideFrom": "southafrica",
-   "note": "Cement is the national average retail bag. Blocks are scaled from a South African retail price and the other lines from Nairobi or Gauteng, so a Lusaka yard should be checked before you treat them as a quote.",
+   "note": "Cement, steel, sand, ballast, paint, internal doors and ceiling boards are published Lusaka prices from the government ZPPA market price index. Blocks, roofing, windows, tiles, kitchen cupboards and the trade rates remain guides scaled from South Africa.",
    "items": {
     "cement": {
      "price": 197,
@@ -1727,6 +1727,36 @@
        "default": true
       }
      ]
+    },
+    "steel": {
+     "price": 24,
+     "source": "10mm bar, 176 ZMW for 12m (about 7.4 kg), about 24 ZMW a kg (ZPPA Q3 2025).",
+     "url": "https://www.zppa.org.zm/documents/20182/258675/Q3+2025+MPI.pdf/5d9cf5c6-0494-4176-9c0e-6d7c134b6b09"
+    },
+    "sand": {
+     "price": 560,
+     "source": "Building sand, 350 ZMW a tonne (ZPPA Q3 2025), taken as about 1.6 tonnes a cubic metre.",
+     "url": "https://www.zppa.org.zm/documents/20182/258675/Q3+2025+MPI.pdf/5d9cf5c6-0494-4176-9c0e-6d7c134b6b09"
+    },
+    "ballast": {
+     "price": 424,
+     "source": "Crushed stone, middle of 276–289 ZMW a tonne (ZPPA Q3 2025), taken as about 1.5 tonnes a cubic metre.",
+     "url": "https://www.zppa.org.zm/documents/20182/258675/Q3+2025+MPI.pdf/5d9cf5c6-0494-4176-9c0e-6d7c134b6b09"
+    },
+    "paint": {
+     "price": 33,
+     "source": "PVA emulsion, 657 ZMW for 20 litres, about 33 ZMW a litre (ZPPA Q3 2025).",
+     "url": "https://www.zppa.org.zm/documents/20182/258675/Q3+2025+MPI.pdf/5d9cf5c6-0494-4176-9c0e-6d7c134b6b09"
+    },
+    "doorIn": {
+     "price": 624,
+     "source": "Internal flush door, about 624 ZMW (ZPPA Q3 2025).",
+     "url": "https://www.zppa.org.zm/documents/20182/258675/Q3+2025+MPI.pdf/5d9cf5c6-0494-4176-9c0e-6d7c134b6b09"
+    },
+    "ceiling": {
+     "price": 335,
+     "source": "Fibre-cement panel 1200×600, 241 ZMW each, about 335 ZMW a square metre (ZPPA Q3 2025).",
+     "url": "https://www.zppa.org.zm/documents/20182/258675/Q3+2025+MPI.pdf/5d9cf5c6-0494-4176-9c0e-6d7c134b6b09"
     }
    },
    "permits": [
@@ -1746,8 +1776,44 @@
    "city": "",
    "roof": "sheet",
    "guideFrom": "southafrica",
-   "note": "Transfers to Zimbabwe on SendFair are shown in US dollars. No checked Zimbabwe shop list was available this month, so every line is a guide scaled from Gauteng or, where Gauteng has no price, from Nairobi. priced in US dollars",
-   "items": {},
+   "note": "Cement, roofing, internal doors, paint, ceiling boards and the mason and labourer day rates are published Harare prices, mostly from hardware listings and The Herald. Steel, blocks, sand, ballast, floor tiles, kitchen cupboards and the other trades remain guides scaled from South Africa.",
+   "items": {
+    "cement": {
+     "price": 15.5,
+     "source": "50kg bag, middle of 15–16 USD (The Herald, Dec 2025).",
+     "url": "https://www.heraldonline.co.zw/cement-prices-ease/"
+    },
+    "roof": {
+     "price": 12.16,
+     "source": "IBR Chromadek sheet, 25.05 USD for 0.686×3m, about 12.16 USD a square metre (Halsteds).",
+     "url": "https://halsteds.co.zw/mutare/ibr-chromadek-sheet-charcoal-grey-0-47mmx686mm-x-3-0m.html"
+    },
+    "doorIn": {
+     "price": 115.73,
+     "source": "Internal flush door, about 115.73 USD (Halsteds).",
+     "url": "https://halsteds.co.zw/kwekwe/door-internal-flush-2032-x-815-x-s-c-h-b-n-e.html"
+    },
+    "paint": {
+     "price": 7.25,
+     "source": "Emulsion paint, middle of 6.5–8 USD a litre (Union Hardware).",
+     "url": "https://unionhardware.co.zw/product-category/paint-decoration/exterior-paint/exterior-emulsion/"
+    },
+    "ceiling": {
+     "price": 9.75,
+     "source": "Rhinoboard 2.7×1.2m, 31.60 USD, about 9.75 USD a square metre (Halsteds).",
+     "url": "https://halsteds.co.zw/borrowdale/rhinoboard-2-7m-x-1-2m-x-12-12-5mm.html"
+    },
+    "mason": {
+     "price": 40,
+     "source": "Skilled trades day rate, middle of 30–50 USD (construction cost breakdown).",
+     "url": "https://www.linkedin.com/posts/sandy-f-bare-42a08a88_construction-tuesdays-with-sandy-f-activity-7335720699661041664-u9U9"
+    },
+    "hand": {
+     "price": 15,
+     "source": "General worker day rate, middle of 10–20 USD (construction cost breakdown).",
+     "url": "https://www.linkedin.com/posts/sandy-f-bare-42a08a88_construction-tuesdays-with-sandy-f-activity-7335720699661041664-u9U9"
+    }
+   },
    "permits": [
     {
      "key": "planFee",
@@ -2017,7 +2083,7 @@
    "city": "Dakar",
    "roof": "sheet",
    "guideFrom": "ghana",
-   "note": "Cement is the Dakar retail range. The other lines are scaled from Greater Accra.",
+   "note": "Cement, steel, blocks, sand, ballast, floor tiles, paint, internal doors, kitchen cupboards and the mason and labourer day rates are published Dakar prices, mostly from the national statistics agency ANSD. Roofing, windows, ceiling boards and the other trades remain guides scaled from Accra.",
    "items": {
     "cement": {
      "price": 4075,
@@ -2047,6 +2113,56 @@
        "url": "https://isd-groups.sn/ciment-a-dakar-prix-marques-et-guide-dachat-complet-2026/"
       }
      ]
+    },
+    "steel": {
+     "price": 506,
+     "source": "Fer 12, about 506 FCFA a kg (ANSD ICC, Nov 2025).",
+     "url": "https://prixdakar.com/construction-a-dakar-les-prix-des-materiaux-au-troisieme-trimestre-2025/"
+    },
+    "blocks": {
+     "price": 475,
+     "source": "Concrete block, middle of 450–500 FCFA (iBarMakina, Dakar).",
+     "url": "https://ibarmakina.com/fr/fabrication-parpaings-rentable-senegal-dakar-cout-par-parpaing/"
+    },
+    "sand": {
+     "price": 6276,
+     "source": "Dune sand, 100,419 FCFA for 16 m³, about 6,276 FCFA a cubic metre (ANSD ICC, Nov 2025).",
+     "url": "https://prixdakar.com/construction-a-dakar-les-prix-des-materiaux-au-troisieme-trimestre-2025/"
+    },
+    "ballast": {
+     "price": 13848,
+     "source": "Gravel 5/15, 110,780 FCFA for 8 m³, about 13,848 FCFA a cubic metre (ANSD ICC, Nov 2025).",
+     "url": "https://prixdakar.com/construction-a-dakar-les-prix-des-materiaux-au-troisieme-trimestre-2025/"
+    },
+    "tiles": {
+     "price": 4597,
+     "source": "Floor ceramic, about 4,597 FCFA a square metre (ANSD, T3 2026).",
+     "url": "https://www.ansd.sn/sites/default/files/2026-11/Note_ICC_T3_2026.pdf"
+    },
+    "paint": {
+     "price": 3467,
+     "source": "Acrylic paint, 52,000 FCFA for 15 litres, about 3,467 FCFA a litre (Amzi Group).",
+     "url": "https://amzi-group.com/produit/peinture-satinee-a600-senegal-pyma-fenix-15l/"
+    },
+    "doorIn": {
+     "price": 111565,
+     "source": "Internal wood door, about 111,565 FCFA (ANSD ICC, Nov 2025).",
+     "url": "https://prixdakar.com/construction-a-dakar-les-prix-des-materiaux-au-troisieme-trimestre-2025/"
+    },
+    "kitchen": {
+     "price": 300000,
+     "source": "Kitchen cupboards, about 300,000 FCFA a metre (Dakarvente listing).",
+     "url": "https://www.dakarvente.com/fr/annonce/19473-cuisines-sur-mesure"
+    },
+    "mason": {
+     "price": 5000,
+     "source": "Mason day rate, about 5,000 FCFA (africarrieres, Aug 2026).",
+     "url": "https://africarrieres.com/senegal/fr/emplois/recrutement-macon"
+    },
+    "hand": {
+     "price": 6000,
+     "source": "Labourer day rate, middle of 4,000–8,000 FCFA (Le Soleil).",
+     "url": "https://lesoleil.sn/"
     }
    },
    "permits": [
@@ -2081,12 +2197,37 @@
    "city": "Abidjan",
    "roof": "sheet",
    "guideFrom": "ghana",
-   "note": "Cement is the official ceiling, so a shop should be at or below it. The other lines are scaled from Greater Accra.",
+   "note": "Cement, blocks, sand, ballast, floor tiles and the mason day rate are published Abidjan prices. Steel, roofing, windows, doors, wall tiles, paint, ceiling boards, kitchen cupboards and the other trades remain guides scaled from Accra.",
    "items": {
     "cement": {
      "price": 3900,
      "source": "Official ceiling for a 50kg bag of CPJ 42.5, FCFA 3,900, in force through 2026.",
      "url": "https://blog.iambeezy.app/fr/prix-ciment-cote-ivoire-tonne-baisse-7000-fcfa-nouveaux-tarifs-2026/"
+    },
+    "blocks": {
+     "price": 450,
+     "source": "Concrete block, middle of 400–500 FCFA (iBarMakina, Abidjan).",
+     "url": "https://ibarmakina.com/fr/fabrication-parpaings-rentable-cote-divoire-cout-par-parpaing/"
+    },
+    "sand": {
+     "price": 9000,
+     "source": "Sand, about 9,000 FCFA a cubic metre (iBarMakina, Abidjan).",
+     "url": "https://ibarmakina.com/fr/fabrication-parpaings-rentable-cote-divoire-cout-par-parpaing/"
+    },
+    "ballast": {
+     "price": 21000,
+     "source": "Gravel 5/15, about 21,000 FCFA a cubic metre (iBarMakina, Abidjan).",
+     "url": "https://ibarmakina.com/fr/fabrication-parpaings-rentable-cote-divoire-cout-par-parpaing/"
+    },
+    "tiles": {
+     "price": 4300,
+     "source": "40×40 floor ceramic, about 4,300 FCFA a square metre (fatali.ci, Abidjan).",
+     "url": "https://fatali.ci/annonce/carreaux-vente-chez-aba-sanitaire"
+    },
+    "mason": {
+     "price": 8000,
+     "source": "Mason day rate, about 8,000 FCFA (jobivoire, Apr 2026).",
+     "url": "https://beta.jobivoire.ci/job/details/macons-3"
     }
    },
    "permits": [
@@ -2108,8 +2249,34 @@
    "city": "Bamako",
    "roof": "sheet",
    "guideFrom": "ivorycoast",
-   "note": "No Bamako shop list was in this month's check. Cement follows the Abidjan ceiling and the other lines follow that guide. Haulage to Bamako usually costs extra.",
-   "items": {},
+   "note": "Cement, blocks, sand, ballast and floor tiles are published Bamako prices, mostly from the national statistics agency INSTAT and the Ministry of Finance. Steel, roofing, windows, doors, paint, ceiling boards, kitchen cupboards and the trade rates remain guides scaled from Abidjan.",
+   "items": {
+    "cement": {
+     "price": 6500,
+     "source": "50kg bag, middle of 6,000–6,500 FCFA (abamako / INSTAT).",
+     "url": "https://instat-mali.org/"
+    },
+    "blocks": {
+     "price": 425,
+     "source": "Concrete block, middle of 400–450 FCFA (iBarMakina, Bamako).",
+     "url": "https://ibarmakina.com/fr/fabrication-parpaings-rentable-mali-bamako-cout-par-parpaing/"
+    },
+    "sand": {
+     "price": 10500,
+     "source": "Sand, about 10,500 FCFA a cubic metre (iBarMakina, Bamako).",
+     "url": "https://ibarmakina.com/fr/fabrication-parpaings-rentable-mali-bamako-cout-par-parpaing/"
+    },
+    "ballast": {
+     "price": 18500,
+     "source": "Gravel, about 18,500 FCFA a cubic metre (iBarMakina, Bamako).",
+     "url": "https://ibarmakina.com/fr/fabrication-parpaings-rentable-mali-bamako-cout-par-parpaing/"
+    },
+    "tiles": {
+     "price": 6156,
+     "source": "Imported 30×30 floor ceramic, about 6,156 FCFA a square metre (Ministry of Finance mercuriale, 2026).",
+     "url": "https://finances.ml/sites/default/files/2026-02/Bulletin%20R%C3%A9sult%20Bko26.pdf"
+    }
+   },
    "permits": [
     {
      "key": "planFee",
@@ -2128,8 +2295,49 @@
    "city": "Douala and Yaoundé",
    "roof": "sheet",
    "guideFrom": "ivorycoast",
-   "note": "No Douala shop list was in this month's check. The Central African franc is pegged to the West African franc, so the Abidjan cement ceiling is used as a guide only.",
-   "items": {},
+   "note": "Cement, steel, blocks, sand, ballast, floor tiles and the mason and labourer day rates are published Douala–Yaoundé prices. Roofing, windows, doors, paint, ceiling boards, kitchen cupboards and the other trades remain guides scaled from Abidjan.",
+   "items": {
+    "cement": {
+     "price": 5200,
+     "source": "50kg bag, middle of 5,100–5,300 FCFA (CemNet / JCE Group, Sep 2025).",
+     "url": "https://www.cemnet.com/News/story/179980/cameroon-launches-new-1mta-cement-plant.html"
+    },
+    "steel": {
+     "price": 500,
+     "source": "Rebar, about 500 FCFA a kg, middle of 450,000–550,000 FCFA a tonne (Infos Pratiques CM, 2025), divided by 1000.",
+     "url": "https://infospratiques.cm/prix-fer-beton-cameroun/"
+    },
+    "blocks": {
+     "price": 400,
+     "source": "Concrete block, middle of 300–500 FCFA (BRIC Cameroun, Jul 2025).",
+     "url": "https://fr.linkedin.com/posts/bric-cameroun_maison-construction-desconstructionsquidurent-activity-7351439201378181120-j3_B"
+    },
+    "sand": {
+     "price": 6400,
+     "source": "Sand, from 4,000 FCFA a tonne (MINHDU, 2025), taken as about 1.6 tonnes a cubic metre.",
+     "url": "https://www.minhdu.gov.cm/"
+    },
+    "ballast": {
+     "price": 10875,
+     "source": "Aggregate, about 7,250 FCFA a tonne (Le360 Afrique, May 2025), taken as about 1.5 tonnes a cubic metre.",
+     "url": "https://afrique.le360.ma/economie/cameroun-le-prix-des-materiaux-de-construction-demolit-le-reve-de-construire-sa-propre-maison_5CK3GS2ZIJFA7FT5OPKB6HJKSY/"
+    },
+    "tiles": {
+     "price": 12850,
+     "source": "60×60 floor ceramic, middle of 12,500–13,200 FCFA a square metre (Afribobo, Douala).",
+     "url": "https://www.afribobo.com/douala/carreaux-marbre-design-tapis-60x60cm-127107.html"
+    },
+    "mason": {
+     "price": 6000,
+     "source": "Mason day rate, about 6,000 FCFA (Job Cameroun, Yaoundé, Apr 2026).",
+     "url": "https://job-cameroun.com/offre/1173-odza-blondo-yaounde-besoin-de-3-macons-6000-fcfa-jour-et-2-man-uvres"
+    },
+    "hand": {
+     "price": 3500,
+     "source": "Labourer day rate, about 3,500 FCFA (Taf4All, Douala).",
+     "url": "https://www.taf4all.fr/offre/732135-recherche-a-logbessou-secteur-temoins-de-jehovah-de-2-macons-pour-des-travaux-de"
+    }
+   },
    "permits": [
     {
      "key": "planFee",
@@ -2152,8 +2360,47 @@
    "city": "Addis Ababa",
    "roof": "sheet",
    "guideFrom": "kenya",
-   "note": "No Addis retail list was reliable enough to quote this month. Every line is a guide scaled from Nairobi prices.",
-   "items": {},
+   "note": "Cement, steel and paint are published Addis Ababa prices. Blocks, floor tiles and the mason day rate are published estimates and are tagged as guides. Roofing, sand, ballast, windows, doors, ceiling boards, kitchen cupboards and the other trades remain guides scaled from Nairobi.",
+   "items": {
+    "cement": {
+     "price": 525,
+     "source": "50kg bag, about 525 ETB (Birr Metrics, 1,000–1,100 ETB a quintal, Oct 2025, divided by 2).",
+     "url": "https://birrmetrics.com/cement-is-cheaper-than-ever-but-construction-slowdown-casts-long-shadow/"
+    },
+    "steel": {
+     "price": 185,
+     "source": "Local rebar, about 185 ETB a kg (Birr Metrics, Dec 2025).",
+     "url": "https://birrmetrics.com/local-rebar-meets-standards-yet-imports-still-win-the-market/"
+    },
+    "blocks": {
+     "price": 60,
+     "guide": true,
+     "source": "Machine-made block, about 60 ETB (iBarMakina, vendor estimate).",
+     "url": "https://ibarmakina.com/en/block-making-business-profitable-ethiopia-cost-per-block/"
+    },
+    "tiles": {
+     "price": 1250,
+     "guide": true,
+     "source": "Standard 30×30 ceramic, middle of 1,000–1,500 ETB a square metre (published estimate).",
+     "url": "https://www.scribd.com/document/954302585/FInishing-Materials-and-Terms-With-Standard-Codes"
+    },
+    "paint": {
+     "price": 235,
+     "source": "Emulsion paint, 4,700 ETB for 20 litres, about 235 ETB a litre (Meda Group).",
+     "url": "https://erp.360ground.com/shop/trd-0054-emulsion-paint-white-20l-2871"
+    },
+    "ceiling": {
+     "price": 804,
+     "source": "Gypsum board, about 2,010 ETB for a 2.5 m² board, about 804 ETB a square metre (manufacturingafrica).",
+     "url": "https://manufacturingafrica.org/wp-content/uploads/2025/08/localisation-of-construction-input-materials-ethiopia.pdf"
+    },
+    "mason": {
+     "price": 650,
+     "guide": true,
+     "source": "Skilled mason day rate, middle of 550–750 ETB (published estimate).",
+     "url": "https://www.scribd.com/document/954302583/Unti-Rate-for-Finishing"
+    }
+   },
    "permits": [
     {
      "key": "planFee",
@@ -2438,8 +2685,42 @@
    "city": "",
    "roof": "sheet",
    "guideFrom": "kenya",
-   "note": "No Kinshasa or Lubumbashi price list was in this month's check. Every line is a guide scaled from Nairobi, and transport inside DR Congo can dwarf it. no shop list this month",
-   "items": {},
+   "note": "Cement and the steel and trade rates are published Kinshasa prices. Blocks, floor tiles and kitchen cupboards are supplier prices quoted in US dollars and changed to CDF at about 2,800 CDF/USD, so they are tagged as guides. Roofing, windows, doors, sand, ballast, paint and ceiling boards remain guides scaled from Nairobi.",
+   "items": {
+    "cement": {
+     "price": 24000,
+     "source": "50kg grey bag, about 24,000 CDF (Agence Congolaise de Presse, Jan 2026).",
+     "url": "https://acp.cd/business/kinshasa-hausse-de-14-du-prix-du-ciment-gris-sur-le-marche/"
+    },
+    "steel": {
+     "price": 3485,
+     "source": "Ø10 bar, 25,793 CDF a piece (CAID bulletin, Dec 2025), taken as about 7.4 kg a bar.",
+     "url": "https://www.caid.cd/"
+    },
+    "blocks": {
+     "price": 2590,
+     "guide": true,
+     "source": "Concrete block, about 0.925 USD (iBarMakina), about 2,590 CDF at 2,800 CDF/USD.",
+     "url": "https://ibarmakina.com/fr/fabrication-parpaings-rentable-rdc-kinshasa-cout-par-parpaing/"
+    },
+    "tiles": {
+     "price": 47600,
+     "guide": true,
+     "source": "60×60 floor porcelain, about 17 USD a square metre (KinBrique), about 47,600 CDF at 2,800 CDF/USD.",
+     "url": "https://kinbrique.com/index.php/product/carrelage-sol-porcelaine-brillant-60x60/"
+    },
+    "kitchen": {
+     "price": 546000,
+     "guide": true,
+     "source": "Kitchen cupboards, about 195 USD a metre (Wappy.cd), about 546,000 CDF at 2,800 CDF/USD.",
+     "url": "https://www.wappy.cd/petites-annonces/kinshasa/meuble-cuisine/6171"
+    },
+    "mason": {
+     "price": 25000,
+     "source": "Mason day rate, middle of 20,000–30,000 CDF (Agence Congolaise de Presse, Jan 2026).",
+     "url": "https://acp.cd/business/kinshasa-la-jeunesse-encouragee-a-sinvestir-dans-des-travaux-manuels-pour-lautonomie-financiere/"
+    }
+   },
    "permits": [
     {
      "key": "planFee",
