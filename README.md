@@ -1,6 +1,6 @@
 # SendFair
 
-Money transfer comparison for the African diaspora: 11 sending countries/regions (US, UK, Canada, Australia, Europe, plus the Gulf: UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman) × 17 receiving countries (Nigeria, Ghana, Kenya, Uganda, Zambia, Zimbabwe, Egypt, Morocco, Senegal, Côte d'Ivoire, Mali, Cameroon, Ethiopia, South Africa, Tanzania, DR Congo, Rwanda) = 187 route pages, 167 with live quotes. Services are ranked by how much the family actually receives.
+Money transfer comparison for the African diaspora: 5 sending countries/regions (US, UK, Canada, Australia, Europe) × 17 receiving countries (Nigeria, Ghana, Kenya, Uganda, Zambia, Zimbabwe, Egypt, Morocco, Senegal, Côte d'Ivoire, Mali, Cameroon, Ethiopia, South Africa, Tanzania, DR Congo, Rwanda) = 85 route pages. Services are ranked by how much the family actually receives, and every quote is refreshed automatically from Wise's comparison data.
 
 The Gulf guide at `/send-money-from-the-gulf/` compares the ways of sending from the Gulf (exchange houses, bank remittance services, mobile wallets, apps, cash networks) using the quotes you enter on Gulf routes.
 
