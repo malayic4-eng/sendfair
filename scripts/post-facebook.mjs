@@ -22,9 +22,29 @@ if (!posts.length) {
   process.exit(0);
 }
 
+let resolvedPageToken = null;
+async function resolvePageToken() {
+  if (resolvedPageToken) return resolvedPageToken;
+  try {
+    const res = await fetch(`https://graph.facebook.com/${version}/me/accounts?access_token=${token}`);
+    const data = await res.json();
+    const page = (data.data || []).find((p) => String(p.id) === String(pageId));
+    if (page && page.access_token) {
+      resolvedPageToken = page.access_token;
+      return resolvedPageToken;
+    }
+    console.error("Page not found in /me/accounts; falling back to the provided token.");
+  } catch (e) {
+    console.error("Page-token lookup failed:", e.message);
+  }
+  resolvedPageToken = token;
+  return resolvedPageToken;
+}
+
 async function postOne(p) {
+  const pageToken = await resolvePageToken();
   const message = [p.long, p.tags].filter(Boolean).join("\n\n");
-  const body = new URLSearchParams({ message, access_token: token });
+  const body = new URLSearchParams({ message, access_token: pageToken });
   const res = await fetch(`https://graph.facebook.com/${version}/${pageId}/feed`, { method: "POST", body });
   const data = await res.json();
   if (!res.ok || data.error) {
