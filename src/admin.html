@@ -262,7 +262,7 @@ $("post-copy").onclick=function(){var t=$("post");try{navigator.clipboard.writeT
 /* clicks */
 $("clicks-load").onclick=function(){
   var key=store.get("sf-stats","");if(!key){$("clicks").innerHTML='<p class="muted">Save your stats key in step 1 first.</p>';return}
-  fetch("../api/stats?key="+encodeURIComponent(key)).then(function(r){return r.ok?r.json():r.json().then(function(e){throw new Error(e.error||r.status)})}).then(function(d){
+  fetch("../api/stats",{headers:{Authorization:"Bearer "+key}}).then(function(r){return r.ok?r.json():r.json().then(function(e){throw new Error(e.error||r.status)})}).then(function(d){
     var rows=(d.clicks||[]).sort(function(a,b){return b.count-a.count});
     $("clicks").innerHTML=rows.length?'<table style="min-width:0"><thead><tr><th scope="col">Route</th><th scope="col">Provider</th><th scope="col">Clicks</th></tr></thead><tbody>'+rows.map(function(x){return"<tr><td>"+esc(x.route)+"</td><td>"+esc((S.pmap[x.provider]||{}).name||x.provider)+"</td><td>"+x.count+"</td></tr>"}).join("")+"</tbody></table>":'<p class="muted">No clicks recorded for '+esc(d.month)+" yet.</p>";
   }).catch(function(e){$("clicks").innerHTML='<p class="muted">Could not load clicks: '+esc(e.message)+". Check click tracking is switched on and the stats key matches.</p>"});

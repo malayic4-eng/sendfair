@@ -67,6 +67,16 @@ export async function onRequestPost(context) {
   const email = String(body.email || "").trim().toLowerCase();
   const route = String(body.route || "");
   const amount = Number(body.amount), target = Number(body.target);
+  if (env.TURNSTILE_SECRET) {
+    const token = String(body.turnstile || body["cf-turnstile-response"] || "");
+    if (!token) return json({ error: "Please complete the captcha." }, 400);
+    const vr = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: token })
+    }).then((r) => r.json()).catch(() => null);
+    if (!vr || !vr.success) return json({ error: "Captcha failed. Try again." }, 400);
+  }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 200) return json({ error: "Enter a valid email address." }, 400);
   if (!(amount > 0 && amount <= 100000)) return json({ error: "Enter the amount you plan to send." }, 400);
   if (!(target > 0)) return json({ error: "Enter the amount you want them to receive." }, 400);
@@ -101,7 +111,7 @@ export async function onRequestPost(context) {
     return json({ error: "Email alerts aren't available yet. Please try again later." }, 503);
   }
 
-  await kv.put(`alert:${id}`, JSON.stringify(a), { expirationTtl: 365 * DAY });
+  await kv.put(`alert:${id}`, JSON.stringify(a), { expirationTtl: 7 * DAY });
   return json({ ok: true, pending: !a.confirmSent });
 }
 
@@ -134,18 +144,23 @@ export function onStop(context) {
 
 export async function onStats(context) {
   const { env, request } = context;
-  const key = new URL(request.url).searchParams.get("key");
+  const auth = request.headers.get("Authorization") || "";
+  const key = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!env.STATS_KEY || key !== env.STATS_KEY) return json({ error: "Not allowed." }, 403);
   if (!env.SENDFAIR_KV) return json({ error: "Storage is not switched on." }, 503);
-  const list = await env.SENDFAIR_KV.list({ prefix: "alert:" });
   const byRoute = {};
-  let confirmed = 0;
-  for (const k of list.keys) {
-    const a = JSON.parse((await env.SENDFAIR_KV.get(k.name)) || "{}");
-    byRoute[a.route] = (byRoute[a.route] || 0) + 1;
-    if (a.confirmed) confirmed++;
-  }
-  return json({ total: list.keys.length, confirmed, emailSending: !!env.EMAIL, byRoute });
+  let confirmed = 0, total = 0, cursor;
+  do {
+    const page = await env.SENDFAIR_KV.list({ prefix: "alert:", cursor });
+    for (const k of page.keys) {
+      const a = JSON.parse((await env.SENDFAIR_KV.get(k.name)) || "{}");
+      byRoute[a.route] = (byRoute[a.route] || 0) + 1;
+      if (a.confirmed) confirmed++;
+      total++;
+    }
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor);
+  return json({ total, confirmed, emailSending: !!env.EMAIL, byRoute });
 }
 
 // Runs from the Worker's daily schedule: sends pending confirmation emails and fires reached alerts.
@@ -161,7 +176,7 @@ export async function runAlerts(env, origin = "https://sendfair.africa") {
       const a = JSON.parse(raw);
       const rn = routeName(a.route, data);
       if (!a.confirmed) {
-        if (!a.confirmSent && (await sendMail(env, confirmMail(a, origin, rn)))) { a.confirmSent = true; confirmations++; await kv.put(k.name, JSON.stringify(a), { expirationTtl: 365 * DAY }); }
+        if (!a.confirmSent && (await sendMail(env, confirmMail(a, origin, rn)))) { a.confirmSent = true; confirmations++; await kv.put(k.name, JSON.stringify(a), { expirationTtl: 7 * DAY }); }
         continue;
       }
       const best = bestFor(data, a.route, a.amount);

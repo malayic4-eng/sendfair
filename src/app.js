@@ -755,6 +755,7 @@
       var msg = $("sf-alert-msg"), btn = af.querySelector("button");
       var via = (af.querySelector('input[name="sf-alert-via"]:checked') || {}).value || "email";
       var body = { route: af.getAttribute("data-route"), email: af.email.value.trim(), amount: parseFloat(af.amount.value), target: parseFloat(af.target.value), via: via, whatsapp: (af.whatsapp && af.whatsapp.value || "").trim() };
+      if (window.turnstile) { var tk = window.turnstile.getResponse(); if (!tk) { msg.textContent = "Please complete the captcha."; return; } body.turnstile = tk; }
       if (via === "whatsapp") {
         if (!/^\+?[0-9\s-]{8,}$/.test(body.whatsapp)) { msg.textContent = "Enter a WhatsApp number with country code."; $("sf-alert-wa").focus(); return; }
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.email)) { msg.textContent = "Enter a valid email address."; af.email.focus(); return; }

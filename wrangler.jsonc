@@ -9,8 +9,8 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    // Lets the script below send www.sendfair.africa visitors to sendfair.africa.
-    "run_worker_first": true
+    // Run the Worker for admin, API, redirect and logo routes (the www redirect is a Cloudflare rule).
+    "run_worker_first": ["/admin*", "/api/*", "/go/*", "/logos/*"]
   },
   // The site's own address. www is forwarded to the main address.
   "routes": [
@@ -24,7 +24,7 @@
   "send_email": [{ "name": "EMAIL" }],
   // AI helper (chat assistant) powered by Cloudflare Workers AI.
   "ai": { "binding": "AI" },
-  // Rate alerts run after the morning (09:37) and evening (19:37) Nairobi rate checks.
+  // Rate alerts run after the morning (11:30) and evening (21:30) Nairobi rate checks.
   "triggers": { "crons": ["30 8 * * *", "30 18 * * *"] },
   "observability": { "enabled": true },
   // Keep settings added in the Cloudflare dashboard (such as ADMIN_PASSWORD) when a new version deploys.

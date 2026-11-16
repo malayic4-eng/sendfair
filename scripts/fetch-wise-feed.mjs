@@ -1,5 +1,5 @@
-// Optional: pulls Wise's Comparison API (prices of many providers, collected by Wise) into data/wise-feed.json.
-// The Rate Desk shows these as suggestions you can accept with one click. It never publishes quotes by itself.
+// Pulls Wise's Comparison API (prices of many providers, collected by Wise) into data/wise-feed.json.
+// apply-wise-feed.mjs then publishes these automatically on a 30-minute schedule.
 // Needs a GitHub secret named WISE_API_TOKEN. Without it, this script does nothing.
 // API reference: https://docs.wise.com/api-reference/comparison
 import fs from "node:fs";

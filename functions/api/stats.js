@@ -1,10 +1,12 @@
-// GET /api/stats?key=<STATS_KEY>&month=YYYY-MM  -> click counts per route and service. Private: needs the STATS_KEY variable.
+// GET /api/stats?month=YYYY-MM  -> click counts per route and service. Private: needs the STATS_KEY via Authorization: Bearer.
 import { json, month } from "../_lib.js";
 
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const expected = context.env.STATS_KEY;
-  if (!expected || url.searchParams.get("key") !== expected) return json({ error: "Wrong or missing stats key" }, 401);
+  const auth = context.request.headers.get("Authorization") || "";
+  const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  if (!expected || bearer !== expected) return json({ error: "Wrong or missing stats key" }, 401);
   const kv = context.env.SENDFAIR_KV;
   const m = /^\d{4}-\d{2}$/.test(url.searchParams.get("month") || "") ? url.searchParams.get("month") : month();
   if (!kv) return json({ month: m, clicks: [], note: "Storage is not connected yet." });
@@ -12,11 +14,13 @@ export async function onRequestGet(context) {
   const counts = {};
   let cursor;
   do {
-    const page = await kv.list({ prefix: `clicks:${m}:`, cursor });
+    const page = await kv.list({ prefix: `clicks:${m}-`, cursor });
     for (const k of page.keys) {
-      const [, , route, provider] = k.name.split(":");
+      const parts = k.name.split(":");
+      const route = parts[2], provider = parts[3];
+      const count = Number(await kv.get(k.name) || 0);
       const key = `${route}\u0000${provider}`;
-      counts[key] = (counts[key] || 0) + 1;
+      counts[key] = (counts[key] || 0) + count;
     }
     cursor = page.list_complete ? null : page.cursor;
   } while (cursor);

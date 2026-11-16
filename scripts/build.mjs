@@ -829,6 +829,7 @@ function alertForm(ctx) {
 <div class="af-row"><label>When <span class="af-cur">${ctx.s.currency}</span> <input name="amount" type="number" min="1" step="any" inputmode="decimal" value="${ctx.amount}" required aria-label="Amount you send"></label>
 <label>delivers at least <span class="af-cur">${ctx.r.currency}</span> <input name="target" type="number" min="1" step="any" inputmode="decimal" value="${target}" required aria-label="Amount you want them to receive"></label></div>
 <div class="af-row"><label class="af-email">email me at <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label><button type="submit" class="btn">Set alert</button></div>
+${config.turnstileSiteKey ? `<div class="cf-turnstile" data-sitekey="${esc(config.turnstileSiteKey)}"></div><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>` : ""}
 <p class="note">We check once after each daily rate check and email you once when the best service reaches your target. One email to confirm, an unsubscribe link in every email, and nothing else. <a href="../../privacy/">Privacy</a></p>
 <p class="af-msg" id="sf-alert-msg" role="status"></p></form>`;
 }
@@ -1715,6 +1716,7 @@ write("_headers", `/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://pagead2.googlesyndication.com https://adtrafficquality.google https://static.cloudflareinsights.com https://translate.google.com https://impactcdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://pagead2.googlesyndication.com https://www.googletagmanager.com https://www.clarity.ms https://translate.google.com https://adtrafficquality.google https://www.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://www.clarity.ms https://pagead2.googlesyndication.com https://adtrafficquality.google https://static.cloudflareinsights.com https://translate.google.com https://impactcdn.com; frame-src https://pagead2.googlesyndication.com https://www.doubleclick.net; font-src 'self' https://fonts.gstatic.com data:
 /data/*
   Cache-Control: public, max-age=300
 /assets/fonts/*

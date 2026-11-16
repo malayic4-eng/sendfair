@@ -1,6 +1,6 @@
 // GET /go/<provider>?r=<route>  -> counts the click, then sends the visitor to the provider (affiliate link if set).
 // An affiliateUrl may contain {route}, which is replaced with the route so networks can report earnings per route.
-import { month, siteData } from "../_lib.js";
+import { siteData } from "../_lib.js";
 
 export async function onRequestGet(context) {
   const id = String(context.params.provider || "");
@@ -15,9 +15,11 @@ export async function onRequestGet(context) {
 
   const kv = context.env.SENDFAIR_KV;
   if (kv) {
-    const key = `clicks:${month()}:${safeRoute}:${id}:${crypto.randomUUID()}`;
+    const day = new Date().toISOString().slice(0, 10);
+    const key = `clicks:${day}:${safeRoute}:${id}`;
     context.waitUntil((async () => {
-      await kv.put(key, "1", { expirationTtl: 60 * 60 * 24 * 400 });
+      const n = Number(await kv.get(key) || 0);
+      await kv.put(key, String(n + 1), { expirationTtl: 60 * 60 * 24 * 400 });
     })());
   }
   return new Response(null, {

@@ -7,6 +7,7 @@ import * as stats from "../functions/api/stats.js";
 import * as go from "../functions/go/[provider].js";
 import * as alert from "../functions/api/alert.js";
 import * as ask from "../functions/api/ask.js";
+import { sha256 } from "../functions/_lib.js";
 
 // Each service's own icon, as published on its website, fetched once by this Worker (via Google's
 // favicon service) and cached at Cloudflare. Visitors' browsers only ever talk to sendfair.africa.
@@ -47,7 +48,7 @@ async function logo(id, request, ctx) {
 
 // ---- Rate Desk sign-in ----
 const SESSION_COOKIE = "sf_admin";
-const SESSION_DAYS = 30;
+const SESSION_DAYS = 7;
 const enc = new TextEncoder();
 
 function sameBytes(x, y) {
@@ -72,7 +73,7 @@ async function validSession(request, env) {
   const raw = readCookie(request, SESSION_COOKIE);
   const [exp, sig] = raw.split(".");
   if (!exp || !sig || !(Number(exp) > Date.now())) return false;
-  return sameBytes(sig, await sign(env.ADMIN_PASSWORD, "rate-desk:" + exp));
+  return sameBytes(sig, await sign(env.ADMIN_PASSWORD, "rate-desk:" + exp + ":" + (env.SESSION_VERSION || "1")));
 }
 function loginPage(message, status = 401) {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -92,17 +93,30 @@ p{color:#b00020;font-size:.9rem;margin:.75rem 0 0}</style></head><body>
 async function adminGate(request, env, url) {
   const noStore = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
   if (!env.ADMIN_PASSWORD) return new Response("The Rate Desk is locked. Add the secret ADMIN_PASSWORD in Cloudflare to open it.", { status: 401, headers: noStore });
+  const kv = env.SENDFAIR_KV;
   const path = url.pathname.replace(/\/+$/, "");
   if (path === "/admin/logout") {
+    if (request.method !== "POST") return new Response("Method not allowed.", { status: 405, headers: noStore });
     return new Response(null, { status: 303, headers: { ...noStore, Location: "/admin/", "Set-Cookie": `${SESSION_COOKIE}=; Path=/admin; Max-Age=0; HttpOnly; Secure; SameSite=Strict` } });
   }
   if (path === "/admin/login") {
     if (request.method !== "POST") return Response.redirect(url.origin + "/admin/", 303);
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const ipKey = "rl:admin:" + (await sha256(ip)).slice(0, 16);
+    if (kv) {
+      const fails = Number(await kv.get(ipKey) || 0);
+      if (fails >= 5) return loginPage("Too many attempts. Try again in 15 minutes.", 429);
+    }
     let pass = "";
     try { pass = String((await request.formData()).get("password") || ""); } catch (e) {}
-    if (!sameBytes(pass, env.ADMIN_PASSWORD)) return loginPage("Wrong password. Try again.");
+    if (!sameBytes(pass, env.ADMIN_PASSWORD)) {
+      if (kv) await kv.put(ipKey, String(Number(await kv.get(ipKey) || 0) + 1), { expirationTtl: 15 * 60 });
+      return loginPage("Wrong password. Try again.");
+    }
+    if (kv) await kv.delete(ipKey);
     const exp = String(Date.now() + SESSION_DAYS * 86400000);
-    const cookie = `${SESSION_COOKIE}=${exp}.${await sign(env.ADMIN_PASSWORD, "rate-desk:" + exp)}; Path=/admin; Max-Age=${SESSION_DAYS * 86400}; HttpOnly; Secure; SameSite=Strict`;
+    const version = env.SESSION_VERSION || "1";
+    const cookie = `${SESSION_COOKIE}=${exp}.${await sign(env.ADMIN_PASSWORD, "rate-desk:" + exp + ":" + version)}; Path=/admin; Max-Age=${SESSION_DAYS * 86400}; HttpOnly; Secure; SameSite=Strict`;
     return new Response(null, { status: 303, headers: { ...noStore, Location: "/admin/", "Set-Cookie": cookie } });
   }
   if (await validSession(request, env)) return null;
@@ -117,10 +131,6 @@ async function adminGate(request, env, url) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.hostname === "www.sendfair.africa") {
-      url.hostname = "sendfair.africa";
-      return Response.redirect(url.toString(), 301);
-    }
     // The Rate Desk is private: it asks for a password set in Cloudflare as the secret ADMIN_PASSWORD.
     // Sign-in is a normal page with a password box; a signed cookie then keeps the browser signed in for 30 days.
     if (/^\/admin(\/|$)/.test(url.pathname)) {

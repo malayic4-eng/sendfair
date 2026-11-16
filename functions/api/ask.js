@@ -1,7 +1,7 @@
 // AI helper: a small chat that answers questions about rates, routes and house costs using the
 // site's own live data, grounded through Cloudflare Workers AI. If the AI binding is missing it
 // degrades gracefully instead of erroring.
-import { json } from "../_lib.js";
+import { json, sha256 } from "../_lib.js";
 import R from "../../src/rank.js";
 
 const MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
@@ -89,6 +89,16 @@ export async function onRequestPost(context) {
   try { body = await request.json(); } catch {}
   const question = String(body.question || body.q || "").trim().slice(0, 500);
   if (!question) return json({ error: "Ask a question." }, 400);
+
+  const reqOrigin = request.headers.get("Origin") || "";
+  if (reqOrigin && reqOrigin !== "https://sendfair.africa") return json({ error: "Not allowed." }, 403);
+  if (env.SENDFAIR_KV) {
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const ipKey = "rl:ask:" + (await sha256(ip)).slice(0, 16) + ":" + Math.floor(Date.now() / 3600000);
+    const n = Number(await env.SENDFAIR_KV.get(ipKey) || 0);
+    if (n >= 20) return json({ error: "Too many questions. Try again in an hour." }, 429);
+    await env.SENDFAIR_KV.put(ipKey, String(n + 1), { expirationTtl: 3600 });
+  }
 
   const [corridors, quotes, mid, buildCosts, config, providersFile, wiseFeed] = await Promise.all([
     load(env, origin, "/data/corridors.json"),

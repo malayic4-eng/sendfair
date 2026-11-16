@@ -104,8 +104,8 @@ Clicks: "Go to" buttons pass through `/go/...`, which counts the click and forwa
 
 To switch either off, set `reportsEnabled` or `trackClicks` to `false` in `config.json`.
 
-### Wise comparison feed (saves typing)
-If you get a Wise API token (Wise account → Settings → API tokens), add it in GitHub → **Settings → Secrets and variables → Actions → New repository secret** named `WISE_API_TOKEN`. Every 30 minutes the workflow saves Wise's collected quotes for many providers, and the Rate Desk shows them as **Feed** suggestions with a **Use** button. Always compare with the provider's own calculator before accepting. This part could only be tested once a token exists; if the first run shows errors in the Actions log, send them to me.
+### Wise comparison feed (automatic)
+If you get a Wise API token (Wise account → Settings → API tokens), add it in GitHub → **Settings → Secrets and variables → Actions → New repository secret** named `WISE_API_TOKEN`. Every 30 minutes the workflow fetches Wise's collected quotes for many providers and publishes them automatically, marked "(auto)" on the site. If the first run shows errors in the Actions log, send them to me.
 
 ### Analytics
 Cloudflare → **Web Analytics** → add site → copy the token into `cfAnalyticsToken`. It uses no cookies.
