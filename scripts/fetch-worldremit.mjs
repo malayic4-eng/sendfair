@@ -1,6 +1,7 @@
 // Scrapes WorldRemit's public web quote for each SendFair route using a headless browser
 // (WorldRemit renders its rate with JavaScript, so a plain fetch returns no rate).
-// Writes data/worldremit-quotes.json, which the build merges into the comparison.
+// Writes data/worldremit-quotes.json (merged into the comparison by the build) and, for the
+// first few routes, data/worldremit-debug.txt (the raw page text, used to tune fee parsing).
 // Run by .github/workflows/worldremit.yml on a schedule.
 import fs from "node:fs";
 import path from "node:path";
@@ -22,7 +23,6 @@ const SEND = {
   australia: { cc: "au", cur: "AUD" },
   europe: { cc: "de", cur: "EUR" },
 };
-// SendFair receiver id -> WorldRemit receive country code + currency.
 const RECV = {
   nigeria: { cc: "ng", cur: "NGN" }, ghana: { cc: "gh", cur: "GHS" }, kenya: { cc: "ke", cur: "KES" },
   uganda: { cc: "ug", cur: "UGX" }, zambia: { cc: "zm", cur: "ZMW" }, zimbabwe: { cc: "zw", cur: "USD" },
@@ -48,28 +48,26 @@ async function scrape(browser, job) {
   const page = await browser.newPage();
   try {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
-    await page.waitForTimeout(6000); // let the JavaScript quote render
+    await page.waitForTimeout(6000);
     const text = await page.evaluate(() => (document.body ? document.body.innerText : ""));
     const rate = parseRate(text, job.from.cur, job.to.cur);
-    if (!rate || rate <= 0) return null;
-    return { provider: "worldremit", rate, feeFixed: 0, feePct: 0, payout: ["bank"], speed: "", note: "Updated automatically from WorldRemit; confirm on the provider's site", refAmount: job.amount, checkedAt: new Date().toISOString(), source: "worldremit" };
+    const quote = (rate && rate > 0)
+      ? { provider: "worldremit", rate, feeFixed: 0, feePct: 0, payout: ["bank"], speed: "", note: "Updated automatically from WorldRemit; confirm on the provider's site", refAmount: job.amount, checkedAt: new Date().toISOString(), source: "worldremit" }
+      : null;
+    return { quote, text };
   } catch (e) {
     console.log(`${job.route}: ${e && e.message}`);
-    return null;
+    return { quote: null, text: "" };
   } finally {
     await page.close();
   }
 }
 
-// Small concurrency pool so the whole run stays fast.
 async function pool(jobs, limit, fn) {
   const results = new Array(jobs.length);
   let i = 0;
   const workers = Array.from({ length: limit }, async () => {
-    while (i < jobs.length) {
-      const idx = i++;
-      results[idx] = await fn(jobs[idx]);
-    }
+    while (i < jobs.length) { const idx = i++; results[idx] = await fn(jobs[idx]); }
   });
   await Promise.all(workers);
   return results;
@@ -77,15 +75,14 @@ async function pool(jobs, limit, fn) {
 
 const browser = await chromium.launch();
 const out = { updatedAt: new Date().toISOString(), quotes: {} };
+const debug = [];
 let ok = 0, failed = 0;
 try {
-  const results = await pool(jobs, 6, async (job) => {
-    const q = await scrape(browser, job);
-    if (q) return q;
-    return null;
-  });
+  const results = await pool(jobs, 6, (job) => scrape(browser, job));
   for (let i = 0; i < jobs.length; i++) {
-    if (results[i]) { out.quotes[jobs[i].route] = [results[i]]; ok++; } else failed++;
+    if (results[i] && results[i].quote) { out.quotes[jobs[i].route] = [results[i].quote]; ok++; }
+    else failed++;
+    if (i < 4) debug.push("===== " + jobs[i].route + " (" + jobs[i].from.cur + " " + jobs[i].amount + " -> " + jobs[i].to.cur + ") =====\n" + (results[i] ? results[i].text : "(no text)"));
   }
 } finally {
   await browser.close();
@@ -96,5 +93,6 @@ if (!ok) {
   process.exitCode = 1;
 } else {
   fs.writeFileSync(path.join(ROOT, "data/worldremit-quotes.json"), JSON.stringify(out, null, 1) + "\n");
+  fs.writeFileSync(path.join(ROOT, "data/worldremit-debug.txt"), debug.join("\n\n") + "\n");
   console.log(`WorldRemit: ${ok} quotes scraped, ${failed} failed.`);
 }
