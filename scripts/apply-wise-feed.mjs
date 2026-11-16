@@ -21,7 +21,9 @@ try { feed = read("data/wise-feed.json"); } catch { console.log("No Wise feed ye
 const quotesFile = read("data/quotes.json");
 const config = read("config.json");
 const corridors = read("data/corridors.json");
-const providers = new Set(read("data/providers.json").providers.map((p) => p.id));
+const provList = read("data/providers.json").providers;
+const providers = new Set(provList.map((p) => p.id));
+const sendsFrom = Object.fromEntries(provList.map((p) => [p.id, p.sendsFrom || []]));
 const mid = read("data/midmarket.json").rates || {};
 try { Object.assign(mid, read("data/mid-overrides.json").rates || {}); } catch {}
 const cur = Object.fromEntries([...corridors.senders, ...corridors.receivers].map((x) => [x.id, x.currency]));
@@ -37,6 +39,7 @@ for (const [route, list] of Object.entries(feed.routes || {})) {
   for (const [id, f] of Object.entries(list)) {
     const existing = quotesFile.quotes[route] || [];
     if (!providers.has(id) || !(f.rate > 0) || !f.collected || age(f.collected) > FEED_MAX_H) continue;
+    if (sendsFrom[id] && sendsFrom[id].length && !sendsFrom[id].includes(s)) { held.push(`${route} ${id}: does not send from ${s}`); continue; }
     if (m && (f.rate < m * 0.88 || f.rate > m * 1.03)) { held.push(`${route} ${id}: ${f.rate} vs mid ${m.toFixed(4)}`); continue; }
     const mine = existing.filter((q) => q.provider === id);
     const freshHand = mine.some((q) => !isFeed(q) && age(q.checkedAt) < HAND_KEEP_H);
