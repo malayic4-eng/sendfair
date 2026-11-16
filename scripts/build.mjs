@@ -167,6 +167,28 @@ const quotes = quotesFile.quotes || {};
 const isAutoQ = (q) => q.source === "wise-feed" || q.source === "worldremit" || q.source === "scrape" || /^Updated automatically from/.test(q.note || "");
 const handCheckedRoutes = Object.entries(quotes).filter(([, list]) => (list || []).some((q) => !isAutoQ(q))).length;
 const wiseFeedData = readOptional("data/wise-feed.json", { routes: {} });
+const gitDate = (() => { try { return require("child_process").execSync("git log -1 --format=%cs -- scripts/build.mjs config.json", { cwd: ROOT }).toString().trim().slice(0, 10); } catch { return ""; } })();
+const guideByUrl = {};
+for (const a of (readOptional("data/guides.json", { articles: [] }).articles || [])) guideByUrl[`guides/${a.pillar}/${a.slug}/`] = a;
+
+function lastmodFor(u) {
+  if (u.startsWith("send-money/")) {
+    const key = u.slice("send-money/".length).replace(/\/$/, "");
+    const list = quotes[key] || [];
+    const newest = list.reduce((m, q) => (q.checkedAt && (!m || q.checkedAt > m) ? q.checkedAt : m), "");
+    return (newest || quotesFile.updatedAt || "").slice(0, 10);
+  }
+  if (u.startsWith("cost-to-build/")) {
+    const id = u.slice("cost-to-build/".length).replace(/\/$/, "");
+    const c = (buildCosts.countries || {})[id];
+    return (((c && c.updated) || buildCosts.updated) || "").slice(0, 10);
+  }
+  if (u.startsWith("guides/")) {
+    const g = guideByUrl[u];
+    return ((g && g.updated) || gitDate || "").slice(0, 10);
+  }
+  return gitDate;
+}
 const coverage = quotesFile.coverage || {};
 
 // ---------- helpers ----------
@@ -176,6 +198,42 @@ const link = (prefix, p) => { const out = PREVIEW ? prefix + (p === "" ? "index.
 const hrefFor = (prefix) => (p, k) => (config.trackClicks && !DEMO ? `${prefix}go/${encodeURIComponent(p.id)}?r=${encodeURIComponent(k)}` : (p.affiliateUrl || p.website).replace("{route}", k));
 const hasOg = fs.existsSync(path.join(ROOT, "src/og"));
 const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+function routeTitle(s, r, top) {
+  const from = s.short, name = r.name, sc = s.currency, rc = r.currency;
+  if (sc === rc) {
+    const t = `Send money from ${from} to ${name}: compare ${sc} transfer services`;
+    return t.length <= 60 ? t : `Send money ${from} to ${name}: ${sc} transfers`;
+  }
+  let t = top
+    ? `Send money from ${from} to ${name}: best ${sc} to ${rc} rate today`
+    : `Send money from ${from} to ${name}: compare ${sc} to ${rc} transfer services`;
+  if (t.length <= 60) return t;
+  t = top
+    ? `Send money ${from} to ${name}: ${sc} to ${rc} rates today`
+    : `Send money ${from} to ${name}: ${sc} to ${rc} rates`;
+  if (t.length <= 60) return t;
+  return top ? `${from} to ${name} transfers: best ${sc} rate today` : `${from} to ${name}: ${sc} to ${rc} rates`;
+}
+function guideDescription(a) {
+  const pool = [a.seoDescription, a.description, a.lede];
+  for (const s of a.sections || []) for (const p of s.paragraphs || []) pool.push(p);
+  for (const c of pool) {
+    const t = String(c || "").trim();
+    if (t.length >= 110 && t.length <= 155) return t;
+  }
+  let best = pool.map((c) => String(c || "").trim()).sort((x, y) => y.length - x.length)[0] || "";
+  if (best.length > 155) {
+    best = best.slice(0, 155);
+    const i = best.lastIndexOf(" ");
+    if (i > 90) best = best.slice(0, i);
+    best += "…";
+  }
+  return best;
+}
+function compareTitle(A, B) {
+  const t = `${A.name} vs ${B.name}: who sends more money to Africa?`;
+  return t.length <= 60 ? t : `${A.name} vs ${B.name}: who delivers more to Africa?`;
+}
 
 // Logo: the "App Tile". Indigo rounded square, marigold S, and an F whose top bar ends in an arrow (money on its way).
 const tile = (fill, ring, size) => `<svg width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true"><rect x="1" y="1" width="62" height="62" rx="16" fill="${fill}"/><rect x="4.5" y="4.5" width="55" height="55" rx="13" fill="none" stroke="#f6b52b" stroke-width="${ring}" opacity=".7"/><g transform="translate(32 32) scale(1.05) translate(-32 -32)" fill="#f6b52b"><path transform="translate(15.52 42.2) scale(.0275 -.0275)" d="M318 -14Q251 -14 199 0Q147 13 110 40Q73 67 54 107Q34 146 32 197L177 239Q180 195 199 167Q219 139 252 125Q285 112 326 112Q363 112 389 121Q416 130 430 145Q444 161 444 179Q444 202 425 217Q407 232 374 243Q342 253 300 264Q253 276 207 290Q161 304 124 326Q87 349 64 384Q42 419 42 472Q42 535 74 580Q105 625 164 649Q224 674 306 674Q389 674 450 648Q511 623 544 575Q577 528 576 463L430 429Q430 458 422 481Q413 503 397 518Q382 534 358 541Q334 549 303 549Q268 549 244 541Q220 532 208 518Q196 504 196 485Q196 462 215 448Q233 433 267 422Q300 412 342 401Q385 391 430 377Q475 363 513 340Q552 318 576 281Q599 243 599 186Q599 123 566 78Q533 33 470 10Q407 -14 318 -14Z"/><path d="M33.2 22.2h11.2v-2.7l5.6 4.8-5.6 4.8v-2.7h-6.6v3.6h5.6v4.2h-5.6v8.1h-4.6z"/></g></svg>`;
@@ -961,10 +1019,7 @@ for (const s of corridors.senders) {
     const nets = networks(r);
     const rCur = CURNAME[r.currency] || r.currency, sCur = CURNAME[s.currency] || s.currency;
     const amt = plain(R.money(ctx.amount, s.currency, 0));
-    const title = cap(s.currency === r.currency
-      ? `Send money from ${s.short} to ${r.name}: compare ${s.currency} transfer services`
-      : top ? `Send money from ${s.short} to ${r.name}: best ${s.currency} to ${r.currency} rate today`
-      : `Send money from ${s.short} to ${r.name}: compare ${s.currency} to ${r.currency} transfer services`);
+    const title = cap(routeTitle(s, r, top));
     const description = top
       ? `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 4))} by what arrives in ${r.name}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}.`
       : `Compare money transfer services from ${s.short} to ${r.name} by what actually arrives in ${rCur}, after fees and the exchange-rate markup.`;
@@ -1075,7 +1130,7 @@ ${faqBlock(faqs)}
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
     title: `Send money to ${r.name}: today's best rates compared`,
-    description: `Compare money transfers to ${r.name} by what arrives in ${rCur}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}. Today's best service from each country, ${handCheckedRoutes === 0 ? "collected automatically" : "checked by hand"}.`,
+    description: `Compare every service that sends money to ${r.name}, ranked by what actually arrives after fees and the exchange-rate margin. Updated automatically.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   urls.push(rel);
 }
@@ -1168,7 +1223,7 @@ for (const [A, B] of vsPairs()) {
   }
   if (!rows.length) {
     write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
-      title: `${A.name} vs ${B.name}: who sends more money to Africa?`,
+      title: compareTitle(A, B),
       description: `${A.name} vs ${B.name} compared on cost, fees, ways to pay and Trustpilot ratings.`,
       jsonld: [crumbs([[config.siteName, ""], [`${A.name} vs ${B.name}`, rel]])],
       body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav(prefix, [[config.siteName, ""], [`${A.name} vs ${B.name}`, rel]])}<h1>${esc(A.name)} vs ${esc(B.name)}</h1><p>We don't have a current head-to-head for these two on any route we've checked recently. Try again after the next rate check, or read the reviews below.</p><p><a href="${link(prefix, provPath(A))}">${esc(A.name)} review</a> · <a href="${link(prefix, provPath(B))}">${esc(B.name)} review</a></p></article></div></section>` }));
@@ -1216,7 +1271,7 @@ ${crumbNav(prefix, trail)}
 ${faqBlock(faqs)}
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
-    title: `${A.name} vs ${B.name}: who sends more money to Africa?`,
+    title: compareTitle(A, B),
     description: `${A.name} vs ${B.name} on ${rows.length} routes to Africa: today's amounts delivered, fees, ways to pay and Trustpilot ratings, side by side.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   urls.push(rel);
@@ -1368,7 +1423,7 @@ const privacyItems = [
 ].filter(Boolean).join("");
 
 const trust = {
-  "about/": ["About SendFair", "SendFair compares money transfers to Africa and estimates what it costs to build a house back home.", `
+  "about/": ["About SendFair", "Who runs SendFair, how the transfer comparison and the house-cost calculator work, and why the site is independent and free to use.", `
 <h1>About SendFair</h1>
 <p>Sending money home is one of the most regular bills in a diaspora household, and one of the least transparent. A transfer that says "zero fees" can still lose several percent in the exchange rate. A lot of that money is meant for a house, and a contractor's lump sum is just as hard to check.</p>
 <p>SendFair does two things, side by side. It shows how much of a transfer actually lands at home, and it prices a simple house in the country you send to, line by line — materials, trade days, finish and the building permit. We cover the routes most used by Africans sending from the United States, the United Kingdom, Europe, Canada and Australia to ${esc(joinList(corridors.receivers.map((r) => r.name)))}.</p>
@@ -1384,7 +1439,7 @@ const trust = {
 <h2>Corrections</h2>
 <p>If a figure here doesn't match what a provider shows you, tell us with the route, the amount and a screenshot if you can. We recheck it and fix the page, usually the same day.</p>
 <h2>Contact</h2><p>Corrections, partnership enquiries and provider updates: <a href="${link("../", "contact/")}">the contact page</a>.</p>`],
-  "methodology/": ["How we rank", "How SendFair ranks money transfers, and how the house-cost estimate is built.", `
+  "methodology/": ["How we rank", "How SendFair ranks transfers by the amount that arrives, where the quotes come from, and how the house-cost estimate is built.", `
 <h1>How we rank</h1>
 <h2>What we collect</h2>
 <ul><li>The exchange rate each provider quotes on each route, and the amount we checked it for.</li><li>The transfer fee: a fixed amount, a percentage, or both.</li><li>The ways the money can be received (mobile money, bank, cash pickup). Where a provider's rate differs by payout method, we record each one separately.</li><li>The typical delivery time and when we checked.</li></ul>
@@ -1403,13 +1458,13 @@ const trust = {
 <h2>Commissions never change the order</h2><p>Results are sorted only by the amount received. See <a href="${link("../", "disclosure/")}">how we make money</a>.</p>
 <h2>The house estimate</h2>
 <p>The <a href="${link("../", "cost-to-build/")}">cost to build a house</a> is a separate check. It is not a transfer rate. Quantities are for a simple rectangular house. Where a shop list publishes more than one type, the page lets you choose, and the total changes. A listed price is a published figure. A guide is scaled from another country's figure at the mid-market rate, or assumes how much a box, sheet or load covers. Land and the contractor's fee are left out of the receipt. A published whole-house band, where we have one, is shown beside the receipt and includes a contractor. A 10% contingency, a contractor margin where one is published, and the architect's fee can be shown under the receipt and stay out of it until you include them. Economy and luxury change the finish lines only. A steep or distant plot adds a planning allowance to sand and ballast, and a soil test is still required. The finish is in, and so are a septic tank, kitchen cupboards, a wardrobe in each bedroom, a boundary wall, a gate and the building permit published for that country. An architect's professional fee is not a permit and is not included. The wall length is a usual plot for that number of bedrooms, and the same length is used for one floor or two. It is not a structural design.</p>`],
-  "disclosure/": ["How we make money", "SendFair's affiliate and advertising disclosure.", `
+  "disclosure/": ["How we make money", "How SendFair makes money: referral commissions and advertising, and why neither changes the ranking, which is sorted only by how much arrives.", `
 <h1>How we make money</h1>
 <p>SendFair is free to use. We earn money in two ways:</p>
 <ul><li><strong>Referral commissions.</strong> ${hasAffiliate ? 'Some "Go to" buttons are affiliate links. If you open an account and make your first transfer, the provider may pay us a fee. You pay the same either way.' : 'We intend to earn a referral commission from some providers when you sign up through us. Those affiliate links are being added as each provider approves us, and you never pay more.'}</li>${hasAds ? `<li><strong>Advertising.</strong> Some pages show ads served by Google. Ads are labelled as ads, are never placed inside the ranking, and advertisers cannot choose or influence where a service ranks.</li>` : `<li><strong>Advertising.</strong> We don't show ads at the moment. If we ever do, they will be labelled, kept out of the ranking, and this page will say so.</li>`}</ul>
 <p>Neither affects the ranking. Results are sorted only by how much your recipient receives. Providers that pay us nothing appear and rank on the same terms.</p>
 <p>The house-cost pages are not paid for by a supplier or a contractor. Choosing a roof sheet, a door or a tile does not earn us a fee.</p>`],
-  "privacy/": ["Privacy policy", "How SendFair handles your data.", `
+  "privacy/": ["Privacy policy", "How SendFair handles personal data: the little it collects, mostly an email if you set a rate alert, your rights, and how to contact us.", `
 <h1>Privacy policy</h1>
 <p>Last updated ${today}.</p>
 <h2>What we collect and why</h2>
@@ -1418,7 +1473,7 @@ const trust = {
 <p>If you are in the UK or Europe, data protection law gives you the right to ask what we hold about you, to have it corrected or deleted, and to object to its use. You can also complain to your data protection authority (the ICO in the UK). In practice we hold very little: usually only your email address, if you signed up for alerts.</p>
 <h2>Links to providers</h2><p>When you follow a link to a transfer service, that service's own privacy policy applies.</p>
 <h2>Contact</h2><p>For any privacy request, use <a href="${link("../", "contact/")}">the contact page</a>.</p>`],
-  "terms/": ["Terms of use", "Terms for using SendFair.", `
+  "terms/": ["Terms of use", "Who runs SendFair, what the site is and isn't, that it's not financial advice, that rates change, and the law that governs these terms.", `
 <h1>Terms of use</h1>
 <p>Last updated ${today}.</p>
 <p>SendFair provides information to help you compare money transfer services, and an estimate of what it costs to build a simple house back home. It is not financial advice, we are not a money transfer business, and the house figure is not a contractor's quote.</p>
@@ -1426,7 +1481,7 @@ const trust = {
 <p>We work to keep rates accurate, but they change through the day and can differ on the provider's site. Always confirm the final amount, fee and delivery time with the provider before paying. We are not responsible for transfers you make with any provider, or for losses from relying on a rate shown here.</p>
 <p>Delivery-time reports come from other visitors and are shown as they are given.</p>
 <p>Provider names belong to their owners. Their appearance here does not mean they endorse SendFair.</p>${config.legalName || config.companyNumber || config.legalAddress || config.governingLaw ? "<p>" + esc(config.legalName || config.siteName) + (config.companyNumber ? ", company number " + esc(config.companyNumber) : "") + (config.legalAddress ? ", " + esc(config.legalAddress) : "") + "." + (config.governingLaw ? " These terms are governed by " + esc(config.governingLaw) + " law." : "") + "</p>" : ""}`],
-  "cookies/": ["Cookie policy", "How SendFair uses cookies and similar technologies.", `
+  "cookies/": ["Cookie policy", "How SendFair uses cookies: which are essential, which are optional for analytics, ads and affiliate tracking, and how to change your choice.", `
 <h1>Cookie policy</h1>
 <p>SendFair uses a small number of cookies and similar technologies. You can accept or refuse the optional ones from the banner on your first visit, and change your choice at any time from the "Cookie settings" link in the footer.</p>
 <h2>Essential (always on)</h2>
@@ -1434,14 +1489,14 @@ const trust = {
 <h2>Optional (only if you accept)</h2>
 <ul><li>Google Analytics and Microsoft Clarity, to understand how the site is used. Clarity also records how visitors move around the site.</li><li>Google advertising, to show ads, and Impact, an affiliate network that lets a provider credit us for a sign-up.</li></ul>
 <p>Each of those services has its own privacy policy. You can compare rates without the optional ones.</p>`],
-  "accessibility/": ["Accessibility", "How SendFair is built to be accessible.", `
+  "accessibility/": ["Accessibility", "How SendFair is built to be accessible: clear headings, keyboard navigation, labelled controls and screen-reader support, and how to report problems.", `
 <h1>Accessibility</h1>
 <p>We want SendFair to work for everyone, including people who use a screen reader, keyboard-only navigation or other assistive technology.</p>
 <h2>What we do</h2>
 <ul><li>Every page has one clear heading, a "skip to content" link, and text alternatives for images.</li><li>All controls can be used with a keyboard and are labelled.</li><li>Rates are given as text, not only colour.</li><li>Text is styled for strong contrast.</li></ul>
 <h2>Tell us</h2>
 <p>If something is hard to use, email <span class="email">${esc(config.contactEmail)}</span> and we will try to fix it.</p>`],
-  "contact/": ["Contact SendFair", "Corrections, privacy requests and provider updates.", `
+  "contact/": ["Contact SendFair", "How to contact SendFair to correct a rate, make a privacy request, report a provider update, or ask about a partnership.", `
 <h1>Contact</h1>
 <p>Email <span class="email">${esc(config.contactEmail)}</span>. That is the address for a wrong rate, a privacy request, a provider update and a partnership enquiry.</p>
 <h2>A rate that does not match</h2>
@@ -1568,7 +1623,7 @@ function writeGuides() {
   const savedHtml = `<div id="sf-saved" hidden><h2>Saved on this device</h2><ul class="route-links" id="sf-saved-list"></ul></div>`;
   write(indexRel + "index.html", page({
     prefix: "../", canonical: indexRel, rank: false, title: `Guides · ${config.siteName}`,
-    description: "How to compare a transfer by what arrives, and how to read the house-cost calculator.",
+    description: "Guides that explain how to compare a transfer by the amount that arrives and how to read the house-cost calculator.",
     jsonld: [crumbs([[config.siteName, ""], ["Guides", indexRel]])],
     body: `<section class="block page"><div class="wrap"><article class="prose wide">${insertContentAds(`${crumbNav("../", [[config.siteName, ""], ["Guides", indexRel]])}<h1>Guides</h1><p class="lede">Two subjects: comparing a transfer by the amount that arrives, and checking what a house back home costs to build. Each article links to the live page that holds the current figures.</p>${savedHtml}<div class="guide-grid">${pillarCards}</div>${latestHtml}${linkedHtml}`)}</article></div></section>`
   }));
@@ -1579,7 +1634,7 @@ function writeGuides() {
     const built = render({ ...pillar, sections: pillar.sections.concat([{ id: "articles", h: "Articles", paragraphs: ["Open the article that matches the question you have. The calculator or the route page next to it is the current figure."] }]) }, "../../", [[config.siteName, ""], ["Guides", "guides/"], [pillar.title, rel]], []);
     const list = `<ul class="route-links">${children.map((a) => `<li><a href="${link("../../", `guides/${pillar.slug}/${a.slug}/`)}">${esc(a.title)}</a></li>`).join("")}</ul>`;
     write(rel + "index.html", page({
-      prefix: "../../", canonical: rel, rank: false, title: `${pillar.seoTitle || pillar.title} · ${config.siteName}`, description: pillar.seoDescription || pillar.description,
+      prefix: "../../", canonical: rel, rank: false, title: `${pillar.seoTitle || pillar.title} · ${config.siteName}`, description: guideDescription(pillar),
       jsonld: built.ld, body: `${built.toc}<section class="block page"><div class="wrap"><article class="prose wide">${built.html}${list}</article></div></section>`
     }));
     urls.push(rel);
@@ -1589,7 +1644,7 @@ function writeGuides() {
       const ogName = article.og || `guide-${article.pillar}-${article.slug}`;
       write(aRel + "index.html", page({
         prefix: "../../../", canonical: aRel, rank: false, og: ogName, ogType: "article",
-        title: `${article.seoTitle || article.title} · ${config.siteName}`, description: article.seoDescription || article.description,
+        title: `${article.seoTitle || article.title} · ${config.siteName}`, description: guideDescription(article),
         jsonld: pageBuilt.ld, body: `${pageBuilt.toc}<section class="block page"><div class="wrap"><article class="prose" data-guide="${esc(article.slug)}" data-tags="${esc((article.tags || []).join(","))}">${pageBuilt.html}</article></div></section>`
       }));
       urls.push(aRel);
@@ -1600,12 +1655,11 @@ function writeGuides() {
     const rel = `guides/tag/${tag}/`;
     const rows = live.filter((a) => (a.tags || []).includes(tag));
     write(rel + "index.html", page({
-      prefix: "../../../", canonical: rel, rank: false, title: `${tagLabel(tag)} · Guides · ${config.siteName}`,
+      prefix: "../../../", canonical: rel, rank: false, noindex: true, title: `${tagLabel(tag)} · Guides · ${config.siteName}`,
       description: `SendFair guides tagged ${tagLabel(tag)}.`,
       jsonld: [crumbs([[config.siteName, ""], ["Guides", "guides/"], [tagLabel(tag), rel]])],
       body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav("../../../", [[config.siteName, ""], ["Guides", "guides/"], [tagLabel(tag), rel]])}<h1>${esc(tagLabel(tag))}</h1><p class="lede">Guides that share this topic. The order is the order they were written, not a popularity ranking.</p><ul class="route-links">${rows.map((a) => `<li><a href="${link("../../../", `guides/${a.pillar}/${a.slug}/`)}">${esc(a.title)}</a></li>`).join("")}</ul></article></div></section>`
     }));
-    urls.push(rel);
   }
   for (const author of authors) {
     const rel = `guides/author/${author.slug}/`;
@@ -1639,7 +1693,7 @@ function writeGuides() {
   write("data/search.json", JSON.stringify({ items: searchItems }));
   write("search/index.html", page({
     prefix: "../", canonical: "search/", rank: false, title: `Search · ${config.siteName}`,
-    description: "Search SendFair guides, house costs and receiving countries. The words you type stay in this browser.",
+    description: "Search SendFair guides, house costs and receiving countries. The words you type stay in this browser and are not sent to us.",
     jsonld: [crumbs([[config.siteName, ""], ["Search", "search/"]])],
     body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav("../", [[config.siteName, ""], ["Search", "search/"]])}<h1>Search</h1><p class="lede">Guides, house-cost pages and receiving countries. A search is saved only in this browser.</p><form id="sf-search" class="search-form" role="search"><label class="label" for="sf-q">Search</label><input id="sf-q" name="q" type="search" autocomplete="off"><label class="label" for="sf-search-section">Section</label><select id="sf-search-section"><option value="">All</option><option value="guide">Guides</option><option value="house">House costs</option><option value="money">Send money</option></select><button type="submit">Search</button></form><p id="sf-search-suggest" class="tag-row"></p><div id="sf-search-out"></div></article></div></section>`
   }));
@@ -1683,14 +1737,14 @@ function writeHtmlSitemap() {
   }).join("");
   write("sitemap/index.html", page({
     prefix: "../", canonical: "sitemap/", rank: false, title: `All pages · ${config.siteName}`,
-    description: "Every public SendFair page: guides, house costs, routes, services and the pages about the site.",
+    description: "The index of every public SendFair page: money transfer routes, house-build costs, guides and the pages about the site.",
     jsonld: [crumbs([[config.siteName, ""], ["All pages", "sitemap/"]])],
     body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav("../", [[config.siteName, ""], ["All pages", "sitemap/"]])}<h1>All pages</h1><p class="lede">The public pages on SendFair. The machine-readable list is <a href="${site}/sitemap.xml">sitemap.xml</a>.</p>${body}</article></div></section>`
   }));
   urls.push("sitemap/");
 }
 writeHtmlSitemap();
-write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${site}/${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
+write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => { const lm = lastmodFor(u); return `  <url><loc>${site}/${u}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ""}</url>`; }).join("\n")}\n</urlset>\n`);
 // AI answer engines may read the site so SendFair can be cited in their answers; model-training crawlers are
 // blocked separately by Cloudflare's managed robots.txt, which Cloudflare puts above these lines.
 write("robots.txt", `User-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nAllow: /\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nSitemap: ${site}/sitemap.xml\n`);
