@@ -28,6 +28,7 @@ function speedText(iso) {
 }
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 const routes = {};
+let fetched = 0;
 for (const s of corridors.senders) {
   for (const r of corridors.receivers) {
     if (s.currency === r.currency) continue;
@@ -48,10 +49,16 @@ for (const s of corridors.senders) {
         out[id] = { rate: q.rate, fee: q.fee ?? 0, collected: q.dateCollected || null, speed: speedText(d.max || d.min) };
       }
       routes[`${s.id}-${r.id}`] = out;
+      fetched++;
       console.log(`${s.id}-${r.id}: ${Object.keys(out).length} providers`);
     } catch (e) {
       console.log(`${s.id}-${r.id}: ${e.message}`);
     }
   }
 }
-fs.writeFileSync(path.join(ROOT, "data/wise-feed.json"), JSON.stringify({ updatedAt: new Date().toISOString(), routes }, null, 2) + "\n");
+if (!fetched) {
+  console.log("Wise feed: no routes fetched, keeping the existing data/wise-feed.json untouched.");
+  process.exitCode = 1;
+} else {
+  fs.writeFileSync(path.join(ROOT, "data/wise-feed.json"), JSON.stringify({ updatedAt: new Date().toISOString(), routes }, null, 2) + "\n");
+}

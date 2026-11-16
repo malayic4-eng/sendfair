@@ -31,7 +31,9 @@ jobs:
         run: node scripts/fetch-wise-feed.mjs
       - name: Publish the Wise feed into today's quotes (with safety checks)
         if: ${{ env.WISE_API_TOKEN != '' }}
-        run: node scripts/apply-wise-feed.mjs && node scripts/record-history.mjs
+        run: node scripts/apply-wise-feed.mjs
+      - name: Record history
+        run: node scripts/record-history.mjs
       - name: Commit if changed
         run: |
           git add data/midmarket.json

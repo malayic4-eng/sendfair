@@ -4,8 +4,8 @@
 //   GET  /api/alert/stop       ?id=&t=                            -> deletes it (link in every email)
 //   GET  /api/alerts           ?key=STATS_KEY                     -> counts, for the owner
 // An alert fires once: when the best service on the route delivers at least `target` for `amount`.
-// Emails are sent through Cloudflare Email Service (binding EMAIL). Without it, alerts are saved and
-// confirmation emails go out as soon as the binding exists (the daily check sends any that are pending).
+// Emails are sent through Cloudflare Email Service (binding EMAIL). Without it, the sign-up fails
+// honestly with a 503 so the visitor is never left waiting for a confirmation that can't be sent.
 import { json, siteData, sha256 } from "../_lib.js";
 
 const FROM = { email: "alerts@sendfair.africa", name: "SendFair rate alerts" };
@@ -89,8 +89,18 @@ export async function onRequestPost(context) {
   const token = crypto.randomUUID().replace(/-/g, "");
   const a = { id, email, route, amount, target, token, confirmed: false, confirmSent: false, createdAt: new Date().toISOString() };
   const origin = new URL(request.url).origin;
+
+  // The public form promises a confirmation email, so be honest when we can't send one.
+  if (!env.EMAIL || typeof env.EMAIL.send !== "function") {
+    return json({ error: "Email alerts aren't available yet. Please try again later." }, 503);
+  }
+
   const full = await loadData(env, origin).catch(() => null);
   if (full) a.confirmSent = await sendMail(env, confirmMail(a, origin, routeName(route, full)));
+  if (!a.confirmSent) {
+    return json({ error: "Email alerts aren't available yet. Please try again later." }, 503);
+  }
+
   await kv.put(`alert:${id}`, JSON.stringify(a), { expirationTtl: 365 * DAY });
   return json({ ok: true, pending: !a.confirmSent });
 }

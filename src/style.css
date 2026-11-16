@@ -246,6 +246,7 @@ h1.with-badge > span:last-child { min-width: 0; }
 .avatar.b-md { width: 30px; height: 30px; border-radius: 9px; line-height: 30px; font-size: .75rem; }
 .avatar.b-lg { width: 48px; height: 48px; border-radius: 13px; line-height: 48px; font-size: 1rem; margin-top: .12em; }
 .avatar { position: relative; overflow: hidden; width: 22px; height: 22px; border-radius: 7px; color: #fff; font: 800 .62rem/22px var(--font-body); text-align: center; letter-spacing: .02em; flex: none; }
+.avatar:not(:has(img))::after { content: attr(data-initials); display: flex; align-items: center; justify-content: center; position: absolute; inset: 0; }
 .go {
   display: inline-block; text-align: center; text-decoration: none; white-space: nowrap;
   font: 700 .84rem var(--font-body); border-radius: 999px; padding: 8px 14px;
@@ -517,12 +518,20 @@ details p { margin-top: 10px; color: var(--muted); }
 .site-footer nav a:hover { text-decoration: underline; }
 .site-footer p { max-width: 70ch; }
 .foot-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 24px; padding-bottom: 8px; border-bottom: 1px solid var(--band-line); }
-.foot-cols h3 { font-size: .95rem; color: var(--on-band); margin-bottom: 8px; }
+.foot-cols h2 { font-size: .95rem; color: var(--on-band); margin-bottom: 8px; }
 .foot-cols ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .foot-cols a { color: var(--on-band-muted); text-decoration: none; }
 .foot-cols a:hover { color: var(--on-band); text-decoration: underline; }
 @media (max-width: 600px) { .foot-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .site-footer p a { color: var(--on-band); }
+.consent { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: var(--band-deep); color: var(--on-band-muted); box-shadow: 0 -6px 24px rgba(0, 0, 0, .18); padding: 14px 0; font-size: .9rem; }
+.consent .wrap { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.consent p { margin: 0; max-width: 66ch; }
+.consent a { color: var(--on-band); }
+.consent-actions { display: flex; gap: 8px; flex: none; }
+.consent-actions button { border: 1px solid var(--line); background: transparent; color: var(--on-band); padding: 8px 14px; border-radius: 8px; cursor: pointer; font: inherit; }
+.consent-actions button.btn { background: #f6b52b; color: #111853; border-color: #f6b52b; font-weight: 700; }
+.cookie-settings { background: none; border: 0; color: inherit; cursor: pointer; text-decoration: underline; font: inherit; padding: 0; }
 
 /* Smaller screens */
 @media (max-width: 960px) {

@@ -1,6 +1,6 @@
 # SendFair
 
-Money transfer comparison for the African diaspora: 10 sending countries (US, UK, Canada, Australia, plus the Gulf: UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman) × 6 receiving countries (Nigeria, Ghana, Kenya, Uganda, Zambia, Zimbabwe) = 60 routes. Services are ranked by how much the family actually receives.
+Money transfer comparison for the African diaspora: 11 sending countries/regions (US, UK, Canada, Australia, Europe, plus the Gulf: UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman) × 17 receiving countries (Nigeria, Ghana, Kenya, Uganda, Zambia, Zimbabwe, Egypt, Morocco, Senegal, Côte d'Ivoire, Mali, Cameroon, Ethiopia, South Africa, Tanzania, DR Congo, Rwanda) = 187 route pages, 167 with live quotes. Services are ranked by how much the family actually receives.
 
 The Gulf guide at `/send-money-from-the-gulf/` compares the ways of sending from the Gulf (exchange houses, bank remittance services, mobile wallets, apps, cash networks) using the quotes you enter on Gulf routes.
 
@@ -13,7 +13,7 @@ Hosting is free (Cloudflare Pages). The only running cost is the domain, about $
 | Path | What it is |
 |---|---|
 | `config.json` | Site name, domain, email, daily routes, and switches for ads, alerts, click tracking and delivery reports |
-| `data/providers.json` | The 24 transfer services. **Paste affiliate links here** once approved. `sendsFrom` = countries each one sends from; `type` = app, exchange, bank, wallet or network (used on the Gulf guide) |
+| `data/providers.json` | The 35 transfer services. **Paste affiliate links here** once approved. `sendsFrom` = countries each one sends from; `type` = app, exchange, bank, wallet or network (used on the Gulf guide) |
 | `data/quotes.json` | Daily quotes. Written by the Rate Desk, don't edit by hand |
 | `data/midmarket.json` | Market reference rates, updated automatically |
 | `data/corridors.json` | Countries, currencies and ways to receive |
@@ -70,7 +70,7 @@ Cloudflare dashboard → **Zero Trust → Access → Applications → Add an app
 7. **Publish to live site** when done.
 8. **Today's post** → **Write post** → **Copy**, and paste into your WhatsApp groups, Facebook groups and channel.
 
-Do the 8 daily routes every day (set in `config.json` → `priorityRoutes`) and the other 16 every second day.
+Do the 8 daily routes every day (set in `config.json` → `priorityRoutes`) and the other routes every second day.
 
 How the site treats age: older than 36 hours shows "Not rechecked today", ranks below fresh quotes and never gets "Most money home". Older than 72 hours is hidden.
 
@@ -105,7 +105,7 @@ Clicks: "Go to" buttons pass through `/go/...`, which counts the click and forwa
 To switch either off, set `reportsEnabled` or `trackClicks` to `false` in `config.json`.
 
 ### Wise comparison feed (saves typing)
-If you get a Wise API token (Wise account → Settings → API tokens), add it in GitHub → **Settings → Secrets and variables → Actions → New repository secret** named `WISE_API_TOKEN`. Every 6 hours the workflow saves Wise's collected quotes for many providers, and the Rate Desk shows them as **Feed** suggestions with a **Use** button. Always compare with the provider's own calculator before accepting. This part could only be tested once a token exists; if the first run shows errors in the Actions log, send them to me.
+If you get a Wise API token (Wise account → Settings → API tokens), add it in GitHub → **Settings → Secrets and variables → Actions → New repository secret** named `WISE_API_TOKEN`. Every 30 minutes the workflow saves Wise's collected quotes for many providers, and the Rate Desk shows them as **Feed** suggestions with a **Use** button. Always compare with the provider's own calculator before accepting. This part could only be tested once a token exists; if the first run shows errors in the Actions log, send them to me.
 
 ### Analytics
 Cloudflare → **Web Analytics** → add site → copy the token into `cfAnalyticsToken`. It uses no cookies.

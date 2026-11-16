@@ -35,7 +35,9 @@ const corridors = read("data/corridors.json");
 const providersFile = read("data/providers.json");
 let quotesFile = read("data/quotes.json");
 let midmarket = read("data/midmarket.json");
+if (!midmarket.rates || !Object.keys(midmarket.rates).length) fail(["data/midmarket.json is missing or has no rates"]);
 const buildCosts = readOptional("data/build-costs.json", { countries: {}, houses: [], updated: "" });
+if (!buildCosts.countries || !Object.keys(buildCosts.countries).length) fail(["data/build-costs.json is missing or has no countries"]);
 
 // Kinds of service, used to compare ways of sending on the Gulf guide.
 const METHOD = {
@@ -156,7 +158,7 @@ const coverage = quotesFile.coverage || {};
 // ---------- helpers ----------
 const slug = (s, r) => `${s.id}-to-${r.id}`;
 const corridorPath = (s, r) => `send-money/${slug(s, r)}/`;
-const link = (prefix, p) => (PREVIEW ? prefix + (p === "" ? "index.html" : p.endsWith("/") ? p + "index.html" : p) : prefix + p);
+const link = (prefix, p) => { const out = PREVIEW ? prefix + (p === "" ? "index.html" : p.endsWith("/") ? p + "index.html" : p) : prefix + p; return out === "" ? (PREVIEW ? "index.html" : "/") : out; };
 const hrefFor = (prefix) => (p, k) => (config.trackClicks && !DEMO ? `${prefix}go/${encodeURIComponent(p.id)}?r=${encodeURIComponent(k)}` : (p.affiliateUrl || p.website).replace("{route}", k));
 const hasOg = fs.existsSync(path.join(ROOT, "src/og"));
 const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
@@ -181,10 +183,10 @@ function routeContext(s, r, prefix, amount) {
 }
 
 function head({ title, description, canonical, prefix, jsonld = [], noindex = false, og = "home", ogType = "website", alternates = [] }) {
-  const ads = config.adsenseClient && !DEMO ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(config.adsenseClient)}" crossorigin="anonymous"></script>` : "";
+  const ads = ""; // AdSense now loads only after the visitor accepts optional cookies (see src/app.js).
   const cfa = config.cfAnalyticsToken && !DEMO ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${esc(config.cfAnalyticsToken)}"}'></script>` : "";
   // Impact (affiliate network, used by Remitly and others): site verification and link tracking.
-  const impact = config.impactScriptId && !DEMO ? `<script type="text/javascript">(function(i,m,p,a,c,t){c.ire_o=p;c[p]=c[p]||function(){(c[p].a=c[p].a||[]).push(arguments)};t=a.createElement(m);var z=a.getElementsByTagName(m)[0];t.async=1;t.src=i;z.parentNode.insertBefore(t,z)})('https://utt.impactcdn.com/P-${esc(config.impactScriptId)}.js','script','impactStat',document,window);impactStat('transformLinks');impactStat('trackImpression');</script>` : "";
+  const impact = ""; // Impact now loads only after the visitor accepts optional cookies (see src/app.js).
   const fonts = PREVIEW
     ? `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Figtree:wght@300..900&display=swap">`
@@ -239,13 +241,13 @@ function footer(prefix) {
   return `<footer class="site-footer"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
 <div class="foot-cols">
-<div><h3>Send money to</h3><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul></div>
-<div><h3>Popular routes</h3><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, corridorPath(S, Rr))}">${esc(S.label)} to ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
-<div><h3>Services</h3><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
-<div><h3>Exchange rates</h3><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "AED-KES", "SAR-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
-<div><h3>Build a house</h3><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li><li><a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What the receipt prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
+<div><h2>Send money to</h2><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul></div>
+<div><h2>Popular routes</h2><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, corridorPath(S, Rr))}">${esc(S.label)} to ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
+<div><h2>Services</h2><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
+<div><h2>Exchange rates</h2><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS", "AED-KES", "SAR-KES"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
+<div><h2>Build a house</h2><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li><li><a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What the receipt prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
-<nav aria-label="Footer"><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "sitemap/")}">All pages</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
+<nav aria-label="Footer"><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "sitemap/")}">All pages</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a><a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a><a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><a href="${link(prefix, "cookies/")}">Cookies</a><a href="${link(prefix, "accessibility/")}">Accessibility</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>Cookie settings</button><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
@@ -391,7 +393,7 @@ function writeBuildPages() {
   ];
   const bodyFor = (id, prefix) => `<section class="block page"><div class="wrap"><div class="prose wide">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="${link(prefix, "")}">SendFair</a></li><li><a href="${link(prefix, "cost-to-build/")}">Build a house</a></li>${id ? `<li aria-current="page">${esc(buildCosts.countries[id].name)}</li>` : `<li aria-current="page">Calculator</li>`}</ol></nav>
-<h1>${id ? `Cost to build a house in ${esc(buildCosts.countries[id].name)}` : "Cost to build a house back home"}</h1>
+<h1>${id ? `Cost to build a house in ${esc(buildCosts.countries[id].name)}` : "House cost calculator"}</h1>
 <p class="lede">${esc(intro)}</p>
 ${buildWidget(prefix, id || "kenya")}
 <p class="build-links"><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a> <a href="${link(prefix, "cost-to-build/same-house/")}">The same 3-bedroom bungalow in every country</a> <a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What this receipt prices</a></p>
@@ -403,7 +405,7 @@ ${faqBlock(faqs)}
 </div></div></section>`;
   write("cost-to-build/index.html", page({
     prefix: "../", canonical: "cost-to-build/", buildPage: true, rank: false, og: "home",
-    title: `Cost to build a house back home · ${config.siteName}`,
+    title: `House cost calculator · ${config.siteName}`,
     description: "Estimate a house in Nigeria, Kenya, Ghana and 14 other African countries. Switch roof sheets, windows, doors, tiles, ceiling and paint. No land or contractor's fee.",
     jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"]]), appLd("SendFair house calculator", `${site}/cost-to-build/`, "Estimate the materials, trade days, finish, plot works and permit for a simple house.")],
     body: bodyFor(null, "../")
@@ -620,6 +622,8 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
     config: { quickAmounts: STEP_AMOUNTS, defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost,
       trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO,
       ga4: config.ga4MeasurementId || "", gtm: config.gtmContainerId || "", clarity: config.clarityProjectId || "",
+      impactSrc: config.impactSrc || "", adsenseClient: config.adsenseClient || "",
+      translateLanguages: config.translateLanguages || "en,fr,ar,sw,pt,ha,yo,am,so",
       newsletter: config.newsletterFormAction || "" },
     ...(init || {})
   };
@@ -922,18 +926,21 @@ for (const s of corridors.senders) {
     const nets = networks(r);
     const rCur = CURNAME[r.currency] || r.currency, sCur = CURNAME[s.currency] || s.currency;
     const amt = plain(R.money(ctx.amount, s.currency, 0));
-    const title = cap(`Send money from ${s.short} to ${r.name}: best ${s.currency} to ${r.currency} rate today`);
+    const title = cap(s.currency === r.currency
+      ? `Send money from ${s.short} to ${r.name}: compare ${s.currency} transfer services`
+      : top ? `Send money from ${s.short} to ${r.name}: best ${s.currency} to ${r.currency} rate today`
+      : `Send money from ${s.short} to ${r.name}: compare ${s.currency} to ${r.currency} transfer services`);
     const description = top
       ? `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 4))} by what arrives in ${r.name}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}.`
       : `Compare money transfer services from ${s.short} to ${r.name} by what actually arrives in ${rCur}, after fees and the exchange-rate markup.`;
     const lede = `Compare ${names.length > 1 ? names.length + " services" : "transfer services"} by how many ${esc(rCur)} arrive${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. ${top ? `Rates checked ${esc(dateLong)}.` : "No service publishes online prices for this route yet."}`;
     const mobileProv = [...new Set(fresh.filter((x) => (x.q.payout || []).includes("mobile")).map((x) => x.p.name))];
-    const midTxt = ctx.mid ? `1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}` : "";
+    const midTxt = ctx.mid && s.currency !== r.currency ? `1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}` : "";
     const summary = top ? `<p>On ${esc(dateLong)}, ${lead.length > 1 ? `<strong>${esc(R.names(lead))}</strong> tie for the most` : `<strong>${esc(top.p.name)}</strong> delivers the most`} from ${esc(s.short)} to ${esc(r.name)}: <strong>${esc(plain(R.money(top.gets, r.currency)))}</strong> for ${esc(amt)}${lead.length > 1 ? "" : `, at a rate of ${R.rateStr(top.ev.rate)} with ${esc(R.feeStr(top.q, s.currency).replace(/^Fee /, "a fee of ").replace(/^No fee$/, "no fee"))}`}.${last && last !== top ? ` The lowest of the ${fresh.length} services we checked, ${esc(last.p.name)}, delivers ${esc(plain(R.money(last.gets, r.currency)))}, so choosing well is worth ${esc(plain(R.money(top.gets - last.gets, r.currency)))} on this one transfer.` : ""}${midTxt ? ` The mid-market rate is ${esc(midTxt)}.` : ""}</p>` : "";
     const faqs = [
       [`What is the cheapest way to send money from ${s.short} to ${r.name} today?`, top ? `Today ${who}: ${plain(R.money(top.gets, r.currency))} for ${amt}, after fees and exchange-rate margins. The order changes from day to day, so check the ranking on this page before each transfer.` : `It changes from day to day. The ranking on this page shows which service delivers the most ${rCur} for the amount you enter, after the transfer fee and the exchange-rate markup.`],
-      ...(ctx.mid ? [[`What is the ${s.currency} to ${r.currency} exchange rate today?`, `The mid-market rate is ${midTxt}.${top ? ` The best rate a transfer service offers today is ${R.rateStr(Math.max(...fresh.map((x) => x.ev.rate)))}, but the fee matters too, which is why we rank by the amount that arrives.` : ""}`]] : []),
-      ...(ctx.mid ? [[`How much is ${amt} in ${rCur}?`, `At the mid-market rate, ${amt} is ${plain(R.money(ctx.amount * ctx.mid, r.currency))}.${top ? ` After fees and margins, the best transfer service today delivers ${plain(R.money(top.gets, r.currency))}.` : ""}`]] : []),
+      ...(ctx.mid && s.currency !== r.currency ? [[`What is the ${s.currency} to ${r.currency} exchange rate today?`, `The mid-market rate is ${midTxt}.${top ? ` The best rate a transfer service offers today is ${R.rateStr(Math.max(...fresh.map((x) => x.ev.rate)))}, but the fee matters too, which is why we rank by the amount that arrives.` : ""}`]] : []),
+      ...(ctx.mid && s.currency !== r.currency ? [[`How much is ${amt} in ${rCur}?`, `At the mid-market rate, ${amt} is ${plain(R.money(ctx.amount * ctx.mid, r.currency))}.${top ? ` After fees and margins, the best transfer service today delivers ${plain(R.money(top.gets, r.currency))}.` : ""}`]] : []),
       ...(nets.length ? [[`Can I send money from ${s.short} to ${nets[0]} in ${r.name}?`, mobileProv.length ? `Yes. Of the services we checked today, ${joinList(mobileProv)} pay out to mobile money in ${r.name}${nets.length > 1 ? `, which covers ${joinList(nets)}` : ""}. Choose "Mobile money" above the ranking to compare only those.` : `Several services pay out to mobile money in ${r.name}. Choose "Mobile money" above the ranking to see which ones were checked today.`]] : []),
       [`How long does a transfer from ${s.short} to ${r.name} take?`, `Mobile money transfers usually arrive within minutes once the provider has verified your payment. Bank deposits take from a few minutes to two working days, and cash pickup is usually ready the same day. Your first transfer can take longer while the provider checks your identity.`],
       [`How can people in ${r.name} receive the money?`, Object.entries(r.payout).map(([k, v]) => `${R.LABEL[k]}: ${v}`).join(". ") + "."],
@@ -954,7 +961,7 @@ for (const s of corridors.senders) {
 <nav class="secnav" aria-label="On this page"><div class="wrap"><a href="#rates">Rates by amount</a><a href="#history">Rate history</a><a href="#alert">Rate alert</a><a href="#tips">Good to know</a><a href="#faq">Questions</a></div></nav>
 <section class="block"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
-<h2 id="rates">${esc(s.currency)} to ${esc(r.currency)}: today's rates by service</h2>
+<h2 id="rates">${s.currency === r.currency ? esc(s.currency) + " transfer services compared" : esc(s.currency) + " to " + esc(r.currency) + ": today's rates by service"}</h2>
 ${summary}
 ${amountsTable(ctx)}
 <h2 id="history">${esc(s.currency)} to ${esc(r.currency)} rate history</h2>
@@ -1124,7 +1131,15 @@ for (const [A, B] of vsPairs()) {
     const a = ctx.rows.find((x) => x.p.id === A.id && !x.stale), b = ctx.rows.find((x) => x.p.id === B.id && !x.stale);
     if (a && b) rows.push({ s, r, ctx, a, b });
   }
-  if (!rows.length) continue;
+  if (!rows.length) {
+    write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
+      title: `${A.name} vs ${B.name}: who sends more money to Africa?`,
+      description: `${A.name} vs ${B.name} compared on cost, fees, ways to pay and Trustpilot ratings.`,
+      jsonld: [crumbs([[config.siteName, ""], [`${A.name} vs ${B.name}`, rel]])],
+      body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav(prefix, [[config.siteName, ""], [`${A.name} vs ${B.name}`, rel]])}<h1>${esc(A.name)} vs ${esc(B.name)}</h1><p>We don't have a current head-to-head for these two on any route we've checked recently. Try again after the next rate check, or read the reviews below.</p><p><a href="${link(prefix, provPath(A))}">${esc(A.name)} review</a> · <a href="${link(prefix, provPath(B))}">${esc(B.name)} review</a></p></article></div></section>` }));
+    urls.push(rel);
+    continue;
+  }
   const winsA = rows.filter((x) => Math.round(x.a.gets) > Math.round(x.b.gets)).length, winsB = rows.filter((x) => Math.round(x.b.gets) > Math.round(x.a.gets)).length;
   const ties = rows.length - winsA - winsB;
   const lead = winsA === winsB ? null : winsA > winsB ? A : B;
@@ -1297,20 +1312,22 @@ ${gulfSenders.map((x) => `<h3>From ${esc(x.short)}</h3><ul class="route-links">$
 }
 
 // Trust pages
+const hasAffiliate = Object.values(providers).some((p) => p.affiliateUrl);
+const hasAds = config.adsenseClient && Object.values(config.adsenseSlots || {}).some(Boolean);
 const today = new Date(NOW).toISOString().slice(0, 10);
 const privacyItems = [
   `<li><strong>Your comparison choices.</strong> Your route, amount and payout choice are saved only in your own browser so the tool remembers them. They are not sent to us.</li>`,
   config.newsletterFormAction ? `<li><strong>Email for rate alerts.</strong> If you sign up, your email address is stored by ${esc(config.emailProvider || "our email service")} to send the alerts. Every message has an unsubscribe link.</li>` : "",
-  `<li><strong>Rate alerts.</strong> If you set a rate alert, we store your email address, the route, the amount and your target, so we can email you when it is reached. We send one confirmation email first and nothing else. Each alert is deleted once it fires, when you click the remove link in any of our emails, or after 12 months. Emails are sent through Cloudflare's Email Service. To limit misuse we keep a one-way scrambled code made from your connection for two days.</li>`,
-  config.reportsEnabled ? `<li><strong>Delivery-time reports.</strong> When you report how long a transfer took, we store the route, the service and the time range only. To stop repeated reports we keep a one-way scrambled code made from your connection for two days; we cannot turn it back into your IP address.</li>` : "",
+  `<li><strong>Rate alerts.</strong> If you set a rate alert, we store your email address, the route, the amount and your target, so we can email you when it is reached. We send one confirmation email first and nothing else. Each alert is deleted once it fires, when you click the remove link in any of our emails, or after 12 months. Emails are sent by our email provider. To limit misuse we keep a one-way scrambled code made from your connection for two days.</li>`,
+  config.reportsEnabled ? `<li><strong>Delivery-time reports.</strong> When you report how long a transfer took, we store the route, the service and the time range only. To stop repeated reports we keep a one-way hash made from your connection for two days; it cannot be turned back into your IP address.</li>` : "",
   config.trackClicks ? `<li><strong>Link clicks.</strong> We count how many times each "Go to" button is clicked on each route. The count is not linked to you.</li>` : "",
-  config.impactScriptId ? `<li><strong>Affiliate tracking.</strong> Our pages load a script from Impact, an affiliate network some providers use. It records when a page is viewed and when you follow a link to a provider, so the provider can credit us if you sign up. It does not change the ranking.</li>` : "",
+  config.impactScriptId ? `<li><strong>Affiliate tracking.</strong> If you accept optional cookies, our pages load a script from Impact, an affiliate network some providers use. It records when a page is viewed and when you follow a link to a provider, so the provider can credit us if you sign up. It does not change the ranking.</li>` : "",
   config.cfAnalyticsToken ? `<li><strong>Visit statistics.</strong> We use Cloudflare Web Analytics, which counts visits without cookies and without building a profile of you.</li>` : "",
-  config.adsenseClient ? `<li><strong>Advertising.</strong> Some pages show ads from Google. Visitors in the UK and Europe are asked for consent before Google uses cookies for personalised ads. You can change your choice at any time from the privacy link Google adds to the page, and manage ads at adssettings.google.com.</li>` : "",
+  hasAds ? `<li><strong>Advertising.</strong> Some pages show ads from Google. Google's advertising script loads only after you accept optional cookies, so visitors in the UK and Europe are asked for consent before Google uses cookies for personalised ads. You can change your choice at any time from the Cookie settings link in the footer, and manage ads at adssettings.google.com.</li>` : "",
   `<li><strong>Translation.</strong> If you choose a language from the Language button, the page is translated by Google Translate. Your browser then loads Google's translation script and sends the page's text to Google, and a cookie (googtrans) remembers your language. Nothing is sent to Google unless you choose a language.</li>`,
   `<li><strong>Search and saved guides on this device.</strong> Search words, saved guides and which guides you opened stay in this browser. They are not sent to SendFair.</li>`,
   `<li><strong>Page speed on this device.</strong> The browser can note how fast the last page felt. That note stays on the device. It is not a published traffic report, and it is not a 75th-percentile field measurement.</li>`,
-  (config.ga4MeasurementId || config.gtmContainerId || config.clarityProjectId) ? `<li><strong>Optional analytics.</strong> If you accept optional cookies, the analytics tools named in the consent bar load. They stay off when you choose essential only, and they are not loaded while their IDs are blank.</li>` : "",
+  (config.ga4MeasurementId || config.gtmContainerId || config.clarityProjectId) ? `<li><strong>Optional analytics.</strong> If you accept optional cookies, Google Analytics and Microsoft Clarity load. Clarity records how visitors move around the site to help us improve it. They stay off when you choose essential only, and they are not loaded while their IDs are blank.</li>` : "",
   `<li><strong>Offline copies and logos.</strong> Your browser keeps a copy of the pages you open on SendFair so they still load without a connection; this stays on your device. Service logos are fetched by our server from each provider's public website, so your browser only ever connects to sendfair.africa for them.</li>`,
   `<li><strong>Hosting.</strong> The site is hosted by Cloudflare, which processes basic technical data (such as IP address) to deliver pages and protect against abuse.</li>`
 ].filter(Boolean).join("");
@@ -1354,7 +1371,7 @@ const trust = {
   "disclosure/": ["How we make money", "SendFair's affiliate and advertising disclosure.", `
 <h1>How we make money</h1>
 <p>SendFair is free to use. We earn money in two ways:</p>
-<ul><li><strong>Referral commissions.</strong> Some "Go to" buttons are affiliate links. If you open an account and make your first transfer, the provider may pay us a fee. You pay the same either way.</li>${config.adsenseClient ? `<li><strong>Advertising.</strong> Some pages show ads served by Google. Ads are labelled as ads, are never placed inside the ranking, and advertisers cannot choose or influence where a service ranks.</li>` : `<li><strong>Advertising.</strong> We don't show ads at the moment. If we ever do, they will be labelled, kept out of the ranking, and this page will say so.</li>`}</ul>
+<ul><li><strong>Referral commissions.</strong> ${hasAffiliate ? 'Some "Go to" buttons are affiliate links. If you open an account and make your first transfer, the provider may pay us a fee. You pay the same either way.' : 'We intend to earn a referral commission from some providers when you sign up through us. Those affiliate links are being added as each provider approves us, and you never pay more.'}</li>${hasAds ? `<li><strong>Advertising.</strong> Some pages show ads served by Google. Ads are labelled as ads, are never placed inside the ranking, and advertisers cannot choose or influence where a service ranks.</li>` : `<li><strong>Advertising.</strong> We don't show ads at the moment. If we ever do, they will be labelled, kept out of the ranking, and this page will say so.</li>`}</ul>
 <p>Neither affects the ranking. Results are sorted only by how much your recipient receives. Providers that pay us nothing appear and rank on the same terms.</p>
 <p>The house-cost pages are not paid for by a supplier or a contractor. Choosing a roof sheet, a door or a tile does not earn us a fee.</p>`],
   "privacy/": ["Privacy policy", "How SendFair handles your data.", `
@@ -1373,7 +1390,22 @@ const trust = {
 <p>The house estimate leaves out land, the contractor's fee and several other costs named on that page. Material menus use published types and published ranges. A guide is not a shop receipt. Always check the current price at the yard before you buy or send.</p>
 <p>We work to keep rates accurate, but they change through the day and can differ on the provider's site. Always confirm the final amount, fee and delivery time with the provider before paying. We are not responsible for transfers you make with any provider, or for losses from relying on a rate shown here.</p>
 <p>Delivery-time reports come from other visitors and are shown as they are given.</p>
-<p>Provider names belong to their owners. Their appearance here does not mean they endorse SendFair.</p>`],
+<p>Provider names belong to their owners. Their appearance here does not mean they endorse SendFair.</p>${config.legalName || config.companyNumber || config.legalAddress || config.governingLaw ? "<p>" + esc(config.legalName || config.siteName) + (config.companyNumber ? ", company number " + esc(config.companyNumber) : "") + (config.legalAddress ? ", " + esc(config.legalAddress) : "") + "." + (config.governingLaw ? " These terms are governed by " + esc(config.governingLaw) + " law." : "") + "</p>" : ""}`],
+  "cookies/": ["Cookie policy", "How SendFair uses cookies and similar technologies.", `
+<h1>Cookie policy</h1>
+<p>SendFair uses a small number of cookies and similar technologies. You can accept or refuse the optional ones from the banner on your first visit, and change your choice at any time from the "Cookie settings" link in the footer.</p>
+<h2>Essential (always on)</h2>
+<p>These are needed for the site to work: a note of your consent choice (so we do not ask again), and, only if you pick a language, a Google Translate cookie (googtrans) that remembers it.</p>
+<h2>Optional (only if you accept)</h2>
+<ul><li>Google Analytics and Microsoft Clarity, to understand how the site is used. Clarity also records how visitors move around the site.</li><li>Google advertising, to show ads, and Impact, an affiliate network that lets a provider credit us for a sign-up.</li></ul>
+<p>Each of those services has its own privacy policy. You can compare rates without the optional ones.</p>`],
+  "accessibility/": ["Accessibility", "How SendFair is built to be accessible.", `
+<h1>Accessibility</h1>
+<p>We want SendFair to work for everyone, including people who use a screen reader, keyboard-only navigation or other assistive technology.</p>
+<h2>What we do</h2>
+<ul><li>Every page has one clear heading, a "skip to content" link, and text alternatives for images.</li><li>All controls can be used with a keyboard and are labelled.</li><li>Rates are given as text, not only colour.</li><li>Text is styled for strong contrast.</li></ul>
+<h2>Tell us</h2>
+<p>If something is hard to use, email <span class="email">${esc(config.contactEmail)}</span> and we will try to fix it.</p>`],
   "contact/": ["Contact SendFair", "Corrections, privacy requests and provider updates.", `
 <h1>Contact</h1>
 <p>Email <span class="email">${esc(config.contactEmail)}</span>. That is the address for a wrong rate, a privacy request, a provider update and a partnership enquiry.</p>

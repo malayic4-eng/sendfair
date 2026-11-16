@@ -162,6 +162,23 @@
       })(window, document, "clarity", "script", cfg.clarity);
     }
   }
+  function loadImpact() {
+    if (!allowOptional() || !cfg.impactSrc || document.querySelector('script[src*="impactcdn.com"]')) return;
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = cfg.impactSrc;
+    document.head.appendChild(s);
+  }
+  function loadAds() {
+    if (!allowOptional() || !cfg.adsenseClient || document.getElementById("sf-ads")) return;
+    var s = document.createElement("script");
+    s.id = "sf-ads";
+    s.async = true;
+    s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + encodeURIComponent(cfg.adsenseClient);
+    s.crossOrigin = "anonymous";
+    document.head.appendChild(s);
+    s.addEventListener("load", function () { try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} });
+  }
   function escText(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -341,19 +358,14 @@
     if (cfg.ga4) extra.push("Google Analytics");
     if (cfg.gtm) extra.push("Google Tag Manager");
     if (cfg.clarity) extra.push("Microsoft Clarity");
+    if (cfg.adsenseClient) extra.push("Google ads");
     if (extra.length) line += " If you accept, it also loads " + extra.join(", ") + ".";
     line += " You can compare rates without the optional tools.";
     return line;
   }
   function setupConsentBar() {
     if (document.getElementById("sf-consent") || consentChoice()) {
-      if (consentChoice() === "all" && cfg.impactSrc && !document.querySelector('script[src*="impactcdn.com"]')) {
-        var s = document.createElement("script");
-        s.async = true;
-        s.src = cfg.impactSrc;
-        document.head.appendChild(s);
-      }
-      if (consentChoice() === "all") loadTrackers();
+      if (consentChoice() === "all") { loadTrackers(); loadImpact(); loadAds(); }
       return;
     }
     var bar = document.createElement("div");
@@ -367,13 +379,7 @@
       try { localStorage.setItem("sf-consent", JSON.stringify(choice)); } catch (err) {}
       bar.remove();
       if (choice === "essential") stripImpact();
-      if (choice === "all" && cfg.impactSrc) {
-        var s = document.createElement("script");
-        s.async = true;
-        s.src = cfg.impactSrc;
-        document.head.appendChild(s);
-      }
-      if (choice === "all") loadTrackers();
+      if (choice === "all") { loadTrackers(); loadImpact(); loadAds(); }
     });
   }
 
@@ -392,10 +398,21 @@
     else setTimeout(run, 1500);
   }
 
+  function setupCookieSettings() {
+    var btn = document.getElementById("sf-cookie-settings");
+    if (!btn) return;
+    if (!consentChoice()) { btn.hidden = true; return; }
+    btn.hidden = false;
+    btn.addEventListener("click", function () {
+      try { localStorage.removeItem("sf-consent"); } catch (err) {}
+      location.reload();
+    });
+  }
   setupNav();
   fixAvatars();
   setupLanguage();
   setupConsentBar();
+  setupCookieSettings();
   setupDiscovery();
   if (location.pathname.indexOf("/cost-to-build/") === -1) prefetch([root + "cost-to-build/"]);
 

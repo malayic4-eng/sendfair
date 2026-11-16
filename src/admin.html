@@ -39,7 +39,7 @@ tr.checked td{background:color-mix(in srgb,var(--ok-soft) 45%,transparent)}
 
 <div class="card">
   <h2>1. Settings</h2>
-  <p class="muted">Saved only in this browser. The token needs "Contents: read and write" on your site repository. Never share it.</p>
+  <p class="muted">Your GitHub username, repository and branch are remembered in this browser. Your access token is kept only for this session: re-enter it each time you open this page. The token needs "Contents: read and write" on your site repository. Never share it.</p>
   <div class="row">
     <label for="gh-owner">GitHub username<input id="gh-owner" placeholder="your-username"></label>
     <label for="gh-repo">Repository<input id="gh-repo" placeholder="sendfair"></label>
@@ -98,6 +98,8 @@ tr.checked td{background:color-mix(in srgb,var(--ok-soft) 45%,transparent)}
 var R=window.SFRank,esc=R.esc,$=function(id){return document.getElementById(id)};
 var S={site:null,corridors:null,providers:[],pmap:{},quotes:{updatedAt:null,coverage:{},quotes:{}},mid:null,feed:null,rows:[],order:[]};
 var store={get:function(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+var ghToken="";
+var quotesSha="";
 function status(t,bad){$("status").textContent=t;$("status").style.color=bad?"var(--warn)":"var(--accent)"}
 function getJSON(p){return fetch(p,{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error(p);return r.json()})}
 function isToday(iso){return !!iso&&iso.slice(0,10)===new Date().toISOString().slice(0,10)}
@@ -106,9 +108,9 @@ function midFor(k){var i=info(k);return R.midRate(S.mid,i.s.currency,i.r.currenc
 function num(v){var n=parseFloat(String(v).replace(/,/g,""));return isFinite(n)?n:NaN}
 
 /* settings */
-var g=store.get("sf-gh",{});["owner","repo","branch","token"].forEach(function(f){if(g[f])$("gh-"+f).value=g[f]});
+var g=store.get("sf-gh",{});["owner","repo","branch"].forEach(function(f){if(g[f])$("gh-"+f).value=g[f]});
 if(store.get("sf-stats","")) $("stats-key").value=store.get("sf-stats","");
-$("save-settings").onclick=function(){store.set("sf-gh",{owner:$("gh-owner").value.trim(),repo:$("gh-repo").value.trim(),branch:$("gh-branch").value.trim()||"main",token:$("gh-token").value.trim()});store.set("sf-stats",$("stats-key").value.trim());status("Settings saved in this browser.")};
+$("save-settings").onclick=function(){ghToken=$("gh-token").value.trim();store.set("sf-gh",{owner:$("gh-owner").value.trim(),repo:$("gh-repo").value.trim(),branch:$("gh-branch").value.trim()||"main"});store.set("sf-stats",$("stats-key").value.trim());status("Settings saved in this browser.");captureSha()};
 
 /* routes */
 function buildOrder(){
@@ -222,16 +224,27 @@ $("download").onclick=function(){
   status("Downloaded. Upload it to data/quotes.json in your GitHub repository.");
 };
 function b64(str){return btoa(unescape(encodeURIComponent(str)))}
+function captureSha(){
+  if(quotesSha)return;
+  var s=store.get("sf-gh",{});if(!s.owner||!s.repo)return;
+  var h={"Accept":"application/vnd.github+json"};if(ghToken)h.Authorization="Bearer "+ghToken;
+  fetch("https://api.github.com/repos/"+encodeURIComponent(s.owner)+"/"+encodeURIComponent(s.repo)+"/contents/data/quotes.json?ref="+encodeURIComponent(s.branch||"main"),{headers:h}).then(function(r){return r.ok?r.json():null}).then(function(cur){if(cur&&cur.sha)quotesSha=cur.sha}).catch(function(){});
+}
 $("publish").onclick=function(){
-  var g=store.get("sf-gh",{});if(!g.owner||!g.repo||!g.token){status("Add your GitHub username, repository and token in step 1 first.",true);return}
-  var url="https://api.github.com/repos/"+encodeURIComponent(g.owner)+"/"+encodeURIComponent(g.repo)+"/contents/data/quotes.json",h={"Authorization":"Bearer "+g.token,"Accept":"application/vnd.github+json"};
+  var g=store.get("sf-gh",{}),token=ghToken||$("gh-token").value.trim();
+  if(!g.owner||!g.repo||!token){status("Add your GitHub username, repository and token in step 1 first.",true);return}
+  var url="https://api.github.com/repos/"+encodeURIComponent(g.owner)+"/"+encodeURIComponent(g.repo)+"/contents/data/quotes.json",h={"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json"};
   status("Publishing...");
-  fetch(url+"?ref="+encodeURIComponent(g.branch||"main"),{headers:h}).then(function(r){return r.ok?r.json():{}}).then(function(cur){
-    return fetch(url,{method:"PUT",headers:h,body:JSON.stringify({message:"Update quotes "+new Date().toISOString().slice(0,16).replace("T"," "),content:b64(JSON.stringify(S.quotes,null,2)+"\n"),branch:g.branch||"main",sha:cur.sha})});
-  }).then(function(r){
+  function put(){
+    return fetch(url,{method:"PUT",headers:h,body:JSON.stringify({message:"Update quotes "+new Date().toISOString().slice(0,16).replace("T"," "),content:b64(JSON.stringify(S.quotes,null,2)+"\n"),branch:g.branch||"main",sha:quotesSha})});
+  }
+  function send(){put().then(function(r){
     if(r.ok){store.set("sf-draft",null);status("Published. The live site updates within a minute or two.")}
+    else if(r.status===409){status("Someone else updated the data since this page loaded. Reload the page to get the latest, then re-apply your changes.",true)}
     else return r.json().then(function(e){status("GitHub refused the update: "+(e.message||r.status)+". Check the token has write access to this repository.",true)});
-  }).catch(function(){status("Could not reach GitHub. Check your connection, or use Download instead.",true)});
+  }).catch(function(){status("Could not reach GitHub. Check your connection, or use Download instead.",true)});}
+  if(quotesSha){send()}
+  else fetch(url+"?ref="+encodeURIComponent(g.branch||"main"),{headers:h}).then(function(r){return r.ok?r.json():{}}).then(function(cur){quotesSha=cur.sha;send()}).catch(function(){status("Could not reach GitHub. Check your connection, or use Download instead.",true)});
 };
 
 /* post */
@@ -261,7 +274,7 @@ Promise.all([getJSON("../data/site.json"),getJSON("../data/corridors.json"),getJ
   S.quotes=r[3]&&r[3].quotes?r[3]:{updatedAt:null,coverage:{},quotes:{}};S.quotes.coverage=S.quotes.coverage||{};S.mid=r[4];S.feed=r[5];
   var draft=store.get("sf-draft",null);
   if(draft&&draft.quotes&&draft.updatedAt&&(!S.quotes.updatedAt||draft.updatedAt>S.quotes.updatedAt)){S.quotes=draft;status("Restored your unpublished changes from this browser.")}
-  buildOrder();renderProgress();loadRoute();
+  buildOrder();renderProgress();loadRoute();captureSha();
 }).catch(function(){status("Could not load site data. Open this page from your live site address.",true)});
 })();
 </script>

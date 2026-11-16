@@ -248,7 +248,7 @@
     var top = !x.stale && x.pos === 1 && c.rows.length > 1;
     var pid = "sf-more-" + x.p.id + (x.q.variant ? "-" + String(x.q.variant).toLowerCase().replace(/[^a-z0-9]+/g, "-") : "");
     var open = !!(c.open && c.open[pid]);
-    var costTxt = x.cost == null ? "" : (x.cost <= 0 ? "At mid-market or better" : fixed(x.cost * 100, 1) + "% cost vs mid-market");
+    var costTxt = x.cost == null ? "" : (x.cost <= 0 ? "Above the mid-market rate — please check" : fixed(x.cost * 100, 1) + "% cost vs mid-market");
     var how = (x.q.payout || []).map(function (m) { return SHORT[m]; }).join(", ");
     var checked = x.q.checkedAt ? "checked " + (c.timeStyle === "absolute" ? absTime(x.q.checkedAt) : ago(x.q.checkedAt, c.now)) : "";
     var rep = c.reports && c.reports[x.p.id];

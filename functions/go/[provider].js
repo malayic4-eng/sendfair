@@ -15,10 +15,9 @@ export async function onRequestGet(context) {
 
   const kv = context.env.SENDFAIR_KV;
   if (kv) {
-    const key = `clicks:${month()}:${safeRoute}:${id}`;
+    const key = `clicks:${month()}:${safeRoute}:${id}:${crypto.randomUUID()}`;
     context.waitUntil((async () => {
-      const n = parseInt((await kv.get(key)) || "0", 10) + 1;
-      await kv.put(key, String(n), { expirationTtl: 60 * 60 * 24 * 400 });
+      await kv.put(key, "1", { expirationTtl: 60 * 60 * 24 * 400 });
     })());
   }
   return new Response(null, {
