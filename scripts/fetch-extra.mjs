@@ -97,6 +97,10 @@ for (const op of OPERATORS) {
 
 await browser.close();
 
-fs.writeFileSync(path.join(ROOT, "data/extra-quotes.json"), JSON.stringify(out, null, 1) + "\n");
-fs.writeFileSync(path.join(ROOT, "data/extra-debug.txt"), debug.join("\n\n") + "\n");
-console.log(`Extra providers: wrote data/extra-quotes.json with ${Object.keys(out.quotes).length} route-quotes.`);
+if (Object.keys(out.quotes).length === 0) {
+  console.log("Extra providers: no quotes scraped, nothing to write.");
+} else {
+  fs.writeFileSync(path.join(ROOT, "data/extra-quotes.json"), JSON.stringify(out, null, 1) + "\n");
+  fs.writeFileSync(path.join(ROOT, "data/extra-debug.txt"), debug.join("\n\n") + "\n");
+  console.log(`Extra providers: wrote data/extra-quotes.json with ${Object.keys(out.quotes).length} route-quotes.`);
+}
