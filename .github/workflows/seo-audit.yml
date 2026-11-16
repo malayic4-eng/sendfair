@@ -1,0 +1,39 @@
+name: SEO audit
+
+on:
+  schedule:
+    # Daily technical check (03:15 UTC).
+    - cron: "15 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: seo-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build site
+        run: node scripts/build.mjs
+      - name: Run SEO audit
+        run: node scripts/seo-audit.mjs
+      - name: Commit report
+        run: |
+          git config user.name "sendfair-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/seo-audit.json
+          if git diff --cached --quiet; then
+            echo "No change"
+          else
+            git commit -m "Update SEO audit report (automatic)"
+            git pull --rebase
+            git push
+          fi
