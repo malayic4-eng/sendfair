@@ -41,6 +41,31 @@ async function resolveIgId(pt) {
   return null;
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function publishMedia(igId, pt, creationId, kind) {
+  for (let attempt = 1; attempt <= 6; attempt++) {
+    const res = await fetch(`https://graph.facebook.com/${version}/${igId}/media_publish`, {
+      method: "POST",
+      body: new URLSearchParams({ creation_id: creationId, access_token: pt }),
+    });
+    const data = await res.json();
+    if (res.ok && data.id) {
+      console.log(`Instagram posted (${kind}): ${data.id}`);
+      return true;
+    }
+    if (data.error && data.error.code === 9007) {
+      console.log(`Media not ready (${kind}), retry ${attempt}/6 in 6s...`);
+      await sleep(6000);
+      continue;
+    }
+    console.error(`Publish failed (${kind}):`, JSON.stringify(data.error || data));
+    return false;
+  }
+  console.error(`Publish gave up (${kind}) after retries.`);
+  return false;
+}
+
 async function postOne(igId, pt, p) {
   const caption = (p.long || "").replace(/https?:\/\/sendfair\.africa\/[^\s]*/, "Link in bio: sendfair.africa");
   const text = [caption, p.tags].filter(Boolean).join("\n\n");
@@ -53,17 +78,8 @@ async function postOne(igId, pt, p) {
     console.error(`Container failed (${p.kind}):`, JSON.stringify(cData.error || cData));
     return false;
   }
-  const pRes = await fetch(`https://graph.facebook.com/${version}/${igId}/media_publish`, {
-    method: "POST",
-    body: new URLSearchParams({ creation_id: cData.id, access_token: pt }),
-  });
-  const pData = await pRes.json();
-  if (!pRes.ok || pData.error) {
-    console.error(`Publish failed (${p.kind}):`, JSON.stringify(pData.error || pData));
-    return false;
-  }
-  console.log(`Instagram posted (${p.kind}): ${pData.id}`);
-  return true;
+  await sleep(5000);
+  return await publishMedia(igId, pt, cData.id, p.kind);
 }
 
 const pt = await resolvePageToken();
