@@ -8,6 +8,12 @@
   var DOT = " · ";
   var SSA = { nigeria: 1, ghana: 1, kenya: 1, uganda: 1, zambia: 1, zimbabwe: 1, senegal: 1, ivorycoast: 1, mali: 1, cameroon: 1, ethiopia: 1, southafrica: 1, tanzania: 1, drc: 1, rwanda: 1 };
   function isAuto(q) { return !!(q && (q.source === "wise-feed" || q.source === "worldremit" || q.source === "scrape" || /^Updated automatically from/.test(q.note || ""))); }
+  function sourceLabel(q) {
+    var s = q && q.source;
+    if (s === "worldremit") return "WorldRemit's website";
+    if (s === "scrape") return "the provider's website";
+    return "Wise's comparison data";
+  }
   function payMethodOf(q, p) {
     if (q && q.payMethod && q.payMethod !== "any") return q.payMethod;
     var list = (p && p.payIn) || [];
@@ -219,7 +225,7 @@
       var nq = {
         provider: id, variant: "", rate: Number(f.rate), feeFixed: Number(f.fee) || 0, feePct: 0,
         payout: payout.length ? payout : ["bank"], speed: speed,
-        note: "Updated automatically from Wise's comparison data; confirm on the provider's site",
+        note: "Updated automatically from " + sourceLabel({ source: "wise-feed" }) + "; confirm on the provider's site",
         refAmount: amount, checkedAt: f.collected, source: "wise-feed"
       };
       list = list.filter(function (q) { return q.provider !== id; });
@@ -292,7 +298,7 @@
       ["Delivery time", esc(x.q.speed || "Not shown by the provider for this route")],
       ["Ways to pay", esc((x.p.payIn || []).join(", ") || "See the provider's site") + ((x.p.payIn || []).some(function (m) { return /credit/i.test(m); }) ? ". Card payments can cost more; the rate above assumes the provider's standard method." : "")],
       ["Rating", x.p.rating ? '<a href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener">Trustpilot ' + x.p.rating.score + "/5</a> (" + esc(x.p.rating.label) + ", " + fixed(x.p.rating.reviews, 0) + " reviews)" : (x.p.ratingUrl ? '<a href="' + esc(x.p.ratingUrl) + '" target="_blank" rel="noopener">Trustpilot</a> (open to read current reviews)' : "Not rated yet")],
-      ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + esc(money(Number(x.q.refAmount) || c.amount, cur, 0)) + (isAuto(x.q) ? ", automatically from Wise's comparison data" : ", by hand on the provider's site") : ""]
+      ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + esc(money(Number(x.q.refAmount) || c.amount, cur, 0)) + (isAuto(x.q) ? ", automatically from " + sourceLabel(x.q) : ", by hand on the provider's site") : ""]
     ];
     if (x.q.variant) items.splice(1, 0, ["Option", esc(x.q.variant) + (variantHint(x.q.variant) ? ": " + esc(variantHint(x.q.variant).charAt(0).toLowerCase() + variantHint(x.q.variant).slice(1)) : "")]);
     if (x.q.note) items.push(["Note", esc(String(x.q.note).replace(/\s*;\s*;/g, ". ").replace(/\.\s*;/g, ". "))]);
@@ -359,7 +365,7 @@
       html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>' + (c.target ? "You pay" : "They get") + '</span><span></span></div>' + rows + "</div>";
       html += amountNote(c);
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
-      if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are refreshed automatically from the providers\' own sites and Wise\'s comparison data. Payout options on those rows may be incomplete.</p>';
+      if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are refreshed automatically from the providers\' own sites. Payout options on those rows may be incomplete.</p>';
       if (c.rows.some(function (x) { return x.tied; })) html += '<p class="note tie-note">"=" means tied: the same amount arrives. Tied services are listed with the lower fee first.</p>';
       var reg = REGISTER[c.s.id];
       html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") +

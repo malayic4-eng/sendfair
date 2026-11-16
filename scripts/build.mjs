@@ -83,12 +83,12 @@ const servesFrom = (p, sid) => !p.sendsFrom || p.sendsFrom.includes(sid);
   if (p.length) fail(p);
 })();
 
-// Hand-checked corrections for currencies where the free feed is off (kept for up to 7 days, since the free feed is further off).
+// Hand-checked corrections for currencies where the free feed is off (kept for up to 36 hours).
 try {
   const ov = JSON.parse(fs.readFileSync(path.join(ROOT, "data/mid-overrides.json"), "utf8"));
-  if (ov && ov.rates && NOW - new Date(ov.updatedAt).getTime() < 7 * 24 * 3600000 && midmarket.rates) {
+  if (ov && ov.rates && NOW - new Date(ov.updatedAt).getTime() < 36 * 3600000 && midmarket.rates) {
     Object.assign(midmarket.rates, ov.rates);
-    if (!midmarket.updatedAt || new Date(ov.updatedAt) > new Date(midmarket.updatedAt)) midmarket.updatedAt = ov.updatedAt;
+    midmarket.overrideAt = ov.updatedAt;
     // The previous check's rates, for the "since yesterday" trend next to the market rate.
     if (ov.previous && ov.previous.rates) midmarket.previous = { updatedAt: ov.previous.updatedAt, rates: Object.assign({ USD: 1 }, ov.previous.rates) };
   }
@@ -164,6 +164,9 @@ for (const [file, providers] of [
   }
 }
 const quotes = quotesFile.quotes || {};
+const isAutoQ = (q) => q.source === "wise-feed" || q.source === "worldremit" || q.source === "scrape" || /^Updated automatically from/.test(q.note || "");
+const handCheckedRoutes = Object.entries(quotes).filter(([, list]) => (list || []).some((q) => !isAutoQ(q))).length;
+const wiseFeedData = readOptional("data/wise-feed.json", { routes: {} });
 const coverage = quotesFile.coverage || {};
 
 // ---------- helpers ----------
@@ -183,13 +186,13 @@ function routeContext(s, r, prefix, amount) {
   const k = `${s.id}-${r.id}`;
   const mid = R.midRate(midmarket, s.currency, r.currency);
   const list = quotes[k] || [];
-  const rows = R.rank({ list, providers, amount, payout: "all", mid, now: NOW, staleH, hideH });
+  const rows = R.rank({ list, providers, amount, payout: "all", mid, now: NOW, staleH, hideH, feed: wiseFeedData.routes[k] });
   const cov = coverage[k] && coverage[k].length ? coverage[k] : Object.keys(providers).filter((id) => servesFrom(providers[id], s.id));
   return {
     s, r, key: k, amount, payout: "all", mid, rows, allRows: rows, hist: histFor(k), now: NOW, midPrev: midmarket.previous ? R.midRate(midmarket.previous, s.currency, r.currency) : null, midPrevAt: midmarket.previous && midmarket.previous.updatedAt, timeStyle: "absolute", anyQuotes: list.length > 0, reports: demoReports ? demoReports.routes[k] : {},
     hrefFor: hrefFor(prefix), disclosureHref: link(prefix, "disclosure/"), checkList: cov.map((id) => providers[id]).filter(Boolean),
     avgPct: config.regionalAverageCost.percent, avgLabel: config.regionalAverageCost.label,
-    midUpdated: midmarket && midmarket.updatedAt, quotesUpdated: quotesFile.updatedAt
+    midUpdated: midmarket && (midmarket.overrideAt || midmarket.updatedAt), quotesUpdated: quotesFile.updatedAt
   };
 }
 
@@ -296,7 +299,7 @@ function tool({ heading, sub, ctx, after = "" }) {
 </div>
 <ul class="trustbar" aria-label="Why you can trust these rankings">
   <li><strong>Independent.</strong> Run from Nairobi; no provider owns us.</li>
-  <li><strong>Updated every 30 minutes</strong> for the big providers, and checked by hand for the rest; each row shows when.</li>
+  <li><strong>${handCheckedRoutes === 0 ? "Updated automatically" : "Updated every 30 minutes"}</strong>${handCheckedRoutes === 0 ? " from the providers' own sites" : ` for the big providers, and ${handCheckedRoutes} routes checked by hand`}; each row shows when.</li>
   <li><strong>Standard rates only.</strong> No paid placements; commissions never change the order.</li>
   <li><strong>Ratings shown</strong> from Trustpilot, so you see what customers say.</li>
 </ul>
@@ -1071,7 +1074,7 @@ ${faqBlock(faqs)}
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
     title: `Send money to ${r.name}: today's best rates compared`,
-    description: `Compare money transfers to ${r.name} by what arrives in ${rCur}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}. Today's best service from each country, checked by hand.`,
+    description: `Compare money transfers to ${r.name} by what arrives in ${rCur}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}. Today's best service from each country, ${handCheckedRoutes === 0 ? "collected automatically" : "checked by hand"}.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   urls.push(rel);
 }
@@ -1344,7 +1347,7 @@ ${gulfSenders.map((x) => `<h3>From ${esc(x.short)}</h3><ul class="route-links">$
 
 // Trust pages
 const hasAffiliate = Object.values(providers).some((p) => p.affiliateUrl);
-const hasAds = config.adsenseClient && Object.values(config.adsenseSlots || {}).some(Boolean);
+const hasAds = !!config.adsenseClient;
 const today = new Date(NOW).toISOString().slice(0, 10);
 const privacyItems = [
   `<li><strong>Your comparison choices.</strong> Your route, amount and payout choice are saved only in your own browser so the tool remembers them. They are not sent to us.</li>`,
@@ -1374,7 +1377,7 @@ const trust = {
 <h2>Who's behind SendFair</h2>
 <p>${config.founderName ? `SendFair was founded by ${esc(config.founderName)} to make the true cost of sending money home easy to compare. ` : ""}${esc(config.legalName || config.businessName || config.siteName)} runs the site, checks the rates and handles corrections.</p>
 <h2>How the numbers are made</h2>
-<p>Quotes for the big providers are updated automatically every 30 minutes from Wise's comparison data; the rest are read by hand from each provider's own calculator or app, for a typical amount on each route. Every quote is saved with the time it was checked. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
+<p>Quotes for the big providers are updated automatically every 30 minutes from Wise's comparison data; ${handCheckedRoutes === 0 ? "every price is collected automatically" : `the rest are read by hand from each provider's own calculator or app, for a typical amount on each route`}. Every quote is saved with the time it was checked. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
 <h2>Editorial independence</h2>
 <p>Services are ranked only by how much your family receives. Some providers pay us a referral commission, but no provider can pay to appear, to rank higher or to have a quote removed, and services that pay us nothing are listed on the same terms. See <a href="${link("../", "disclosure/")}">how we make money</a>.</p>
 <h2>Corrections</h2>
@@ -1384,7 +1387,7 @@ const trust = {
 <h1>How we rank</h1>
 <h2>What we collect</h2>
 <ul><li>The exchange rate each provider quotes on each route, and the amount we checked it for.</li><li>The transfer fee: a fixed amount, a percentage, or both.</li><li>The ways the money can be received (mobile money, bank, cash pickup). Where a provider's rate differs by payout method, we record each one separately.</li><li>The typical delivery time and when we checked.</li></ul>
-<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are updated automatically every 30 minutes from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. Those rows are marked "(auto)". Other services, including Taptap Send, Sendwave and Gulf exchange houses, are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data. Automatic rates far from the mid-market rate are held back as likely errors.</p>
+<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are updated automatically every 30 minutes from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. Those rows are marked "(auto)". ${handCheckedRoutes === 0 ? "Every price is collected automatically from the providers' own sites." : `Other services are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data.`} Automatic rates far from the mid-market rate are held back as likely errors.</p>
 <h2>How the amount received is calculated</h2>
 <p>You enter the total you plan to pay. We take off the provider's fee and convert the rest at the provider's rate. Where the fee is a percentage, it is worked out on the amount sent.</p>
 <p>Total cost is the gap between that and converting your full amount at the mid-market rate with no fee.</p>

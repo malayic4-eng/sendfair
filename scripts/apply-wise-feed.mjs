@@ -25,7 +25,7 @@ const provList = read("data/providers.json").providers;
 const providers = new Set(provList.map((p) => p.id));
 const sendsFrom = Object.fromEntries(provList.map((p) => [p.id, p.sendsFrom || []]));
 const mid = read("data/midmarket.json").rates || {};
-try { Object.assign(mid, read("data/mid-overrides.json").rates || {}); } catch {}
+try { const ov = read("data/mid-overrides.json"); if (ov && ov.rates && Date.now() - new Date(ov.updatedAt).getTime() < 36 * 3600000) Object.assign(mid, ov.rates); } catch {}
 const cur = Object.fromEntries([...corridors.senders, ...corridors.receivers].map((x) => [x.id, x.currency]));
 // The Rate Desk rewrites quotes without the "source" field, so the note also marks a feed quote.
 const isFeed = (q) => q.source === "wise-feed" || /^Updated automatically from Wise/.test(q.note || "");

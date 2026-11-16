@@ -17,7 +17,7 @@ const quotes = read(arg("--quotes", path.join(ROOT, "data/quotes.json")));
 let mid = { rates: {} };
 try { mid = read(arg("--midmarket", path.join(ROOT, "data/midmarket.json"))); } catch {}
 const ovFile = arg("--mid", path.join(ROOT, "data/mid-overrides.json"));
-if (ovFile !== "none") { try { const ov = read(ovFile); Object.assign(mid.rates = mid.rates || {}, ov.rates || {}); } catch {} }
+if (ovFile !== "none") { try { const ov = read(ovFile); if (ov && ov.rates && Date.now() - new Date(ov.updatedAt).getTime() < 36 * 3600000) Object.assign(mid.rates = mid.rates || {}, ov.rates); } catch {} }
 mid.rates.USD = 1;
 const when = new Date(quotes.updatedAt || Date.now());
 const day = arg("--date", when.toISOString().slice(0, 10));

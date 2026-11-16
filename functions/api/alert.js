@@ -7,6 +7,7 @@
 // Emails are sent through Cloudflare Email Service (binding EMAIL). Without it, the sign-up fails
 // honestly with a 503 so the visitor is never left waiting for a confirmation that can't be sent.
 import { json, siteData, sha256 } from "../_lib.js";
+import R from "../../src/rank.js";
 
 const FROM = { email: "hello@sendfair.africa", name: "SendFair rate alerts" };
 const DAY = 86400;
@@ -29,22 +30,21 @@ export async function sendMail(env, msg) {
 
 async function loadData(env, origin) {
   const get = async (p) => (await env.ASSETS.fetch(new Request(origin + p))).json();
-  const [corridors, quotes] = await Promise.all([get("/data/corridors.json"), get("/data/quotes.json")]);
-  return { corridors, quotes };
+  const [corridors, quotes, providersFile, midmarket, wiseFeed] = await Promise.all([
+    get("/data/corridors.json"), get("/data/quotes.json"), get("/data/providers.json"),
+    get("/data/midmarket.json"), get("/data/wise-feed.json").catch(() => ({ routes: {} }))
+  ]);
+  const providers = Object.fromEntries(((providersFile || {}).providers || []).map((p) => [p.id, p]));
+  return { corridors, quotes, providers, midmarket, feed: (wiseFeed || {}).routes || {} };
 }
 
-// Most that arrives on a route for `amount`, from quotes checked in the last 36 hours.
-export function bestFor(quotes, route, amount, now = Date.now()) {
-  let best = null;
-  for (const q of (quotes.quotes || {})[route] || []) {
-    if (now - new Date(q.checkedAt).getTime() > 36 * 3600000) continue;
-    const fixed = Number(q.feeFixed ?? q.fee ?? 0) || 0, pct = Number(q.feePct) || 0;
-    const sent = (amount - fixed) / (1 + pct / 100);
-    if (!(sent > 0) || !(q.rate > 0)) continue;
-    const gets = sent * q.rate;
-    if (!best || gets > best.gets) best = { gets, provider: q.provider };
-  }
-  return best;
+// Most that arrives on a route for `amount`, using the shared ranking engine.
+export function bestFor(data, route, amount, now = Date.now()) {
+  const rn = routeName(route, data);
+  const m = R.midRate(data.midmarket, rn.s.currency, rn.r.currency);
+  const rows = R.rank({ list: (data.quotes.quotes || {})[route] || [], feed: (data.feed || {})[route] || null, providers: data.providers, amount, payout: "all", mid: m || null, now, staleH: 36, hideH: 72 });
+  const lead = R.leaders(rows);
+  return lead.length ? { gets: lead[0].gets, provider: lead[0].p.name } : null;
 }
 
 function confirmMail(a, origin, rn) {
@@ -164,7 +164,7 @@ export async function runAlerts(env, origin = "https://sendfair.africa") {
         if (!a.confirmSent && (await sendMail(env, confirmMail(a, origin, rn)))) { a.confirmSent = true; confirmations++; await kv.put(k.name, JSON.stringify(a), { expirationTtl: 365 * DAY }); }
         continue;
       }
-      const best = bestFor(data.quotes, a.route, a.amount);
+      const best = bestFor(data, a.route, a.amount);
       if (!best || best.gets < a.target) continue;
       const stop = `${origin}/api/alert/stop?id=${a.id}&t=${a.token}`;
       const ok = await sendMail(env, {
