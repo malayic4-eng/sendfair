@@ -661,7 +661,12 @@ function write(rel, content) {
 function copyDir(src, dst) {
   if (!fs.existsSync(src)) return;
   fs.mkdirSync(dst, { recursive: true });
-  for (const f of fs.readdirSync(src)) fs.copyFileSync(path.join(src, f), path.join(dst, f));
+  for (const f of fs.readdirSync(src)) {
+    const s = path.join(src, f);
+    const d = path.join(dst, f);
+    if (fs.statSync(s).isDirectory()) copyDir(s, d);
+    else fs.copyFileSync(s, d);
+  }
 }
 
 // ---------- asset versions ----------
