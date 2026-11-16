@@ -67,11 +67,12 @@ async function publishMedia(igId, pt, creationId, kind) {
 }
 
 async function postOne(igId, pt, p) {
-  const caption = (p.long || "").replace(/https?:\/\/sendfair\.africa\/[^\s]*/, "Link in bio: sendfair.africa");
-  const text = [caption, p.tags].filter(Boolean).join("\n\n");
+  const caption = p.text || (p.long || "").replace(/https?:\/\/sendfair\.africa\/[^\s]*/, "");
+  const text = [caption, "Compare your own amount: link in bio (sendfair.africa)", p.tags].filter(Boolean).join("\n\n");
+  const imageUrl = p.image || cardUrl;
   const cRes = await fetch(`https://graph.facebook.com/${version}/${igId}/media`, {
     method: "POST",
-    body: new URLSearchParams({ image_url: cardUrl, caption: text, access_token: pt }),
+    body: new URLSearchParams({ image_url: imageUrl, caption: text, access_token: pt }),
   });
   const cData = await cRes.json();
   if (!cRes.ok || cData.error) {

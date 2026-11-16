@@ -29,6 +29,9 @@ jobs:
       - name: Fetch Wise comparison feed (only if WISE_API_TOKEN secret is set)
         if: ${{ env.WISE_API_TOKEN != '' }}
         run: node scripts/fetch-wise-feed.mjs
+      - name: Correct the mid-market reference with Wise's own rates
+        if: ${{ env.WISE_API_TOKEN != '' }}
+        run: node scripts/mid-from-wise.mjs
       - name: Publish the Wise feed into today's quotes (with safety checks)
         if: ${{ env.WISE_API_TOKEN != '' }}
         run: node scripts/apply-wise-feed.mjs
@@ -37,6 +40,7 @@ jobs:
       - name: Commit if changed
         run: |
           git add data/midmarket.json
+          if [ -f data/mid-overrides.json ]; then git add data/mid-overrides.json; fi
           if [ -f data/wise-feed.json ]; then git add data/wise-feed.json; fi
           git add data/quotes.json data/history.json
           if git diff --cached --quiet; then
