@@ -651,7 +651,7 @@
       var sendBtn = lang === "fr" ? "Comparer qui remet le plus" : "Compare who delivers the most";
       var ask = lang === "fr" ? "Demandez des reçus qui correspondent aux sacs, aux blocs, aux fenêtres et aux jours ci-dessus. Une somme ronde sans quantités est la façon habituelle de gonfler un devis." : "Ask for receipts that match the bags, blocks, windows and days above. A round sum with no quantities is how a quote gets inflated.";
       var receiptPage = rootPath + (lang === "fr" ? "fr/" : "") + "cost-to-build/what-this-receipt-is/";
-      out.innerHTML = '<div class="build-head"><div class="build-total"><span class="k">' + esc(headK) + '</span><strong class="num">' + esc(money(est.total, est.currency)) + '</strong><span class="s">' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² · " + esc(placeName) + " · " + esc(est.country.city) + ". " + est.quotedLines + listedWord + est.guideLines + guideWord + " " + esc(setting) + "</span></div>" + bandHtml + "</div>" +
+      out.innerHTML = '<div class="build-head"><div class="build-total"><span class="k">' + esc(headK) + '</span><strong class="num">' + esc(money(est.total, est.currency)) + '</strong><span class="s">' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² · about " + esc(money(Math.round(est.total / area), est.currency)) + " per m² · " + esc(placeName) + " · " + esc(est.country.city) + ". " + est.quotedLines + listedWord + est.guideLines + guideWord + " " + esc(setting) + "</span></div>" + bandHtml + "</div>" +
         orderHtml +
         '<div class="build-stages"><div class="build-group">' + esc(stageTitle) + "</div>" + stageHtml + '<p class="build-month">' + esc(monthLine) + "</p></div>" +
         '<div class="build-lines">' + lines + "</div>" +
@@ -665,7 +665,7 @@
         '<div class="share"><a href="https://wa.me/?text=' + encodeURIComponent(orderMessage) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Envoyer la liste sur WhatsApp" : "Send the order list on WhatsApp") + '</a> <a href="https://wa.me/?text=' + encodeURIComponent(share) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Partager le total" : "Share the total") + '</a> <button type="button" id="sf-build-copy">' + (lang === "fr" ? "Copier le lien" : "Copy the link") + "</button></div>" +
         '<details class="build-src"><summary>' + (lang === "fr" ? "D'où viennent les prix" : "Where the prices come from") + "</summary><ul>" + est.lines.filter(function (l) { return l.source; }).map(function (l) {
           return "<li><strong>" + esc(shownLabel(l)) + ".</strong> " + esc(l.source) + (l.url ? ' <a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Source" : "Source") + "</a>" : "") + "</li>";
-        }).join("") + "</ul><p>" + (lang === "fr" ? "Contrôlé le " : "Checked ") + esc(data.updated) + (lang === "fr" ? ". Prochain contrôle le " : ". Next refresh ") + esc(data.nextReview) + ".</p></details>" +
+        }).join("") + "</ul><p>" + (lang === "fr" ? "Contrôlé le " : "Checked ") + esc(data.updated) + (lang === "fr" ? ". Prochain contrôle le " : ". Next refresh ") + esc(data.nextReview) + ".</p></details>" + '<details class="build-src" id="sf-material-calc"><summary>' + (lang === "fr" ? "Calculateurs de matériaux" : "Material calculators") + '</summary><div class="mat-calc"><label>Concrete — floor area <input type="number" data-mat="conc-area" placeholder="m²" inputmode="decimal"> × thickness <input type="number" data-mat="conc-thick" value="0.15" step="0.01" inputmode="decimal"> m → <strong data-mat-out="conc">…</strong></label><label>Tile — floor area <input type="number" data-mat="tile-area" placeholder="m²" inputmode="decimal"> (10% waste) → <strong data-mat-out="tile">…</strong></label><label>Paint — wall area <input type="number" data-mat="paint-area" placeholder="m²" inputmode="decimal"> (2 coats) → <strong data-mat-out="paint">…</strong></label></div></details>' +
         '<article class="build-sheet"><h2>SendFair receipt</h2><p>' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² · " + esc(placeName) + " · " + esc(est.country.city) + " · " + esc(data.updated) + "</p><p><strong>" + esc(money(est.total, est.currency)) + "</strong></p><p>" + esc(orderBits.join(" · ")) + esc(slabNote) + "</p>" +
         (est.band ? "<p>" + esc(money(est.band.low, est.currency)) + " – " + esc(money(est.band.high, est.currency)) + ". " + esc(est.band.source) + "</p>" : "") +
         '<table><thead><tr><th>Item</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr></thead><tbody>' + sheetRows + "</tbody></table>" +
@@ -769,6 +769,24 @@
         else delete withSet[k];
         draw();
       });
+    });
+    out.addEventListener("input", function (e) {
+      var t = e.target, k = t.getAttribute && t.getAttribute("data-mat");
+      if (!k) return;
+      var box = document.getElementById("sf-material-calc");
+      if (!box) return;
+      var show = function (id, txt) { var el = box.querySelector('[data-mat-out="' + id + '"]'); if (el) el.textContent = txt; };
+      var num = function (sel) { var el = box.querySelector('[data-mat="' + sel + '"]'); return el ? parseFloat(el.value) : NaN; };
+      if (k === "conc-area" || k === "conc-thick") {
+        var a = num("conc-area"), th = num("conc-thick");
+        show("conc", (a > 0 && th > 0) ? "about " + Math.ceil(a * th * 7) + " bags of cement (1:2:4 mix)" : "…");
+      } else if (k === "tile-area") {
+        var ta = num("tile-area");
+        show("tile", ta > 0 ? "about " + Math.round(ta * 1.1 * 10) / 10 + " m² of tiles" : "…");
+      } else if (k === "paint-area") {
+        var pa = num("paint-area");
+        show("paint", pa > 0 ? "about " + Math.ceil(pa * 2 / 10) + " litres" : "…");
+      }
     });
     out.addEventListener("change", function (e) {
       var sel = e.target.closest("select[data-pick]");
