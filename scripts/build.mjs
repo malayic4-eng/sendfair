@@ -373,7 +373,7 @@ function buildTeaser(prefix) {
     return `<a class="build-card" href="${link(prefix, `cost-to-build/${id}/`)}"><span class="k">3-bedroom bungalow · ${esc(est.country.name)}</span><strong class="num">${esc(plain(R.money(est.total, est.currency)))}</strong><span class="s">Walls, roof, finishes, services, a septic tank and a boundary wall. Land and the contractor's fee are not included.</span></a>`;
   }).join("");
   return `<section class="block" id="build-home"><div class="wrap">
-<div class="section-head"><h2>Cost to build a house back home</h2><p class="lede">SendFair is not only a transfer comparison. Building is one of the main reasons people send money, and a round sum is where quotes get inflated. Pick the country, then switch the roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not in the figure. Prices checked ${esc(buildCosts.updated)}.</p></div>
+<div class="section-head"><h2>Build a house back home</h2><p class="lede">Building is one of the main reasons people send money — and a round sum is where quotes get inflated. Price the walls, roof, finishes, trade days and the building permit before you send a lump sum. Pick the country, then switch the roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not in the figure. Prices checked ${esc(buildCosts.updated)}.</p></div>
 <div class="build-tease">${cards}</div>
 <p><a class="btn" href="${link(prefix, "cost-to-build/")}">Open the building calculator</a></p>
 <ul class="route-links">${Object.keys(buildCosts.countries).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">Cost to build in ${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul>
@@ -894,7 +894,7 @@ write("index.html", page({
     { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail,
       ...(config.legalName || config.businessName ? { legalName: config.legalName || config.businessName } : {}), ...(config.founderName ? { founder: { "@type": "Person", name: config.founderName } } : {}), areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) },
     faqLd(homeFaqs),
-    appLd("SendFair transfer comparison", site + "/", "Compare money transfers to Africa by the amount that arrives."),
+    appLd("SendFair transfer and house-build comparison", site + "/", "Compare money transfers to Africa by the amount that arrives, and estimate the cost to build a house back home."),
     howToLd("How the SendFair ranking works", "How a transfer is checked, calculated and ranked.", [
       { name: "We check each provider", text: "We record the rate and fee each service quotes on every route, how the money can be received, and when we checked." },
       { name: "We do the maths for your amount", text: "Fees come off what you pay and the rest converts at the provider's rate. That gives the amount that actually arrives." },
@@ -902,8 +902,8 @@ write("index.html", page({
     ])],
   body: tool({
     ctx: homeCtx,
-    heading: "Send more home.",
-    sub: `Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup. ${homeProof} SendFair also prices what a house back home costs to build.`
+    heading: "Send money home. Build a house back home.",
+    sub: `Two tools for the diaspora. Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup — then price a house back home before you build. ${homeProof}`
   }) + buildTeaser("") + guideTeaser("") + corridorGrid("") + `
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
@@ -1350,7 +1350,7 @@ const trust = {
   "about/": ["About SendFair", "SendFair compares money transfers to Africa and estimates what it costs to build a house back home.", `
 <h1>About SendFair</h1>
 <p>Sending money home is one of the most regular bills in a diaspora household, and one of the least transparent. A transfer that says "zero fees" can still lose several percent in the exchange rate. A lot of that money is meant for a house, and a contractor's lump sum is just as hard to check.</p>
-<p>SendFair does two things. It shows how much of a transfer actually lands at home, and it estimates what a simple house costs to build in the country you send to. We cover the routes most used by Africans sending from the United States, the United Kingdom, Europe, Canada and Australia to ${esc(joinList(corridors.receivers.map((r) => r.name)))}.</p>
+<p>SendFair does two things, side by side. It shows how much of a transfer actually lands at home, and it prices a simple house in the country you send to, line by line — materials, trade days, finish and the building permit. We cover the routes most used by Africans sending from the United States, the United Kingdom, Europe, Canada and Australia to ${esc(joinList(corridors.receivers.map((r) => r.name)))}.</p>
 <h2>Cost to build a house back home</h2>
 <p>The <a href="${link("../", "cost-to-build/")}">house calculator</a> prices the structure, the finish, the plot works and the building permit: cement, steel, blocks, roof sheets, windows, doors, floor and wall tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, a basin, a shower, a sink, a septic tank, a boundary wall, a gate, the trade days, and the permit fee published for that country. Materials use the same quantities everywhere. The permit keeps that country's own tariff. On each line you can switch to another published type, or to the ends of a published price range, and the total follows what you pick. Land and the contractor's fee are not included. Every line shows a quantity, so a round sum can be checked against receipts. Prices are refreshed monthly.</p>
 <p>SendFair is run by ${esc(config.legalName || config.businessName || config.siteName)}${config.founderName ? `, founded by ${esc(config.founderName)}` : ""}, independently from Nairobi, Kenya. We are not owned by any transfer company.</p>
