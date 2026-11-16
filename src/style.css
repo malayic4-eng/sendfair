@@ -516,6 +516,7 @@ details p { margin-top: 10px; color: var(--muted); }
 .site-footer nav { display: flex; gap: 8px 22px; flex-wrap: wrap; font-weight: 600; }
 .site-footer nav a { color: var(--on-band); text-decoration: none; }
 .site-footer nav a:hover { text-decoration: underline; }
+.site-footer .social a { display: inline-flex; align-items: center; gap: 7px; }
 .site-footer p { max-width: 70ch; }
 .foot-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 24px; padding-bottom: 8px; border-bottom: 1px solid var(--band-line); }
 .foot-cols h2 { font-size: .95rem; color: var(--on-band); margin-bottom: 8px; }
