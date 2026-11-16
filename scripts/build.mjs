@@ -171,21 +171,45 @@ const gitDate = (() => { try { return require("child_process").execSync("git log
 const guideByUrl = {};
 for (const a of (readOptional("data/guides.json", { articles: [] }).articles || [])) guideByUrl[`guides/${a.pillar}/${a.slug}/`] = a;
 
+// Newest date (YYYY-MM-DD) among the quotes, and Wise-feed rows, that match a filter on (route key, provider id).
+function newestDate(match) {
+  let best = "";
+  for (const [k, list] of Object.entries(quotes)) for (const q of list || []) if (q.checkedAt && match(k, q.provider) && q.checkedAt > best) best = q.checkedAt;
+  for (const [k, provs] of Object.entries(wiseFeedData.routes || {})) for (const [id, f] of Object.entries(provs || {})) if (f && f.collected && match(k, id) && f.collected > best) best = f.collected;
+  return best.slice(0, 10);
+}
+const senderById = Object.fromEntries(corridors.senders.map((x) => [x.id, x]));
+const receiverById = Object.fromEntries(corridors.receivers.map((x) => [x.id, x]));
+const routeParts = (k) => { const [sid, rid] = k.split("-"); return { s: senderById[sid], r: receiverById[rid] }; };
+const midDate = String((midmarket && midmarket.updatedAt) || "").slice(0, 10);
+const later = (a, b) => (a > b ? a : b);
+const fallbackDate = String(quotesFile.updatedAt || "").slice(0, 10);
+
 function lastmodFor(u) {
-  if (u.startsWith("send-money/")) {
-    const key = u.slice("send-money/".length).replace(/\/$/, "");
-    const list = quotes[key] || [];
-    const newest = list.reduce((m, q) => (q.checkedAt && (!m || q.checkedAt > m) ? q.checkedAt : m), "");
-    return (newest || quotesFile.updatedAt || "").slice(0, 10);
+  const seg = u.replace(/\/$/, "").split("/");
+  if (seg[0] === "send-money" && seg[1]) {
+    const key = seg[1].replace("-to-", "-");
+    return newestDate((k) => k === key) || fallbackDate;
   }
-  if (u.startsWith("cost-to-build/")) {
-    const id = u.slice("cost-to-build/".length).replace(/\/$/, "");
-    const c = (buildCosts.countries || {})[id];
-    return (((c && c.updated) || buildCosts.updated) || "").slice(0, 10);
+  if (seg[0] === "send-money-to" && seg[1]) return newestDate((k) => k.endsWith("-" + seg[1])) || fallbackDate;
+  if (seg[0] === "providers" && seg[1]) return newestDate((k, id) => id === seg[1]) || fallbackDate;
+  if (seg[0] === "compare" && seg[1]) {
+    const [a, b] = seg[1].split("-vs-");
+    return newestDate((k, id) => id === a || id === b) || fallbackDate;
   }
-  if (u.startsWith("guides/")) {
+  if (seg[0] === "rates" && seg[1]) {
+    const [sc, rc] = seg[1].toUpperCase().split("-TO-");
+    const d = newestDate((k) => { const p = routeParts(k); return p.s && p.r && p.s.currency === sc && p.r.currency === rc; });
+    return later(d, midDate) || fallbackDate;
+  }
+  if (seg[0] === "cost-to-build" || (seg[0] === "fr" && seg[1] === "cost-to-build")) {
+    const id = seg[0] === "fr" ? seg[2] : seg[1];
+    const c = id && (buildCosts.countries || {})[id];
+    return String((c && c.updated) || buildCosts.updated || gitDate || "").slice(0, 10);
+  }
+  if (seg[0] === "guides") {
     const g = guideByUrl[u];
-    return ((g && g.updated) || gitDate || "").slice(0, 10);
+    return String((g && g.updated) || gitDate || "").slice(0, 10);
   }
   return gitDate;
 }
@@ -202,33 +226,32 @@ function routeTitle(s, r, top) {
   const from = s.short, name = r.name, sc = s.currency, rc = r.currency;
   if (sc === rc) {
     const t = `Send money from ${from} to ${name}: compare ${sc} transfer services`;
-    return t.length <= 60 ? t : `Send money ${from} to ${name}: ${sc} transfers`;
+    return t.length <= 60 ? t : `Send money from ${from} to ${name}: ${sc} transfers`;
   }
   let t = top
     ? `Send money from ${from} to ${name}: best ${sc} to ${rc} rate today`
     : `Send money from ${from} to ${name}: compare ${sc} to ${rc} transfer services`;
   if (t.length <= 60) return t;
   t = top
-    ? `Send money ${from} to ${name}: ${sc} to ${rc} rates today`
-    : `Send money ${from} to ${name}: ${sc} to ${rc} rates`;
+    ? `Send money from ${from} to ${name}: ${sc} to ${rc} rates`
+    : `Send money from ${from} to ${name}: ${sc} to ${rc} rates`;
   if (t.length <= 60) return t;
   return top ? `${from} to ${name} transfers: best ${sc} rate today` : `${from} to ${name}: ${sc} to ${rc} rates`;
 }
 function guideDescription(a) {
-  const pool = [a.seoDescription, a.description, a.lede];
-  for (const s of a.sections || []) for (const p of s.paragraphs || []) pool.push(p);
-  for (const c of pool) {
-    const t = String(c || "").trim();
-    if (t.length >= 110 && t.length <= 155) return t;
-  }
-  let best = pool.map((c) => String(c || "").trim()).sort((x, y) => y.length - x.length)[0] || "";
-  if (best.length > 155) {
-    best = best.slice(0, 155);
-    const i = best.lastIndexOf(" ");
-    if (i > 90) best = best.slice(0, i);
-    best += "…";
-  }
-  return best;
+  const strip = (t) => String(t || "").replace(/<[^>]+>/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/[*_`]+/g, "").replace(/\s+/g, " ").trim();
+  const sentencesOf = (t) => (t.match(/[^.!?]+[.!?]+/g) || []).map((x) => x.trim());
+  const fit = (t, min) => { let out = ""; for (const sen of sentencesOf(t)) { const next = out ? out + " " + sen : sen; if (next.length > 155) break; out = next; } return out.length >= min ? out : ""; };
+  const lead = [a.seoDescription, a.description, a.lede].map(strip).filter(Boolean);
+  const body = [];
+  for (const sec of a.sections || []) for (const p of sec.paragraphs || []) body.push(strip(p));
+  // 1. The page's own summary, if it already fits.
+  for (const t of lead) if (t.length >= 90 && t.length <= 155) return t;
+  // 2. Whole sentences from the summary (an opening sentence of 90+ characters is enough).
+  for (const t of lead) { const out = fit(t, 90); if (out) return out; }
+  // 3. Whole sentences from the article body.
+  for (const t of body) { const out = fit(t, 110); if (out) return out; }
+  return clip(lead[0] || body[0] || "", 155);
 }
 function compareTitle(A, B) {
   const t = `${A.name} vs ${B.name}: who sends more money to Africa?`;
@@ -293,6 +316,11 @@ ${ads}${cfa}${impact}`;
 }
 
 // Cut a description to fit search results: at a sentence end if one is close, else at a word, with an ellipsis.
+// First candidate that fits a search result without being cut off; otherwise the shortest, clipped.
+function fitDescription(list, max = 158) {
+  const ok = list.find((t) => t.length <= max);
+  return ok || clip(list.reduce((a, b) => (b.length < a.length ? b : a)), max);
+}
 function clip(t, max) {
   t = String(t || "");
   if (t.length <= max) return t;
@@ -1020,9 +1048,12 @@ for (const s of corridors.senders) {
     const rCur = CURNAME[r.currency] || r.currency, sCur = CURNAME[s.currency] || s.currency;
     const amt = plain(R.money(ctx.amount, s.currency, 0));
     const title = cap(routeTitle(s, r, top));
-    const description = top
-      ? `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 4))} by what arrives in ${r.name}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}.`
-      : `Compare money transfer services from ${s.short} to ${r.name} by what actually arrives in ${rCur}, after fees and the exchange-rate markup.`;
+    const description = top ? fitDescription([
+      `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 4))} by what arrives in ${r.name}${nets.length ? ` via ${joinList(nets.slice(0, 2))}, bank or cash pickup` : ""}.`,
+      `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 3))} by what arrives in ${r.name}${nets.length ? ` via ${nets[0]}, bank or cash` : ""}.`,
+      `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${joinList(names.slice(0, 3))} by what arrives in ${r.name}.`,
+      `${who} today: ${plain(R.money(top.gets, r.currency))} for ${amt}. Compare ${names.length} services by what arrives in ${r.name}.`
+    ]) : `Compare money transfer services from ${s.short} to ${r.name} by what actually arrives in ${rCur}, after fees and the exchange-rate markup.`;
     const lede = `Compare ${names.length > 1 ? names.length + " services" : "transfer services"} by how many ${esc(rCur)} arrive${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""}. ${top ? `Rates checked ${esc(dateLong)}.` : "No service publishes online prices for this route yet."}`;
     const mobileProv = [...new Set(fresh.filter((x) => (x.q.payout || []).includes("mobile")).map((x) => x.p.name))];
     const midTxt = ctx.mid && s.currency !== r.currency ? `1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}` : "";
