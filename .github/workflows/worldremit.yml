@@ -1,6 +1,10 @@
 name: WorldRemit quotes
 
 on:
+  push:
+    paths:
+      - "scripts/fetch-worldremit.mjs"
+      - ".github/workflows/worldremit.yml"
   schedule:
     # Hourly (WorldRemit rates move less often than the Wise feed).
     - cron: "0 * * * *"
