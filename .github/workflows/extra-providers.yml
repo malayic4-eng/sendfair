@@ -1,0 +1,44 @@
+name: Extra providers
+
+on:
+  push:
+    paths:
+      - "scripts/fetch-extra.mjs"
+      - ".github/workflows/extra-providers.yml"
+  schedule:
+    - cron: "30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: extra-providers
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright
+        run: npm install playwright --no-save
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Scrape extra providers
+        run: node scripts/fetch-extra.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "sendfair-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/extra-quotes.json data/extra-debug.txt
+          if git diff --cached --quiet; then
+            echo "No change"
+          else
+            git commit -m "Update extra provider quotes (automatic)"
+            git pull --rebase
+            git push
+          fi

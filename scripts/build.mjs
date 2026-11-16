@@ -152,11 +152,16 @@ if (DEMO) {
   quotesFile = { updatedAt: new Date(NOW - 2 * 3600000).toISOString(), coverage, quotes: out };
   demoReports = { routes: reps };
 }
-// Merge WorldRemit quotes scraped directly from its site (data/worldremit-quotes.json),
-// so WorldRemit appears on more routes than the Wise feed alone provides.
-const worldremitQuotes = readOptional("data/worldremit-quotes.json", { quotes: {} });
-for (const [k, list] of Object.entries(worldremitQuotes.quotes || {})) {
-  quotesFile.quotes[k] = [...(list || []), ...(quotesFile.quotes[k] || []).filter((q) => q.provider !== "worldremit")];
+// Merge quotes scraped directly from operators' own sites (separate files) so those providers
+// appear on more routes than the Wise feed alone provides.
+for (const [file, providers] of [
+  ["worldremit-quotes.json", new Set(["worldremit"])],
+  ["extra-quotes.json", new Set(["ria", "mukuru", "transfergo", "paysend", "xe", "smallworld", "ace", "sigue", "ofx"])],
+]) {
+  const scraped = readOptional(`data/${file}`, { quotes: {} });
+  for (const [k, list] of Object.entries(scraped.quotes || {})) {
+    quotesFile.quotes[k] = [...(list || []), ...(quotesFile.quotes[k] || []).filter((q) => !providers.has(q.provider))];
+  }
 }
 const quotes = quotesFile.quotes || {};
 const coverage = quotesFile.coverage || {};
