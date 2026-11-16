@@ -1,14 +1,14 @@
 # SendFair social queue - 2026-11-16
 
-2 post(s) generated from live data (rates updated 2026-11-16T04:02:52.023Z).
+2 post(s) generated from live data (rates updated 2026-11-16T10:25:07.318Z).
 
 ## Daily rate: UK to Nigeria: Wise pays the most today
 
 **Facebook / Instagram (longer):**
-UK to Nigeria: Wise delivers the most today - NGN 461,232 for GBP 250. We compared every service; see the full ranking or check your own amount: https://sendfair.africa/send-money/uk-nigeria/
+UK to Nigeria: Wise delivers the most today - NGN 463,960 for GBP 250. We compared every service; see the full ranking or check your own amount: https://sendfair.africa/send-money/uk-nigeria/
 
 **X / TikTok (short):**
-Wise pays the most UK to Nigeria today: NGN 461,232 for GBP 250. Full ranking: https://sendfair.africa/send-money/uk-nigeria/
+Wise pays the most UK to Nigeria today: NGN 463,960 for GBP 250. Full ranking: https://sendfair.africa/send-money/uk-nigeria/
 
 **Hashtags:** #remittances #diaspora #sendmoney #africa #nigeria
 
