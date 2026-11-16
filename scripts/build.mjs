@@ -869,6 +869,7 @@ copyDir(path.join(ROOT, "src/fonts"), path.join(OUT, "assets/fonts"));
 copyDir(path.join(ROOT, "src/og"), path.join(OUT, "og"));
 copyDir(path.join(ROOT, "src/logos"), path.join(OUT, "logos"));
 copyDir(path.join(ROOT, "src/icons"), OUT);
+copyDir(path.join(ROOT, "src/social"), path.join(OUT, "social"));
 write("data/corridors.json", JSON.stringify(corridors));
 write("data/providers.json", JSON.stringify(providersFile));
 write("data/quotes.json", JSON.stringify(quotesFile));
