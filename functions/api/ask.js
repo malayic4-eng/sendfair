@@ -3,7 +3,7 @@
 // degrades gracefully instead of erroring.
 import { json } from "../_lib.js";
 
-const MODEL = "@cf/meta/llama-3.1-8b-instruct";
+const MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 
 async function load(env, origin, p) {
   try {
