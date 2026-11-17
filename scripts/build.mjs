@@ -268,6 +268,8 @@ const socialProfiles = [
   config.facebookUrl ? { name: "Facebook", url: config.facebookUrl, icon: fbIcon } : null,
   config.instagramUrl ? { name: "Instagram", url: config.instagramUrl, icon: igIcon } : null
 ].filter(Boolean);
+const waIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.6a8.5 8.5 0 0 1-12.6 7.5L3 21l1.9-5.4A8.5 8.5 0 1 1 21 11.6z"/><path d="M8.6 8.9c.2-.5.5-.5.8-.5h.5c.2 0 .4 0 .5.4l.6 1.5c.1.2 0 .4-.1.6l-.4.5c-.1.1-.2.3 0 .6.5.9 1.3 1.6 2.2 2.1.3.2.5.1.6 0l.5-.5c.2-.2.3-.2.6-.1l1.5.7c.3.2.4.3.4.5v.5c0 .4-.2.7-.6.9-.5.3-1.1.4-1.7.2-1.9-.5-3.7-2.1-4.8-4.1-.4-.7-.6-1.4-.4-2 .1-.3.2-.5.3-.8z" fill="currentColor" stroke="none"/></svg>`;
+const footerSocials = [...socialProfiles, ...(config.whatsappChannelUrl ? [{ name: "WhatsApp", url: config.whatsappChannelUrl, icon: waIcon }] : [])];
 
 function routeContext(s, r, prefix, amount) {
   const k = `${s.id}-${r.id}`;
@@ -353,7 +355,7 @@ function footer(prefix) {
 <div><h2>Exchange rates</h2><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
 <div><h2>Build a house</h2><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li><li><a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What the receipt prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
-${socialProfiles.length ? `<nav class="social" aria-label="Social media">${socialProfiles.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
+${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
 <nav aria-label="Footer"><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "sitemap/")}">All pages</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a>` : ""}<a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><a href="${link(prefix, "cookies/")}">Cookies</a><a href="${link(prefix, "accessibility/")}">Accessibility</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>Cookie settings</button><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
@@ -427,7 +429,8 @@ function alerts() {
     body = `<form id="sf-alert-form" data-demo="1"><label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form><p id="sf-alert-msg" aria-live="polite"></p>`;
   } else if (config.newsletterFormAction) {
     const embed = String(config.newsletterFormAction).includes("embed-subscribe") ? `<input type="hidden" name="embed" value="1"><p><a href="https://buttondown.com/${esc(String(config.newsletterFormAction).split("/").pop())}">SendFair on Buttondown</a></p>` : "";
-    body = `<form id="sf-alert-form" action="${esc(config.newsletterFormAction)}" method="post">${embed}<label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form>`;
+    const wa = config.whatsappChannelUrl ? `<div style="margin-top:14px"><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>` : "";
+    body = `<form id="sf-alert-form" action="${esc(config.newsletterFormAction)}" method="post">${embed}<label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form>${wa}`;
   } else if (config.whatsappChannelUrl) {
     body = `<div><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>`;
   } else return "";
