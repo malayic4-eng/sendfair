@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { buildReports, reportSummary } from "./report-data.mjs";
+import { t, moneyFr, dateFr, assertFrKeys } from "./i18n.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -361,29 +362,65 @@ function fitTitle(list, max = 60) {
   return ok || list.reduce((a, b) => (b.length < a.length ? b : a));
 }
 
-function header(prefix) {
+function header(prefix, lang) {
+  const fr = lang === "fr";
+  const L = fr ? {
+    allRoutes: t("nav.allRoutes"), buildHouse: t("nav.buildHouse"), guides: t("nav.guides"), search: t("nav.search"),
+    embed: t("nav.embed"), howWeRank: t("nav.howWeRank"), about: t("nav.about"), language: t("nav.language"),
+    translateNote: t("nav.translateNote"), privacy: t("nav.privacy")
+  } : {
+    allRoutes: "All routes", buildHouse: "Build a house", guides: "Guides", search: "Search",
+    embed: "Rate widget for your site", howWeRank: "How we rank", about: "About", language: "Language",
+    translateNote: "Machine translation by Google. Amounts and service names stay as they are.", privacy: "Privacy"
+  };
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "cost-to-build/")}">Build a house</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "embed/")}">Rate widget for your site</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="Translate this page"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">Language</span></button></nav>
-</div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">Machine translation by Google. Amounts and service names stay as they are. <a href="${link(prefix, "privacy/")}">Privacy</a></p></div></div></header>`;
+<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
+</div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">${L.translateNote} <a href="${link(prefix, "privacy/")}">${L.privacy}</a></p></div></div></header>`;
 }
 
-function footer(prefix) {
+function footer(prefix, lang) {
+  const fr = lang === "fr";
+  const L = fr ? {
+    sendTo: t("footer.sendTo"), popularRoutes: t("footer.popularRoutes"), services: t("footer.services"), exchangeRates: t("footer.exchangeRates"),
+    buildHouse: t("footer.buildHouse"), sameHouse: t("footer.sameHouse"), materialPrices: t("footer.materialPrices"), whatReceipt: t("footer.whatReceipt"),
+    search: t("footer.search"), allPages: t("footer.allPages"), costIndex: t("footer.costIndex"), guides: t("footer.guides"),
+    costToBuild: t("footer.costToBuild"), fromGulf: t("footer.fromGulf"), about: t("footer.about"), contact: t("footer.contact"),
+    howRank: t("footer.howRank"), howMakeMoney: t("footer.howMakeMoney"), privacy: t("footer.privacy"), terms: t("footer.terms"),
+    cookies: t("footer.cookies"), accessibility: t("footer.accessibility"), cookieSettings: t("footer.cookieSettings"), install: t("footer.install"),
+    disclaimer: t("footer.disclaimer"), ratesBy: t("footer.ratesBy"),
+    copyright: t("footer.copyright", { legal: config.legalName || config.businessName || config.siteName, email: config.contactEmail })
+  } : {
+    sendTo: "Send money to", popularRoutes: "Popular routes", services: "Services", exchangeRates: "Exchange rates",
+    buildHouse: "Build a house", sameHouse: "Same house, every country", materialPrices: "Material prices", whatReceipt: "What the receipt prices",
+    search: "Search", allPages: "All pages", costIndex: "Remittance Cost Index", guides: "Guides",
+    costToBuild: "Cost to build a house", fromGulf: "Sending from the Gulf", about: "About", contact: "Contact",
+    howRank: "How we rank", howMakeMoney: "How we make money", privacy: "Privacy", terms: "Terms",
+    cookies: "Cookies", accessibility: "Accessibility", cookieSettings: "Cookie settings", install: "Add SendFair to your home screen",
+    disclaimer: "SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.",
+    ratesBy: "Mid-market reference rates by",
+    copyright: `\u00a9 ${new Date(NOW).getUTCFullYear()} ${config.siteName}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span>`
+  };
+  const FR_COST = new Set(["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"]);
+  const hub = (r) => hubPath(r);
+  const routeP = (s, r) => corridorPath(s, r);
+  const rateP = (a, b) => `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`;
+  const countryCost = (id) => fr && FR_COST.has(id) ? `fr/cost-to-build/${id}/` : `cost-to-build/${id}/`;
   return `<footer class="site-footer"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
 <div class="foot-cols">
-<div><h2>Send money to</h2><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul></div>
-<div><h2>Popular routes</h2><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, corridorPath(S, Rr))}">${esc(S.label)} to ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
-<div><h2>Services</h2><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
-<div><h2>Exchange rates</h2><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
-<div><h2>Build a house</h2><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li><li><a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What the receipt prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
+<div><h2>${L.sendTo}</h2><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, hub(r))}">${esc(r.name)}</a></li>`).join("")}</ul></div>
+<div><h2>${L.popularRoutes}</h2><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, routeP(S, Rr))}">${esc(S.label)} ${fr ? "vers" : "to"} ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
+<div><h2>${L.services}</h2><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
+<div><h2>${L.exchangeRates}</h2><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, rateP(a, b))}">${a} ${fr ? "vers" : "to"} ${b}</a></li>`; }).join("")}</ul></div>
+<div><h2>${L.buildHouse}</h2><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, countryCost(id))}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
-<nav aria-label="Footer"><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "sitemap/")}">All pages</a><a href="${link(prefix, "reports/")}">Remittance Cost Index</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a>` : ""}<a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><a href="${link(prefix, "cookies/")}">Cookies</a><a href="${link(prefix, "accessibility/")}">Accessibility</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>Cookie settings</button><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
-<p>SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
-<p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
-<p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
+<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
+<p>${L.disclaimer}</p>
+<p>${L.ratesBy} <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
+<p>${L.copyright}</p>
 </div></footer>`;
 }
 
@@ -1036,7 +1073,7 @@ var m=document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);if(m&&m[1]!=="en")load
     (buildPage ? `<script src="${prefix}assets/build-cost.js?v=${V.build}" defer></script>` : "") +
     (PREVIEW || DEMO ? "" : `<script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})});addEventListener("beforeinstallprompt",function(e){e.preventDefault();var b=document.getElementById("sf-install");if(!b)return;b.hidden=false;b.onclick=function(){b.hidden=true;e.prompt();};});</script>`);
   const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og, ogType, alternates });
-  const bodyStr = `<a class="skip" href="#content">${lang === "fr" ? "Aller au contenu" : "Skip to content"}</a>\n${header(prefix)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix)}\n${scripts}`;
+  const bodyStr = `<a class="skip" href="#content">${lang === "fr" ? "Aller au contenu" : "Skip to content"}</a>\n${header(prefix, lang)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix, lang)}\n${scripts}`;
   if (bodyOnly) return `${headStr}\n${bodyStr}`;
   return `<!doctype html>\n<html lang="${lang === "fr" ? "fr" : "en"}">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n${headStr}\n</head>\n<body>\n${bodyStr}\n</body>\n</html>\n`;
 }
