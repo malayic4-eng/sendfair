@@ -288,6 +288,20 @@ function routeContext(s, r, prefix, amount) {
   };
 }
 
+function validateJsonLd(items) {
+  for (const item of items) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) throw new Error("JSON-LD item must be an object: " + JSON.stringify(item).slice(0, 120));
+    if (!item["@type"]) throw new Error("JSON-LD item has no @type: " + JSON.stringify(item).slice(0, 120));
+    JSON.stringify(item);
+  }
+}
+function jsonldGraph(items) {
+  const list = (items || []).filter(Boolean);
+  validateJsonLd(list);
+  if (!list.length) return "";
+  const graph = list.map((item) => { const { "@context": _ctx, ...rest } = item; return rest; });
+  return `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph })}</script>`;
+}
 function head({ title, description, canonical, prefix, jsonld = [], noindex = false, og = "home", ogType = "website", alternates = [] }) {
   const ads = ""; // AdSense now loads only after the visitor accepts optional cookies (see src/app.js).
   const cfa = config.cfAnalyticsToken && !DEMO ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${esc(config.cfAnalyticsToken)}"}'></script>` : "";
@@ -322,7 +336,7 @@ ${ogImg}
 <link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png"><link rel="manifest" href="${prefix}manifest.webmanifest">
 ${fonts}
 <link rel="stylesheet" href="${prefix}assets/style.css?v=${V.css}">
-${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j)}</script>`).join("\n")}
+${jsonldGraph(jsonld)}
 ${config.googleSiteVerification ? `<meta name="google-site-verification" content="${esc(config.googleSiteVerification)}">` : ""}
 ${config.bingSiteVerification ? `<meta name="msvalidate.01" content="${esc(config.bingSiteVerification)}">` : ""}
 ${ads}${cfa}${impact}`;
@@ -1416,7 +1430,7 @@ ${(() => { const ids = new Set(fresh.map((x) => x.p.id)); const links = vsList.f
     // A route with no fresh quotes stays reachable but is kept out of search results and the sitemap until it is filled.
     write(rel + "index.html", page({
       prefix, canonical: rel, title, description, og: slug(s, r), noindex: !top,
-      jsonld: [faqLd(faqs), crumbs(trail)],
+      jsonld: [faqLd(faqs), crumbs(trail), rankItemList(ctx)],
       init: { from: s.id, to: r.id, pageUrl: `${site}/${rel}` }, body
     }));
     if (top) urls.push(rel);
@@ -1465,7 +1479,7 @@ for (const s of corridors.senders) {
           `${amtSym} to ${r.name}: ${top.p.name} delivers ${plain(R.money(top.gets, r.currency))} today, the most of ${fresh.length} services. Compare what actually arrives after fees.`,
           `Send ${amtSym} to ${r.name}: ${top.p.name} delivers ${plain(R.money(top.gets, r.currency))} today. Compare ${s.currency} to ${r.currency} services by what arrives.`
         ]);
-        jsonld = [faqLd(faqs), crumbs(trail)];
+        jsonld = [faqLd(faqs), crumbs(trail), rankItemList(ctx)];
         body = tool({ ctx, heading: `Send ${esc(amtSym)} to ${esc(r.name)}: who delivers the most today`, sub: `Compare ${fresh.length} services by how many ${esc(rCur)} arrive for ${esc(amtSym)} today. Rates checked ${esc(dateLong)}.` }) + `
 <nav class="secnav" aria-label="On this page"><div class="wrap"><a href="#amounts">Other amounts</a><a href="#faq">Questions</a></div></nav>
 <section class="block"><div class="wrap"><div class="prose wide">
@@ -1551,6 +1565,31 @@ const providerLines = (p, prefix) => {
   }
   return lines;
 };
+function rankItemList(ctx) {
+  const rows = ctx.rows.filter((x) => !x.stale).slice(0, 10);
+  if (!rows.length) return null;
+  return {
+    "@context": "https://schema.org", "@type": "ItemList",
+    name: `Services ranked by the amount that arrives for ${ctx.s.label} to ${ctx.r.name}`,
+    itemListElement: rows.map((x, i) => ({
+      "@type": "ListItem", position: i + 1,
+      item: {
+        "@type": "FinancialProduct",
+        name: x.p.name,
+        ...(x.p.website ? { url: x.p.website } : {}),
+        additionalProperty: { "@type": "PropertyValue", name: "Amount received", value: Math.round(x.gets), unitText: ctx.r.currency },
+        offers: { "@type": "Offer", price: Math.round(x.ev.fee * 100) / 100, priceCurrency: ctx.s.currency, ...(x.q.checkedAt ? { validFrom: x.q.checkedAt } : {}) }
+      }
+    }))
+  };
+}
+function providerOrgLd(p) {
+  const sameAs = [p.website, p.rating && p.rating.url].filter(Boolean);
+  const ld = { "@context": "https://schema.org", "@type": "Organization", name: p.name, ...(p.website ? { url: p.website } : {}), ...(sameAs.length ? { sameAs } : {}) };
+  // No aggregateRating: the scores are Trustpilot's, and Google's review-snippet rules forbid marking up
+  // ratings gathered from other websites. The Trustpilot profile is linked through sameAs instead.
+  return ld;
+}
 const ratingLine = (p) => p.rating ? `<a href="${esc(p.rating.url)}" target="_blank" rel="noopener">Trustpilot ${p.rating.score}/5</a> (${esc(p.rating.label)}, ${Number(p.rating.reviews).toLocaleString("en")} reviews)` : "Not rated yet";
 
 // Provider review pages: "Wise review: rates, fees and ratings for sending money to Africa"
@@ -1614,7 +1653,7 @@ ${faqBlock(faqs)}
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
     title: `${p.name} review: rates, fees and ratings for Africa`,
     description: `${p.name} on ${lines.length} routes to Africa: today's rates and fees, how often it delivers the most, ways to pay and receive, and its ${p.rating ? `${p.rating.score}/5 Trustpilot rating` : "customer rating"}.`,
-    jsonld: [faqLd(faqs), crumbs(trail)], body }));
+    jsonld: [faqLd(faqs), crumbs(trail), providerOrgLd(p)], body }));
   urls.push(rel);
 }
 
@@ -1786,6 +1825,9 @@ for (const { s, r } of ratePairs) {
     ...(STEP_AMOUNTS[s.currency] || []).slice(0, 3).map((a) => [`How much is ${plain(R.money(a, s.currency, 0))} in ${rCur}?`, `At the mid-market rate, ${plain(R.money(a * ctx.mid, r.currency))}.${bestAt(a) ? ` Sent from ${s.short} to ${r.name} today, the most that arrives is ${plain(R.money(bestAt(a).gets, r.currency))} with ${bestAt(a).p.name}.` : ""}`]),
     [`Why is the rate I get lower than the mid-market rate?`, `Transfer services add a margin to the mid-market rate and may charge a fee. The difference is their price, which is why SendFair ranks services by the amount that actually arrives.`]
   ];
+  const histDays = Object.keys(history.days || {}).sort();
+  const rateLd = { "@context": "https://schema.org", "@type": "ExchangeRateSpecification", currency: s.currency, currentExchangeRate: { "@type": "UnitPriceSpecification", price: +ctx.mid.toPrecision(6), priceCurrency: r.currency, unitText: `1 ${s.currency}`, validFrom: midmarket.updatedAt || quotesFile.updatedAt } };
+  const dsLd = { "@context": "https://schema.org", "@type": "Dataset", name: `${s.currency} to ${r.currency} mid-market rate history`, description: `Daily ${s.currency} to ${r.currency} mid-market exchange rate recorded by SendFair, with the amount the best money transfer service delivered from ${s.name} to ${r.name} on each day it was checked.`, url: `${site}/${rel}`, isAccessibleForFree: true, variableMeasured: `${s.currency}/${r.currency} mid-market rate`, temporalCoverage: histDays.length ? `${histDays[0]}/${histDays[histDays.length - 1]}` : String(midmarket.updatedAt || "").slice(0, 10), creator: { "@type": "Organization", name: config.siteName, url: site + "/" }, license: "https://creativecommons.org/licenses/by/4.0/" };
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>${esc(s.currency)} to ${esc(r.currency)} today: 1 ${esc(s.currency)} = ${R.rateStr(ctx.mid)} ${esc(r.currency)}</h1>
@@ -1815,7 +1857,7 @@ ${faqBlock(faqs)}
   write(rel + "index.html", page({ prefix, canonical: rel, og: slug(s, r), noindex: !pairHasData,
     title: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}`,
     description: `${sCur} to ${rCur} rate today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}. Converter, what arrives with the best transfer service, and rate history.`,
-    jsonld: [faqLd(faqs), crumbs(trail)], body }));
+    jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd], body }));
   if (pairHasData) urls.push(rel);
 }
 
