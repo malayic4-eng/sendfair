@@ -9,6 +9,17 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8"));
 const escape = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// CHECK_ONLY=1: confirm the Buttondown key is accepted (a read-only request), then stop. Sends nothing.
+if (process.env.CHECK_ONLY) {
+  const key = process.env.BUTTONDOWN_API_KEY;
+  if (!key) { console.error("BUTTONDOWN_API_KEY is not set."); process.exit(1); }
+  const res = await fetch("https://api.buttondown.com/v1/newsletters", { headers: { Authorization: `Token ${key}` } });
+  const body = await res.json().catch(() => ({}));
+  const names = (body.results || []).map((n) => n.name || n.username).filter(Boolean);
+  console.log(res.ok ? `Buttondown key works (HTTP ${res.status}). Newsletter: ${names.join(", ") || "found"}.` : `Buttondown refused the key: HTTP ${res.status} ${JSON.stringify(body).slice(0, 200)}`);
+  process.exit(res.ok ? 0 : 1);
+}
+
 const config = read("config.json");
 const history = read("data/history.json");
 const quotes = read("data/quotes.json").quotes || {};

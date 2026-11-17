@@ -5,6 +5,11 @@ on:
     # 06:00 UTC on the 1st: the previous month is complete.
     - cron: "0 6 1 * *"
   workflow_dispatch:
+    inputs:
+      check_only:
+        description: "Only check that the Buttondown key works (sends nothing)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -22,5 +27,6 @@ jobs:
           BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
           # Optional repository variable: set to "draft" to review each report in Buttondown before it goes out.
           BUTTONDOWN_STATUS: ${{ vars.BUTTONDOWN_STATUS }}
+          CHECK_ONLY: ${{ inputs.check_only && '1' || '' }}
           SITE_URL: https://sendfair.africa
         run: node scripts/send-report.mjs
