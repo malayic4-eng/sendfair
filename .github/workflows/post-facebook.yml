@@ -1,9 +1,8 @@
-name: Post to Facebook
+name: Post to Facebook (legacy)
 
+# Superseded by Daily Reel (social-reels.yml). Manual only: the old workflow regenerated the queue and
+# posted to both networks, which is how the same post went out three times in two hours on 17 Nov.
 on:
-  schedule:
-    # Daily (05:30 UTC) - generates the queue fresh, then posts it to the Page.
-    - cron: "30 5 * * *"
   workflow_dispatch:
 
 permissions:
