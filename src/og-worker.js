@@ -2,16 +2,25 @@
 // The best/lowest providers come from the site's own rank() via og-model.js, so the card agrees with
 // the page (feed merge, 36h/72h freshness, hand-lock). Cached at Cloudflare's edge per
 // route + amount + size + quotes.updatedAt; all other query parameters are ignored.
+// Satori is pinned to 0.32.0: from 0.33 it bundles HarfBuzz, whose Emscripten loader reads
+// self.location.href and compiles WASM from bytes at runtime, neither of which Cloudflare Workers allows.
 import satori, { init as initSatori } from "satori/standalone";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
-import satoriLayoutWasm from "satori/layout.wasm";
+import yogaWasm from "satori/yoga.wasm";
 import resvgWasm from "@resvg/resvg-wasm/index_bg.wasm";
 import figtree400 from "./fonts/figtree-latin-400-normal.woff";
 import figtree700 from "./fonts/figtree-latin-700-normal.woff";
 import { resultCard } from "./og-result.mjs";
 import { resultModel } from "./og-model.mjs";
 
-const READY = (async () => { await initSatori(satoriLayoutWasm); await initWasm(resvgWasm); })();
+// Start the WASM engines on the first image request (not at Worker start-up), once per isolate.
+// resvg's initWasm may only succeed once; if start-up fails, the next request tries again.
+let resvgReady = null, satoriStarted = false;
+function ready() {
+  if (!satoriStarted) { initSatori(yogaWasm); satoriStarted = true; }
+  if (!resvgReady) resvgReady = initWasm(resvgWasm).catch((e) => { resvgReady = null; throw e; });
+  return resvgReady;
+}
 const asBuf = (f) => (f instanceof Uint8Array ? f.buffer.slice(f.byteOffset, f.byteOffset + f.byteLength) : f);
 const FONTS = [
   { name: "Figtree", data: asBuf(figtree400), weight: 400 },
@@ -45,6 +54,15 @@ async function loadData(env, origin) {
 
 // GET /og/result.png?route=uk-nigeria&amount=250[&size=story]
 export async function resultImage(request, env, ctx) {
+  try {
+    return await render(request, env, ctx);
+  } catch (e) {
+    console.error("og render failed", e && e.stack ? e.stack : String(e));
+    return new Response("Image unavailable right now.", { status: 500, headers: { "Cache-Control": "no-store" } });
+  }
+}
+
+async function render(request, env, ctx) {
   const u = new URL(request.url);
   const route = String(u.searchParams.get("route") || "").toLowerCase();
   const raw = Number(u.searchParams.get("amount"));
@@ -54,7 +72,7 @@ export async function resultImage(request, env, ctx) {
     return new Response("Bad request", { status: 400 });
   }
 
-  await READY;
+  await ready();
   const data = await loadData(env, u.origin);
 
   // Cache key: route + rounded amount + size + the data's own update time. Nothing else is read.
