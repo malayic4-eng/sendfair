@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-11-17T18:54:34.543Z",
+ "updatedAt": "2026-11-17T19:59:29.103Z",
  "coverage": {
   "us-nigeria": [
    "wise",
@@ -314,7 +314,7 @@
   "us-nigeria": [
    {
     "provider": "wise",
-    "rate": 1437.01,
+    "rate": 1438.31,
     "feeFixed": 8.63,
     "feePct": 0,
     "payout": [
@@ -323,7 +323,7 @@
     "speed": "Minutes",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:53:54Z",
+    "checkedAt": "2026-11-17T19:58:49Z",
     "source": "wise-feed"
    },
    {
@@ -383,7 +383,7 @@
     "speed": "Minutes",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:53:55Z",
+    "checkedAt": "2026-11-17T19:58:50Z",
     "source": "wise-feed"
    },
    {
@@ -419,6 +419,37 @@
   ],
   "us-kenya": [
    {
+    "provider": "remitly",
+    "rate": 128.07,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:45:28.783477Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 130.05,
+    "feeFixed": 11.35,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:58:50Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "westernunion",
     "rate": 127.4343,
     "feeFixed": 1.99,
@@ -449,37 +480,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "remitly",
-    "rate": 128.07,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:45:17.674483Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 130.05,
-    "feeFixed": 11.35,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank"
-    ],
-    "speed": "Minutes",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:53:55Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 124.92455209,
     "feeFixed": 2.99,
@@ -496,22 +496,8 @@
   ],
   "us-uganda": [
    {
-    "provider": "wise",
-    "rate": 4155.17,
-    "feeFixed": 11.97,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:53:56Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "remitly",
-    "rate": 4065.1719497237,
+    "rate": 4065.26,
     "feeFixed": 2.99,
     "feePct": 0,
     "payout": [
@@ -522,7 +508,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:45:30.628811Z",
+    "checkedAt": "2026-11-17T19:45:44.178886Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 4155.17,
+    "feeFixed": 11.97,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:58:51Z",
     "source": "wise-feed"
    },
    {
@@ -556,6 +556,20 @@
   ],
   "uk-nigeria": [
    {
+    "provider": "wise",
+    "rate": 1901.01,
+    "feeFixed": 1.97,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:58:57Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "westernunion",
     "rate": 1834.9646026895,
     "feeFixed": 1.99,
@@ -568,20 +582,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
     "checkedAt": "2026-11-17T18:21:17.739214Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 1900.23,
-    "feeFixed": 1.97,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "Minutes",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:01Z",
     "source": "wise-feed"
    },
    {
@@ -600,6 +600,21 @@
    }
   ],
   "uk-ghana": [
+   {
+    "provider": "wise",
+    "rate": 15.5101,
+    "feeFixed": 3.73,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:58:57Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "westernunion",
     "rate": 15.526310195,
@@ -629,11 +644,13 @@
     "refAmount": 250,
     "checkedAt": "2026-11-17T18:24:47.036865Z",
     "source": "wise-feed"
-   },
+   }
+  ],
+  "uk-kenya": [
    {
     "provider": "wise",
-    "rate": 15.5178,
-    "feeFixed": 3.73,
+    "rate": 171.887,
+    "feeFixed": 4.27,
     "feePct": 0,
     "payout": [
      "mobile",
@@ -642,14 +659,26 @@
     "speed": "Minutes",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:02Z",
+    "checkedAt": "2026-11-17T19:58:58Z",
     "source": "wise-feed"
-   }
-  ],
-  "uk-kenya": [
+   },
+   {
+    "provider": "skrill",
+    "rate": 163.6365362071,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:30:55.403235Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "remitly",
-    "rate": 168.8144773798,
+    "rate": 168.7920667199,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -660,36 +689,7 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
-    "checkedAt": "2026-11-17T18:40:17.079095Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 171.972,
-    "feeFixed": 4.27,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank"
-    ],
-    "speed": "Minutes",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:02Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "skrill",
-    "rate": 163.7328456593,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:31:06.228090Z",
+    "checkedAt": "2026-11-17T19:40:16.168009Z",
     "source": "wise-feed"
    },
    {
@@ -739,6 +739,36 @@
   ],
   "uk-uganda": [
    {
+    "provider": "wise",
+    "rate": 5491.89,
+    "feeFixed": 4.79,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:58:58Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "remitly",
+    "rate": 5292.0804084839,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:40:28.771214Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "westernunion",
     "rate": 5277.2574726229,
     "feeFixed": 0.99,
@@ -755,22 +785,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "remitly",
-    "rate": 5292.3508587961,
-    "feeFixed": 0.99,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:40:26.054383Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "instarem",
     "rate": 5452.5494103796,
     "feeFixed": 0,
@@ -782,20 +796,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
     "checkedAt": "2026-11-17T18:25:37.479211Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 5494.59,
-    "feeFixed": 4.79,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:03Z",
     "source": "wise-feed"
    },
    {
@@ -814,6 +814,20 @@
    }
   ],
   "canada-nigeria": [
+   {
+    "provider": "wise",
+    "rate": 1006.52,
+    "feeFixed": 4.73,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:04Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "westernunion",
     "rate": 956.9202611093,
@@ -844,20 +858,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 1005.92,
-    "feeFixed": 4.73,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:09Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 948.3433768886,
     "feeFixed": 0,
@@ -875,7 +875,7 @@
   "canada-ghana": [
    {
     "provider": "wise",
-    "rate": 8.21462,
+    "rate": 8.21232,
     "feeFixed": 7.51,
     "feePct": 0,
     "payout": [
@@ -885,7 +885,7 @@
     "speed": "1–2 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:10Z",
+    "checkedAt": "2026-11-17T19:59:05Z",
     "source": "wise-feed"
    },
    {
@@ -921,8 +921,23 @@
   ],
   "canada-kenya": [
    {
+    "provider": "wise",
+    "rate": 91.0109,
+    "feeFixed": 8.37,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:05Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "remitly",
-    "rate": 89.7517030232,
+    "rate": 89.721170666,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -933,22 +948,7 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
-    "checkedAt": "2026-11-17T18:41:00.404271Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 91.0364,
-    "feeFixed": 8.37,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:10Z",
+    "checkedAt": "2026-11-17T19:41:02.723659Z",
     "source": "wise-feed"
    },
    {
@@ -998,8 +998,22 @@
   ],
   "canada-uganda": [
    {
+    "provider": "wise",
+    "rate": 2907.85,
+    "feeFixed": 9.25,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:06Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "remitly",
-    "rate": 2861.8960012316,
+    "rate": 2860.2565529742,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -1010,7 +1024,7 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
-    "checkedAt": "2026-11-17T18:41:10.905716Z",
+    "checkedAt": "2026-11-17T19:41:12.817108Z",
     "source": "wise-feed"
    },
    {
@@ -1044,20 +1058,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 2908.66,
-    "feeFixed": 9.25,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:11Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 2767.5873921008,
     "feeFixed": 4.99,
@@ -1075,7 +1075,7 @@
   "australia-nigeria": [
    {
     "provider": "wise",
-    "rate": 968.545,
+    "rate": 968.531,
     "feeFixed": 3.43,
     "feePct": 0,
     "payout": [
@@ -1084,7 +1084,7 @@
     "speed": "Minutes",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:18Z",
+    "checkedAt": "2026-11-17T19:59:12Z",
     "source": "wise-feed"
    },
    {
@@ -1120,7 +1120,7 @@
   "australia-ghana": [
    {
     "provider": "wise",
-    "rate": 7.90939,
+    "rate": 7.90235,
     "feeFixed": 6.44,
     "feePct": 0,
     "payout": [
@@ -1130,7 +1130,7 @@
     "speed": "Minutes",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:18Z",
+    "checkedAt": "2026-11-17T19:59:13Z",
     "source": "wise-feed"
    },
    {
@@ -1167,7 +1167,7 @@
   "australia-kenya": [
    {
     "provider": "remitly",
-    "rate": 87.1506133572,
+    "rate": 87.0777015909,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -1178,12 +1178,12 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:40:37.868947Z",
+    "checkedAt": "2026-11-17T19:40:42.026870Z",
     "source": "wise-feed"
    },
    {
     "provider": "wise",
-    "rate": 87.6537,
+    "rate": 87.5757,
     "feeFixed": 7.44,
     "feePct": 0,
     "payout": [
@@ -1193,7 +1193,7 @@
     "speed": "Minutes",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:18Z",
+    "checkedAt": "2026-11-17T19:59:13Z",
     "source": "wise-feed"
    },
    {
@@ -1230,7 +1230,7 @@
   "australia-uganda": [
    {
     "provider": "remitly",
-    "rate": 2741.8899202723,
+    "rate": 2740.3161453659,
     "feeFixed": 1.99,
     "feePct": 0,
     "payout": [
@@ -1241,12 +1241,12 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:40:46.719760Z",
+    "checkedAt": "2026-11-17T19:40:49.669924Z",
     "source": "wise-feed"
    },
    {
     "provider": "wise",
-    "rate": 2800.58,
+    "rate": 2798.09,
     "feeFixed": 8.4,
     "feePct": 0,
     "payout": [
@@ -1255,7 +1255,7 @@
     "speed": "1–2 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:19Z",
+    "checkedAt": "2026-11-17T19:59:14Z",
     "source": "wise-feed"
    },
    {
@@ -1292,7 +1292,7 @@
   "uk-zambia": [
    {
     "provider": "wise",
-    "rate": 27.2899,
+    "rate": 27.2765,
     "feeFixed": 9.35,
     "feePct": 0,
     "payout": [
@@ -1301,15 +1301,15 @@
     "speed": "1–2 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:03Z",
+    "checkedAt": "2026-11-17T19:58:58Z",
     "source": "wise-feed"
    }
   ],
   "canada-zambia": [
    {
     "provider": "wise",
-    "rate": 14.4464,
-    "feeFixed": 18,
+    "rate": 14.4424,
+    "feeFixed": 18.01,
     "feePct": 0,
     "payout": [
      "bank"
@@ -1317,15 +1317,15 @@
     "speed": "3 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:11Z",
+    "checkedAt": "2026-11-17T19:59:06Z",
     "source": "wise-feed"
    }
   ],
   "australia-zambia": [
    {
     "provider": "wise",
-    "rate": 13.9096,
-    "feeFixed": 17.49,
+    "rate": 13.8972,
+    "feeFixed": 17.5,
     "feePct": 0,
     "payout": [
      "bank"
@@ -1333,7 +1333,7 @@
     "speed": "1–2 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:19Z",
+    "checkedAt": "2026-11-17T19:59:14Z",
     "source": "wise-feed"
    }
   ],
@@ -1349,11 +1349,55 @@
     "speed": "1–2 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:53:56Z",
+    "checkedAt": "2026-11-17T19:58:51Z",
     "source": "wise-feed"
    }
   ],
   "uk-zimbabwe": [
+   {
+    "provider": "skrill",
+    "rate": 1.2584715598,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:31:10.281292Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 1.3217,
+    "feeFixed": 1.9,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:58:59Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "remitly",
+    "rate": 1.2998574702,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank",
+     "mobile",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:40:29.308395Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "westernunion",
     "rate": 1.2857329381,
@@ -1384,36 +1428,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "skrill",
-    "rate": 1.2592095498,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:31:26.299577Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 1.3004033194,
-    "feeFixed": 1.99,
-    "feePct": 0,
-    "payout": [
-     "bank",
-     "mobile",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:40:26.602199Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "instarem",
     "rate": 1.3146011719,
     "feeFixed": 0,
@@ -1425,20 +1439,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
     "checkedAt": "2026-11-17T18:25:47.304348Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 1.32235,
-    "feeFixed": 1.9,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:04Z",
     "source": "wise-feed"
    },
    {
@@ -1487,7 +1487,7 @@
   "canada-zimbabwe": [
    {
     "provider": "remitly",
-    "rate": 0.6940818481,
+    "rate": 0.6938542521,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -1498,7 +1498,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
-    "checkedAt": "2026-11-17T18:41:11.744973Z",
+    "checkedAt": "2026-11-17T19:41:13.674956Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 0.699815,
+    "feeFixed": 4.54,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:07Z",
     "source": "wise-feed"
    },
    {
@@ -1513,20 +1527,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
     "checkedAt": "2026-11-17T18:17:51.036064Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 0.700011,
-    "feeFixed": 4.54,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:12Z",
     "source": "wise-feed"
    },
    {
@@ -1589,6 +1589,36 @@
   ],
   "australia-zimbabwe": [
    {
+    "provider": "remitly",
+    "rate": 0.6713511944,
+    "feeFixed": 1.49,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 450,
+    "checkedAt": "2026-11-17T19:40:49.986889Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 0.6734,
+    "feeFixed": 3.19,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 450,
+    "checkedAt": "2026-11-17T19:59:15Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "ofx",
     "rate": 0.6637552432,
     "feeFixed": 15,
@@ -1632,36 +1662,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "remitly",
-    "rate": 0.6720509344,
-    "feeFixed": 1.49,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-17T18:40:47.016531Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 0.674,
-    "feeFixed": 3.19,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:20Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "worldremit",
     "rate": 0.6662906148,
     "feeFixed": 0,
@@ -1688,7 +1688,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:45:09.271036Z",
+    "checkedAt": "2026-11-17T19:45:17.185738Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 53.72,
+    "feeFixed": 16.12,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Same day",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:58:52Z",
     "source": "wise-feed"
    },
    {
@@ -1720,20 +1734,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 53.72,
-    "feeFixed": 16.12,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "Same day",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:53:57Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 51.8904,
     "feeFixed": 4.99,
@@ -1749,6 +1749,34 @@
    }
   ],
   "us-morocco": [
+   {
+    "provider": "remitly",
+    "rate": 9.8540715894,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:45:31.601626Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 9.9694,
+    "feeFixed": 15.78,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "3 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:58:52Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "ofx",
     "rate": 9.6632602438,
@@ -1778,34 +1806,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "remitly",
-    "rate": 9.8677869178,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:45:19.763956Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 9.967,
-    "feeFixed": 15.78,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "3 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:53:57Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 9.6030199941,
     "feeFixed": 4.99,
@@ -1822,6 +1822,20 @@
   ],
   "us-ethiopia": [
    {
+    "provider": "wise",
+    "rate": 161,
+    "feeFixed": 15.72,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "7 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:58:54Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "westernunion",
     "rate": 161.1913,
     "feeFixed": 0.99,
@@ -1833,20 +1847,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
     "checkedAt": "2026-11-17T17:42:47.327004Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 161,
-    "feeFixed": 15.72,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "7 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:53:59Z",
     "source": "wise-feed"
    },
    {
@@ -1865,6 +1865,34 @@
    }
   ],
   "us-southafrica": [
+   {
+    "provider": "remitly",
+    "rate": 16.8461181314,
+    "feeFixed": 1.49,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:45:46.821627Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 16.9326,
+    "feeFixed": 10.72,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:58:55Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "ofx",
     "rate": 16.5538296564,
@@ -1894,34 +1922,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "remitly",
-    "rate": 16.8431843623,
-    "feeFixed": 1.49,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:45:33.154444Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 16.9259,
-    "feeFixed": 10.72,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:00Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 16.2914549612,
     "feeFixed": 4.99,
@@ -1937,6 +1937,34 @@
    }
   ],
   "us-tanzania": [
+   {
+    "provider": "wise",
+    "rate": 2649.58,
+    "feeFixed": 13.9,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:58:56Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "remitly",
+    "rate": 2564.72,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:45:43.278072Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "westernunion",
     "rate": 2585.6242,
@@ -1966,34 +1994,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 2649.58,
-    "feeFixed": 13.9,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:00Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 2564.74,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:45:30.017817Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 2533.4730513725,
     "feeFixed": 4.99,
@@ -2020,7 +2020,7 @@
     "speed": "7 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:01Z",
+    "checkedAt": "2026-11-17T19:58:56Z",
     "source": "wise-feed"
    },
    {
@@ -2054,6 +2054,34 @@
   ],
   "uk-egypt": [
    {
+    "provider": "remitly",
+    "rate": 70.6165762676,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:40:10.590989Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 71.0017,
+    "feeFixed": 8.1,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Same day",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:58:59Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "ofx",
     "rate": 68.1519864864,
     "feeFixed": 7,
@@ -2082,34 +2110,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 71.0366,
-    "feeFixed": 8.1,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "Same day",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:04Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 70.5932618219,
-    "feeFixed": 0.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:40:11.046993Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 67.8764559804,
     "feeFixed": 2.99,
@@ -2127,7 +2127,7 @@
   "uk-morocco": [
    {
     "provider": "remitly",
-    "rate": 12.9267629875,
+    "rate": 12.9297056707,
     "feeFixed": 0.99,
     "feePct": 0,
     "payout": [
@@ -2136,7 +2136,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
-    "checkedAt": "2026-11-17T18:40:18.826723Z",
+    "checkedAt": "2026-11-17T19:40:18.041351Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 13.1766,
+    "feeFixed": 7.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "3 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:59:00Z",
     "source": "wise-feed"
    },
    {
@@ -2151,20 +2165,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
     "checkedAt": "2026-11-17T18:20:21.696407Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 13.1799,
-    "feeFixed": 7.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "3 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:05Z",
     "source": "wise-feed"
    },
    {
@@ -2289,7 +2289,7 @@
   "uk-ethiopia": [
    {
     "provider": "wise",
-    "rate": 212.898,
+    "rate": 212.77,
     "feeFixed": 9.35,
     "feePct": 0,
     "payout": [
@@ -2298,7 +2298,7 @@
     "speed": "7 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:07Z",
+    "checkedAt": "2026-11-17T19:59:02Z",
     "source": "wise-feed"
    },
    {
@@ -2333,7 +2333,7 @@
   "uk-southafrica": [
    {
     "provider": "remitly",
-    "rate": 22.1411870739,
+    "rate": 22.1442606335,
     "feeFixed": 1.49,
     "feePct": 0,
     "payout": [
@@ -2342,7 +2342,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
-    "checkedAt": "2026-11-17T18:40:28.028774Z",
+    "checkedAt": "2026-11-17T19:40:31.352102Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 22.3786,
+    "feeFixed": 3.53,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:59:03Z",
     "source": "wise-feed"
    },
    {
@@ -2357,20 +2371,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
     "checkedAt": "2026-11-17T18:22:33.877136Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 22.3814,
-    "feeFixed": 3.53,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:07Z",
     "source": "wise-feed"
    },
    {
@@ -2405,7 +2405,7 @@
   "uk-tanzania": [
    {
     "provider": "remitly",
-    "rate": 3427.8955170516,
+    "rate": 3428.6441729278,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -2414,7 +2414,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
-    "checkedAt": "2026-11-17T18:40:25.262452Z",
+    "checkedAt": "2026-11-17T19:40:27.824181Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 3501.55,
+    "feeFixed": 6.4,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:59:03Z",
     "source": "wise-feed"
    },
    {
@@ -2429,20 +2443,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
     "checkedAt": "2026-11-17T18:21:54.315143Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 3503.67,
-    "feeFixed": 6.4,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:08Z",
     "source": "wise-feed"
    },
    {
@@ -2476,6 +2476,48 @@
   ],
   "uk-drc": [
    {
+    "provider": "skrill",
+    "rate": 1.2584715598,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:31:10.281292Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "remitly",
+    "rate": 1.2998574702,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:40:29.308395Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 1.32155,
+    "feeFixed": 1.9,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 250,
+    "checkedAt": "2026-11-17T19:59:04Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "ofx",
     "rate": 1.3006032891,
     "feeFixed": 7,
@@ -2504,34 +2546,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "skrill",
-    "rate": 1.2592095498,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:31:26.299577Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 1.3004033194,
-    "feeFixed": 1.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:40:26.602199Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "instarem",
     "rate": 1.3146011719,
     "feeFixed": 0,
@@ -2543,20 +2557,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
     "checkedAt": "2026-11-17T18:25:47.304348Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 1.32235,
-    "feeFixed": 1.9,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:08Z",
     "source": "wise-feed"
    },
    {
@@ -2605,7 +2605,7 @@
   "uk-rwanda": [
    {
     "provider": "wise",
-    "rate": 1951.46,
+    "rate": 1950.28,
     "feeFixed": 11.52,
     "feePct": 0,
     "payout": [
@@ -2614,7 +2614,7 @@
     "speed": "7 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 250,
-    "checkedAt": "2026-11-17T18:54:09Z",
+    "checkedAt": "2026-11-17T19:59:04Z",
     "source": "wise-feed"
    },
    {
@@ -2648,6 +2648,34 @@
   ],
   "canada-egypt": [
    {
+    "provider": "remitly",
+    "rate": 36.9648873851,
+    "feeFixed": 3.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:40:55.603642Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 37.594,
+    "feeFixed": 15.21,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:07Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "ofx",
     "rate": 36.0915779785,
     "feeFixed": 15,
@@ -2676,34 +2704,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 37.6046,
-    "feeFixed": 15.21,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:12Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 36.9683005173,
-    "feeFixed": 3.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:40:53.133949Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 35.7011907621,
     "feeFixed": 4.99,
@@ -2721,7 +2721,7 @@
   "canada-morocco": [
    {
     "provider": "remitly",
-    "rate": 6.8608561353,
+    "rate": 6.8612130251,
     "feeFixed": 1.99,
     "feePct": 0,
     "payout": [
@@ -2730,7 +2730,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
-    "checkedAt": "2026-11-17T18:41:01.916584Z",
+    "checkedAt": "2026-11-17T19:41:04.238126Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 6.97082,
+    "feeFixed": 14.37,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "3 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:08Z",
     "source": "wise-feed"
    },
    {
@@ -2759,20 +2773,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
     "checkedAt": "2026-11-17T18:16:18.427498Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 6.977,
-    "feeFixed": 14.37,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "3 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:13Z",
     "source": "wise-feed"
    },
    {
@@ -2883,8 +2883,8 @@
   "canada-ethiopia": [
    {
     "provider": "wise",
-    "rate": 112.702,
-    "feeFixed": 18,
+    "rate": 112.67,
+    "feeFixed": 18.01,
     "feePct": 0,
     "payout": [
      "bank"
@@ -2892,7 +2892,7 @@
     "speed": "7 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:15Z",
+    "checkedAt": "2026-11-17T19:59:10Z",
     "source": "wise-feed"
    },
    {
@@ -2911,6 +2911,34 @@
    }
   ],
   "canada-southafrica": [
+   {
+    "provider": "wise",
+    "rate": 11.8504,
+    "feeFixed": 7.74,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:11Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "remitly",
+    "rate": 11.655670329,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:41:15.071748Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "ofx",
     "rate": 11.608906071,
@@ -2940,34 +2968,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 11.848,
-    "feeFixed": 7.74,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:16Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 11.6597047857,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:41:13.132014Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 11.3331380189,
     "feeFixed": 4.99,
@@ -2983,6 +2983,34 @@
    }
   ],
   "canada-tanzania": [
+   {
+    "provider": "remitly",
+    "rate": 1829.4552067808,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:41:11.858157Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 1854.21,
+    "feeFixed": 11.83,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:11Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "ofx",
     "rate": 1764.7211799068,
@@ -3012,34 +3040,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 1854.73,
-    "feeFixed": 11.83,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:16Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 1829.6413214202,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:41:10.096138Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 1770.3622174883,
     "feeFixed": 4.99,
@@ -3056,8 +3056,22 @@
   ],
   "canada-drc": [
    {
+    "provider": "wise",
+    "rate": 0.699815,
+    "feeFixed": 4.54,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:12Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "remitly",
-    "rate": 0.6940818481,
+    "rate": 0.6938542521,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -3066,7 +3080,7 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
-    "checkedAt": "2026-11-17T18:41:11.744973Z",
+    "checkedAt": "2026-11-17T19:41:13.674956Z",
     "source": "wise-feed"
    },
    {
@@ -3112,20 +3126,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 0.700011,
-    "feeFixed": 4.54,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:17Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "worldremit",
     "rate": 0.6859881307,
     "feeFixed": 3.99,
@@ -3156,6 +3156,20 @@
   ],
   "canada-rwanda": [
    {
+    "provider": "wise",
+    "rate": 1032.75,
+    "feeFixed": 21.46,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "7 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 400,
+    "checkedAt": "2026-11-17T19:59:12Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "westernunion",
     "rate": 1009.3426655185,
     "feeFixed": 1.99,
@@ -3167,20 +3181,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 400,
     "checkedAt": "2026-11-17T18:29:45.381416Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 1033.04,
-    "feeFixed": 21.45,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "7 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-17T18:54:17Z",
     "source": "wise-feed"
    },
    {
@@ -3199,6 +3199,34 @@
    }
   ],
   "australia-egypt": [
+   {
+    "provider": "remitly",
+    "rate": 35.8133728817,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 450,
+    "checkedAt": "2026-11-17T19:40:37.225794Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 36.175,
+    "feeFixed": 14.54,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Same day",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 450,
+    "checkedAt": "2026-11-17T19:59:15Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "westernunion",
     "rate": 35.0370389371,
@@ -3226,40 +3254,12 @@
     "refAmount": 450,
     "checkedAt": "2026-11-17T18:10:55.463030Z",
     "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 36.2073,
-    "feeFixed": 14.54,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "Same day",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:20Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 35.8467324525,
-    "feeFixed": 0.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-17T18:40:33.090441Z",
-    "source": "wise-feed"
    }
   ],
   "australia-morocco": [
    {
     "provider": "remitly",
-    "rate": 6.5977867354,
+    "rate": 6.5959429956,
     "feeFixed": 2.99,
     "feePct": 0,
     "payout": [
@@ -3268,7 +3268,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:40:39.916648Z",
+    "checkedAt": "2026-11-17T19:40:43.364171Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 6.7077,
+    "feeFixed": 14.11,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "3 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 450,
+    "checkedAt": "2026-11-17T19:59:16Z",
     "source": "wise-feed"
    },
    {
@@ -3283,20 +3297,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
     "checkedAt": "2026-11-17T18:12:08.195843Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 6.71776,
-    "feeFixed": 14.11,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "3 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:21Z",
     "source": "wise-feed"
    },
    {
@@ -3423,8 +3423,8 @@
   "australia-ethiopia": [
    {
     "provider": "wise",
-    "rate": 108.514,
-    "feeFixed": 17.49,
+    "rate": 108.417,
+    "feeFixed": 17.5,
     "feePct": 0,
     "payout": [
      "bank"
@@ -3432,7 +3432,7 @@
     "speed": "7 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:23Z",
+    "checkedAt": "2026-11-17T19:59:18Z",
     "source": "wise-feed"
    },
    {
@@ -3453,7 +3453,7 @@
   "australia-southafrica": [
    {
     "provider": "remitly",
-    "rate": 11.2894062735,
+    "rate": 11.283568305,
     "feeFixed": 4.99,
     "feePct": 0,
     "payout": [
@@ -3462,7 +3462,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:40:48.329227Z",
+    "checkedAt": "2026-11-17T19:40:51.096785Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 11.4031,
+    "feeFixed": 6.5,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 450,
+    "checkedAt": "2026-11-17T19:59:19Z",
     "source": "wise-feed"
    },
    {
@@ -3477,20 +3491,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
     "checkedAt": "2026-11-17T18:14:25.944639Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 11.4078,
-    "feeFixed": 6.5,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:24Z",
     "source": "wise-feed"
    },
    {
@@ -3511,7 +3511,7 @@
   "australia-tanzania": [
    {
     "provider": "remitly",
-    "rate": 1730.014404432,
+    "rate": 1728.7292620186,
     "feeFixed": 0.99,
     "feePct": 0,
     "payout": [
@@ -3520,7 +3520,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:40:45.582369Z",
+    "checkedAt": "2026-11-17T19:40:48.436556Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 1784.23,
+    "feeFixed": 11.33,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 450,
+    "checkedAt": "2026-11-17T19:59:19Z",
     "source": "wise-feed"
    },
    {
@@ -3550,11 +3564,27 @@
     "refAmount": 450,
     "checkedAt": "2026-11-17T18:27:03.370080Z",
     "source": "wise-feed"
+   }
+  ],
+  "australia-drc": [
+   {
+    "provider": "remitly",
+    "rate": 0.6713511944,
+    "feeFixed": 1.49,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 450,
+    "checkedAt": "2026-11-17T19:40:49.986889Z",
+    "source": "wise-feed"
    },
    {
     "provider": "wise",
-    "rate": 1785.82,
-    "feeFixed": 11.33,
+    "rate": 0.6734,
+    "feeFixed": 3.19,
     "feePct": 0,
     "payout": [
      "bank"
@@ -3562,11 +3592,9 @@
     "speed": "1–2 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:24Z",
+    "checkedAt": "2026-11-17T19:59:20Z",
     "source": "wise-feed"
-   }
-  ],
-  "australia-drc": [
+   },
    {
     "provider": "ofx",
     "rate": 0.6637552432,
@@ -3610,34 +3638,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "remitly",
-    "rate": 0.6720509344,
-    "feeFixed": 1.49,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-17T18:40:47.016531Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 0.674,
-    "feeFixed": 3.19,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:20Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "worldremit",
     "rate": 0.6662906148,
     "feeFixed": 0,
@@ -3654,6 +3654,20 @@
   ],
   "australia-rwanda": [
    {
+    "provider": "wise",
+    "rate": 993.77,
+    "feeFixed": 21.4,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "7 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 450,
+    "checkedAt": "2026-11-17T19:59:20Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "westernunion",
     "rate": 954.2667554579,
     "feeFixed": 0.99,
@@ -3666,26 +3680,12 @@
     "refAmount": 450,
     "checkedAt": "2026-11-17T18:26:27.493658Z",
     "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 994.656,
-    "feeFixed": 21.39,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "7 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-17T18:54:25Z",
-    "source": "wise-feed"
    }
   ],
   "europe-nigeria": [
    {
     "provider": "wise",
-    "rate": 1582.87,
+    "rate": 1583.39,
     "feeFixed": 3.03,
     "feePct": 0,
     "payout": [
@@ -3694,7 +3694,7 @@
     "speed": "Minutes",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:25Z",
+    "checkedAt": "2026-11-17T19:59:21Z",
     "source": "wise-feed"
    },
    {
@@ -3756,22 +3756,8 @@
   ],
   "europe-ghana": [
    {
-    "provider": "remitly",
-    "rate": 12.6128997143,
-    "feeFixed": 1.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:46:49.442686Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "wise",
-    "rate": 12.9261,
+    "rate": 12.9191,
     "feeFixed": 5.03,
     "feePct": 0,
     "payout": [
@@ -3780,12 +3766,12 @@
     "speed": "Minutes",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:26Z",
+    "checkedAt": "2026-11-17T19:59:21Z",
     "source": "wise-feed"
    },
    {
     "provider": "instarem",
-    "rate": 12.5803229684,
+    "rate": 12.5596422327,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -3794,7 +3780,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T16:53:13.071230Z",
+    "checkedAt": "2026-11-17T18:54:28.734250Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "remitly",
+    "rate": 12.6095246051,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:47:03.910117Z",
     "source": "wise-feed"
    },
    {
@@ -3829,7 +3829,7 @@
   "europe-kenya": [
    {
     "provider": "remitly",
-    "rate": 138.680290484,
+    "rate": 138.6822282868,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -3838,7 +3838,35 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:47:16.176955Z",
+    "checkedAt": "2026-11-17T19:47:32.784558Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 143.172,
+    "feeFixed": 5.68,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Minutes",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:59:22Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "skrill",
+    "rate": 136.316372661,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:33:15.315009Z",
     "source": "wise-feed"
    },
    {
@@ -3853,34 +3881,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
     "checkedAt": "2026-11-17T18:34:54.779316Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 143.25,
-    "feeFixed": 5.68,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "Minutes",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:26Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "skrill",
-    "rate": 136.3450643275,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:34:08.734502Z",
     "source": "wise-feed"
    },
    {
@@ -3915,7 +3915,7 @@
   "europe-uganda": [
    {
     "provider": "wise",
-    "rate": 4576.92,
+    "rate": 4574.43,
     "feeFixed": 6.34,
     "feePct": 0,
     "payout": [
@@ -3924,12 +3924,12 @@
     "speed": "1–2 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:27Z",
+    "checkedAt": "2026-11-17T19:59:22Z",
     "source": "wise-feed"
    },
    {
     "provider": "remitly",
-    "rate": 4448.2614640207,
+    "rate": 4449.1743920203,
     "feeFixed": 0.99,
     "feePct": 0,
     "payout": [
@@ -3938,7 +3938,7 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:42:29.326746Z",
+    "checkedAt": "2026-11-17T19:42:31.245753Z",
     "source": "wise-feed"
    },
    {
@@ -3987,7 +3987,7 @@
   "europe-zambia": [
    {
     "provider": "wise",
-    "rate": 22.7321,
+    "rate": 22.7197,
     "feeFixed": 11.86,
     "feePct": 0,
     "payout": [
@@ -3996,11 +3996,53 @@
     "speed": "1–2 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:28Z",
+    "checkedAt": "2026-11-17T19:59:23Z",
     "source": "wise-feed"
    }
   ],
   "europe-zimbabwe": [
+   {
+    "provider": "wise",
+    "rate": 1.1009,
+    "feeFixed": 2.94,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:59:23Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "skrill",
+    "rate": 1.0482667635,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:33:24.983113Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "remitly",
+    "rate": 1.0916529713,
+    "feeFixed": 2.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:42:31.812264Z",
+    "source": "wise-feed"
+   },
    {
     "provider": "ofx",
     "rate": 1.0823578202,
@@ -4016,20 +4058,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "remitly",
-    "rate": 1.0915540632,
-    "feeFixed": 2.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:42:29.855957Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "instarem",
     "rate": 1.0924536957,
     "feeFixed": 0,
@@ -4041,34 +4069,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
     "checkedAt": "2026-11-17T18:32:46.303657Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 1.1015,
-    "feeFixed": 2.94,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:28Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "skrill",
-    "rate": 1.0486715822,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:34:18.245167Z",
     "source": "wise-feed"
    },
    {
@@ -4131,7 +4131,7 @@
   "europe-egypt": [
    {
     "provider": "remitly",
-    "rate": 58.5333893744,
+    "rate": 58.5287233075,
     "feeFixed": 1.99,
     "feePct": 0,
     "payout": [
@@ -4140,7 +4140,21 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:48:05.399287Z",
+    "checkedAt": "2026-11-17T19:48:20.009982Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 59.1403,
+    "feeFixed": 10.1,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "Same day",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:59:24Z",
     "source": "wise-feed"
    },
    {
@@ -4155,20 +4169,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
     "checkedAt": "2026-11-17T18:27:50.065225Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 59.1726,
-    "feeFixed": 10.1,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "Same day",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:29Z",
     "source": "wise-feed"
    },
    {
@@ -4202,6 +4202,34 @@
   ],
   "europe-morocco": [
    {
+    "provider": "wise",
+    "rate": 10.966,
+    "feeFixed": 10.03,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "3 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:59:24Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "remitly",
+    "rate": 10.7589217842,
+    "feeFixed": 0.49,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:47:08.573466Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "ofx",
     "rate": 10.6501404496,
     "feeFixed": 10,
@@ -4213,34 +4241,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
     "checkedAt": "2026-11-17T18:28:48.578335Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 10.9787,
-    "feeFixed": 10.03,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "3 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:29Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 10.7653911082,
-    "feeFixed": 0.49,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:46:53.466426Z",
     "source": "wise-feed"
    },
    {
@@ -4289,7 +4289,7 @@
   "europe-senegal": [
    {
     "provider": "remitly",
-    "rate": 656.0790032979,
+    "rate": 655.9370002206,
     "feeFixed": 8.99,
     "feePct": 0,
     "payout": [
@@ -4298,7 +4298,7 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:46:40.151605Z",
+    "checkedAt": "2026-11-17T19:46:54.351890Z",
     "source": "wise-feed"
    },
    {
@@ -4347,7 +4347,7 @@
   "europe-ivorycoast": [
    {
     "provider": "remitly",
-    "rate": 656.0790032979,
+    "rate": 655.9370002206,
     "feeFixed": 8.99,
     "feePct": 0,
     "payout": [
@@ -4356,7 +4356,7 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:46:40.151605Z",
+    "checkedAt": "2026-11-17T19:46:54.351890Z",
     "source": "wise-feed"
    },
    {
@@ -4404,6 +4404,20 @@
   ],
   "europe-mali": [
    {
+    "provider": "remitly",
+    "rate": 655.9370002206,
+    "feeFixed": 8.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:46:54.351890Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "ofx",
     "rate": 629.7007186512,
     "feeFixed": 10,
@@ -4415,20 +4429,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
     "checkedAt": "2026-11-17T18:30:52.043314Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 656.0790032979,
-    "feeFixed": 8.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:46:40.151605Z",
     "source": "wise-feed"
    },
    {
@@ -4463,7 +4463,7 @@
   "europe-cameroon": [
    {
     "provider": "remitly",
-    "rate": 655.984000691,
+    "rate": 655.9250003303,
     "feeFixed": 1.99,
     "feePct": 0,
     "payout": [
@@ -4472,14 +4472,14 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:47:28.666075Z",
+    "checkedAt": "2026-11-17T19:47:46.360080Z",
     "source": "wise-feed"
    }
   ],
   "europe-ethiopia": [
    {
     "provider": "wise",
-    "rate": 177.342,
+    "rate": 177.245,
     "feeFixed": 11.86,
     "feePct": 0,
     "payout": [
@@ -4488,7 +4488,7 @@
     "speed": "7 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:32Z",
+    "checkedAt": "2026-11-17T19:59:27Z",
     "source": "wise-feed"
    },
    {
@@ -4522,6 +4522,34 @@
   ],
   "europe-southafrica": [
    {
+    "provider": "remitly",
+    "rate": 18.4264413973,
+    "feeFixed": 5.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:47:48.538392Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 18.6422,
+    "feeFixed": 4.91,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:59:27Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "ofx",
     "rate": 18.2389297301,
     "feeFixed": 10,
@@ -4533,34 +4561,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
     "checkedAt": "2026-11-17T18:31:05.278647Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 18.4240701414,
-    "feeFixed": 5.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:47:30.859547Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "wise",
-    "rate": 18.6434,
-    "feeFixed": 4.91,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:32Z",
     "source": "wise-feed"
    },
    {
@@ -4594,6 +4594,34 @@
   ],
   "europe-tanzania": [
    {
+    "provider": "remitly",
+    "rate": 2886.4170204578,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:47:17.188521Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "wise",
+    "rate": 2916.92,
+    "feeFixed": 8.29,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:59:27Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "westernunion",
     "rate": 2752.4323645094,
     "feeFixed": 1.99,
@@ -4622,34 +4650,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 2918.51,
-    "feeFixed": 8.29,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:33Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 2886.1759368126,
-    "feeFixed": 1.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:47:01.450773Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "xoom",
     "rate": 2807.9870093256,
     "feeFixed": 2.99,
@@ -4666,6 +4666,48 @@
   ],
   "europe-drc": [
    {
+    "provider": "wise",
+    "rate": 1.1009,
+    "feeFixed": 2.94,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "1–2 days",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:59:23Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "skrill",
+    "rate": 1.0482667635,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:33:24.983113Z",
+    "source": "wise-feed"
+   },
+   {
+    "provider": "remitly",
+    "rate": 1.0916529713,
+    "feeFixed": 2.99,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "refAmount": 300,
+    "checkedAt": "2026-11-17T19:42:31.812264Z",
+    "source": "wise-feed"
+   },
+   {
     "provider": "ofx",
     "rate": 1.0823578202,
     "feeFixed": 10,
@@ -4680,20 +4722,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "wise",
-    "rate": 1.1015,
-    "feeFixed": 2.94,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "1–2 days",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:33Z",
-    "source": "wise-feed"
-   },
-   {
     "provider": "instarem",
     "rate": 1.0924536957,
     "feeFixed": 0,
@@ -4705,34 +4733,6 @@
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
     "checkedAt": "2026-11-17T18:32:46.303657Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "skrill",
-    "rate": 1.0486715822,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:34:18.245167Z",
-    "source": "wise-feed"
-   },
-   {
-    "provider": "remitly",
-    "rate": 1.0915540632,
-    "feeFixed": 2.99,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-17T18:42:29.855957Z",
     "source": "wise-feed"
    },
    {
@@ -4795,7 +4795,7 @@
   "europe-rwanda": [
    {
     "provider": "remitly",
-    "rate": 1566.4052356528,
+    "rate": 1563.7995225127,
     "feeFixed": 0.99,
     "feePct": 0,
     "payout": [
@@ -4804,12 +4804,12 @@
     "speed": "",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:46:37.078486Z",
+    "checkedAt": "2026-11-17T19:46:51.113460Z",
     "source": "wise-feed"
    },
    {
     "provider": "wise",
-    "rate": 1625.54,
+    "rate": 1624.65,
     "feeFixed": 14.46,
     "feePct": 0,
     "payout": [
@@ -4818,7 +4818,7 @@
     "speed": "7 days",
     "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
     "refAmount": 300,
-    "checkedAt": "2026-11-17T18:54:34Z",
+    "checkedAt": "2026-11-17T19:59:28Z",
     "source": "wise-feed"
    },
    {
