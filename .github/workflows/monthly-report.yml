@@ -1,0 +1,24 @@
+name: Monthly remittance report
+
+on:
+  schedule:
+    # 06:00 UTC on the 1st: the previous month is complete.
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Send the latest report summary to Buttondown
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+          SITE_URL: https://sendfair.africa
+        run: node scripts/send-report.mjs

@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { buildReports, reportSummary } from "./report-data.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -365,7 +366,7 @@ function footer(prefix) {
 <div><h2>Build a house</h2><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li><li><a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What the receipt prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
-<nav aria-label="Footer"><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "sitemap/")}">All pages</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a>` : ""}<a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><a href="${link(prefix, "cookies/")}">Cookies</a><a href="${link(prefix, "accessibility/")}">Accessibility</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>Cookie settings</button><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
+<nav aria-label="Footer"><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "sitemap/")}">All pages</a><a href="${link(prefix, "reports/")}">Remittance Cost Index</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a>` : ""}<a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><a href="${link(prefix, "cookies/")}">Cookies</a><a href="${link(prefix, "accessibility/")}">Accessibility</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>Cookie settings</button><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
 <p>SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
 <p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
@@ -679,6 +680,87 @@ draw();
     body
   }));
   urls.push(rel);
+}
+function pct(v) { return (v * 100).toFixed(2) + "%"; }
+function reportBarSvg(sorted) {
+  const W = 880, H = 240, padL = 20, padB = 28;
+  const step = (W - padL * 2) / sorted.length;
+  const max = Math.max(...sorted.map((x) => x.avg)) || 1;
+  const bars = sorted.map((x, i) => {
+    const h = Math.max(2, (x.avg / max) * (H - padB - 20));
+    return `<rect x="${(padL + i * step).toFixed(1)}" y="${(H - padB - h).toFixed(1)}" width="${Math.max(2, step - 1.5).toFixed(1)}" height="${h.toFixed(1)}" rx="1" fill="${i === 0 ? "#0b6e4f" : i === sorted.length - 1 ? "#b0522a" : "#1b2470"}"><title>${esc(x.name)}: ${pct(x.avg)}</title></rect>`;
+  }).join("");
+  return `<figure class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Average best cost by corridor, ranked">${bars}<text x="${padL}" y="${H - 8}" font-size="11" fill="#5c6287">${esc(sorted[0].name)} (cheapest)</text><text x="${W - padL}" y="${H - 8}" text-anchor="end" font-size="11" fill="#5c6287">${esc(sorted[sorted.length - 1].name)} (dearest)</text></svg></figure>`;
+}
+function reportLineSvg(series) {
+  const W = 880, H = 200, pad = 30;
+  const vals = series.map((x) => x.index);
+  const max = Math.max(...vals), min = Math.min(...vals);
+  const y = (v) => H - pad - ((v - min) / Math.max(1e-9, max - min)) * (H - pad * 2);
+  const x = (i) => pad + (i / Math.max(1, series.length - 1)) * (W - pad * 2);
+  const pts = series.map((s, i) => `${x(i).toFixed(1)},${y(s.index).toFixed(1)}`).join(" ");
+  const dots = series.map((s, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(s.index).toFixed(1)}" r="3" fill="#f6b52b"><title>${esc(s.label)}: ${pct(s.index)}</title></circle>`).join("");
+  return `<figure class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Index over time"><polyline points="${pts}" fill="none" stroke="#1b2470" stroke-width="2.5"/>${dots}<text x="${pad}" y="${H - 8}" font-size="11" fill="#5c6287">${esc(series[0].label)}</text><text x="${W - pad}" y="${H - 8}" text-anchor="end" font-size="11" fill="#5c6287">${esc(series[series.length - 1].label)}</text></svg></figure>`;
+}
+function reportCsv(r) {
+  const head = ["Route", "From", "To", "Typical amount", "Currency", "Days", "Average best cost %", "Best cost %", "MoM change (pp)", "Cheapest provider", "Times first", "In index"];
+  const rows = r.all.map((x) => [x.name, x.from, x.to, x.amount, x.currency, x.days, (x.avg * 100).toFixed(2), (x.best * 100).toFixed(2), x.mom == null ? "" : (x.mom * 100).toFixed(2), x.cheapest ? x.cheapest.name : "", x.cheapest ? x.cheapest.count + "/" + x.days : "", x.thin ? "no (too few days)" : "yes"]);
+  const cell = (c) => `"${String(c).replace(/"/g, '""')}"`;
+  return "Source: SendFair (sendfair.africa) — CC BY 4.0\n" + [head, ...rows].map((row) => row.map(cell).join(",")).join("\n") + "\n";
+}
+function writeReports() {
+  const currentMonth = process.env.SF_REPORT_MONTH || new Date(NOW).toISOString().slice(0, 7);
+  const reports = buildReports({ history, config, quotes, corridors: { senders: corridors.senders, receivers: corridors.receivers }, providers, midmarket, currentMonth });
+  const latest = reports[reports.length - 1];
+  const series = reports.map((r) => ({ month: r.month, label: r.label, index: r.index }));
+  const indexBody = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav("../", [[config.siteName, ""], ["Remittance Cost Index", "reports/"]])}
+<h1>SendFair Remittance Cost Index</h1>
+<p class="lede">A monthly, citable measure of what a typical transfer to Africa actually costs after the fee and the exchange-rate margin, built from the rates we check every day. Published under CC BY 4.0; please cite “Source: SendFair (sendfair.africa)”.</p>
+${latest ? `<h2>Latest: ${esc(latest.label)}</h2><p>${esc(reportSummary(latest))}</p><p><a class="btn" href="${link("../", `reports/${latest.month}/`)}">Open the ${esc(latest.label)} report</a></p>` : "<p>No complete month of data yet. The first report appears on the 1st of the next month.</p>"}
+<h2>All months</h2>
+<ul class="route-links">${reports.slice().reverse().map((r) => `<li><a href="${link("../", `reports/${r.month}/`)}">${esc(r.label)} — ${pct(r.index)}</a></li>`).join("")}</ul>
+${reports.length > 1 ? `<h2>The index over time</h2>${reportLineSvg(series)}` : ""}
+<p class="note">The World Bank comparison uses ${esc(latest ? latest.wbLabel : "")}: <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener">remittanceprices.worldbank.org</a>.</p>
+</div></div></section>`;
+  write("reports/index.html", page({ prefix: "../", canonical: "reports/", rank: false, og: "home", title: `Remittance Cost Index · ${config.siteName}`, description: "A monthly measure of the cost of sending money to Africa, built from SendFair's checked rates. CC BY 4.0.", jsonld: [crumbs([[config.siteName, ""], ["Remittance Cost Index", "reports/"]])], body: indexBody }));
+  urls.push("reports/");
+  for (const r of reports) {
+    const rel = `reports/${r.month}/`;
+    const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav("../../", [[config.siteName, ""], ["Remittance Cost Index", "reports/"], [r.label, rel]])}
+<h1>SendFair Remittance Cost Index: ${esc(r.label)}</h1>
+<p class="lede">${esc(reportSummary(r))}</p>
+<div class="facts">
+  <div><span class="k">Corridors ranked</span><span class="v num">${r.sorted.length}</span></div>
+  <div><span class="k">Average best cost</span><span class="v num">${pct(r.index)}</span></div>
+  <div><span class="k">Cheapest</span><span class="v">${r.bestCorridor ? esc(r.bestCorridor.name) + " · " + pct(r.bestCorridor.avg) : "–"}</span></div>
+  <div><span class="k">World Bank SSA</span><span class="v num">${pct(r.wbPct)}</span></div>
+</div>
+<h2>Cost by corridor</h2>
+<p class="note">Ranked from cheapest to dearest. Each bar is a corridor's average of the best available total cost on the days we checked.</p>
+${reportBarSvg(r.sorted)}
+${reports.length > 1 ? `<h2>The index over time</h2>${reportLineSvg(series)}` : ""}
+<h2>The 10 cheapest corridors</h2>
+<ul class="route-links">${r.cheapest10.map((x) => `<li>${esc(x.name)} — ${pct(x.avg)}</li>`).join("")}</ul>
+<h2>The 10 most expensive corridors</h2>
+<ul class="route-links">${r.expensive10.map((x) => `<li>${esc(x.name)} — ${pct(x.avg)}</li>`).join("")}</ul>
+<h2>Every corridor</h2>
+<div class="table-wrap"><table class="rates-table"><thead><tr><th scope="col">Corridor</th><th scope="col" class="num">Avg best</th><th scope="col" class="num">Best day</th><th scope="col" class="num">MoM</th><th scope="col">Cheapest</th><th scope="col" class="num">First</th></tr></thead><tbody>${r.all.map((x) => `<tr><th scope="row">${esc(x.name)}${x.thin ? " *" : ""}</th><td class="num">${pct(x.avg)}</td><td class="num">${pct(x.best)}</td><td class="num">${x.mom == null ? "–" : (x.mom >= 0 ? "+" : "") + (x.mom * 100).toFixed(2)}</td><td>${x.cheapest ? esc(x.cheapest.name) : "–"}</td><td class="num">${x.cheapest ? x.cheapest.count + "/" + x.days : "–"}</td></tr>`).join("")}</tbody></table></div>
+<p class="note">${r.all.length > r.sorted.length ? `* Checked on fewer than ${r.minDays} days, so left out of the index, the rankings and the chart. ` : ""}“Avg best” is the average, over the days we checked, of the best total cost for the route's typical amount. “First” counts the days the cheapest service was first or joint first. World Bank comparison: ${esc(r.wbLabel)} — <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener">remittanceprices.worldbank.org</a>. Days covered: ${esc(r.firstDay)} to ${esc(r.lastDay)}.${r.excludedDays ? ` ${r.excludedDays} corridor-day${r.excludedDays === 1 ? "" : "s"} where the best quote came out above our reference mid-market rate were left out: that points to a gap in the reference rate that day, not a real saving.` : ""}</p>
+<h2>Download</h2>
+<p><a class="btn" href="${link("../../", `reports/${r.month}.csv`)}">Download the table (CSV)</a> · CC BY 4.0 · Source: SendFair (sendfair.africa).</p>
+</div></div></section>`;
+    const jsonld = [
+      { "@context": "https://schema.org", "@type": "Dataset", name: `SendFair Remittance Cost Index ${r.label}`, description: reportSummary(r), temporalCoverage: `${r.firstDay}/${r.lastDay}`, license: "https://creativecommons.org/licenses/by/4.0/", creator: { "@type": "Organization", name: config.siteName, url: site + "/" }, distribution: [{ "@type": "DataDownload", contentUrl: `${site}/reports/${r.month}.csv`, encodingFormat: "text/csv" }] },
+      { "@context": "https://schema.org", "@type": "Article", headline: `SendFair Remittance Cost Index: ${r.label}`, datePublished: r.published, dateModified: r.published, author: { "@type": "Organization", name: config.siteName, url: site + "/" }, publisher: { "@type": "Organization", name: config.siteName, url: site + "/" }, mainEntityOfPage: `${site}/${rel}` },
+      crumbs([[config.siteName, ""], ["Remittance Cost Index", "reports/"], [r.label, rel]])
+    ];
+    write(rel + "index.html", page({ prefix: "../../", canonical: rel, rank: false, og: "home", title: `Remittance Cost Index: ${r.label} · ${config.siteName}`, description: `Average and best transfer cost by corridor for ${r.label}, month-on-month change, the cheapest provider per corridor, and the World Bank comparison. CC BY 4.0.`, jsonld, body }));
+    write(`reports/${r.month}.csv`, reportCsv(r));
+    urls.push(rel);
+  }
+  return reports;
 }
 function writeBuildPages() {
   const intro = `A receipt check for a simple house, including the finish, the plot works and the building permit: structure, block walls, roof, windows, doors, plaster, floor and wall tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, a basin, a shower, a kitchen sink, a septic tank, a boundary wall and a gate. The permit is that country's own published fee. On each line you can switch to another published type. Bungalow and maisonette are one floor and two floors of the same floor area. Standard finish is the listed price. Where a published whole-house band exists, it sits beside the receipt and includes a contractor. The plot of land and the contractor's fee are not in the receipt.`;
@@ -1933,6 +2015,7 @@ fs.writeFileSync(path.join(OUT, "admin/index.html"), fs.readFileSync(path.join(R
 // SEO and hosting files
 writeBuildPages();
 writeEmbedPage();
+writeReports();
 
 function inlineLinks(prefix, text) {
   const safe = esc(text);
