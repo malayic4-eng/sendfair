@@ -195,6 +195,7 @@ function lastmodFor(u) {
   if (seg[0] === "providers" && seg[1]) return newestDate((k, id) => id === seg[1]) || fallbackDate;
   if (seg[0] === "compare" && seg[1]) {
     const [a, b] = seg[1].split("-vs-");
+    if (seg[2]) { const key = seg[2].replace("-to-", "-"); return newestDate((k, id) => k === key && (id === a || id === b)) || fallbackDate; }
     return newestDate((k, id) => id === a || id === b) || fallbackDate;
   }
   if (seg[0] === "rates" && seg[1]) {
@@ -957,6 +958,10 @@ const vsPairs = () => {
   }
   return out;
 };
+const vsRoutePath = (a, b, s, r) => `compare/${a.id}-vs-${b.id}/${slug(s, r)}/`;
+const vsList = vsPairs();
+// The route's typical amount plus two other common amounts, for the "who wins by amount" table.
+const cmpAmounts = (s) => { const base = config.defaultAmounts[s.currency]; return [base, ...(STEP_AMOUNTS[s.currency] || []).filter((a) => a !== base).slice(0, 2)]; };
 const ratePairs = [];
 for (const s of corridors.senders) for (const r of corridors.receivers) if (s.currency !== r.currency && !ratePairs.some((x) => x.s.currency === s.currency && x.r.currency === r.currency)) ratePairs.push({ s, r });
 const ratePath = (s, r) => `rates/${s.currency.toLowerCase()}-to-${r.currency.toLowerCase()}/`;
@@ -1136,6 +1141,7 @@ ${houseNote(r, prefix)}
 ${s.region === "gulf" ? `<p class="note"><a href="${link(prefix, GULF_GUIDE)}">Exchange house, bank, wallet or app? How the ways of sending from the Gulf compare</a></p>` : ""}
 <h2 id="faq">Questions about sending money to ${esc(r.name)}</h2>
 ${faqBlock(faqs)}
+${(() => { const ids = new Set(fresh.map((x) => x.p.id)); const links = vsList.filter(([CA, CB]) => ids.has(CA.id) && ids.has(CB.id)).map(([CA, CB]) => `<li><a href="${link(prefix, vsRoutePath(CA, CB, s, r))}">${esc(CA.name)} vs ${esc(CB.name)} on ${esc(s.label)} to ${esc(r.name)}</a></li>`); return links.length ? `<h2>Compare two services on this route</h2><ul class="route-links">${links.join("")}</ul>` : ""; })()}
 <h2>Other routes</h2>
 <ul class="route-links">${corridors.receivers.filter((x) => x.id !== r.id).map((x) => `<li><a href="${link(prefix, corridorPath(s, x))}">${esc(s.label)} to ${esc(x.name)}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
 </div></div></section>` + reportSection(ctx) + alerts();
@@ -1387,6 +1393,8 @@ ${crumbNav(prefix, trail)}
 <tbody>${rows.map((x) => `<tr><th scope="row"><a href="${link(prefix, corridorPath(x.s, x.r))}">${esc(x.s.label)} to ${esc(x.r.name)}</a></th><td class="num">${esc(plain(R.money(x.ctx.amount, x.s.currency, 0)))}</td><td class="num${Math.round(x.a.gets) > Math.round(x.b.gets) ? " top" : ""}">${esc(plain(R.money(x.a.gets, x.r.currency)))}</td><td class="num${Math.round(x.b.gets) > Math.round(x.a.gets) ? " top" : ""}">${esc(plain(R.money(x.b.gets, x.r.currency)))}</td><td class="num">${Math.round(x.a.gets) === Math.round(x.b.gets) ? "Tie" : esc(plain(R.money(Math.abs(x.a.gets - x.b.gets), x.r.currency, Math.max(x.a.gets, x.b.gets) >= 1000 ? 0 : 2)))}</td></tr>`).join("")}</tbody>
 </table></div>
 <p class="note">Amounts are what arrives for a typical transfer, after fees and exchange-rate margins. The higher figure on each route is in bold. Other services may beat both: open a route to see the full ranking.</p>
+<h2>Compare on your route</h2>
+<ul class="route-links">${rows.map((x) => `<li><a href="${link(prefix, vsRoutePath(A, B, x.s, x.r))}">${esc(A.name)} vs ${esc(B.name)} on ${esc(x.s.label)} to ${esc(x.r.name)}</a></li>`).join("")}</ul>
 <h2>What sets them apart</h2>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col"></th><th scope="col">${esc(A.name)}</th><th scope="col">${esc(B.name)}</th></tr></thead>
@@ -1407,6 +1415,90 @@ ${faqBlock(faqs)}
     description: `${A.name} vs ${B.name} on ${rows.length} routes to Africa: today's amounts delivered, fees, ways to pay and Trustpilot ratings, side by side.`,
     jsonld: [faqLd(faqs), crumbs(trail)], body }));
   urls.push(rel);
+}
+
+// Route-specific head-to-head pages: /compare/<a>-vs-<b>/<from>-to-<country>/. Only generated where
+// both providers have a live quote on that route.
+{
+  const cache = new Map();
+  for (const s of corridors.senders) {
+    for (const r of corridors.receivers) {
+      const prefix = "../../../";
+      const key = `${s.id}-${r.id}`;
+      if (!cache.has(key)) cache.set(key, routeContext(s, r, prefix, config.defaultAmounts[s.currency]));
+      const ctx = cache.get(key);
+      const fresh = ctx.rows.filter((x) => !x.stale);
+      if (fresh.length < 2) continue;
+      const sCur = CURNAME[s.currency] || s.currency, rCur = CURNAME[r.currency] || r.currency;
+      const amt = config.defaultAmounts[s.currency];
+      const amtSym = amountLabel(amt, s.currency);
+      const amts = cmpAmounts(s);
+      const delivery = (x) => { const rep = ctx.reports && ctx.reports[x.p.id]; return rep && rep.n >= 3 ? `${rep.typical} (from ${rep.n} user reports)` : (x.q.speed || "Not shown by the provider"); };
+      const payout = (x) => (x.q.payout || []).map((m) => R.LABEL[m]).join(", ") || "Not stated";
+      for (const [A, B] of vsList) {
+        const a = fresh.find((x) => x.p.id === A.id), b = fresh.find((x) => x.p.id === B.id);
+        if (!a || !b) continue;
+        const rel = vsRoutePath(A, B, s, r);
+        const at = (x, amt2) => { const ev = R.evaluate(x.q, amt2); return ev ? ev.gets : 0; };
+        const win = (g1, g2) => { const hi = Math.max(g1, g2), lo = Math.min(g1, g2); if (!(hi > 0)) return null; return (hi - lo) / hi < 0.005 ? null : (g1 > g2 ? A : B); };
+        const aGets = a.gets, bGets = b.gets, wTop = win(aGets, bGets);
+        const verdict = wTop
+          ? `On ${dateLong}, ${wTop.name} delivers more than ${wTop === A ? B.name : A.name} for ${amtSym} on ${s.label} to ${r.name}: ${plain(R.money(wTop === A ? aGets : bGets, r.currency))} vs ${plain(R.money(wTop === A ? bGets : aGets, r.currency))}.`
+          : `On ${dateLong}, ${A.name} and ${B.name} are about the same for ${amtSym} on ${s.label} to ${r.name}: ${plain(R.money(aGets, r.currency))} vs ${plain(R.money(bGets, r.currency))}.`;
+        const amtRows = amts.map((amt2) => {
+          const ga = at(a, amt2), gb = at(b, amt2), w = win(ga, gb);
+          return `<tr><th scope="row">${esc(plain(R.money(amt2, s.currency, 0)))}</th><td class="num${w === A ? " top" : ""}">${esc(plain(R.money(ga, r.currency)))}</td><td class="num${w === B ? " top" : ""}">${esc(plain(R.money(gb, r.currency)))}</td><td>${w ? esc(w.name) : "About the same"}</td></tr>`;
+        }).join("");
+        const faqs = [
+          [`Which is cheaper, ${A.name} or ${B.name}, for ${amtSym} to ${r.name} today?`, `${verdict} The answer can change with the amount and the day, so check before each transfer.`],
+          [`What fees do ${A.name} and ${B.name} charge from ${s.label} to ${r.name}?`, `${A.name}: ${R.feeStr(a.q, s.currency)}. ${B.name}: ${R.feeStr(b.q, s.currency)}. Fees are only part of the price; the exchange rate is the other part.`],
+          [`How fast do ${A.name} and ${B.name} deliver to ${r.name}?`, `${A.name}: ${delivery(a)}. ${B.name}: ${delivery(b)}. Delivery times are the provider's own estimate; trust the time on their screen.`]
+        ];
+        const trail = [[config.siteName, ""], [`${A.name} vs ${B.name}`, vsPath(A, B)], [`${s.label} to ${r.name}`, rel]];
+        const title = fitTitle([
+          `${A.name} vs ${B.name} on ${s.label} to ${r.name}: who delivers more?`,
+          `${A.name} vs ${B.name}: ${s.label} to ${r.name} comparison`,
+          `${A.name} vs ${B.name} to ${r.name}: which delivers more?`
+        ]);
+        const description = fitDescription([
+          `${verdict} Compare fees, rates, delivery and payout for this route.`,
+          `${A.name} vs ${B.name} on ${s.label} to ${r.name}: what arrives for ${amtSym}, fees, rates and delivery, checked ${dateLong}.`,
+          `${A.name} vs ${B.name} for ${amtSym} to ${r.name}, compared on what arrives after fees and the exchange-rate margin.`
+        ]);
+        const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>${esc(A.name)} vs ${esc(B.name)} on ${esc(s.label)} to ${esc(r.name)}: which delivers more?</h1>
+<p class="lede">${esc(verdict)}</p>
+<div class="vs-cards">${[A, B].map((P) => { const x = P === A ? a : b; return `<div class="vs-card"><h2 class="with-badge">${R.badge(P, "b-md")}${esc(P.name)}</h2><dl>
+<div><dt>They get ${esc(amtSym)}</dt><dd>${esc(plain(R.money(x.gets, r.currency)))}</dd></div>
+<div><dt>Fee</dt><dd>${esc(R.feeStr(x.q, s.currency))}</dd></div>
+<div><dt>Rating</dt><dd>${ratingLine(P)}</dd></div></dl>
+<a class="btn" href="${esc(hrefFor(prefix)(P, "compare-route"))}" target="_blank" rel="sponsored nofollow noopener">Go to ${esc(P.name)}</a> <a href="${link(prefix, provPath(P))}">Full review</a></div>`; }).join("")}</div>
+<h2 id="by-amount">Who wins by amount</h2>
+<div class="table-wrap"><table class="rates-table">
+<caption>What arrives in ${esc(r.name)}, ${esc(dateLong)}</caption>
+<thead><tr><th scope="col">You send</th><th scope="col" class="num">${esc(A.name)}</th><th scope="col" class="num">${esc(B.name)}</th><th scope="col">Winner</th></tr></thead>
+<tbody>${amtRows}</tbody>
+</table></div>
+<h2>Fees, rates and delivery</h2>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col"></th><th scope="col">${esc(A.name)}</th><th scope="col">${esc(B.name)}</th></tr></thead>
+<tbody>
+<tr><th scope="row">Fee for ${esc(amtSym)}</th><td>${esc(R.feeStr(a.q, s.currency))}</td><td>${esc(R.feeStr(b.q, s.currency))}</td></tr>
+<tr><th scope="row">Exchange rate</th><td class="num">${R.rateStr(a.ev.rate)}</td><td class="num">${R.rateStr(b.ev.rate)}</td></tr>
+<tr><th scope="row">Ways to receive</th><td>${esc(payout(a))}</td><td>${esc(payout(b))}</td></tr>
+<tr><th scope="row">Typical delivery</th><td>${esc(delivery(a))}</td><td>${esc(delivery(b))}</td></tr>
+<tr><th scope="row">Trustpilot</th><td>${ratingLine(A)}</td><td>${ratingLine(B)}</td></tr>
+</tbody></table></div>
+<p class="note">Amounts are what arrives for each transfer, after the fee and exchange-rate margin, on quotes checked ${esc(dateLong)}. The higher figure in each row is in bold. Other services may beat both: <a href="${link(prefix, corridorPath(s, r))}">see the full ranking for ${esc(s.label)} to ${esc(r.name)}</a>.</p>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</div></div></section>`;
+        write(rel + "index.html", page({ prefix, canonical: rel, og: "home", title, description, jsonld: [faqLd(faqs), crumbs(trail)], body }));
+        urls.push(rel);
+      }
+    }
+  }
 }
 
 // Exchange-rate pages: "GBP to KES today" with a converter, for every sending and receiving currency.
