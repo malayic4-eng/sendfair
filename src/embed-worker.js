@@ -62,7 +62,7 @@ function widgetHtml({ m, amount, dark, origin, checked }) {
   const compare = `${origin}${routePath}?amount=${amount}&ref=embed`;
   const sym = CUR_SYM[m.s.currency] || m.s.currency + " ";
   const top = m.fresh.slice(0, 3);
-  const rows = top.map((x, i) => `<li><span class="n">${i + 1}</span><img src="${origin}/logos/${esc(x.p.id)}-44.avif" alt="" width="22" height="22" loading="lazy" onerror="this.remove()"><span class="p">${esc(x.p.name)}</span><span class="g">${esc(money(x.gets, m.r.currency))}</span></li>`).join("");
+  const rows = top.map((x, i) => `<li><span class="n">${i + 1}</span><img src="${origin}/logos/${esc(x.p.id)}-44.avif" alt="" width="22" height="22" decoding="async" onerror="this.remove()"><span class="p">${esc(x.p.name)}</span><span class="g">${esc(money(x.gets, m.r.currency))}</span></li>`).join("");
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -82,6 +82,7 @@ img{border-radius:5px;flex:none}.p{flex:1;font-weight:600;min-width:0;overflow:h
 .g{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
 .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 2px}
 .f{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--muted)}
+@media (max-width:300px){.w{padding:10px 10px 8px}h1{font-size:14px}li{gap:6px;padding:6px 0}img{display:none}.f{flex-wrap:wrap}}
 a.c{display:inline-block;background:var(--accent);color:${dark ? "#111853" : "#fff"};text-decoration:none;font-weight:700;border-radius:999px;padding:7px 12px;font-size:12px;white-space:nowrap}
 </style>
 </head>
