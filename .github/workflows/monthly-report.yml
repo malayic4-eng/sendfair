@@ -20,5 +20,7 @@ jobs:
       - name: Send the latest report summary to Buttondown
         env:
           BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+          # Optional repository variable: set to "draft" to review each report in Buttondown before it goes out.
+          BUTTONDOWN_STATUS: ${{ vars.BUTTONDOWN_STATUS }}
           SITE_URL: https://sendfair.africa
         run: node scripts/send-report.mjs
