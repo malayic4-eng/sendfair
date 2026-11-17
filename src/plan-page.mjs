@@ -18,7 +18,7 @@ function quoteText(amount, total, cur) {
   return bits.join(" ");
 }
 
-export function planPage({ plan, logo, site }) {
+export function planPage({ plan, logo, site, analytics = {} }) {
   const r = plan.receipt, cur = r.currency, country = plan.country;
   const withSet = String(plan.state && plan.state.with || "").split(",").filter(Boolean);
   const q = new URLSearchParams(plan.state || {}).toString();
@@ -130,12 +130,24 @@ footer{color:var(--muted);font-size:.85rem;margin-top:22px;border-top:1px solid 
 </main>
 <script>
 (function(){
+  // Same consent rule as the rest of the site: app.js stores the choice as JSON, and Google Analytics,
+  // Tag Manager and Clarity load only after "all" (optional cookies) was accepted on sendfair.africa.
+  var A=${JSON.stringify({ ga4: analytics.ga4 || "", gtm: analytics.gtm || "", clarity: analytics.clarity || "" }).replace(/</g, "\\u003c")};
+  function allowed(){try{return JSON.parse(localStorage.getItem("sf-consent")||"null")==="all";}catch(e){return false;}}
+  function load(){
+    if(!allowed()||!(A.ga4||A.gtm||A.clarity)||window.__sfTrackers)return;
+    window.__sfTrackers=true;window.dataLayer=window.dataLayer||[];
+    if(A.gtm){window.dataLayer.push({"gtm.start":Date.now(),event:"gtm.js"});var g=document.createElement("script");g.async=true;g.src="https://www.googletagmanager.com/gtm.js?id="+encodeURIComponent(A.gtm);document.head.appendChild(g);}
+    if(A.ga4){var s=document.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(A.ga4);document.head.appendChild(s);window.gtag=function(){window.dataLayer.push(arguments);};window.gtag("js",new Date());window.gtag("config",A.ga4);}
+    if(A.clarity){(function(c,l,a,r,i){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments);};var t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+encodeURIComponent(i);var y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script",A.clarity);}
+  }
+  load();
   function track(name,params){
     try{
-      if(localStorage.getItem("sf-consent")!=="all")return;
+      if(!allowed())return;
       window.dataLayer=window.dataLayer||[];
       window.dataLayer.push(Object.assign({event:name},params||{}));
-      if(window.gtag)window.gtag("event",name,params||{});
+      if(window.gtag)window.gtag("event",name,Object.assign({transport_type:"beacon"},params||{}));
     }catch(e){}
   }
   var link=location.href;

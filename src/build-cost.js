@@ -393,13 +393,21 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
     });
   }
-  function track(name, params) {
+  // Consent is stored by app.js as JSON ("\"all\"" or "\"essential\""). done() runs once the event is sent
+  // (or after 800 ms, or straight away without consent), so a page change does not drop the event.
+  function track(name, params, done) {
+    var finished = false, finish = function () { if (!finished) { finished = true; if (done) done(); } };
     try {
-      if (localStorage.getItem("sf-consent") !== "all") return;
+      var choice = null;
+      try { choice = JSON.parse(localStorage.getItem("sf-consent") || "null"); } catch (e) {}
+      if (choice !== "all") return finish();
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push(Object.assign({ event: name }, params || {}));
-      if (window.gtag) window.gtag("event", name, params || {});
-    } catch (e) {}
+      if (window.gtag) {
+        window.gtag("event", name, Object.assign({ transport_type: "beacon", event_callback: finish }, params || {}));
+        setTimeout(finish, 800);
+      } else finish();
+    } catch (e) { finish(); }
   }
   Promise.all([getJSON("data/build-costs.json"), getJSON("data/midmarket.json"), getJSON("data/corridors.json")]).then(function (res) {
     var data = res[0], rates = (res[1] && res[1].rates) || {}, corridors = res[2];
@@ -839,8 +847,7 @@
           .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
           .then(function (x) {
             if (!x.ok) { saveBtn.disabled = false; saveBtn.textContent = (x.d && x.d.error) || (lang === "fr" ? "Échec — réessayez" : "Could not save — try again"); return; }
-            track("plan_saved", { country: country });
-            location.href = "/cost-to-build/" + country + "/plan/" + x.d.id + "/";
+            track("plan_saved", { country: country }, function () { location.href = "/cost-to-build/" + country + "/plan/" + x.d.id + "/"; });
           })
           .catch(function () { saveBtn.disabled = false; saveBtn.textContent = lang === "fr" ? "Échec — vérifiez la connexion" : "Could not save — check your connection"; });
       }

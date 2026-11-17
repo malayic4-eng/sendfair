@@ -1,5 +1,9 @@
 // GET /cost-to-build/<country>/plan/<id>/ — render the frozen plan from KV, noindex.
 import { planPage } from "./plan-page.mjs";
+import config from "../config.json";
+
+// The same analytics IDs the static pages get from config.json; they load only after consent.
+const ANALYTICS = { ga4: config.ga4MeasurementId || "", gtm: config.gtmContainerId || "", clarity: config.clarityProjectId || "" };
 
 let LOGO = "";
 async function logo(env, request) {
@@ -19,6 +23,6 @@ export async function planResponse(country, id, request, env) {
   let plan;
   try { plan = JSON.parse(raw); } catch { return new Response("Plan not found.", { status: 404 }); }
   if (plan.country !== country) return new Response("Plan not found.", { status: 404 });
-  const html = planPage({ plan, logo: await logo(env, request), site: new URL(request.url).origin });
+  const html = planPage({ plan, logo: await logo(env, request), site: new URL(request.url).origin, analytics: ANALYTICS });
   return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
 }
