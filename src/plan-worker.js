@@ -24,5 +24,5 @@ export async function planResponse(country, id, request, env) {
   try { plan = JSON.parse(raw); } catch { return new Response("Plan not found.", { status: 404 }); }
   if (plan.country !== country) return new Response("Plan not found.", { status: 404 });
   const html = planPage({ plan, logo: await logo(env, request), site: new URL(request.url).origin, analytics: ANALYTICS });
-  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
+  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex", "X-Frame-Options": "SAMEORIGIN" } });
 }

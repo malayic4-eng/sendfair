@@ -285,6 +285,12 @@ Promise.all([getJSON("../data/site.json"),getJSON("../data/corridors.json"),getJ
 <p id="mod-status" class="muted"></p>
 <div id="mod-list"></div>
 </div></div>
+<div class="wrap"><div class="card" id="embeds-card">
+<h2>Rate widget: who embeds us</h2>
+<p class="muted">Loads of the /embed/ widget on other websites, by site. Uses the admin password entered above.</p>
+<div class="row"><label>Days<input id="emb-days" type="number" min="1" max="120" value="30" style="width:6em"></label><button type="button" id="emb-load">Load</button></div>
+<div id="emb-list"></div>
+</div></div>
 <script>
 (function(){
   "use strict";
@@ -318,6 +324,13 @@ Promise.all([getJSON("../data/site.json"),getJSON("../data/corridors.json"),getJ
     api("GET","/api/reports?pending=1").then(function(d){var list=d.pending||[];render(list);status(list.length+" pending comment(s).");}).catch(function(e){status("Could not load: "+e.message);});
   });
   $("mod-clear").addEventListener("click",function(){$("mod-list").innerHTML="";status("");});
+  $("emb-load").addEventListener("click",function(){
+    var box=$("emb-list");box.innerHTML='<p class="muted">Loading…</p>';
+    api("GET","/api/embeds?days="+encodeURIComponent($("emb-days").value||30)).then(function(d){
+      if(!d.hosts.length){box.innerHTML='<p class="muted">No widget loads on other websites since '+esc(d.since)+'.</p>';return;}
+      box.innerHTML='<table><thead><tr><th>Website</th><th>Loads</th><th>Last seen</th></tr></thead><tbody>'+d.hosts.map(function(h){var site=/^[a-z0-9.-]+$/.test(h.host);return '<tr><td>'+(site?'<a href="https://'+esc(h.host)+'" target="_blank" rel="noopener">'+esc(h.host)+'</a>':esc(h.host))+'</td><td>'+h.loads+'</td><td>'+esc(h.lastDay)+'</td></tr>';}).join("")+'</tbody></table><p class="muted">Since '+esc(d.since)+'. Counts are batched about once a minute per website, so they are a guide.</p>';
+    }).catch(function(e){box.innerHTML='<p class="muted">Could not load: '+esc(e.message)+'</p>';});
+  });
 })();
 </script>
 </body>

@@ -350,7 +350,7 @@ function header(prefix) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "cost-to-build/")}">Build a house</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="Translate this page"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">Language</span></button></nav>
+<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "cost-to-build/")}">Build a house</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "embed/")}">Rate widget for your site</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="Translate this page"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">Language</span></button></nav>
 </div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">Machine translation by Google. Amounts and service names stay as they are. <a href="${link(prefix, "privacy/")}">Privacy</a></p></div></div></header>`;
 }
 
@@ -611,6 +611,74 @@ function writeRegionPages() {
       for (const h of sizes) regionPage({ cid, c, rel: `cost-to-build/${cid}/${slug}/${h.id}-bedroom/`, house: h, city, factor: city.factor });
     }
   }
+}
+// /embed/: a free rate widget for diaspora blogs, associations and churches. The configurator builds an
+// <iframe> to /embed/widget/ (rendered by the Worker) plus a plain "Powered by SendFair" link outside it.
+function writeEmbedPage() {
+  const rel = "embed/";
+  const prefix = "../";
+  const routes = [];
+  for (const S of corridors.senders) for (const Rr of corridors.receivers) {
+    const k = `${S.id}-${Rr.id}`;
+    if ((quotes[k] || []).length) routes.push({ k, label: `${S.label} to ${Rr.name}`, cur: S.currency, def: (config.defaultAmounts || {})[S.currency] || 250 });
+  }
+  if (!routes.length) return;
+  const first = routes.find((r) => r.k === "uk-nigeria") || routes[0];
+  const faqs = [
+    ["Is the widget free?", "Yes. Copy the code into any page that accepts HTML. Keep the Powered by SendFair line under the widget."],
+    ["Does it track my visitors?", "No. The widget loads no third-party scripts, cookies or trackers. SendFair counts how many times the widget loads on each website, from the browser's referrer, so we know who uses it."],
+    ["How fresh are the rates?", `The widget shows the same ranking as the route page: the three services that deliver the most money home after fees, with the time the prices were checked. It refreshes at least every ${15} minutes.`],
+    ["Can I change the route later?", "Yes. Change route, amount or theme in the address inside the code, or make a new code here."]
+  ];
+  const opts = routes.map((r) => `<option value="${esc(r.k)}" data-def="${r.def}" data-cur="${esc(r.cur)}"${r.k === first.k ? " selected" : ""}>${esc(r.label)}</option>`).join("");
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, [[config.siteName, ""], ["Rate widget", rel]])}
+<h1>Free money transfer rate widget for your website</h1>
+<p class="lede">Show your readers which services send the most money home today. The widget lists the top three services for a route and amount, after fees, with the time the prices were checked and a link to compare every service. It is free for blogs, associations, churches and community sites.</p>
+<div class="embed-config" id="sf-embed">
+  <div class="build-controls">
+    <label>Route <select id="em-route">${opts}</select></label>
+    <label>Default amount <input id="em-amount" type="number" min="10" max="1000000" step="1" value="${first.def}" inputmode="numeric"></label>
+    <label>Theme <select id="em-theme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+    <label>Width (px) <input id="em-width" type="number" min="240" max="600" step="10" value="360" inputmode="numeric"></label>
+  </div>
+  <h2>Preview</h2>
+  <div id="em-preview" style="max-width:360px"></div>
+  <h2>Your code</h2>
+  <p>Paste this where you want the widget to appear.</p>
+  <textarea id="em-code" rows="7" readonly style="width:100%;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace"></textarea>
+  <p><button type="button" class="btn" id="em-copy">Copy the code</button> <span id="em-msg" aria-live="polite"></span></p>
+</div>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</div></div></section>
+<script>(function(){
+var site=${JSON.stringify(site)},H="hr"+"ef",$=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function clamp(v,a,b,d){v=Math.round(Number(v));return isFinite(v)&&v>=a&&v<=b?v:d}
+function code(){
+  var o=$("em-route").selectedOptions[0],route=o.value,label=o.textContent,parts=route.split("-");
+  var amount=clamp($("em-amount").value,10,1000000,Number(o.getAttribute("data-def"))||250);
+  var theme=$("em-theme").value==="dark"?"dark":"light",w=clamp($("em-width").value,240,600,360);
+  var src=site+"/embed/widget/?route="+route+"&amount="+amount+"&theme="+theme;
+  var page=site+"/send-money/"+parts[0]+"-to-"+parts[1]+"/";
+  return {src:src,w:w,html:'<div class="sendfair-widget" style="max-width:'+w+'px">\\n<iframe src="'+esc(src)+'" title="'+esc("Money transfer rates, "+label)+'" width="'+w+'" height="300" loading="lazy" style="border:0;width:100%;max-width:'+w+'px;height:300px"></iframe>\\n<p style="margin:4px 0 0;font:12px/1.4 system-ui,sans-serif">Powered by <a '+H+'="'+esc(page)+'">SendFair</a>: compare money transfers to '+esc(label.split(" to ")[1]||"Africa")+'</p>\\n</div>'};
+}
+var t;function draw(){clearTimeout(t);t=setTimeout(function(){var c=code();$("em-code").value=c.html;var p=$("em-preview");p.style.maxWidth=c.w+"px";p.innerHTML=c.html;},200)}
+$("em-route").addEventListener("change",function(){var o=this.selectedOptions[0];$("em-amount").value=o.getAttribute("data-def")||250;draw()});
+["em-amount","em-theme","em-width"].forEach(function(i){$(i).addEventListener("input",draw);$(i).addEventListener("change",draw)});
+$("em-copy").addEventListener("click",function(){var v=$("em-code").value;function ok(){$("em-msg").textContent="Copied."}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(ok).catch(function(){$("em-code").select();document.execCommand("copy");ok()});else{$("em-code").select();document.execCommand("copy");ok()}});
+draw();
+})();</script>`;
+  write(rel + "index.html", page({
+    prefix, canonical: rel, rank: false, og: "home",
+    title: `Free money transfer rate widget for your website · ${config.siteName}`,
+    description: "Add a free widget that shows the three services sending the most money home today, after fees. For diaspora blogs, associations, churches and community sites. No trackers.",
+    jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Rate widget", rel]])],
+    body
+  }));
+  urls.push(rel);
 }
 function writeBuildPages() {
   const intro = `A receipt check for a simple house, including the finish, the plot works and the building permit: structure, block walls, roof, windows, doors, plaster, floor and wall tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, a basin, a shower, a kitchen sink, a septic tank, a boundary wall and a gate. The permit is that country's own published fee. On each line you can switch to another published type. Bungalow and maisonette are one floor and two floors of the same floor area. Standard finish is the listed price. Where a published whole-house band exists, it sits beside the receipt and includes a contractor. The plot of land and the contractor's fee are not in the receipt.`;
@@ -1864,6 +1932,7 @@ fs.writeFileSync(path.join(OUT, "admin/index.html"), fs.readFileSync(path.join(R
 
 // SEO and hosting files
 writeBuildPages();
+writeEmbedPage();
 
 function inlineLinks(prefix, text) {
   const safe = esc(text);
