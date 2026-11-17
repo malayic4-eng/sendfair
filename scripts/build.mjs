@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { buildReports, reportSummary } from "./report-data.mjs";
-import { t, moneyFr, dateFr, assertFrKeys } from "./i18n.mjs";
+import { FR, t, moneyFr, dateFr, assertFrKeys } from "./i18n.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -812,6 +812,162 @@ ${reports.length > 1 ? `<h2>The index over time</h2>${reportLineSvg(series)}` : 
     urls.push(rel);
   }
   return reports;
+}
+// ---------- French pages ----------
+// The same data and ranking as the English pages; only the copy and the money format change.
+const FR_RECEIVERS = new Set(["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda", "morocco"]);
+const frRouteRel = (s, r) => `fr/send-money/${s.id}-to-${r.id}/`;
+const frHubRel = (r) => `fr/send-money-to/${r.id}/`;
+const frRateRel = (s, r) => `fr/rates/${s.currency.toLowerCase()}-to-${r.currency.toLowerCase()}/`;
+const rateFr = (v) => Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 4 });
+const frLd = (items) => items.filter(Boolean).map((x) => ({ ...x, inLanguage: "fr" }));
+const frPayout = (key) => t("route." + ({ bank: "payoutBank", mobile: "payoutMobile", cash: "payoutCash" }[key] || "payoutBank"));
+const frSender = (s) => t(`names.senders.${s.id}`) || s.label;
+const frReceiver = (r) => t(`names.receivers.${r.id}`) || r.name;
+
+function frRoutePage(s, r, rel) {
+  const prefix = "../".repeat(rel.split("/").filter(Boolean).length);
+  const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]);
+  const fresh = ctx.rows.filter((x) => !x.stale);
+  const top = fresh[0] || null;
+  const trail = [[config.siteName, ""], [`Envoyer vers ${frReceiver(r)}`, frHubRel(r)], [`${frSender(s)} vers ${frReceiver(r)}`, rel]];
+  const faqs = [
+    [t("route.faqBestQ", { to: frReceiver(r) }), top ? t("route.faqBestA", { date: dateFr(quotesFile.updatedAt), best: top.p.name, gets: moneyFr(top.gets, r.currency), amount: moneyFr(ctx.amount, s.currency, 0) }) : t("route.faqCostA", { to: frReceiver(r) })],
+    [t("route.faqCostQ", { to: frReceiver(r) }), t("route.faqCostA", { to: frReceiver(r) })],
+    [t("route.faqTimeQ", { to: frReceiver(r) }), t("route.faqTimeA", { to: frReceiver(r) })],
+    [t("route.faqSafeQ", { to: frReceiver(r) }), t("route.faqSafeA", { to: frReceiver(r) })]
+  ];
+  const rows = ctx.rows.map((x) => `<tr><th scope="row">${esc(x.p.name)}</th><td class="num${x === top ? " top" : ""}">${esc(moneyFr(x.gets, r.currency))}</td><td>${x.ev.fee < 0.005 ? t("route.sansFrais") : esc(moneyFr(x.ev.fee, s.currency, 2))}</td><td class="num">${esc(rateFr(x.ev.rate))}</td><td>${x.stale ? t("route.notRechecked") : esc(dateFr(x.q.checkedAt, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }))}</td></tr>`).join("");
+  const payouts = Object.entries(r.payout || {}).map(([k, v]) => `<li><span>${esc(frPayout(k))}</span><span>${esc(v)}</span></li>`).join("");
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>${esc(t("route.heading", { from: frSender(s), to: frReceiver(r) }))}</h1>
+<p class="lede">${esc(t("route.lede", { n: fresh.length || ctx.rows.length, currency: r.currency }))}</p>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col">${t("route.tableService")}</th><th scope="col" class="num">${t("route.tableGets")}</th><th scope="col">${t("route.tableFee")}</th><th scope="col" class="num">${t("route.tableRate")}</th><th scope="col">${t("route.tableChecked")}</th></tr></thead>
+<tbody>${rows}</tbody></table></div>
+<p class="note">${esc(t("route.staleNote"))}</p>
+<h2>${esc(t("route.howToSend", { from: frSender(s), to: frReceiver(r) }))}</h2>
+<ol class="howto">
+<li><strong>${t("route.howTo1Title")}</strong> ${esc(t("route.howTo1Text", { currency: r.currency }))}</li>
+<li><strong>${t("route.howTo2Title")}</strong> ${esc(t("route.howTo2Text"))}</li>
+<li><strong>${t("route.howTo3Title")}</strong> ${esc(t("route.howTo3Text"))}</li>
+<li><strong>${t("route.howTo4Title")}</strong> ${esc(t("route.howTo4Text"))}</li>
+</ol>
+<h2>${esc(t("route.receiveHeading", { to: frReceiver(r) }))}</h2>
+<ul class="payout-list">${payouts}</ul>
+<h2>${esc(t("route.tipsHeading"))}</h2>
+<ul class="tips"><li>${esc(t("route.tip1"))}</li><li>${esc(t("route.tip2"))}</li><li>${esc(t("route.tip3"))}</li><li>${esc(t("route.tip4"))}</li></ul>
+<h2>${esc(t("route.faqHeading", { to: frReceiver(r) }))}</h2>
+${faqBlock(faqs)}
+<h2>${esc(t("route.otherRoutes"))}</h2>
+<ul class="route-links">${corridors.receivers.filter((x) => FR_RECEIVERS.has(x.id) && x.id !== r.id).map((x) => `<li><a href="${link(prefix, frRouteRel(s, x))}">${esc(frSender(s))} vers ${esc(frReceiver(x))}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, frRouteRel(x, r))}">${esc(frSender(x))} vers ${esc(frReceiver(r))}</a></li>`).join("")}</ul>
+<p><a class="btn" href="${link(prefix, frHubRel(r))}">${t("route.compareAll")}</a></p>
+</div></div></section>`;
+  write(rel + "index.html", page({
+    prefix, canonical: rel, lang: "fr", og: "home",
+    title: top ? t("route.titleBest", { from: frSender(s), to: frReceiver(r), sc: s.currency, rc: r.currency }) : t("route.titleCompare", { from: frSender(s), to: frReceiver(r) }),
+    description: t("route.description", { from: frSender(s), to: frReceiver(r), date: dateFr(quotesFile.updatedAt) }),
+    jsonld: frLd([faqLd(faqs), crumbs(trail), rankItemList(ctx)]),
+    alternates: [{ lang: "en", href: `${site}/${corridorPath(s, r)}` }, { lang: "fr", href: `${site}/${rel}` }, { lang: "x-default", href: `${site}/${corridorPath(s, r)}` }],
+    noindex: !top, body
+  }));
+  if (top) urls.push(rel);
+}
+
+function frHubPage(r) {
+  const rel = frHubRel(r);
+  const prefix = "../".repeat(rel.split("/").filter(Boolean).length);
+  const lines = corridors.senders.map((s) => { const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]); return { s, ctx, top: ctx.rows.filter((x) => !x.stale)[0] || null }; });
+  const trail = [[config.siteName, ""], [`Envoyer vers ${frReceiver(r)}`, rel]];
+  const faqs = [
+    [t("route.faqCostQ", { to: frReceiver(r) }), t("route.faqCostA", { to: frReceiver(r) })],
+    [t("route.faqSafeQ", { to: frReceiver(r) }), t("route.faqSafeA", { to: frReceiver(r) })]
+  ];
+  const rows = lines.map((l) => `<tr><th scope="row"><a href="${link(prefix, frRouteRel(l.s, r))}">${esc(frSender(l.s))}</a></th><td class="num">${esc(moneyFr(l.ctx.amount, l.s.currency, 0))}</td><td>${l.top ? esc(l.top.p.name) : t("hub.beingChecked")}</td><td class="num top">${l.top ? esc(moneyFr(l.top.gets, r.currency)) : "—"}</td><td><a href="${link(prefix, frRouteRel(l.s, r))}">${t("hub.tableCompare")}</a></td></tr>`).join("");
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>${esc(t("hub.heading", { to: frReceiver(r) }))}</h1>
+<p class="lede">${esc(t("hub.lede", { to: frReceiver(r) }))}</p>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col">${t("hub.tableFrom")}</th><th scope="col" class="num">${t("hub.tablePay")}</th><th scope="col">${t("hub.tableBest")}</th><th scope="col" class="num">${t("hub.tableGets")}</th><th scope="col"></th></tr></thead>
+<tbody>${rows}</tbody></table></div>
+<h2>${esc(t("hub.receiveHeading", { to: frReceiver(r) }))}</h2>
+<ul class="payout-list">${Object.entries(r.payout || {}).map(([k, v]) => `<li><span>${esc(frPayout(k))}</span><span>${esc(v)}</span></li>`).join("")}</ul>
+<h2>${esc(t("hub.faqHeading"))}</h2>
+${faqBlock(faqs)}
+<h2>${esc(t("hub.compareRoute"))}</h2>
+<ul class="route-links">${corridors.senders.map((s) => `<li><a href="${link(prefix, frRouteRel(s, r))}">${esc(frSender(s))} vers ${esc(frReceiver(r))}</a></li>`).join("")}</ul>
+</div></div></section>`;
+  write(rel + "index.html", page({
+    prefix, canonical: rel, lang: "fr", og: "home",
+    title: t("hub.title", { to: frReceiver(r) }), description: t("hub.lede", { to: frReceiver(r) }),
+    jsonld: frLd([faqLd(faqs), crumbs(trail)]),
+    alternates: [{ lang: "en", href: `${site}/${hubPath(r)}` }, { lang: "fr", href: `${site}/${rel}` }, { lang: "x-default", href: `${site}/${hubPath(r)}` }],
+    body
+  }));
+  urls.push(rel);
+}
+
+function frRatePage(s, r) {
+  const rel = frRateRel(s, r);
+  const prefix = "../".repeat(rel.split("/").filter(Boolean).length);
+  const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]);
+  if (!ctx.mid) return;
+  const fresh = ctx.rows.filter((x) => !x.stale);
+  const amts = [1, ...(STEP_AMOUNTS[s.currency] || [])];
+  const bestAt = (a) => { let b = null; for (const x of fresh) { const ev = R.evaluate(x.q, a); if (ev && (!b || ev.gets > b.gets)) b = { gets: ev.gets, p: x.p }; } return b; };
+  const trail = [[config.siteName, ""], [`${s.currency} vers ${r.currency}`, rel]];
+  const faqs = [
+    [`Quel est le taux ${s.currency} vers ${r.currency} aujourd'hui ?`, `Le taux du marché est 1 ${s.currency} = ${rateFr(ctx.mid)} ${r.currency} (${dateFr(quotesFile.updatedAt)}). Les services de transfert versent un peu moins après leur marge et leurs frais ; le tableau montre ce qui arrive avec le meilleur service vérifié.`],
+    [t("rates.midVsHeading"), t("rates.midVsText", { rc: r.currency, to: frReceiver(r) })]
+  ];
+  const rows = amts.map((a) => { const b = bestAt(a); return `<tr><th scope="row">${esc(moneyFr(a, s.currency, a < 10 ? 2 : 0))}</th><td class="num">${esc(moneyFr(a * ctx.mid, r.currency))}</td><td class="num top">${b ? esc(moneyFr(b.gets, r.currency)) : t("common.noOnlinePrices")}</td><td>${b ? esc(b.p.name) : "—"}</td></tr>`; }).join("");
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>${esc(t("rates.heading", { sc: s.currency, rc: r.currency, rate: rateFr(ctx.mid) }))}</h1>
+<p class="lede">${esc(t("rates.lede", { sc: s.currency, rc: r.currency, to: frReceiver(r), from: frSender(s), date: dateFr(quotesFile.updatedAt), hasData: "" }))}</p>
+<div class="converter" id="sf-conv-fr" data-mid="${ctx.mid}" data-cur="${esc(r.currency)}">
+  <label>${esc(t("rates.converterAmount", { sc: s.currency }))} <input type="number" inputmode="decimal" min="0" step="any" value="${config.defaultAmounts[s.currency]}" id="sf-conv-fr-in"></label>
+  <div class="conv-out"><span class="k">${esc(t("rates.converterMid"))}</span><span class="v num" id="sf-conv-fr-mid">${esc(moneyFr(config.defaultAmounts[s.currency] * ctx.mid, r.currency))}</span></div>
+  <a class="btn" href="${link(prefix, frHubRel(r))}">${esc(t("hub.heading", { to: frReceiver(r) }))}</a>
+</div>
+<h2>${esc(t("rates.arriveHeading", { to: frReceiver(r) }))}</h2>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col">${t("rates.youSend")}</th><th scope="col" class="num">${t("rates.atMid")}</th><th scope="col" class="num">${t("rates.bestGives")}</th><th scope="col">${t("rates.service")}</th></tr></thead>
+<tbody>${rows}</tbody></table></div>
+<p class="note">${esc(t("rates.tableNote", { from: frSender(s), amount: moneyFr(ctx.amount, s.currency, 0), sc: s.currency }))}</p>
+<h2>${esc(t("rates.midVsHeading"))}</h2>
+<p>${esc(t("rates.midVsText", { rc: r.currency, to: frReceiver(r) }))}</p>
+<h2>${esc(t("rates.faqHeading"))}</h2>
+${faqBlock(faqs)}
+<h2>${esc(t("rates.sendHeading", { from: frSender(s), to: frReceiver(r) }))}</h2>
+<p><a class="btn" href="${link(prefix, frRouteRel(s, r))}">${esc(t("rates.compareAll", { from: frSender(s), to: frReceiver(r) }))}</a></p>
+</div></div></section>`;
+  const histDays = Object.keys(history.days || {}).sort();
+  const rateLd = { "@context": "https://schema.org", "@type": "ExchangeRateSpecification", inLanguage: "fr", currency: r.currency, currentExchangeRate: { "@type": "UnitPriceSpecification", price: +ctx.mid.toPrecision(6), priceCurrency: r.currency, validFrom: midmarket.updatedAt || quotesFile.updatedAt } };
+  const dsLd = { "@context": "https://schema.org", "@type": "Dataset", inLanguage: "fr", name: `Historique du taux ${s.currency}/${r.currency}`, variableMeasured: `Taux du marché ${s.currency}/${r.currency}`, temporalCoverage: histDays.length ? `${histDays[0]}/${histDays[histDays.length - 1]}` : String(midmarket.updatedAt || "").slice(0, 10), creator: { "@type": "Organization", name: config.siteName, url: site + "/" }, license: "https://creativecommons.org/licenses/by/4.0/" };
+  write(rel + "index.html", page({
+    prefix, canonical: rel, lang: "fr", og: "home",
+    title: t("rates.title", { sc: s.currency, rc: r.currency, rate: rateFr(ctx.mid) }),
+    description: `Taux ${s.currency} vers ${r.currency} aujourd'hui : 1 ${s.currency} = ${rateFr(ctx.mid)} ${r.currency}. Convertisseur, montant reçu avec le meilleur service et historique.`,
+    jsonld: frLd([faqLd(faqs), crumbs(trail), rateLd, dsLd]),
+    alternates: [{ lang: "en", href: `${site}/${ratePath(s, r)}` }, { lang: "fr", href: `${site}/${rel}` }, { lang: "x-default", href: `${site}/${ratePath(s, r)}` }],
+    noindex: !fresh.length, body
+  }));
+  if (fresh.length) urls.push(rel);
+}
+
+function writeFrenchPages() {
+  for (const r of corridors.receivers.filter((x) => FR_RECEIVERS.has(x.id))) {
+    for (const s of corridors.senders) frRoutePage(s, r, frRouteRel(s, r));
+    frHubPage(r);
+  }
+  for (const { s, r } of ratePairs) {
+    if (!FR_RECEIVERS.has(r.id)) continue;
+    if (!["EUR", "CAD", "USD"].includes(s.currency)) continue;
+    frRatePage(s, r);
+  }
 }
 function writeBuildPages() {
   const intro = `A receipt check for a simple house, including the finish, the plot works and the building permit: structure, block walls, roof, windows, doors, plaster, floor and wall tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, a basin, a shower, a kitchen sink, a septic tank, a boundary wall and a gate. The permit is that country's own published fee. On each line you can switch to another published type. Bungalow and maisonette are one floor and two floors of the same floor area. Standard finish is the listed price. Where a published whole-house band exists, it sits beside the receipt and includes a contractor. The plot of land and the contractor's fee are not in the receipt.`;
@@ -2095,6 +2251,7 @@ fs.writeFileSync(path.join(OUT, "admin/index.html"), fs.readFileSync(path.join(R
 writeBuildPages();
 writeEmbedPage();
 writeReports();
+writeFrenchPages();
 
 function inlineLinks(prefix, text) {
   const safe = esc(text);

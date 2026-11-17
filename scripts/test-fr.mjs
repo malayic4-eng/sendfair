@@ -22,7 +22,7 @@ if (empty.length) { console.error("fr.json empty strings: " + empty.join(", "));
 
 const checks = [
   ["t nav", t("nav.allRoutes") === "Tous les itinéraires"],
-  ["t interpolation", t("route.heading", { from: "le Royaume-Uni", to: "le Sénégal" }) === "Envoyer de l'argent de le Royaume-Uni vers le Sénégal"],
+  ["t interpolation", t("route.heading", { from: "le Royaume-Uni", to: "le Sénégal" }) === "Envoyer de l'argent depuis le Royaume-Uni vers le Sénégal"],
   ["money EUR", moneyFr(1234.56, "EUR", 2) === "1 234,56 €"],
   ["money XOF", moneyFr(250000, "XOF") === "250 000 FCFA"],
   ["month", monthFr("2026-11-16").startsWith("novembre")],

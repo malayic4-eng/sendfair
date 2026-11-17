@@ -56,10 +56,11 @@
     "lastChecked": "Dernière vérification : {date}"
   },
   "route": {
-    "titleBest": "Envoyer de l'argent de {from} vers {to} : meilleur taux {sc}/{rc} aujourd'hui",
-    "titleCompare": "Envoyer de l'argent de {from} vers {to} : comparer les services de transfert",
-    "heading": "Envoyer de l'argent de {from} vers {to}",
+    "titleBest": "Envoyer de l'argent depuis {from} vers {to} : meilleur taux {sc}/{rc} aujourd'hui",
+    "titleCompare": "Envoyer de l'argent depuis {from} vers {to} : comparer les services de transfert",
+    "heading": "Envoyer de l'argent depuis {from} vers {to}",
     "lede": "Comparez {n} services selon le montant en {currency} qui arrive réellement, après les frais et la marge de change.",
+    "description": "Comparez les services de transfert depuis {from} vers {to} : montant reçu, frais et taux de change vérifiés le {date}.",
     "ledeNoData": "Comparez les services de transfert de {from} vers {to} selon le montant qui arrive en {currency}, après les frais et la marge de change.",
     "summaryBest": "Le {date}, {best} verse le plus de {from} vers {to} : {gets} pour {amount}, avec des frais de {fee} et un taux de {rate}.",
     "summaryBestNoFee": "Le {date}, {best} verse le plus de {from} vers {to} : {gets} pour {amount}, sans frais, avec un taux de {rate}.",
@@ -73,7 +74,7 @@
     "whoDeliveredText": "Sur les {days} derniers jours vérifiés pour cet itinéraire : {list}. Les égalités comptent pour chaque service.",
     "converterLink": "Convertisseur et taux du jour {sc}/{rc}",
     "alertHeading": "Recevoir une alerte de taux",
-    "howToSend": "Comment envoyer de l'argent de {from} vers {to}",
+    "howToSend": "Comment envoyer de l'argent depuis {from} vers {to}",
     "howTo1Title": "Comparez les options du jour.",
     "howTo1Text": "Saisissez le montant que vous allez payer ci-dessus. Le service en tête verse le plus de {currency} après ses frais et sa marge de change.",
     "howTo2Title": "Ouvrez un compte chez le fournisseur.",
@@ -117,7 +118,30 @@
     "reportSubmit": "Envoyer le témoignage",
     "reportThanks": "Merci. Votre témoignage aide les autres.",
     "reportPending": "Merci. Votre commentaire apparaîtra ici après vérification.",
-    "commentsHeading": "Ce qu'ont dit d'autres expéditeurs"
+    "commentsHeading": "Ce qu'ont dit d'autres expéditeurs",
+    "tableService": "Service",
+    "tableGets": "Vous recevez",
+    "tableFee": "Frais",
+    "tableRate": "Taux",
+    "tableChecked": "Vérifié",
+    "sansFrais": "Sans frais",
+    "staleNote": "Les taux marqués « non revérifiés » datent de plus de 36 heures ; ils sont classés après les taux du jour.",
+    "topServices": "Les services classés par montant reçu",
+    "faqBestQ": "Quel service envoie le plus d'argent vers {to} ?",
+    "faqBestA": "Le {date}, {best} verse le plus : {gets} pour {amount}.",
+    "faqCostQ": "Combien coûte un transfert vers {to} ?",
+    "faqCostA": "Cela dépend du service et du montant. Le tableau ci-dessus montre ce qui arrive après les frais et la marge de change ; le service en tête verse le plus.",
+    "faqTimeQ": "Combien de temps prend un transfert vers {to} ?",
+    "faqTimeA": "La plupart des services annoncent quelques minutes pour l'argent mobile et une à deux heures pour un dépôt bancaire ; le premier envoi peut prendre plus longtemps pendant la vérification d'identité.",
+    "faqSafeQ": "SendFair est-il un service de transfert ?",
+    "faqSafeA": "Non. Nous comparons les services et vous redirigeons vers le fournisseur pour effectuer le transfert. Nous ne détenons ni votre argent ni vos coordonnées bancaires.",
+    "payoutBank": "Banque",
+    "payoutMobile": "Argent mobile",
+    "payoutCash": "Retrait en espèces",
+    "tip1": "Vérifiez le montant final sur l'écran du fournisseur avant de confirmer.",
+    "tip2": "Un service « sans frais » peut coûter plus cher si son taux est plus bas.",
+    "tip3": "Le premier transfert peut prendre plus de temps pendant la vérification d'identité.",
+    "tip4": "Comparez le jour de l'envoi : les taux changent au cours de la journée."
   },
   "hub": {
     "title": "Envoyer de l'argent vers {to} : les meilleurs taux du jour",
@@ -156,8 +180,8 @@
     "floatText": "Les deux monnaies flottent, le taux évolue donc au cours de la journée avec les marchés. Notre copie du taux du marché est actualisée toutes les quelques heures ; les taux des services sont mis à jour au cours de la journée, comparez donc le jour de l'envoi.",
     "houseNote": "Si ce transfert finance une maison, voyez ce que coûte la construction en {to}. SendFair compare les taux de transfert et le coût de construction.",
     "faqHeading": "Questions",
-    "sendHeading": "Envoyer de l'argent de {from} vers {to}",
-    "compareAll": "Comparer tous les services de {from} vers {to}"
+    "sendHeading": "Envoyer de l'argent depuis {from} vers {to}",
+    "compareAll": "Comparer tous les services depuis {from} vers {to}"
   },
   "money": {
     "EUR": "€",
@@ -179,5 +203,9 @@
     "TZS": "TSh",
     "RWF": "FRw",
     "CDF": "FC"
+  },
+  "names": {
+    "senders": {"us": "les États-Unis", "uk": "le Royaume-Uni", "canada": "le Canada", "australia": "l'Australie", "europe": "l'Europe"},
+    "receivers": {"senegal": "le Sénégal", "ivorycoast": "la Côte d'Ivoire", "mali": "le Mali", "cameroon": "le Cameroun", "drc": "la RD Congo", "rwanda": "le Rwanda", "morocco": "le Maroc"}
   }
 }
