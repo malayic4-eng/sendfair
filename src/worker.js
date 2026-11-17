@@ -7,7 +7,9 @@ import * as stats from "../functions/api/stats.js";
 import * as go from "../functions/go/[provider].js";
 import * as alert from "../functions/api/alert.js";
 import * as ask from "../functions/api/ask.js";
+import * as plan from "../functions/api/plan.js";
 import { sha256 } from "../functions/_lib.js";
+import { planResponse } from "./plan-worker.js";
 
 // Each service's own icon, as published on its website, fetched once by this Worker (via Google's
 // favicon service) and cached at Cloudflare. Visitors' browsers only ever talk to sendfair.africa.
@@ -145,6 +147,9 @@ export default {
     if (path === "/api/alert/confirm") return alert.onConfirm(context);
     if (path === "/api/alert/stop") return alert.onStop(context);
     if (path === "/api/alerts" && request.method === "GET") return alert.onStats(context);
+    if (path === "/api/plan") return request.method === "POST" ? plan.onRequestPost(context) : plan.onRequest(context);
+    const pm = path.match(/^\/cost-to-build\/([a-z]+)\/plan\/([a-z0-9]{6,16})$/);
+    if (pm && request.method === "GET") return planResponse(pm[1], pm[2], request, env);
     const m = path.match(/^\/go\/([^/]+)$/);
     if (m && request.method === "GET") {
       context.params.provider = decodeURIComponent(m[1]);
