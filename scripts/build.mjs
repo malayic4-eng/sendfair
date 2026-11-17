@@ -892,7 +892,7 @@ ${config.whatsappNumber ? `<p class="wa"><a class="btn" href="https://wa.me/${es
 </div></div></section>`;
   write(rel + "index.html", page({
     prefix, canonical: rel, lang: "fr", og: "home",
-    title: top ? t("route.titleBest", { from: frSender(s), to: frReceiver(r), sc: s.currency, rc: r.currency }) : t("route.titleCompare", { from: frSender(s), to: frReceiver(r) }),
+    title: frGrammar(top ? t("route.titleBest", { from: frSender(s), to: frReceiver(r), sc: s.currency, rc: r.currency }) : t("route.titleCompare", { from: frSender(s), to: frReceiver(r) })),
     description: t("route.description", { from: frSender(s), to: frReceiver(r), date: dateFr(quotesFile.updatedAt) }),
     jsonld: frLd([faqLd(faqs), crumbs(trail), rankItemList(ctx)]),
     alternates: [{ lang: "en", href: `${site}/${corridorPath(s, r)}` }, { lang: "fr", href: `${site}/${rel}` }, { lang: "x-default", href: `${site}/${corridorPath(s, r)}` }],
