@@ -362,8 +362,10 @@ function fitTitle(list, max = 60) {
   return ok || list.reduce((a, b) => (b.length < a.length ? b : a));
 }
 
-function header(prefix, lang) {
+function header(prefix, lang, alternates = []) {
   const fr = lang === "fr";
+  const alt = (alternates || []).find((a) => a.lang === (fr ? "en" : "fr"));
+  const altLink = alt ? `<a class="lang-switch" href="${esc(alt.href)}" hreflang="${alt.lang}" lang="${alt.lang}">${fr ? "English" : "Français"}</a>` : "";
   const L = fr ? {
     allRoutes: t("nav.allRoutes"), buildHouse: t("nav.buildHouse"), guides: t("nav.guides"), search: t("nav.search"),
     embed: t("nav.embed"), howWeRank: t("nav.howWeRank"), about: t("nav.about"), language: t("nav.language"),
@@ -376,7 +378,7 @@ function header(prefix, lang) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
+<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
 </div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">${L.translateNote} <a href="${link(prefix, "privacy/")}">${L.privacy}</a></p></div></div></header>`;
 }
 
@@ -1208,6 +1210,7 @@ ${groups.map((g) => !g.list.some((s) => corridors.receivers.some((r) => (quotes[
 }
 
 function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og, ogType, buildPage, lang = "en", alternates = [], rank = true }) {
+  if (alternates.length && canonical) sitemapAlts[canonical] = alternates;
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
     routeUrl: link(prefix, "send-money/{from}-to-{to}/"),
@@ -1229,7 +1232,7 @@ var m=document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);if(m&&m[1]!=="en")load
     (buildPage ? `<script src="${prefix}assets/build-cost.js?v=${V.build}" defer></script>` : "") +
     (PREVIEW || DEMO ? "" : `<script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})});addEventListener("beforeinstallprompt",function(e){e.preventDefault();var b=document.getElementById("sf-install");if(!b)return;b.hidden=false;b.onclick=function(){b.hidden=true;e.prompt();};});</script>`);
   const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og, ogType, alternates });
-  const bodyStr = `<a class="skip" href="#content">${lang === "fr" ? "Aller au contenu" : "Skip to content"}</a>\n${header(prefix, lang)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix, lang)}\n${scripts}`;
+  const bodyStr = `<a class="skip" href="#content">${lang === "fr" ? "Aller au contenu" : "Skip to content"}</a>\n${header(prefix, lang, alternates)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix, lang)}\n${scripts}`;
   if (bodyOnly) return `${headStr}\n${bodyStr}`;
   return `<!doctype html>\n<html lang="${lang === "fr" ? "fr" : "en"}">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n${headStr}\n</head>\n<body>\n${bodyStr}\n</body>\n</html>\n`;
 }
@@ -1255,6 +1258,7 @@ function copyDir(src, dst) {
 import crypto from "node:crypto";
 const ver = (f) => crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, "src", f))).digest("hex").slice(0, 10);
 const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css"), build: ver("build-cost.js") };
+const sitemapAlts = {};
 
 // ---------- SEO helpers ----------
 const joinList = (a) => a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : a.join("");
@@ -1624,6 +1628,7 @@ ${(() => { const ids = new Set(fresh.map((x) => x.p.id)); const links = vsList.f
     write(rel + "index.html", page({
       prefix, canonical: rel, title, description, og: slug(s, r), noindex: !top,
       jsonld: [faqLd(faqs), crumbs(trail), rankItemList(ctx)],
+      alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRouteRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
       init: { from: s.id, to: r.id, pageUrl: `${site}/${rel}` }, body
     }));
     if (top) urls.push(rel);
@@ -1744,7 +1749,9 @@ ${faqBlock(faqs)}
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
     title: `Send money to ${r.name}: today's best rates compared`,
     description: `Compare every service that sends money to ${r.name}, ranked by what actually arrives after fees and the exchange-rate margin. Updated automatically.`,
-    jsonld: [faqLd(faqs), crumbs(trail)], body }));
+    jsonld: [faqLd(faqs), crumbs(trail)],
+    alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frHubRel(r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
+    body }));
   urls.push(rel);
 }
 
@@ -2050,7 +2057,9 @@ ${faqBlock(faqs)}
   write(rel + "index.html", page({ prefix, canonical: rel, og: slug(s, r), noindex: !pairHasData,
     title: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}`,
     description: `${sCur} to ${rCur} rate today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}. Converter, what arrives with the best transfer service, and rate history.`,
-    jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd], body }));
+    jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd],
+    alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRateRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
+    body }));
   if (pairHasData) urls.push(rel);
 }
 
@@ -2474,7 +2483,7 @@ function writeHtmlSitemap() {
   urls.push("sitemap/");
 }
 writeHtmlSitemap();
-write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => { const lm = lastmodFor(u); return `  <url><loc>${site}/${u}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ""}</url>`; }).join("\n")}\n</urlset>\n`);
+write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.map((u) => { const lm = lastmodFor(u); const alts = sitemapAlts[u]; return `  <url><loc>${site}/${u}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ""}${alts ? alts.map((a) => `<xhtml:link rel="alternate" hreflang="${a.lang}" href="${a.href}"/>`).join("") : ""}</url>`; }).join("\n")}\n</urlset>\n`);
 // AI answer engines may read the site so SendFair can be cited in their answers; model-training crawlers are
 // blocked separately by Cloudflare's managed robots.txt, which Cloudflare puts above these lines.
 write("robots.txt", `User-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nAllow: /\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nSitemap: ${site}/sitemap.xml\n`);
