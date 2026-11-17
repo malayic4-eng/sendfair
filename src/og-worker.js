@@ -8,8 +8,8 @@ import satoriLayoutWasm from "satori/layout.wasm";
 import resvgWasm from "@resvg/resvg-wasm/index_bg.wasm";
 import figtree400 from "./fonts/figtree-latin-400-normal.woff";
 import figtree700 from "./fonts/figtree-latin-700-normal.woff";
-import { resultCard } from "./og-result.js";
-import { resultModel } from "./og-model.js";
+import { resultCard } from "./og-result.mjs";
+import { resultModel } from "./og-model.mjs";
 
 const READY = (async () => { await initSatori(satoriLayoutWasm); await initWasm(resvgWasm); })();
 const asBuf = (f) => (f instanceof Uint8Array ? f.buffer.slice(f.byteOffset, f.byteOffset + f.byteLength) : f);

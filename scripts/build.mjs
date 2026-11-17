@@ -758,7 +758,7 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
     routeUrl: link(prefix, "send-money/{from}-to-{to}/"),
-    config: { quickAmounts: STEP_AMOUNTS, amountPages: AMOUNT_PAGES, defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost,
+    config: { quickAmounts: STEP_AMOUNTS, amountPages: AMOUNT_PAGES, defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, preferAutoAfterHours: config.preferAutoAfterHours, handLockHours: config.handLockHours, regionalAverageCost: config.regionalAverageCost,
       trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO,
       ga4: config.ga4MeasurementId || "", gtm: config.gtmContainerId || "", clarity: config.clarityProjectId || "",
       impactSrc: config.impactSrc || "", adsenseClient: config.adsenseClient || "",
@@ -1025,7 +1025,7 @@ write("data/history.json", JSON.stringify(history));
 const wiseFeed = path.join(ROOT, "data/wise-feed.json");
 if (fs.existsSync(wiseFeed) && !DEMO) fs.copyFileSync(wiseFeed, path.join(OUT, "data/wise-feed.json"));
 if (demoReports) write("data/reports-demo.json", JSON.stringify(demoReports));
-write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, handLockH: config.preferAutoAfterHours || config.handLockHours || 6, regionalAverageCost: config.regionalAverageCost }));
+write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, preferAutoAfterHours: config.preferAutoAfterHours, handLockHours: config.handLockHours, regionalAverageCost: config.regionalAverageCost }));
 
 const urls = [];
 const S0 = corridors.senders.find((s) => s.id === "uk") || corridors.senders[0];

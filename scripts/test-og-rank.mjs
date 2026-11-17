@@ -2,7 +2,7 @@
 // amount must equal what rank() returns with the same options the site uses. Exits 1 on any mismatch.
 import fs from "node:fs";
 import R from "../src/rank.js";
-import { resultModel } from "../src/og-model.js";
+import { resultModel } from "../src/og-model.mjs";
 
 const read = (p) => JSON.parse(fs.readFileSync(new URL(p, import.meta.url), "utf8"));
 const config = read("../config.json");
@@ -15,7 +15,8 @@ const data = {
   site: {
     staleAfterHours: config.staleAfterHours,
     hideAfterHours: config.hideAfterHours,
-    handLockH: config.preferAutoAfterHours || config.handLockHours || 6,
+    preferAutoAfterHours: config.preferAutoAfterHours,
+    handLockHours: config.handLockHours,
     defaultAmounts: config.defaultAmounts
   }
 };
@@ -39,7 +40,7 @@ for (const s of data.corridors.senders) {
       now,
       staleH: data.site.staleAfterHours || 36,
       hideH: data.site.hideAfterHours || 72,
-      handLockH: data.site.handLockH || 6,
+      handLockH: data.site.preferAutoAfterHours || data.site.handLockHours || 6,
       refAmount: (config.defaultAmounts || {})[s.currency]
     };
     const fresh = R.rank(opts).filter((x) => !x.stale);

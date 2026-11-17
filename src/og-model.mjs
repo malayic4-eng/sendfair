@@ -22,7 +22,7 @@ export function resultModel(data, route, amount, now) {
     now,
     staleH: (site && site.staleAfterHours) || 36,
     hideH: (site && site.hideAfterHours) || 72,
-    handLockH: (site && site.handLockH) || 6,
+    handLockH: (site && (site.preferAutoAfterHours || site.handLockHours)) || 6,
     refAmount: ((site && site.defaultAmounts) || {})[s.currency]
   });
   const fresh = rows.filter((x) => !x.stale);

@@ -3,8 +3,8 @@
 import fs from "node:fs";
 import satori from "satori";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
-import { resultCard } from "../src/og-result.js";
-import { resultModel } from "../src/og-model.js";
+import { resultCard } from "../src/og-result.mjs";
+import { resultModel } from "../src/og-model.mjs";
 
 const read = (p) => JSON.parse(fs.readFileSync(new URL(p, import.meta.url), "utf8"));
 const config = read("../config.json");
@@ -14,7 +14,7 @@ const data = {
   providers: read("../data/providers.json"),
   corridors: read("../data/corridors.json"),
   midmarket: read("../data/midmarket.json"),
-  site: { staleAfterHours: config.staleAfterHours, hideAfterHours: config.hideAfterHours, handLockH: config.preferAutoAfterHours || config.handLockHours || 6, defaultAmounts: config.defaultAmounts }
+  site: { staleAfterHours: config.staleAfterHours, hideAfterHours: config.hideAfterHours, preferAutoAfterHours: config.preferAutoAfterHours, handLockHours: config.handLockHours, defaultAmounts: config.defaultAmounts }
 };
 const route = process.argv[2] || "uk-kenya", amount = Number(process.argv[3] || 250);
 const m = resultModel(data, route, amount, Date.now());
