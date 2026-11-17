@@ -1,0 +1,51 @@
+{
+  "updated": "2026-11-17",
+  "note": "Regional factor = multiplier on materials and labour for a city, against the national prices in data/build-costs.json. Set factor to null (or delete the city) to keep it unpublished. Fill each null with a sourced local construction-cost figure, then set source and checked before publishing. TODO: the base cities below are 1.00 by definition because that country's national prices are quoted for them; all other cities are intentionally null until a source is added.",
+  "countries": {
+    "kenya": {
+      "name": "Kenya",
+      "baseCity": "Nairobi",
+      "cities": {
+        "nairobi": { "name": "Nairobi", "factor": 1, "source": "Base city for Kenya's national prices in data/build-costs.json (note: 'Nairobi retail ranges').", "checked": "2026-11-16" },
+        "kiambu": { "name": "Kiambu", "factor": null, "source": "TODO: add a sourced multiplier for Kiambu.", "checked": null },
+        "nakuru": { "name": "Nakuru", "factor": null, "source": "TODO: add a sourced multiplier for Nakuru.", "checked": null },
+        "mombasa": { "name": "Mombasa", "factor": null, "source": "TODO: add a sourced multiplier for Mombasa.", "checked": null },
+        "kisumu": { "name": "Kisumu", "factor": null, "source": "TODO: add a sourced multiplier for Kisumu.", "checked": null },
+        "machakos": { "name": "Machakos", "factor": null, "source": "TODO: add a sourced multiplier for Machakos.", "checked": null },
+        "kajiado": { "name": "Kajiado", "factor": null, "source": "TODO: add a sourced multiplier for Kajiado.", "checked": null },
+        "eldoret": { "name": "Eldoret", "factor": null, "source": "TODO: add a sourced multiplier for Eldoret.", "checked": null }
+      }
+    },
+    "nigeria": {
+      "name": "Nigeria",
+      "baseCity": "Abuja and Lagos",
+      "cities": {
+        "lagos": { "name": "Lagos", "factor": 1, "source": "Base city for Nigeria's national prices in data/build-costs.json (city: 'Abuja and Lagos').", "checked": "2026-11-16" },
+        "abuja": { "name": "Abuja", "factor": 1, "source": "Base city for Nigeria's national prices in data/build-costs.json (city: 'Abuja and Lagos').", "checked": "2026-11-16" },
+        "portharcourt": { "name": "Port Harcourt", "factor": null, "source": "TODO: add a sourced multiplier for Port Harcourt.", "checked": null },
+        "ibadan": { "name": "Ibadan", "factor": null, "source": "TODO: add a sourced multiplier for Ibadan.", "checked": null },
+        "enugu": { "name": "Enugu", "factor": null, "source": "TODO: add a sourced multiplier for Enugu.", "checked": null },
+        "kano": { "name": "Kano", "factor": null, "source": "TODO: add a sourced multiplier for Kano.", "checked": null }
+      }
+    },
+    "ghana": {
+      "name": "Ghana",
+      "baseCity": "Greater Accra",
+      "cities": {
+        "accra": { "name": "Accra", "factor": 1, "source": "Base city for Ghana's national prices in data/build-costs.json (city: 'Greater Accra').", "checked": "2026-11-16" },
+        "kumasi": { "name": "Kumasi", "factor": null, "source": "TODO: add a sourced multiplier for Kumasi.", "checked": null },
+        "tema": { "name": "Tema", "factor": null, "source": "TODO: add a sourced multiplier for Tema.", "checked": null },
+        "takoradi": { "name": "Takoradi", "factor": null, "source": "TODO: add a sourced multiplier for Takoradi.", "checked": null }
+      }
+    },
+    "uganda": {
+      "name": "Uganda",
+      "baseCity": "Kampala",
+      "cities": {
+        "kampala": { "name": "Kampala", "factor": 1, "source": "Base city for Uganda's national prices in data/build-costs.json (city: 'Kampala').", "checked": "2026-11-16" },
+        "wakiso": { "name": "Wakiso", "factor": null, "source": "TODO: add a sourced multiplier for Wakiso.", "checked": null },
+        "mukono": { "name": "Mukono", "factor": null, "source": "TODO: add a sourced multiplier for Mukono.", "checked": null }
+      }
+    }
+  }
+}

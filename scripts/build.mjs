@@ -37,6 +37,7 @@ let quotesFile = read("data/quotes.json");
 let midmarket = read("data/midmarket.json");
 if (!midmarket.rates || !Object.keys(midmarket.rates).length) fail(["data/midmarket.json is missing or has no rates"]);
 const buildCosts = readOptional("data/build-costs.json", { countries: {}, houses: [], updated: "" });
+const regionalFactors = readOptional("data/regional-factors.json", { countries: {} });
 if (!buildCosts.countries || !Object.keys(buildCosts.countries).length) fail(["data/build-costs.json is missing or has no countries"]);
 
 // Kinds of service, used to compare ways of sending on the Gulf guide.
@@ -457,9 +458,10 @@ function houseNote(r, prefix) {
 <p>A 3-bedroom bungalow in ${esc(c.city)} needs about ${esc(plain(R.money(est.total, est.currency)))} for the build, on prices checked ${esc(buildCosts.updated)}. You can switch the roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not included. <a href="${link(prefix, `cost-to-build/${r.id}/`)}">Open the ${esc(r.name)} house calculator</a> before you send a lump sum.</p>`;
 }
 
-function buildWidget(prefix, countryId, lang) {
+function buildWidget(prefix, countryId, lang, opts = {}) {
   const fr = lang === "fr";
-  return `<div class="build-tool" id="sf-build" data-country="${esc(countryId)}" data-root="${prefix}" data-lang="${fr ? "fr" : "en"}">
+  const extra = `${opts.factor && opts.factor !== 1 ? ` data-factor="${opts.factor}"` : ""}${opts.size ? ` data-size="${esc(opts.size)}"` : ""}`;
+  return `<div class="build-tool" id="sf-build" data-country="${esc(countryId)}" data-root="${prefix}" data-lang="${fr ? "fr" : "en"}"${extra}>
 <div class="build-controls">
   <label>${fr ? "Pays" : "Country"} <select id="sf-build-country"></select></label>
   <label>${fr ? "Envoi depuis" : "Sending the money from"} <select id="sf-build-from"></select></label>
@@ -500,6 +502,97 @@ function buildTeaser(prefix) {
 </div></section>`;
 }
 
+function regionMonth() {
+  return new Date(String(buildCosts.updated || "") + "T00:00:00Z").toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+}
+function regionPage({ cid, c, rel, house, city, factor }) {
+  const rates = midmarket.rates || {};
+  const area = house ? house.m2 : 110;
+  const houseName = house ? `${house.id}-bedroom` : "3-bedroom";
+  const cityName = city ? city.name : "";
+  const monthYear = regionMonth();
+  const eco = BC.regionalEstimate(buildCosts, cid, area, 1, rates, {}, { finish: "economy" }, factor);
+  const std = BC.regionalEstimate(buildCosts, cid, area, 1, rates, {}, { finish: "standard" }, factor);
+  const lux = BC.regionalEstimate(buildCosts, cid, area, 1, rates, {}, { finish: "luxury" }, factor);
+  if (!std || !(std.total > 0)) return;
+  const prefix = "../".repeat(rel.split("/").filter(Boolean).length);
+  const where = city ? cityName + ", " + c.name : c.name;
+  const pct = Math.round((factor - 1) * 100);
+  const cityPara = city
+    ? (Math.abs(pct) <= 1
+      ? `Building in ${cityName} is priced at the national average we use for ${c.name}, on the same quantities and the same published prices (${buildCosts.updated}).`
+      : `Building in ${cityName} costs about ${Math.abs(pct)}% ${pct > 0 ? "more" : "less"} than the national average we use for ${c.name}, on the same quantities. The factor multiplies materials and labour; the permit keeps its published fee. Checked ${city.checked || buildCosts.updated}.`)
+    : `A ${houseName} house is about ${area} m² on one floor. The receipt uses the same quantities in every country, so the difference between countries is the price of bags, blocks, days and the permit.`;
+  let lastGroup = null, rows = "";
+  for (const l of std.lines) {
+    if (l.group !== lastGroup) { rows += `<tr class="group"><th colspan="4">${esc(l.group)}</th></tr>`; lastGroup = l.group; }
+    const rate = l.qty > 0 && l.cost > 0 ? l.cost / l.qty : null;
+    rows += `<tr><th scope="row">${esc(l.label)}</th><td>${esc(l.qtyLabel || "")}</td><td class="num">${rate ? esc(plain(R.money(rate, c.currency, Math.abs(rate) >= 100 ? 0 : 2))) : "–"}</td><td class="num">${l.cost > 0 ? esc(plain(R.money(l.cost, c.currency))) : "–"}</td></tr>`;
+  }
+  const materials = std.lines.filter((l) => l.cost > 0 && l.qty > 0 && l.group !== "Labour" && l.group !== "Permits").map((l) => {
+    const rate = l.cost / l.qty;
+    return `<tr><th scope="row">${esc(l.label)}</th><td>${esc(l.unitName || "")}</td><td class="num">${esc(plain(R.money(rate, c.currency, Math.abs(rate) >= 100 ? 0 : 2)))}</td></tr>`;
+  }).join("");
+  const faqs = [
+    [`What does a ${houseName} house cost to build in ${where}?`, `A ${houseName} bungalow of about ${area} m² comes to ${plain(R.money(std.total, c.currency))} in the standard finish, ${plain(R.money(eco.total, eco.currency))} in economy and ${plain(R.money(lux.total, lux.currency))} in luxury. Prices checked ${buildCosts.updated}. Land and the contractor's fee are not included.`],
+    [`What is included in the ${where} receipt?`, `Cement, steel, blocks, sand, ballast, roof, windows, doors, tiles, ceiling, paint, fittings, wiring, plumbing, a water tank, a septic tank, a boundary wall, a gate, the published permit fee and the trade days. Each line shows its quantity and its source.`],
+    [`Why do prices differ by city?`, `The national prices in this receipt are the published figures for ${c.city || c.name}. A city factor multiplies materials and labour where a local source says costs differ; the permit keeps its published fee.${city ? ` The ${cityName} factor is ${city.factor} (${pct >= 0 ? "+" : ""}${pct}%).` : ""}`]
+  ];
+  const trail = [[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], [c.name, `cost-to-build/${cid}/`]];
+  if (city) trail.push([cityName, `cost-to-build/${cid}/${rel.split("/")[2]}/`]);
+  if (house) trail.push([`${houseName} house`, rel]);
+  const h1 = house ? `Cost to build a ${houseName} house in ${where} (${monthYear})` : `Cost to build a house in ${where} (${monthYear})`;
+  const title = house ? `Cost to build a ${houseName} house in ${where} · SendFair` : `Cost to build a house in ${where} · SendFair`;
+  const description = `${house ? houseName + " house" : "House"} in ${where}: economy ${plain(R.money(eco.total, c.currency))}, standard ${plain(R.money(std.total, c.currency))}, luxury ${plain(R.money(lux.total, c.currency))}. Itemised receipt and material prices checked ${buildCosts.updated}.`;
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>${esc(h1)}</h1>
+<p class="lede">${esc(cityPara)}</p>
+<div class="facts">
+  <div><span class="k">Economy</span><span class="v num">${esc(plain(R.money(eco.total, c.currency)))}</span></div>
+  <div><span class="k">Standard</span><span class="v num">${esc(plain(R.money(std.total, c.currency)))}</span></div>
+  <div><span class="k">Luxury</span><span class="v num">${esc(plain(R.money(lux.total, c.currency)))}</span></div>
+  <div><span class="k">Prices checked</span><span class="v">${esc(buildCosts.updated)}</span></div>
+</div>
+${buildWidget(prefix, cid, "en", { factor, size: house ? house.id : "" })}
+<h2>The itemised receipt</h2>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col">Item</th><th scope="col">Quantity</th><th scope="col" class="num">Rate</th><th scope="col" class="num">Amount</th></tr></thead>
+<tbody>${rows}</tbody></table></div>
+<h2>Materials price list</h2>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col">Material</th><th scope="col">Unit</th><th scope="col" class="num">Price</th></tr></thead>
+<tbody>${materials}</tbody></table></div>
+<h2>What is excluded</h2>
+<ul class="tips">
+<li>The plot of land.</li>
+<li>The contractor's own fee. A published small-job allowance is shown under the receipt only when you tick it.</li>
+<li>A 10% contingency, and the architect's or engineer's fee, only when ticked.</li>
+<li>Appliances, a land survey, water beyond the tank, a power connection, a retaining wall on a steep plot, and borrowing costs.</li>
+</ul>
+<p class="note">Prices are the published figures checked ${esc(buildCosts.updated)}; confirm on the supplier's screen before you pay. The calculator above is pre-set to ${esc(where)}${house ? ` and a ${houseName} house` : ""}.</p>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</div></div></section>`;
+  write(rel + "index.html", page({ prefix, canonical: rel, buildPage: true, rank: false, og: "home", title, description, jsonld: [faqLd(faqs), crumbs(trail), appLd(`House calculator for ${where}`, `${site}/${rel}`, `Estimate a simple house in ${where}.`)], body }));
+  urls.push(rel);
+}
+function writeRegionPages() {
+  const sizes = [2, 3, 4].map((n) => buildCosts.houses.find((h) => h.id === String(n))).filter(Boolean);
+  for (const cid of Object.keys(buildCosts.countries)) {
+    const c = buildCosts.countries[cid];
+    for (const h of sizes) regionPage({ cid, c, rel: `cost-to-build/${cid}/${h.id}-bedroom/`, house: h, city: null, factor: 1 });
+  }
+  for (const cid of Object.keys(regionalFactors.countries || {})) {
+    const c = buildCosts.countries[cid];
+    if (!c) continue;
+    for (const [slug, city] of Object.entries((regionalFactors.countries[cid] || {}).cities || {})) {
+      if (!(city.factor > 0)) continue;
+      regionPage({ cid, c, rel: `cost-to-build/${cid}/${slug}/`, house: null, city, factor: city.factor });
+      for (const h of sizes) regionPage({ cid, c, rel: `cost-to-build/${cid}/${slug}/${h.id}-bedroom/`, house: h, city, factor: city.factor });
+    }
+  }
+}
 function writeBuildPages() {
   const intro = `A receipt check for a simple house, including the finish, the plot works and the building permit: structure, block walls, roof, windows, doors, plaster, floor and wall tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, a basin, a shower, a kitchen sink, a septic tank, a boundary wall and a gate. The permit is that country's own published fee. On each line you can switch to another published type. Bungalow and maisonette are one floor and two floors of the same floor area. Standard finish is the listed price. Where a published whole-house band exists, it sits beside the receipt and includes a contractor. The plot of land and the contractor's fee are not in the receipt.`;
   const faqs = [
@@ -518,6 +611,8 @@ function writeBuildPages() {
 ${buildWidget(prefix, id || "kenya")}
 <p class="build-links"><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a> <a href="${link(prefix, "cost-to-build/same-house/")}">The same 3-bedroom bungalow in every country</a> <a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What this receipt prices</a></p>
 ${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(id) ? `<p><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">Lire cette page en français</a></p>` : ""}
+${id ? `<h2>By size</h2><ul class="route-links">${[2, 3, 4].map((n) => `<li><a href="${link(prefix, `cost-to-build/${id}/${n}-bedroom/`)}">${n}-bedroom house</a></li>`).join("")}</ul>` : ""}
+${id ? (() => { const rc = regionalFactors.countries[id]; const filled = rc ? Object.entries(rc.cities || {}).filter(([, city]) => city.factor > 0) : []; return filled.length ? `<h2>By city</h2><ul class="route-links">${filled.map(([slug, city]) => `<li><a href="${link(prefix, `cost-to-build/${id}/${slug}/`)}">${esc(city.name)}</a></li>`).join("")}</ul>` : ""; })() : ""}
 <h2>Other countries</h2>
 <ul class="route-links">${Object.keys(buildCosts.countries).map((cid) => `<li><a href="${link(prefix, `cost-to-build/${cid}/`)}">${esc(buildCosts.countries[cid].name)}</a></li>`).join("")}</ul>
 <h2>Questions</h2>
@@ -550,6 +645,7 @@ ${faqBlock(faqs)}
   writeSameHouse();
   writeReceiptPage();
   writeFrenchHouses();
+  writeRegionPages();
 }
 
 function writeReceiptPage() {
