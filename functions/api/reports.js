@@ -5,7 +5,7 @@
 import { BUCKETS, json, month, siteData } from "../_lib.js";
 
 // Constant-time string compare for the admin password.
-function safeEqual(a, b) {
+export function safeEqual(a, b) {
   const x = String(a || ""), y = String(b || "");
   if (x.length !== y.length) return false;
   let out = 0;

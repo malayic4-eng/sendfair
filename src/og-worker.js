@@ -12,6 +12,7 @@ import figtree400 from "./fonts/figtree-latin-400-normal.woff";
 import figtree700 from "./fonts/figtree-latin-700-normal.woff";
 import { resultCard } from "./og-result.mjs";
 import { resultModel } from "./og-model.mjs";
+import { loadData } from "./site-data.mjs";
 
 // Start the WASM engines on the first image request (not at Worker start-up), once per isolate.
 // resvg's initWasm may only succeed once; if start-up fails, the next request tries again.
@@ -37,19 +38,6 @@ function money(n, cur) {
 function dateShort(iso) {
   const d = new Date(iso);
   return isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-}
-
-// The built JSON is served from the same origin by Workers Assets; keep a short isolate cache.
-let DATA = { at: 0, value: null };
-async function loadData(env, origin) {
-  if (DATA.value && Date.now() - DATA.at < 60000) return DATA.value;
-  const get = async (p) => { const r = await env.ASSETS.fetch(new Request(origin + p)); return r.ok ? r.json() : null; };
-  const [quotes, feed, providers, corridors, midmarket, site] = await Promise.all([
-    get("/data/quotes.json"), get("/data/wise-feed.json"), get("/data/providers.json"),
-    get("/data/corridors.json"), get("/data/midmarket.json"), get("/data/site.json")
-  ]);
-  DATA = { at: Date.now(), value: { quotes, feed, providers, corridors, midmarket, site: site || {} } };
-  return DATA.value;
 }
 
 // GET /og/result.png?route=uk-nigeria&amount=250[&size=story]
