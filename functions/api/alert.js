@@ -8,6 +8,7 @@
 // honestly with a 503 so the visitor is never left waiting for a confirmation that can't be sent.
 import { json, siteData, sha256 } from "../_lib.js";
 import R from "../../src/rank.js";
+import { sendTemplate } from "../whatsapp-lib.js";
 
 const FROM = { email: "hello@sendfair.africa", name: "SendFair rate alerts" };
 const DAY = 86400;
@@ -17,7 +18,7 @@ const page = (title, body) => new Response(`<!doctype html><meta charset="utf-8"
   { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex" } });
 
 const money = (v, cur) => `${cur} ${Number(v).toLocaleString("en", { maximumFractionDigits: v >= 1000 ? 0 : 2, minimumFractionDigits: v >= 1000 ? 0 : 2 })}`;
-const routeName = (route, data) => {
+export const routeName = (route, data) => {
   const [a, b] = route.split("-");
   const s = data.corridors.senders.find((x) => x.id === a), r = data.corridors.receivers.find((x) => x.id === b);
   return { s, r, label: `${s.label} to ${r.name}`, path: `/send-money/${a}-to-${b}/` };
@@ -28,21 +29,31 @@ export async function sendMail(env, msg) {
   try { await env.EMAIL.send({ from: FROM, ...msg }); return true; } catch (e) { console.log("email failed", e && (e.code || e.message)); return false; }
 }
 
-async function loadData(env, origin) {
+export async function loadData(env, origin) {
   const get = async (p) => (await env.ASSETS.fetch(new Request(origin + p))).json();
-  const [corridors, quotes, providersFile, midmarket, wiseFeed] = await Promise.all([
+  const [corridors, quotes, providersFile, midmarket, wiseFeed, site] = await Promise.all([
     get("/data/corridors.json"), get("/data/quotes.json"), get("/data/providers.json"),
-    get("/data/midmarket.json"), get("/data/wise-feed.json").catch(() => ({ routes: {} }))
+    get("/data/midmarket.json"), get("/data/wise-feed.json").catch(() => ({ routes: {} })), get("/data/site.json").catch(() => ({}))
   ]);
   const providers = Object.fromEntries(((providersFile || {}).providers || []).map((p) => [p.id, p]));
-  return { corridors, quotes, providers, midmarket, feed: (wiseFeed || {}).routes || {} };
+  return { corridors, quotes, providers, midmarket, feed: (wiseFeed || {}).routes || {}, site: site || {} };
+}
+
+// The same ranking options as the route pages (src/app.js), so alerts and the WhatsApp bot agree with the site.
+export function rankRoute(data, route, amount, now = Date.now()) {
+  const rn = routeName(route, data);
+  const site = data.site || {};
+  return R.rank({
+    list: (data.quotes.quotes || {})[route] || [], feed: (data.feed || {})[route] || null, providers: data.providers,
+    amount, payout: "all", payIn: "all", promo: false, mid: R.midRate(data.midmarket, rn.s.currency, rn.r.currency) || null, now,
+    staleH: site.staleAfterHours || 36, hideH: site.hideAfterHours || 72,
+    handLockH: site.preferAutoAfterHours || site.handLockHours || 6, refAmount: (site.defaultAmounts || {})[rn.s.currency]
+  });
 }
 
 // Most that arrives on a route for `amount`, using the shared ranking engine.
 export function bestFor(data, route, amount, now = Date.now()) {
-  const rn = routeName(route, data);
-  const m = R.midRate(data.midmarket, rn.s.currency, rn.r.currency);
-  const rows = R.rank({ list: (data.quotes.quotes || {})[route] || [], feed: (data.feed || {})[route] || null, providers: data.providers, amount, payout: "all", mid: m || null, now, staleH: 36, hideH: 72 });
+  const rows = rankRoute(data, route, amount, now);
   const lead = R.leaders(rows);
   return lead.length ? { gets: lead[0].gets, provider: lead[0].p.name } : null;
 }
@@ -181,6 +192,15 @@ export async function runAlerts(env, origin = "https://sendfair.africa") {
       }
       const best = bestFor(data, a.route, a.amount);
       if (!best || best.gets < a.target) continue;
+      // WhatsApp alerts are business-initiated, so Meta requires an approved template.
+      if (a.channel === "whatsapp") {
+        const ok = await sendTemplate(env, a.phone, [
+          money(a.amount, rn.s.currency), rn.s.short, rn.r.name,
+          money(best.gets, rn.r.currency), money(a.target, rn.r.currency), origin + rn.path + "?ref=wa"
+        ]);
+        if (ok) { await kv.delete(k.name); fired++; }
+        continue;
+      }
       const stop = `${origin}/api/alert/stop?id=${a.id}&t=${a.token}`;
       const ok = await sendMail(env, {
         to: a.email,
