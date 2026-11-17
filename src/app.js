@@ -195,14 +195,18 @@
   function receiverOf(route) { var id = route.split("-").slice(1).join("-"); return ((S.corridors && S.corridors.receivers) || []).find(function (r) { return r.id === id; }) || null; }
   function moneyShort(v, cur) { if (!cur) return ""; return cur + " " + (Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en") : v.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })); }
   function bestFor(route, amount) {
-    var list = S.quotes[route] || [], best = null;
-    list.forEach(function (q) {
-      var fee = (Number(q.feeFixed) || 0) + amount * ((Number(q.feePct) || 0) / 100);
-      var gets = (amount - fee) * Number(q.rate);
-      if (!(gets > 0)) return;
-      if (!best || gets > best.gets) best = { gets: gets, name: (S.providers[q.provider] || {}).name || q.provider };
-    });
-    return best;
+    var parts = route.split("-"), from = parts[0], to = parts.slice(1).join("-");
+    var s = ((S.corridors && S.corridors.senders) || []).find(function (x) { return x.id === from; });
+    var r = ((S.corridors && S.corridors.receivers) || []).find(function (x) { return x.id === to; });
+    if (!s || !r) return null;
+    var rows = R.rank({ list: S.quotes[route] || [], feed: S.feed[route] || null, providers: S.providers, amount: amount, payout: "all", payIn: "all", promo: false, mid: R.midRate(S.mid, s.currency, r.currency), now: Date.now(), staleH: (cfg.staleAfterHours || 36), hideH: (cfg.hideAfterHours || 72), handLockH: (cfg.preferAutoAfterHours || cfg.handLockHours || 6), refAmount: (cfg.defaultAmounts || {})[s.currency] });
+    var fresh = rows.filter(function (x) { return !x.stale; });
+    return fresh.length ? { gets: fresh[0].gets, name: fresh[0].p.name } : null;
+  }
+  function savedLink(r) {
+    var parts = r.route.split("-"), s = ((S.corridors && S.corridors.senders) || []).find(function (x) { return x.id === parts[0]; });
+    var standard = cfg.amountPages && s && (cfg.amountPages[s.currency] || []).indexOf(r.amount) > -1;
+    return (root || "/") + "send-money/" + r.route + "/" + (standard ? r.amount + "/" : "?amount=" + encodeURIComponent(r.amount));
   }
   function renderYourRoutes() {
     var wrap = $("sf-your-routes"), box = $("sf-your-routes-list");
@@ -212,7 +216,7 @@
     box.innerHTML = "<ul>" + list.map(function (r) {
       var best = bestFor(r.route, r.amount), cur = receiverOf(r.route) ? receiverOf(r.route).currency : "";
       var change = best && r.lastGets > 0 ? best.gets - r.lastGets : null;
-      return '<li><a href="' + escText((root || "/") + "send-money/" + r.route + "/" + r.amount + "/") + '">' + escText(r.label || routeLabel(r.route)) + "</a><span>" + (best ? escText(best.name) + " · " + escText(moneyShort(best.gets, cur)) : "Checking today's rates…") + (change != null ? " · " + (change >= 0 ? "+" : "") + escText(moneyShort(change, cur)) + " since your last visit" : "") + "</span></li>";
+      return '<li><a href="' + escText(savedLink(r)) + '">' + escText(r.label || routeLabel(r.route)) + "</a><span>" + (best ? escText(best.name) + " · " + escText(moneyShort(best.gets, cur)) : "Checking today's rates…") + (change != null ? " · " + (change >= 0 ? "+" : "") + escText(moneyShort(change, cur)) + " since your last visit" : "") + "</span></li>";
     }).join("") + "</ul>";
     wrap.hidden = false;
     var sends = []; try { sends = JSON.parse(localStorage.getItem("sf-sends") || "[]"); } catch (e) {}
@@ -227,6 +231,8 @@
   }
   function saveRoute(route, amount) {
     if (!route) return;
+    amount = Math.round(amount);
+    if (!(amount > 0)) return;
     var list = routeStore().filter(function (r) { return !(r.route === route && r.amount === amount); });
     var best = bestFor(route, amount), label = routeLabel(route);
     try { var p = window.prompt("Name this route (for example, “Mum in Kisumu”)", label); if (p && p.trim()) label = p.trim().slice(0, 40); } catch (e) {}
@@ -253,23 +259,32 @@
     } catch (e) {}
     sfEvent("saved_route_send", { route: route });
   }
-  function shareImageUrl(btn) {
-    return (root || "/") + "og/result.png?route=" + encodeURIComponent(btn.getAttribute("data-route") || "") + "&amount=" + encodeURIComponent(btn.getAttribute("data-amount") || "") + "&ts=" + encodeURIComponent(btn.getAttribute("data-ts") || "");
+  function currentAmount(btn) {
+    var v = parseFloat(($("sf-amount") || {}).value);
+    return v > 0 ? Math.round(v) : (Math.round(parseFloat(btn.getAttribute("data-amount"))) || 0);
+  }
+  function shareImageUrl(btn, amount, story) {
+    var base = (SF.siteUrl || location.origin).replace(/\/$/, "");
+    return base + "/og/result.png?route=" + encodeURIComponent(btn.getAttribute("data-route") || "") + "&amount=" + encodeURIComponent(Math.round(amount)) + (story ? "&size=story" : "");
+  }
+  function sharePageLink(btn, amount) {
+    var base = (SF.siteUrl || location.origin).replace(/\/$/, "");
+    return base + "/send-money/" + (btn.getAttribute("data-route") || "") + "/?amount=" + encodeURIComponent(Math.round(amount)) + "&ref=share";
   }
   function prepareFallbacks(btn) {
-    var link = btn.getAttribute("data-link") || location.href, text = "What arrives for a transfer today, compared by SendFair: ";
+    var amount = currentAmount(btn), link = sharePageLink(btn, amount), text = "What arrives for a transfer today, compared by SendFair: ";
     var fb = $("sf-fb"), x = $("sf-x");
     if (fb) fb.href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(link);
     if (x) x.href = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(text);
     var wa = $("sf-wa-text"); if (wa) wa.onclick = function () { window.open("https://wa.me/?text=" + encodeURIComponent(text + " " + link), "_blank"); };
-    var dl = $("sf-download"); if (dl) dl.onclick = function () { window.open(location.origin + shareImageUrl(btn) + "&size=story", "_blank"); };
+    var dl = $("sf-download"); if (dl) dl.onclick = function () { window.open(shareImageUrl(btn, amount, true), "_blank"); };
     var c2 = $("sf-copy2"); if (c2) c2.onclick = function () { if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { var m = $("sf-share-msg"); if (m) m.textContent = "Link copied."; }); };
   }
   function shareResult(btn) {
-    var route = btn.getAttribute("data-route"), amount = btn.getAttribute("data-amount"), link = btn.getAttribute("data-link") || location.href;
-    sfEvent("share_result", { route: route, amount: amount, method: navigator.share ? "web" : "fallback" });
+    var amount = currentAmount(btn), link = sharePageLink(btn, amount);
+    sfEvent("share_result", { route: btn.getAttribute("data-route"), amount: amount, method: navigator.share ? "web" : "fallback" });
     if (navigator.share) {
-      fetch(shareImageUrl(btn)).then(function (r) { return r.ok ? r.blob() : null; }).then(function (blob) {
+      fetch(shareImageUrl(btn, amount)).then(function (r) { return r.ok ? r.blob() : null; }).then(function (blob) {
         var text = "Compare what actually arrives: " + link;
         if (blob && navigator.canShare) {
           var file = new File([blob], "sendfair-result.png", { type: "image/png" });
@@ -362,7 +377,7 @@
       var shareBtn = e.target.closest && e.target.closest("#sf-share-result");
       if (shareBtn) { e.preventDefault(); shareResult(shareBtn); return; }
       var saveBtn = e.target.closest && e.target.closest("#sf-save-route");
-      if (saveBtn) { e.preventDefault(); saveRoute(saveBtn.getAttribute("data-route"), parseFloat(saveBtn.getAttribute("data-amount"))); saveBtn.textContent = "Saved"; return; }
+      if (saveBtn) { e.preventDefault(); saveRoute(saveBtn.getAttribute("data-route"), currentAmount(saveBtn)); saveBtn.textContent = "Saved"; return; }
     });
     document.addEventListener("submit", function (e) {
       var f = e.target;

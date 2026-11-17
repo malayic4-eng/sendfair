@@ -758,7 +758,7 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
     routeUrl: link(prefix, "send-money/{from}-to-{to}/"),
-    config: { quickAmounts: STEP_AMOUNTS, defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost,
+    config: { quickAmounts: STEP_AMOUNTS, amountPages: AMOUNT_PAGES, defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost,
       trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO,
       ga4: config.ga4MeasurementId || "", gtm: config.gtmContainerId || "", clarity: config.clarityProjectId || "",
       impactSrc: config.impactSrc || "", adsenseClient: config.adsenseClient || "",
@@ -1025,7 +1025,7 @@ write("data/history.json", JSON.stringify(history));
 const wiseFeed = path.join(ROOT, "data/wise-feed.json");
 if (fs.existsSync(wiseFeed) && !DEMO) fs.copyFileSync(wiseFeed, path.join(OUT, "data/wise-feed.json"));
 if (demoReports) write("data/reports-demo.json", JSON.stringify(demoReports));
-write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost }));
+write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, handLockH: config.preferAutoAfterHours || config.handLockHours || 6, regionalAverageCost: config.regionalAverageCost }));
 
 const urls = [];
 const S0 = corridors.senders.find((s) => s.id === "uk") || corridors.senders[0];
@@ -1490,7 +1490,7 @@ ${crumbNav(prefix, trail)}
 <h1>${esc(A.name)} vs ${esc(B.name)} on ${esc(s.label)} to ${esc(r.name)}: which delivers more?</h1>
 <p class="lede">${esc(verdict)}</p>
 <div class="vs-cards">${[A, B].map((P) => { const x = P === A ? a : b; return `<div class="vs-card"><h2 class="with-badge">${R.badge(P, "b-md")}${esc(P.name)}</h2><dl>
-<div><dt>They get ${esc(amtSym)}</dt><dd>${esc(plain(R.money(x.gets, r.currency)))}</dd></div>
+<div><dt>For ${esc(amtSym)} they get</dt><dd>${esc(plain(R.money(x.gets, r.currency)))}</dd></div>
 <div><dt>Fee</dt><dd>${esc(R.feeStr(x.q, s.currency))}</dd></div>
 <div><dt>Rating</dt><dd>${ratingLine(P)}</dd></div></dl>
 <a class="btn" href="${esc(hrefFor(prefix)(P, "compare-route"))}" target="_blank" rel="sponsored nofollow noopener">Go to ${esc(P.name)}</a> <a href="${link(prefix, provPath(P))}">Full review</a></div>`; }).join("")}</div>
