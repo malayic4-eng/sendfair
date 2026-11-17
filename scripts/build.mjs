@@ -414,7 +414,21 @@ ${shareBar(ctx)}${after}
 
 function shareBar(ctx) {
   const url = ctx.shareUrl || `${site}/${corridorPath(ctx.s, ctx.r)}`;
-  return `<div class="share"><a id="sf-wa" data-url="${esc(url)}" href="https://wa.me/?text=${encodeURIComponent(R.shareText(ctx, url))}" target="_blank" rel="noopener">Share on WhatsApp</a><button type="button" id="sf-copy">Copy link</button><span class="share-msg" id="sf-share-msg" aria-live="polite"></span></div>`;
+  const shareLink = `${url}${url.includes("?") ? "&" : "?"}ref=share`;
+  return `<div class="share">
+<a id="sf-wa" data-url="${esc(url)}" href="https://wa.me/?text=${encodeURIComponent(R.shareText(ctx, url))}" target="_blank" rel="noopener">Share on WhatsApp</a>
+<button type="button" id="sf-share-result" data-route="${esc(ctx.key)}" data-amount="${ctx.amount}" data-ts="${esc(ctx.quotesUpdated || "")}" data-link="${esc(shareLink)}">Share this result</button>
+<button type="button" id="sf-save-route" data-route="${esc(ctx.key)}" data-amount="${ctx.amount}">Save this route</button>
+<button type="button" id="sf-copy">Copy link</button>
+<span class="share-msg" id="sf-share-msg" aria-live="polite"></span>
+</div>
+<div class="share-more" id="sf-share-more" hidden>
+<a id="sf-fb" target="_blank" rel="noopener">Facebook</a>
+<a id="sf-x" target="_blank" rel="noopener">X</a>
+<button type="button" id="sf-wa-text">WhatsApp</button>
+<button type="button" id="sf-download">Download image</button>
+<button type="button" id="sf-copy2">Copy link</button>
+</div>`;
 }
 
 function reportSection(ctx) {
@@ -429,8 +443,13 @@ function reportSection(ctx) {
 <label class="opt"><input type="radio" name="sf-rep-bucket" value="1to2days"> 1&ndash;2 days</label>
 <label class="opt"><input type="radio" name="sf-rep-bucket" value="longer"> Longer</label>
 </fieldset>
+<fieldset class="report-rating"><legend>Rate it (optional)</legend>${[1, 2, 3, 4, 5].map((n) => `<label class="opt"><input type="radio" name="sf-rep-rating" value="${n}"> ${n} ★</label>`).join("")}</fieldset>
+<label for="sf-rep-comment" class="label">A short comment (optional, up to 200 characters)</label>
+<textarea id="sf-rep-comment" name="comment" maxlength="200" rows="2" placeholder="How did it go?"></textarea>
 <button type="submit">Send report</button><p class="report-msg" id="sf-rep-msg" aria-live="polite"></p>
-</form></div></section>`;
+</form>
+<div class="comments" id="sf-comments" data-route="${esc(ctx.key)}" hidden><h3>What other senders said</h3><ul></ul></div>
+</div></section>`;
 }
 
 function alerts() {
@@ -739,7 +758,7 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
     routeUrl: link(prefix, "send-money/{from}-to-{to}/"),
-    config: { quickAmounts: STEP_AMOUNTS, defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost,
+    config: { quickAmounts: STEP_AMOUNTS, amountPages: AMOUNT_PAGES, defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, preferAutoAfterHours: config.preferAutoAfterHours, handLockHours: config.handLockHours, regionalAverageCost: config.regionalAverageCost,
       trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO,
       ga4: config.ga4MeasurementId || "", gtm: config.gtmContainerId || "", clarity: config.clarityProjectId || "",
       impactSrc: config.impactSrc || "", adsenseClient: config.adsenseClient || "",
@@ -1006,7 +1025,7 @@ write("data/history.json", JSON.stringify(history));
 const wiseFeed = path.join(ROOT, "data/wise-feed.json");
 if (fs.existsSync(wiseFeed) && !DEMO) fs.copyFileSync(wiseFeed, path.join(OUT, "data/wise-feed.json"));
 if (demoReports) write("data/reports-demo.json", JSON.stringify(demoReports));
-write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, regionalAverageCost: config.regionalAverageCost }));
+write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, preferAutoAfterHours: config.preferAutoAfterHours, handLockHours: config.handLockHours, regionalAverageCost: config.regionalAverageCost }));
 
 const urls = [];
 const S0 = corridors.senders.find((s) => s.id === "uk") || corridors.senders[0];
@@ -1018,6 +1037,7 @@ const quotedProviders = new Set(Object.values(quotesFile.quotes || {}).flat().ma
 const homeProof = quotedProviders > 1
   ? `${quotedProviders} services on ${quotedRoutes} routes, updated through the day.`
   : "Commissions never change the order.";
+const yourRoutesHtml = `<section class="block your-routes" id="sf-your-routes" hidden><div class="wrap"><h2>Your routes</h2><div id="sf-your-routes-list"></div><p class="savings" id="sf-savings" hidden></p></div></section>`;
 const homeCtx = routeContext(S0, R0, "", config.defaultAmounts[S0.currency]);
 const homeFaqs = [
   ["What does SendFair do?", "Two things. It compares money transfer services to Africa by the amount that arrives, after the fee and the exchange-rate markup. It also estimates what it costs to build a simple house in the country you send to, so a lump-sum quote can be checked against materials and trade days."],
@@ -1040,7 +1060,7 @@ write("index.html", page({
       { name: "We do the maths for your amount", text: "Fees come off what you pay and the rest converts at the provider's rate. That gives the amount that actually arrives." },
       { name: "Most money home ranks first", text: "Commissions never change the order. A service that pays us nothing can rank first." }
     ])],
-  body: tool({
+  body: yourRoutesHtml + tool({
     ctx: homeCtx,
     heading: "Send money home. Build a house back home.",
     sub: `Two tools for the diaspora. Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup — then price a house back home before you build. ${homeProof}`

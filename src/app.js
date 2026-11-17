@@ -187,6 +187,125 @@
   function readList(key) {
     try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; }
   }
+
+  // ---- returning senders (no account): saved routes, savings estimate, share result ----
+  function routeStore() { try { return JSON.parse(localStorage.getItem("sf-routes") || "[]"); } catch (e) { return []; } }
+  function setRouteStore(list) { try { localStorage.setItem("sf-routes", JSON.stringify(list.slice(0, 20))); } catch (e) {} }
+  function routeLabel(route) { return route.split("-").map(function (x) { return x.charAt(0).toUpperCase() + x.slice(1); }).join(" to "); }
+  function receiverOf(route) { var id = route.split("-").slice(1).join("-"); return ((S.corridors && S.corridors.receivers) || []).find(function (r) { return r.id === id; }) || null; }
+  function moneyShort(v, cur) { if (!cur) return ""; return cur + " " + (Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en") : v.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })); }
+  function bestFor(route, amount) {
+    var parts = route.split("-"), from = parts[0], to = parts.slice(1).join("-");
+    var s = ((S.corridors && S.corridors.senders) || []).find(function (x) { return x.id === from; });
+    var r = ((S.corridors && S.corridors.receivers) || []).find(function (x) { return x.id === to; });
+    if (!s || !r) return null;
+    var rows = R.rank({ list: S.quotes[route] || [], feed: S.feed[route] || null, providers: S.providers, amount: amount, payout: "all", payIn: "all", promo: false, mid: R.midRate(S.mid, s.currency, r.currency), now: Date.now(), staleH: (cfg.staleAfterHours || 36), hideH: (cfg.hideAfterHours || 72), handLockH: (cfg.preferAutoAfterHours || cfg.handLockHours || 6), refAmount: (cfg.defaultAmounts || {})[s.currency] });
+    var fresh = rows.filter(function (x) { return !x.stale; });
+    return fresh.length ? { gets: fresh[0].gets, name: fresh[0].p.name } : null;
+  }
+  function savedLink(r) {
+    var parts = r.route.split("-"), s = ((S.corridors && S.corridors.senders) || []).find(function (x) { return x.id === parts[0]; });
+    var standard = cfg.amountPages && s && (cfg.amountPages[s.currency] || []).indexOf(r.amount) > -1;
+    return (root || "/") + "send-money/" + r.route + "/" + (standard ? r.amount + "/" : "?amount=" + encodeURIComponent(r.amount));
+  }
+  function renderYourRoutes() {
+    var wrap = $("sf-your-routes"), box = $("sf-your-routes-list");
+    if (!wrap || !box) return;
+    var list = routeStore();
+    if (!list.length) { wrap.hidden = true; return; }
+    box.innerHTML = "<ul>" + list.map(function (r) {
+      var best = bestFor(r.route, r.amount), cur = receiverOf(r.route) ? receiverOf(r.route).currency : "";
+      var change = best && r.lastGets > 0 ? best.gets - r.lastGets : null;
+      return '<li><a href="' + escText(savedLink(r)) + '">' + escText(r.label || routeLabel(r.route)) + "</a><span>" + (best ? escText(best.name) + " · " + escText(moneyShort(best.gets, cur)) : "Checking today's rates…") + (change != null ? " · " + (change >= 0 ? "+" : "") + escText(moneyShort(change, cur)) + " since your last visit" : "") + "</span></li>";
+    }).join("") + "</ul>";
+    wrap.hidden = false;
+    var sends = []; try { sends = JSON.parse(localStorage.getItem("sf-sends") || "[]"); } catch (e) {}
+    var sav = $("sf-savings");
+    if (sav) {
+      if (!sends.length) { sav.hidden = true; return; }
+      var cur = receiverOf(sends[0].route) ? receiverOf(sends[0].route).currency : "";
+      var total = sends.reduce(function (a, x) { return a + Math.max(0, (x.gets || 0) - (x.average || 0)); }, 0);
+      sav.textContent = "You've sent " + sends.length + " time" + (sends.length === 1 ? "" : "s") + " with SendFair and received about " + moneyShort(total, cur) + " more than the regional average cost. This is an estimate based on our check at the time, not a guarantee.";
+      sav.hidden = false;
+    }
+  }
+  function saveRoute(route, amount) {
+    if (!route) return;
+    amount = Math.round(amount);
+    if (!(amount > 0)) return;
+    var list = routeStore().filter(function (r) { return !(r.route === route && r.amount === amount); });
+    var best = bestFor(route, amount), label = routeLabel(route);
+    try { var p = window.prompt("Name this route (for example, “Mum in Kisumu”)", label); if (p && p.trim()) label = p.trim().slice(0, 40); } catch (e) {}
+    list.unshift({ route: route, amount: amount, payout: S.payout, label: label, lastGets: best ? best.gets : null, savedAt: new Date().toISOString() });
+    setRouteStore(list);
+    renderYourRoutes();
+    sfEvent("save_route", { route: route, amount: amount });
+  }
+  function maybeRecordSend(a) {
+    var href = a.getAttribute("href") || "";
+    var m = href.match(/\/go\/([^?]+)\?r=([a-z-]+)/);
+    if (!m) return;
+    var route = m[2];
+    if (!routeStore().some(function (r) { return r.route === route; })) return;
+    var amount = parseFloat(($("sf-amount") || {}).value) || 0, best = bestFor(route, amount);
+    if (!best || !(amount > 0)) return;
+    var rec = receiverOf(route), s = ((S.corridors && S.corridors.senders) || []).find(function (x) { return route.indexOf(x.id + "-") === 0; });
+    var mid = s && rec ? R.midRate(S.mid, s.currency, rec.currency) : null;
+    var avg = mid ? amount * mid * (1 - ((cfg.regionalAverageCost || {}).percent || 8.46) / 100) : 0;
+    try {
+      var list = JSON.parse(localStorage.getItem("sf-sends") || "[]");
+      list.unshift({ date: new Date().toISOString(), route: route, amount: amount, provider: (S.providers[decodeURIComponent(m[1])] || {}).name || decodeURIComponent(m[1]), gets: best.gets, average: avg });
+      localStorage.setItem("sf-sends", JSON.stringify(list.slice(0, 50)));
+    } catch (e) {}
+    sfEvent("saved_route_send", { route: route });
+  }
+  function currentAmount(btn) {
+    var v = parseFloat(($("sf-amount") || {}).value);
+    return v > 0 ? Math.round(v) : (Math.round(parseFloat(btn.getAttribute("data-amount"))) || 0);
+  }
+  function shareImageUrl(btn, amount, story) {
+    var base = (SF.siteUrl || location.origin).replace(/\/$/, "");
+    return base + "/og/result.png?route=" + encodeURIComponent(btn.getAttribute("data-route") || "") + "&amount=" + encodeURIComponent(Math.round(amount)) + (story ? "&size=story" : "");
+  }
+  function sharePageLink(btn, amount) {
+    var base = (SF.siteUrl || location.origin).replace(/\/$/, "");
+    return base + "/send-money/" + (btn.getAttribute("data-route") || "") + "/?amount=" + encodeURIComponent(Math.round(amount)) + "&ref=share";
+  }
+  function prepareFallbacks(btn) {
+    var amount = currentAmount(btn), link = sharePageLink(btn, amount), text = "What arrives for a transfer today, compared by SendFair: ";
+    var fb = $("sf-fb"), x = $("sf-x");
+    if (fb) fb.href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(link);
+    if (x) x.href = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(text);
+    var wa = $("sf-wa-text"); if (wa) wa.onclick = function () { window.open("https://wa.me/?text=" + encodeURIComponent(text + " " + link), "_blank"); };
+    var dl = $("sf-download"); if (dl) dl.onclick = function () { window.open(shareImageUrl(btn, amount, true), "_blank"); };
+    var c2 = $("sf-copy2"); if (c2) c2.onclick = function () { if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { var m = $("sf-share-msg"); if (m) m.textContent = "Link copied."; }); };
+  }
+  function shareResult(btn) {
+    var amount = currentAmount(btn), link = sharePageLink(btn, amount);
+    sfEvent("share_result", { route: btn.getAttribute("data-route"), amount: amount, method: navigator.share ? "web" : "fallback" });
+    if (navigator.share) {
+      fetch(shareImageUrl(btn, amount)).then(function (r) { return r.ok ? r.blob() : null; }).then(function (blob) {
+        var text = "Compare what actually arrives: " + link;
+        if (blob && navigator.canShare) {
+          var file = new File([blob], "sendfair-result.png", { type: "image/png" });
+          if (navigator.canShare({ files: [file] })) { navigator.share({ files: [file], text: text, title: "SendFair result" }).catch(function () {}); return; }
+        }
+        navigator.share({ text: text, url: link, title: "SendFair result" }).catch(function () {});
+      }).catch(function () { navigator.share({ text: "Compare what actually arrives: " + link, url: link }).catch(function () {}); });
+      return;
+    }
+    var panel = $("sf-share-more"); if (panel) panel.hidden = false;
+    prepareFallbacks(btn);
+  }
+  function renderComments() {
+    var box = $("sf-comments"); if (!box) return;
+    var list = S.comments || [];
+    if (!list.length) { box.hidden = true; return; }
+    box.querySelector("ul").innerHTML = list.map(function (c) {
+      return '<li><span class="c-meta">' + escText((c.provider || "") + " · " + String(c.at || "").slice(0, 10)) + (c.rating ? " · " + c.rating + "/5" : "") + "</span><p>" + escText(c.text || "") + "</p></li>";
+    }).join("");
+    box.hidden = false;
+  }
   function setupDiscovery() {
     loadTrackers();
     var article = document.querySelector("[data-guide]");
@@ -254,7 +373,11 @@
       var shareA = e.target.closest && e.target.closest(".share a");
       if (shareA) sfEvent("share", { method: (shareA.textContent || "").trim() });
       var go = e.target.closest && e.target.closest('a[href*="/go/"]');
-      if (go) sfEvent("cta", { link: go.getAttribute("href") });
+      if (go) { sfEvent("cta", { link: go.getAttribute("href") }); maybeRecordSend(go); }
+      var shareBtn = e.target.closest && e.target.closest("#sf-share-result");
+      if (shareBtn) { e.preventDefault(); shareResult(shareBtn); return; }
+      var saveBtn = e.target.closest && e.target.closest("#sf-save-route");
+      if (saveBtn) { e.preventDefault(); saveRoute(saveBtn.getAttribute("data-route"), currentAmount(saveBtn)); saveBtn.textContent = "Saved"; return; }
     });
     document.addEventListener("submit", function (e) {
       var f = e.target;
@@ -501,11 +624,12 @@
 
   function loadReports() {
     if (cfg.demo) {
+      S.comments = [];
       return getJSON("data/reports-demo.json").then(function (d) { S.reports = (d.routes || {})[key()] || {}; }).catch(function () { S.reports = {}; });
     }
-    if (!cfg.reportsEnabled) { S.reports = {}; return Promise.resolve(); }
+    if (!cfg.reportsEnabled) { S.reports = {}; S.comments = []; return Promise.resolve(); }
     return fetch(root + "api/reports?route=" + encodeURIComponent(key())).then(function (r) { return r.ok ? r.json() : { providers: {} }; })
-      .then(function (d) { S.reports = d.providers || {}; }).catch(function () { S.reports = {}; });
+      .then(function (d) { S.reports = d.providers || {}; S.comments = d.comments || []; renderComments(); }).catch(function () { S.reports = {}; S.comments = []; });
   }
 
   function fillSelects() {
@@ -811,10 +935,13 @@
       if (!provider || !b) { msg.textContent = "Choose the service and how long it took."; return; }
       if (cfg.demo) { msg.textContent = "Reports are switched off in this preview. On the live site this is saved and shown to other senders."; return; }
       msg.textContent = "Sending…";
-      fetch(root + "api/report", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ route: key(), provider: provider, bucket: b.value }) })
+      var ratingEl = rep.querySelector('input[name="sf-rep-rating"]:checked');
+      var commentEl = $("sf-rep-comment");
+      var payload = { route: key(), provider: provider, bucket: b.value, rating: ratingEl ? parseInt(ratingEl.value, 10) : 0, comment: commentEl ? commentEl.value.trim() : "" };
+      fetch(root + "api/report", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (x) {
-          msg.textContent = x.ok ? "Thank you. Your report helps other senders." : (x.d && x.d.error) || "Could not save your report. Try again later.";
+          msg.textContent = x.ok ? (payload.comment ? "Thank you. Your comment appears here once it has been reviewed." : "Thank you. Your report helps other senders.") : (x.d && x.d.error) || "Could not save your report. Try again later.";
           if (x.ok) { rep.reset(); loadReports().then(render); }
         })
         .catch(function () { msg.textContent = "Could not save your report. Check your connection and try again."; });
@@ -835,7 +962,11 @@
       bind();
       return loadReports();
     })
-    .then(render)
+    .then(function () {
+      render();
+      renderYourRoutes();
+      if (new URLSearchParams(location.search).get("ref") === "share") sfEvent("share_result", { ref: "landing" });
+    })
     .catch(function () {
       if (!$("sf-results").querySelector(".results")) {
         $("sf-results").innerHTML = '<div class="empty"><strong>Rates could not load.</strong><span>Check your connection and refresh the page.</span></div>';
