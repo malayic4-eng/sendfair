@@ -1032,10 +1032,19 @@ const hasFlyPage = (r) => ((partners.airports || {})[r.id] || []).length > 0;
 const flyPath = (r) => `flying-home/${r.id}/`;
 
 // Paid listing under the house calculator. Labelled, outside the receipt, and only between its dates.
-function sponsorBox(cid, prefix) {
+function sponsorBox(cid, prefix, lang) {
   const c = buildCosts.countries[cid];
   if (!c) return "";
   const list = sponsorsFor(partners, cid, NOW).slice(0, 3);
+  if (lang === "fr") {
+    const nom = t(`names.receivers.${cid}`) || c.name;
+    if (!list.length) return `<aside class="sponsor-box empty" aria-label="Publicité"><p><strong>Constructeurs, quincailleries, banques et coopératives :</strong> cet espace est vu par les familles de la diaspora qui chiffrent leur maison avant d'envoyer l'argent. <a href="${link(prefix, "advertise/")}">Annoncer ici</a></p></aside>`;
+    return `<aside class="sponsor-box" aria-label="Sponsorisé">
+<p class="sponsor-head"><span class="sponsor-tag">Sponsorisé</span> ${esc(capFirst(nom))}</p>
+<div class="sponsor-cards">${list.map((sp) => `<a class="sponsor-card" href="${esc(sponsorHref(prefix, sp, cid))}" target="_blank" rel="sponsored noopener"><span class="k">${esc(sp.category)}${sp.badge ? ` · ${esc(sp.badge)}` : ""}</span><strong>${esc(sp.name)}</strong><span class="s">${esc(sp.blurb)}</span>${sp.phone ? `<span class="s">${esc(sp.phone)}</span>` : ""}</a>`).join("")}</div>
+<p class="note">Annonces payantes. Elles ne font pas partie du devis et ne changent aucun prix de cette page. Vérifiez l'immatriculation d'un constructeur et demandez des références avant de payer. <a href="${link(prefix, "advertise/")}">Annoncer ici</a></p>
+</aside>`;
+  }
   if (!list.length) {
     return `<aside class="sponsor-box empty" aria-label="Advertising"><p><strong>Builders, hardware suppliers, SACCOs and banks in ${esc(c.name)}:</strong> this space is seen by families abroad who are pricing a house in ${esc(c.name)} before they send the money. <a href="${link(prefix, "advertise/")}">Advertise here</a></p></aside>`;
   }
@@ -1299,6 +1308,7 @@ function writeFrenchHouses() {
 <p class="lede">${esc(intro)}</p>
 <p>La navigation du site est en anglais. Cette page et le reçu sont en français. <a href="${link("../../../", en)}">Read this page in English</a>.</p>
 ${buildWidget("../../../", id, "fr")}
+${sponsorBox(id, "../../../", "fr")}
 <p class="build-links"><a href="${link("../../../", "cost-to-build/material-prices/")}">Prix des matériaux</a> <a href="${link("../../../", "cost-to-build/same-house/")}">La même maison</a> <a href="${link("../../../", "fr/cost-to-build/what-this-receipt-is/")}">Ce que ce reçu chiffre</a></p>
 <h2>Autres pays en français</h2>
 <ul class="route-links">${ids.filter((x) => x !== id).map((x) => `<li><a href="${link("../../../", `fr/cost-to-build/${x}/`)}">${esc(nameIn[x])}</a></li>`).join("")}</ul>
