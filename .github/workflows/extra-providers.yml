@@ -5,8 +5,10 @@ on:
     paths:
       - "scripts/fetch-extra.mjs"
       - ".github/workflows/extra-providers.yml"
-  schedule:
-    - cron: "30 * * * *"
+  # Hourly schedule paused: TransferGo/Paysend rates can't be verified as real customer rates.
+  # To re-enable, restore:
+  # schedule:
+  #   - cron: "30 * * * *"
   workflow_dispatch:
 
 permissions:
