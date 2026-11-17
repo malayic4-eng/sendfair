@@ -11,10 +11,16 @@ function routeName(s, r) { return `${s.label} to ${r.name}`; }
 export function buildReport({ month, history, config, quotes, corridors, providers, midmarket }) {
   const days = Object.entries(history.days || {}).filter(([d]) => d.startsWith(month));
   const routes = [];
+  let excludedDays = 0;
+  const dayKeys = days.map(([d]) => d).sort();
   const providerName = (id) => (providers[id] && providers[id].name) || id;
   for (const s of corridors.senders) for (const r of corridors.receivers) {
     const key = `${s.id}-${r.id}`;
-    const snaps = days.map(([, snap]) => snap[key]).filter((x) => x && x.best > 0 && x.mid > 0 && x.amount > 0);
+    const valid = days.map(([, snap]) => snap[key]).filter((x) => x && x.best > 0 && x.mid > 0 && x.amount > 0);
+    // A best quote above the reference mid-market rate means the reference rate was off that day (not a real
+    // saving), so that day is left out of the averages and counted in excludedDays.
+    const snaps = valid.filter((x) => 1 - x.best / (x.amount * x.mid) >= 0);
+    excludedDays += valid.length - snaps.length;
     if (!snaps.length) continue;
     const costs = snaps.map((x) => 1 - x.best / (x.amount * x.mid));
     const avg = costs.reduce((a, b) => a + b, 0) / costs.length;
@@ -34,11 +40,18 @@ export function buildReport({ month, history, config, quotes, corridors, provide
   const prevDays = Object.entries(history.days || {}).filter(([d]) => d.startsWith(prev));
   for (const route of routes) {
     const snaps = prevDays.map(([, snap]) => snap[route.key]).filter((x) => x && x.best > 0 && x.mid > 0 && x.amount > 0);
-    route.mom = snaps.length ? route.avg - snaps.reduce((a, x) => a + (1 - x.best / (x.amount * x.mid)), 0) / snaps.length : null;
+    const okPrev = snaps.filter((x) => 1 - x.best / (x.amount * x.mid) >= 0);
+    route.mom = okPrev.length ? route.avg - okPrev.reduce((a, x) => a + (1 - x.best / (x.amount * x.mid)), 0) / okPrev.length : null;
   }
-  const sorted = [...routes].sort((a, b) => a.avg - b.avg);
-  const index = routes.length ? routes.reduce((a, x) => a + x.avg, 0) / routes.length : 0;
-  const mover = routes.filter((x) => x.mom != null).sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom))[0] || null;
+  // Rank and average only corridors with enough days; thinner ones stay in the full table, marked.
+  const maxDays = Math.max(0, ...routes.map((x) => x.days));
+  const minDays = Math.max(2, Math.ceil(maxDays / 2));
+  for (const x of routes) x.thin = x.days < minDays;
+  const ranked = routes.filter((x) => !x.thin);
+  const sorted = [...ranked].sort((a, b) => a.avg - b.avg);
+  const all = [...ranked.sort((a, b) => a.avg - b.avg), ...routes.filter((x) => x.thin).sort((a, b) => a.avg - b.avg)];
+  const index = ranked.length ? ranked.reduce((a, x) => a + x.avg, 0) / ranked.length : 0;
+  const mover = ranked.filter((x) => x.mom != null).sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom))[0] || null;
 
   // Saving from comparing, on the latest quotes: best vs worst service on each corridor.
   const spreads = [];
@@ -54,7 +67,8 @@ export function buildReport({ month, history, config, quotes, corridors, provide
   const compareSaving = spreads.length ? spreads.reduce((a, b) => a + b, 0) / spreads.length : null;
   const wb = config.regionalAverageCost || { percent: 8.46, label: "World Bank average cost of sending money to Sub-Saharan Africa (Q3 2025)" };
   return {
-    month, label: monthLabel(month), routes, sorted, index, mover,
+    month, label: monthLabel(month), all, minDays, firstDay: dayKeys[0], lastDay: dayKeys[dayKeys.length - 1], excludedDays,
+    published: new Date(Date.UTC(y, mm, 1)).toISOString().slice(0, 10), routes, sorted, index, mover,
     cheapest10: sorted.slice(0, 10), expensive10: sorted.slice(-10).reverse(),
     compareSaving, wbPct: (wb.percent || 0) / 100, wbLabel: wb.label,
     costAvg: index, bestCorridor: sorted[0] || null, worstCorridor: sorted[sorted.length - 1] || null,
@@ -72,7 +86,10 @@ export function buildReports({ history, config, quotes, corridors, providers, mi
 export function reportSummary(r) {
   const pct = (v) => (v * 100).toFixed(2) + "%";
   const bits = [];
-  bits.push(`In ${r.label}, the average best total cost of a transfer to Africa across the ${r.routes.length} corridors SendFair checked was ${pct(r.index)}.`);
+  const lastOfMonth = new Date(Date.UTC(Number(r.month.slice(0, 4)), Number(r.month.slice(5, 7)), 0)).getUTCDate();
+  const d1 = Number(String(r.firstDay).slice(8, 10)), d2 = Number(String(r.lastDay).slice(8, 10));
+  const when = d1 > 1 || d2 < lastOfMonth ? `Between ${d1} and ${d2} ${r.label}` : `In ${r.label}`;
+  bits.push(`${when}, the average best total cost of a transfer to Africa across the ${r.sorted.length} corridors SendFair checked on at least ${r.minDays} days was ${pct(r.index)}.`);
   if (r.bestCorridor) bits.push(`The cheapest corridor was ${r.bestCorridor.name}, at ${pct(r.bestCorridor.avg)}; the dearest was ${r.worstCorridor.name}, at ${pct(r.worstCorridor.avg)}.`);
   if (r.mover) bits.push(`The biggest month-on-month move was ${r.mover.name}, ${r.mover.mom > 0 ? "up" : "down"} ${Math.abs(r.mover.mom * 100).toFixed(2)} percentage points.`);
   if (r.compareSaving != null) bits.push(`On the latest check, picking the best service instead of the worst on each corridor was worth an average of ${(r.compareSaving * 100).toFixed(2)} percentage points.`);

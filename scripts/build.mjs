@@ -703,8 +703,8 @@ function reportLineSvg(series) {
   return `<figure class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Index over time"><polyline points="${pts}" fill="none" stroke="#1b2470" stroke-width="2.5"/>${dots}<text x="${pad}" y="${H - 8}" font-size="11" fill="#5c6287">${esc(series[0].label)}</text><text x="${W - pad}" y="${H - 8}" text-anchor="end" font-size="11" fill="#5c6287">${esc(series[series.length - 1].label)}</text></svg></figure>`;
 }
 function reportCsv(r) {
-  const head = ["Route", "From", "To", "Typical amount", "Currency", "Days", "Average best cost %", "Best cost %", "MoM change (pp)", "Cheapest provider", "Times first"];
-  const rows = r.sorted.map((x) => [x.name, x.from, x.to, x.amount, x.currency, x.days, (x.avg * 100).toFixed(2), (x.best * 100).toFixed(2), x.mom == null ? "" : (x.mom * 100).toFixed(2), x.cheapest ? x.cheapest.name : "", x.cheapest ? x.cheapest.count + "/" + x.days : ""]);
+  const head = ["Route", "From", "To", "Typical amount", "Currency", "Days", "Average best cost %", "Best cost %", "MoM change (pp)", "Cheapest provider", "Times first", "In index"];
+  const rows = r.all.map((x) => [x.name, x.from, x.to, x.amount, x.currency, x.days, (x.avg * 100).toFixed(2), (x.best * 100).toFixed(2), x.mom == null ? "" : (x.mom * 100).toFixed(2), x.cheapest ? x.cheapest.name : "", x.cheapest ? x.cheapest.count + "/" + x.days : "", x.thin ? "no (too few days)" : "yes"]);
   const cell = (c) => `"${String(c).replace(/"/g, '""')}"`;
   return "Source: SendFair (sendfair.africa) — CC BY 4.0\n" + [head, ...rows].map((row) => row.map(cell).join(",")).join("\n") + "\n";
 }
@@ -732,7 +732,7 @@ ${crumbNav("../../", [[config.siteName, ""], ["Remittance Cost Index", "reports/
 <h1>SendFair Remittance Cost Index: ${esc(r.label)}</h1>
 <p class="lede">${esc(reportSummary(r))}</p>
 <div class="facts">
-  <div><span class="k">Corridors</span><span class="v num">${r.routes.length}</span></div>
+  <div><span class="k">Corridors ranked</span><span class="v num">${r.sorted.length}</span></div>
   <div><span class="k">Average best cost</span><span class="v num">${pct(r.index)}</span></div>
   <div><span class="k">Cheapest</span><span class="v">${r.bestCorridor ? esc(r.bestCorridor.name) + " · " + pct(r.bestCorridor.avg) : "–"}</span></div>
   <div><span class="k">World Bank SSA</span><span class="v num">${pct(r.wbPct)}</span></div>
@@ -746,14 +746,14 @@ ${reports.length > 1 ? `<h2>The index over time</h2>${reportLineSvg(series)}` : 
 <h2>The 10 most expensive corridors</h2>
 <ul class="route-links">${r.expensive10.map((x) => `<li>${esc(x.name)} — ${pct(x.avg)}</li>`).join("")}</ul>
 <h2>Every corridor</h2>
-<div class="table-wrap"><table class="rates-table"><thead><tr><th scope="col">Corridor</th><th scope="col" class="num">Avg best</th><th scope="col" class="num">Best day</th><th scope="col" class="num">MoM</th><th scope="col">Cheapest</th><th scope="col" class="num">First</th></tr></thead><tbody>${r.sorted.map((x) => `<tr><th scope="row">${esc(x.name)}</th><td class="num">${pct(x.avg)}</td><td class="num">${pct(x.best)}</td><td class="num">${x.mom == null ? "–" : (x.mom >= 0 ? "+" : "") + (x.mom * 100).toFixed(2)}</td><td>${x.cheapest ? esc(x.cheapest.name) : "–"}</td><td class="num">${x.cheapest ? x.cheapest.count + "/" + x.days : "–"}</td></tr>`).join("")}</tbody></table></div>
-<p class="note">“Avg best” is the average, over the days we checked, of the best total cost for the route's typical amount. “First” counts the days the cheapest service was first or joint first. World Bank comparison: ${esc(r.wbLabel)} — <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener">remittanceprices.worldbank.org</a>.</p>
+<div class="table-wrap"><table class="rates-table"><thead><tr><th scope="col">Corridor</th><th scope="col" class="num">Avg best</th><th scope="col" class="num">Best day</th><th scope="col" class="num">MoM</th><th scope="col">Cheapest</th><th scope="col" class="num">First</th></tr></thead><tbody>${r.all.map((x) => `<tr><th scope="row">${esc(x.name)}${x.thin ? " *" : ""}</th><td class="num">${pct(x.avg)}</td><td class="num">${pct(x.best)}</td><td class="num">${x.mom == null ? "–" : (x.mom >= 0 ? "+" : "") + (x.mom * 100).toFixed(2)}</td><td>${x.cheapest ? esc(x.cheapest.name) : "–"}</td><td class="num">${x.cheapest ? x.cheapest.count + "/" + x.days : "–"}</td></tr>`).join("")}</tbody></table></div>
+<p class="note">${r.all.length > r.sorted.length ? `* Checked on fewer than ${r.minDays} days, so left out of the index, the rankings and the chart. ` : ""}“Avg best” is the average, over the days we checked, of the best total cost for the route's typical amount. “First” counts the days the cheapest service was first or joint first. World Bank comparison: ${esc(r.wbLabel)} — <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener">remittanceprices.worldbank.org</a>. Days covered: ${esc(r.firstDay)} to ${esc(r.lastDay)}.${r.excludedDays ? ` ${r.excludedDays} corridor-day${r.excludedDays === 1 ? "" : "s"} where the best quote came out above our reference mid-market rate were left out: that points to a gap in the reference rate that day, not a real saving.` : ""}</p>
 <h2>Download</h2>
 <p><a class="btn" href="${link("../../", `reports/${r.month}.csv`)}">Download the table (CSV)</a> · CC BY 4.0 · Source: SendFair (sendfair.africa).</p>
 </div></div></section>`;
     const jsonld = [
-      { "@context": "https://schema.org", "@type": "Dataset", name: `SendFair Remittance Cost Index ${r.label}`, description: reportSummary(r), temporalCoverage: `${r.month}/${r.month}`, license: "https://creativecommons.org/licenses/by/4.0/", creator: { "@type": "Organization", name: config.siteName, url: site + "/" }, distribution: [{ "@type": "DataDownload", contentUrl: `${site}/reports/${r.month}.csv`, encodingFormat: "text/csv" }] },
-      { "@context": "https://schema.org", "@type": "Article", headline: `SendFair Remittance Cost Index: ${r.label}`, datePublished: `${r.month}-01`, dateModified: `${r.month}-01`, author: { "@type": "Organization", name: config.siteName, url: site + "/" }, publisher: { "@type": "Organization", name: config.siteName, url: site + "/" }, mainEntityOfPage: `${site}/${rel}` },
+      { "@context": "https://schema.org", "@type": "Dataset", name: `SendFair Remittance Cost Index ${r.label}`, description: reportSummary(r), temporalCoverage: `${r.firstDay}/${r.lastDay}`, license: "https://creativecommons.org/licenses/by/4.0/", creator: { "@type": "Organization", name: config.siteName, url: site + "/" }, distribution: [{ "@type": "DataDownload", contentUrl: `${site}/reports/${r.month}.csv`, encodingFormat: "text/csv" }] },
+      { "@context": "https://schema.org", "@type": "Article", headline: `SendFair Remittance Cost Index: ${r.label}`, datePublished: r.published, dateModified: r.published, author: { "@type": "Organization", name: config.siteName, url: site + "/" }, publisher: { "@type": "Organization", name: config.siteName, url: site + "/" }, mainEntityOfPage: `${site}/${rel}` },
       crumbs([[config.siteName, ""], ["Remittance Cost Index", "reports/"], [r.label, rel]])
     ];
     write(rel + "index.html", page({ prefix: "../../", canonical: rel, rank: false, og: "home", title: `Remittance Cost Index: ${r.label} · ${config.siteName}`, description: `Average and best transfer cost by corridor for ${r.label}, month-on-month change, the cheapest provider per corridor, and the World Bank comparison. CC BY 4.0.`, jsonld, body }));

@@ -31,19 +31,21 @@ if (!key) {
 
 // The page is rebuilt by Cloudflare on the next data push; wait for it before mailing the link.
 let live = false;
-for (let i = 0; i < 10 && !live; i++) {
+for (let i = 0; i < 60 && !live; i++) { // up to 30 minutes
   try { const res = await fetch(url); live = res.ok; } catch {}
   if (!live) await new Promise((x) => setTimeout(x, 30000));
 }
 if (!live) { console.error(`Report page ${url} is not live yet; not sending.`); process.exit(1); }
 
-const res = await fetch("https://api.buttondown.email/v1/emails", {
+// Buttondown: "about_to_send" sends straight away (without a status the email is only a draft). The
+// X-Buttondown-Live-Dangerously header confirms sending; Buttondown asks for it once per API key.
+const res = await fetch("https://api.buttondown.com/v1/emails", {
   method: "POST",
-  headers: { Authorization: `Token ${key}`, "content-type": "application/json" },
+  headers: { Authorization: `Token ${key}`, "content-type": "application/json", "X-Buttondown-Live-Dangerously": "true" },
   body: JSON.stringify({
     subject: `SendFair Remittance Cost Index — ${r.label}`,
     body: `<p>${escape(summary)}</p><p><a href="${url}">Read the full ${r.label} report</a>. CC BY 4.0. Source: SendFair (sendfair.africa).</p>`,
-    status: "sent"
+    status: process.env.BUTTONDOWN_STATUS === "draft" ? "draft" : "about_to_send"
   })
 });
 console.log(`Buttondown: ${res.status} ${await res.text()}`);
