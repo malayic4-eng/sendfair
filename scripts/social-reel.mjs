@@ -14,14 +14,12 @@ const OUT = `data/social/reels/${plan.date}`;
 const INDIGO = "#1b2470", DEEP = "#101428", MARIGOLD = "#f6b52b", WHITE = "#ffffff", MUTED = "#c9cdea";
 const W = 1080, H = 1920, MARGIN = 90;
 
-// resvg-wasm cannot see system fonts, so load a real TTF/OTF and use its family in the SVG.
-const FONT_FILES = process.platform === "win32"
-  ? ["C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"]
-  : process.platform === "darwin"
-    ? ["/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf"]
-    : ["/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"];
+// resvg-wasm cannot see system fonts, so the brand font ships with the repo (Figtree, SIL OFL 1.1,
+// converted from the @fontsource WOFF files to TTF). The same files are used on every machine.
+const FONT_FILES = ["src/fonts/figtree-latin-400-normal.ttf", "src/fonts/figtree-latin-700-normal.ttf"];
 const FONT_BUFFERS = FONT_FILES.filter((f) => fs.existsSync(f)).map((f) => new Uint8Array(fs.readFileSync(f)));
-const FONT_FAMILY = process.platform === "win32" || process.platform === "darwin" ? "Arial" : "DejaVu Sans";
+if (FONT_BUFFERS.length < 2) throw new Error("Figtree TTFs missing in src/fonts/");
+const FONT_FAMILY = "Figtree";
 
 let wasmReady = false;
 async function renderPng(svg) {

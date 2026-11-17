@@ -125,7 +125,7 @@ function buildReel(template, dateStr, index) {
         { label: `Best: ${top.p.name}`, value: money(top.gets, p.r.currency), final: top.gets },
         ...(second ? [{ label: `Second: ${second.p.name}`, value: money(second.gets, p.r.currency), final: second.gets }] : []),
         { label: `Lowest: ${lowest.p.name}`, value: money(lowest.gets, p.r.currency), final: lowest.gets },
-        { label: "Gap", value: money(gap, p.r.currency), final: gap }
+        { label: `Extra with ${top.p.name}`, value: money(gap, p.r.currency), final: gap }
       ],
       checkedAt, checkDate,
       captions: {
@@ -191,7 +191,7 @@ function buildReel(template, dateStr, index) {
       numbers: [
         { label: "Best", value: money(top.gets, p.r.currency), final: top.gets },
         { label: "Lowest", value: money(lowest.gets, p.r.currency), final: lowest.gets },
-        { label: "Gap", value: money(gap, p.r.currency), final: gap }
+        { label: "Difference", value: money(gap, p.r.currency), final: gap }
       ],
       checkedAt, checkDate,
       captions: {
@@ -231,7 +231,7 @@ function buildImage(reel) {
   return {
     headline: reel.hook,
     rows,
-    footnote: `Source: SendFair (sendfair.africa) · checked ${reel.checkDate}`,
+    footnote: `Source: SendFair (sendfair.africa) · checked ${new Date(reel.checkDate + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}`,
     cta: "sendfair.africa",
     link: reel.template === "house" ? `${site}/cost-to-build/` : routePage(reel.route)
   };

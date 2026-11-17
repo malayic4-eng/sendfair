@@ -116,11 +116,14 @@ async function main() {
   if (!pageId || !token) { console.log("FB_PAGE_ID / FB_PAGE_TOKEN not set; not publishing."); return; }
   const pt = await resolvePageToken();
   const igId = await resolveIgId(pt);
-  if (posted(kIg) || posted(kFb)) { console.log("Already posted today (idempotency); skipping."); return; }
+  // Idempotency is per platform: a rerun after a partial failure posts only what is still missing.
+  const doneIg = posted(kIg), doneFb = posted(kFb);
+  if (doneIg && doneFb) { console.log("Already posted today on Instagram and Facebook (idempotency); skipping."); }
   if (!reelUrl || !coverUrl) { console.error("REEL_URL / COVER_URL are not set; the APIs need a public URL. Falling back."); }
 
   // Instagram Reel
-  if (igId) {
+  if (doneIg) console.log("[instagram] reel already posted today; skipping.");
+  else if (igId) {
     try {
       if (!reelUrl) throw new Error("no public REEL_URL");
       const id = await igReel(igId, pt, reelCaption.instagram);
@@ -132,7 +135,8 @@ async function main() {
   } else { record({ platform: "instagram", type: "reel", status: "skipped", idem: kIg, error: "no Instagram Business account" }); }
 
   // Facebook Page Reel
-  try {
+  if (doneFb) console.log("[facebook] reel already posted today; skipping.");
+  else try {
     if (!reelUrl) throw new Error("no public REEL_URL");
     const id = await fbReel(pt, reelCaption.facebook);
     record({ platform: "facebook", type: "reel", status: "posted", postId: id, idem: kFb, link: reelCaption.facebook.match(/https?:\S+/)?.[0] || "" });
@@ -142,12 +146,17 @@ async function main() {
   }
 
   // Optional image post on the configured weekdays (still within maxPerDay).
-  if (plan.image && imageUrl && !(log.attempts || []).some((a) => a.idem === idem("instagram-image") && a.status === "posted")) {
+  // Image posts go to both Instagram and the Facebook Page on the image days.
+  if (plan.image && imageUrl && igId && !posted(idem("instagram-image"))) {
     try { const id = await igImage(igId, pt, reelCaption.instagram); record({ platform: "instagram", type: "image", status: "posted", postId: id, idem: idem("instagram-image") }); } catch (e) { record({ platform: "instagram", type: "image", status: "failed", idem: idem("instagram-image"), error: String(e.message || e).slice(0, 300) }); }
+  }
+  if (plan.image && imageUrl && !posted(idem("facebook-image"))) {
+    try { const id = await fbImage(pt, reelCaption.facebook); record({ platform: "facebook", type: "image", status: "posted", postId: id, idem: idem("facebook-image") }); } catch (e) { record({ platform: "facebook", type: "image", status: "failed", idem: idem("facebook-image"), error: String(e.message || e).slice(0, 300) }); }
   }
 
   // TikTok
-  try {
+  if (posted(idem("tiktok"))) console.log("[tiktok] already posted today; skipping.");
+  else try {
     const t = await tiktok();
     record({ platform: "tiktok", type: "reel", status: t.status, postId: t.postId || "", idem: idem("tiktok"), error: t.error || "", note: t.note || "" });
   } catch (e) { record({ platform: "tiktok", type: "reel", status: "failed", idem: idem("tiktok"), error: String(e.message || e).slice(0, 300) }); }
