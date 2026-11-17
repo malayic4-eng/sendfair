@@ -53,13 +53,20 @@ const body = `<p>Posts in the last 7 days:</p><ul>${lines.map((l) => `<li>${l.re
   + `<p>SendFair, sendfair.africa</p>`;
 const text = `${subject}\n\n${lines.join("\n")}\n\n${weak.length ? `Under half the average: ${weak.join(", ")}\n` : ""}${downloads.join("\n")}`;
 
-if (process.env.BUTTONDOWN_API_KEY) {
-  const res = await fetch("https://api.buttondown.email/v1/emails", {
-    method: "POST",
-    headers: { Authorization: `Token ${process.env.BUTTONDOWN_API_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify({ subject, body, status: "sent" })
-  });
-  console.log(`Buttondown: ${res.status} ${(await res.text()).slice(0, 200)}`);
-} else {
-  console.log(text);
+// This is an internal report for the owner, never a newsletter. It is saved as a Buttondown DRAFT
+// (drafts never go to subscribers) and, if SOCIAL_REPORT_EMAIL is set, a preview copy is sent to that
+// address only (send-draft delivers to the listed recipients, not the list). It is also written to the
+// GitHub run summary.
+import("node:fs").then((fs) => { if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## ${subject}\n\n${text}\n`); });
+console.log(text);
+const key = process.env.BUTTONDOWN_API_KEY, to = (process.env.SOCIAL_REPORT_EMAIL || "").trim();
+if (key) {
+  const H = { Authorization: `Token ${key}`, "content-type": "application/json" };
+  const res = await fetch("https://api.buttondown.com/v1/emails", { method: "POST", headers: H, body: JSON.stringify({ subject: `[Internal] ${subject}`, body, status: "draft" }) });
+  const draft = await res.json().catch(() => ({}));
+  console.log(`Buttondown draft: ${res.status} ${draft.id || JSON.stringify(draft).slice(0, 200)}`);
+  if (res.ok && draft.id && to) {
+    const s = await fetch(`https://api.buttondown.com/v1/emails/${draft.id}/send-draft`, { method: "POST", headers: H, body: JSON.stringify({ recipients: [to] }) });
+    console.log(`Preview sent to the owner only: ${s.status} ${(await s.text()).slice(0, 120)}`);
+  }
 }

@@ -21,6 +21,8 @@ jobs:
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
           BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+          # Owner's address for the internal report (a preview copy of a draft; never sent to subscribers).
+          SOCIAL_REPORT_EMAIL: ${{ vars.SOCIAL_REPORT_EMAIL }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/social-weekly.mjs
       - name: Commit the enriched log
