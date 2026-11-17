@@ -354,7 +354,7 @@ section.page { padding-block: 64px 88px; }
 .build-tool { display: grid; gap: 14px; margin: 18px 0 28px; }
 .build-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; }
 .build-controls label, #sf-build-custom label { display: grid; gap: 4px; font-size: .78rem; font-weight: 650; color: var(--muted); }
-.build-controls select, #sf-build-custom input { font: 650 1rem var(--font-body); color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 12px; min-height: 44px; width: 100%; }
+.build-controls select, .build-controls input, #sf-build-custom input { font: 650 1rem var(--font-body); color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 12px; min-height: 44px; width: 100%; }
 .size-picks { display: flex; flex-wrap: wrap; gap: 8px; }
 .size-picks button { font: 650 .88rem var(--font-body); color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 12px; cursor: pointer; display: grid; text-align: left; }
 .size-picks button span { font-size: .75rem; font-weight: 550; color: var(--muted); }
