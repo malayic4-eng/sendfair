@@ -866,6 +866,7 @@ ${ctx.rows.length ? `<p>${esc(t("route.tableFor", { amount: moneyFr(ctx.amount, 
 <ul class="tips"><li>${esc(t("route.tip1"))}</li><li>${esc(t("route.tip2"))}</li><li>${esc(t("route.tip3"))}</li><li>${esc(t("route.tip4"))}</li></ul>
 <h2>${esc(t("route.faqHeading", { to: frReceiver(r) }))}</h2>
 ${faqBlock(faqs)}
+${config.whatsappNumber ? `<p class="wa"><a class="btn" href="https://wa.me/${esc(String(config.whatsappNumber).replace(/[^\d]/g, ""))}?text=${encodeURIComponent(`Bonjour SendFair, ${s.currency} vers ${r.name} ${ctx.amount}`)}" target="_blank" rel="noopener">Écrivez-nous sur WhatsApp</a></p>` : ""}
 <h2>${esc(t("route.otherRoutes"))}</h2>
 <ul class="route-links">${corridors.receivers.filter((x) => FR_RECEIVERS.has(x.id) && x.id !== r.id).map((x) => `<li><a href="${link(prefix, frRouteRel(s, x))}">${esc(frPair(s, x))}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, frRouteRel(x, r))}">${esc(frPair(x, r))}</a></li>`).join("")}</ul>
 <p><a class="btn" href="${link(prefix, frHubRel(r))}">${t("route.compareAll")}</a></p>
@@ -1625,6 +1626,7 @@ ${s.region === "gulf" ? `<p class="note"><a href="${link(prefix, GULF_GUIDE)}">E
 <h2 id="faq">Questions about sending money to ${esc(r.name)}</h2>
 ${faqBlock(faqs)}
 ${(() => { const ids = new Set(fresh.map((x) => x.p.id)); const links = vsList.filter(([CA, CB]) => ids.has(CA.id) && ids.has(CB.id)).map(([CA, CB]) => `<li><a href="${link(prefix, vsRoutePath(CA, CB, s, r))}">${esc(CA.name)} vs ${esc(CB.name)} on ${esc(s.label)} to ${esc(r.name)}</a></li>`); return links.length ? `<h2>Compare two services on this route</h2><ul class="route-links">${links.join("")}</ul>` : ""; })()}
+${config.whatsappNumber ? `<p class="wa"><a class="btn" href="https://wa.me/${esc(String(config.whatsappNumber).replace(/[^\d]/g, ""))}?text=${encodeURIComponent(`Hi SendFair, ${s.currency} to ${r.name} ${ctx.amount}`)}" target="_blank" rel="noopener">Ask us on WhatsApp</a></p>` : ""}
 <h2>Other routes</h2>
 <ul class="route-links">${corridors.receivers.filter((x) => x.id !== r.id).map((x) => `<li><a href="${link(prefix, corridorPath(s, x))}">${esc(s.label)} to ${esc(x.name)}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
 </div></div></section>` + reportSection(ctx) + alerts();
@@ -2149,6 +2151,7 @@ const privacyItems = [
   `<li><strong>Your comparison choices.</strong> Your route, amount and payout choice are saved only in your own browser so the tool remembers them. They are not sent to us.</li>`,
   config.newsletterFormAction ? `<li><strong>Email for rate alerts.</strong> If you sign up, your email address is stored by ${esc(config.emailProvider || "our email service")} to send the alerts. Every message has an unsubscribe link.</li>` : "",
   `<li><strong>Rate alerts.</strong> If you set a rate alert, we store your email address, the route, the amount and your target, so we can email you when it is reached. We send one confirmation email first and nothing else. Each alert is deleted once it fires, when you click the remove link in any of our emails, or after 12 months. Emails are sent by our email provider. To limit misuse we keep a one-way scrambled code made from your connection for two days.</li>`,
+  `<li><strong>WhatsApp rate bot.</strong> If you message our WhatsApp number, we keep a one-way hash of your number and the alerts you ask for (route, amount and target). While an alert is active we also keep the number itself, because Meta needs it to deliver that message; sending "stop" deletes the number and the alerts. We reply only to messages you send, inside WhatsApp's 24-hour service window, and never send marketing broadcasts.</li>`,
   config.reportsEnabled ? `<li><strong>Delivery-time reports.</strong> When you report how long a transfer took, we store the route, the service and the time range only. To stop repeated reports we keep a one-way hash made from your connection for two days; it cannot be turned back into your IP address.</li>` : "",
   config.trackClicks ? `<li><strong>Link clicks.</strong> We count how many times each "Go to" button is clicked on each route. The count is not linked to you.</li>` : "",
   config.impactScriptId ? `<li><strong>Affiliate tracking.</strong> If you accept optional cookies, our pages load a script from Impact, an affiliate network some providers use. It records when a page is viewed and when you follow a link to a provider, so the provider can credit us if you sign up. It does not change the ranking.</li>` : "",
@@ -2209,6 +2212,8 @@ const trust = {
 <p>Last updated ${today}.</p>
 <h2>What we collect and why</h2>
 <ul>${privacyItems}</ul>
+<h2>WhatsApp</h2>
+<p>If you use the WhatsApp rate bot, the same rules apply: a one-way hash of your number, the alerts you ask for, and the number itself only while an alert is active so we can deliver it. Sending "stop" deletes both. We reply only inside WhatsApp's 24-hour service window and never send marketing broadcasts.</p>
 <h2>Your rights</h2>
 <p>If you are in the UK or Europe, data protection law gives you the right to ask what we hold about you, to have it corrected or deleted, and to object to its use. You can also complain to your data protection authority (the ICO in the UK). In practice we hold very little: usually only your email address, if you signed up for alerts.</p>
 <h2>Links to providers</h2><p>When you follow a link to a transfer service, that service's own privacy policy applies.</p>

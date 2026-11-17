@@ -8,6 +8,7 @@
 // honestly with a 503 so the visitor is never left waiting for a confirmation that can't be sent.
 import { json, siteData, sha256 } from "../_lib.js";
 import R from "../../src/rank.js";
+import { sendTemplate } from "../whatsapp-lib.js";
 
 const FROM = { email: "hello@sendfair.africa", name: "SendFair rate alerts" };
 const DAY = 86400;
@@ -17,7 +18,7 @@ const page = (title, body) => new Response(`<!doctype html><meta charset="utf-8"
   { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex" } });
 
 const money = (v, cur) => `${cur} ${Number(v).toLocaleString("en", { maximumFractionDigits: v >= 1000 ? 0 : 2, minimumFractionDigits: v >= 1000 ? 0 : 2 })}`;
-const routeName = (route, data) => {
+export const routeName = (route, data) => {
   const [a, b] = route.split("-");
   const s = data.corridors.senders.find((x) => x.id === a), r = data.corridors.receivers.find((x) => x.id === b);
   return { s, r, label: `${s.label} to ${r.name}`, path: `/send-money/${a}-to-${b}/` };
@@ -28,7 +29,7 @@ export async function sendMail(env, msg) {
   try { await env.EMAIL.send({ from: FROM, ...msg }); return true; } catch (e) { console.log("email failed", e && (e.code || e.message)); return false; }
 }
 
-async function loadData(env, origin) {
+export async function loadData(env, origin) {
   const get = async (p) => (await env.ASSETS.fetch(new Request(origin + p))).json();
   const [corridors, quotes, providersFile, midmarket, wiseFeed] = await Promise.all([
     get("/data/corridors.json"), get("/data/quotes.json"), get("/data/providers.json"),
@@ -181,6 +182,15 @@ export async function runAlerts(env, origin = "https://sendfair.africa") {
       }
       const best = bestFor(data, a.route, a.amount);
       if (!best || best.gets < a.target) continue;
+      // WhatsApp alerts are business-initiated, so Meta requires an approved template.
+      if (a.channel === "whatsapp") {
+        const ok = await sendTemplate(env, a.phone, [
+          money(a.amount, rn.s.currency), rn.s.short, rn.r.name,
+          money(best.gets, rn.r.currency), money(a.target, rn.r.currency), origin + rn.path + "?ref=wa"
+        ]);
+        if (ok) { await kv.delete(k.name); fired++; }
+        continue;
+      }
       const stop = `${origin}/api/alert/stop?id=${a.id}&t=${a.token}`;
       const ok = await sendMail(env, {
         to: a.email,
