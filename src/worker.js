@@ -8,7 +8,6 @@ import * as go from "../functions/go/[provider].js";
 import * as alert from "../functions/api/alert.js";
 import * as ask from "../functions/api/ask.js";
 import { sha256 } from "../functions/_lib.js";
-import { resultImage } from "./og-worker.js";
 
 // Each service's own icon, as published on its website, fetched once by this Worker (via Google's
 // favicon service) and cached at Cloudflare. Visitors' browsers only ever talk to sendfair.africa.
@@ -139,7 +138,7 @@ export default {
     if (lm) return logo(lm[1], request, ctx);
 
     if (path === "/api/report") return request.method === "POST" ? report.onRequestPost(context) : report.onRequest(context);
-    if (path === "/api/reports") return request.method === "POST" ? reports.onRequestPost(context) : reports.onRequestGet(context);
+    if (path === "/api/reports" && request.method === "GET") return reports.onRequestGet(context);
     if (path === "/api/stats" && request.method === "GET") return stats.onRequestGet(context);
     if (path === "/api/alert") return request.method === "POST" ? alert.onRequestPost(context) : new Response("Use POST.", { status: 405 });
     if (path === "/api/ask" && request.method === "POST") return ask.onRequestPost(context);
@@ -151,7 +150,6 @@ export default {
       context.params.provider = decodeURIComponent(m[1]);
       return go.onRequestGet(context);
     }
-    if (path === "/og/result.png" && request.method === "GET") return resultImage(request, env, ctx);
     return env.ASSETS.fetch(request);
   },
   // Daily, after the morning and evening rate checks: confirmation emails and rate alerts.
