@@ -3,14 +3,22 @@
   "name": "sendfair",
   "main": "src/worker.js",
   "compatibility_date": "2025-06-01",
-  // Builds the 30 pages into dist/ before each deploy.
+  // Satori/resvg pull in a little Node surface (Buffer) and WASM modules.
+  "compatibility_flags": ["nodejs_compat"],
+  // Builds the site into dist/ before each deploy.
   "build": { "command": "node scripts/build.mjs" },
+  // Satori's layout engine and resvg's renderer are compiled to WASM, and the card fonts are
+  // imported as bytes. Cloudflare bundles these into the Worker.
+  "rules": [
+    { "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": true },
+    { "type": "Data", "globs": ["**/*.woff"], "fallthrough": true }
+  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    // Run the Worker for admin, API, redirect and logo routes (the www redirect is a Cloudflare rule).
-    "run_worker_first": ["/admin*", "/api/*", "/go/*", "/logos/*"]
+    // Run the Worker for admin, API, redirect, logo and result-image routes (the www redirect is a Cloudflare rule).
+    "run_worker_first": ["/admin*", "/api/*", "/go/*", "/logos/*", "/og/*"]
   },
   // The site's own address. www is forwarded to the main address.
   "routes": [

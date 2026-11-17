@@ -278,5 +278,47 @@ Promise.all([getJSON("../data/site.json"),getJSON("../data/corridors.json"),getJ
 }).catch(function(){status("Could not load site data. Open this page from your live site address.",true)});
 })();
 </script>
+<div class="wrap"><div class="card" id="moderation-card">
+<h2>Comment moderation</h2>
+<p class="muted">Comments stay hidden until approved. Enter the Rate Desk password (the ADMIN_PASSWORD secret) to load pending comments, then Approve or Hide each one.</p>
+<div class="row"><label>Admin password<input id="mod-pw" type="password" autocomplete="current-password"></label><button type="button" id="mod-load">Load pending</button><button type="button" id="mod-clear">Clear</button></div>
+<p id="mod-status" class="muted"></p>
+<div id="mod-list"></div>
+</div></div>
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){return document.getElementById(id);};
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function status(t){$("mod-status").textContent=t||"";}
+  function pw(){var v=$("mod-pw").value.trim();try{sessionStorage.setItem("sf-mod-pw",v);}catch(e){}return v;}
+  try{var saved=sessionStorage.getItem("sf-mod-pw");if(saved)$("mod-pw").value=saved;}catch(e){}
+  function api(method,url,body){
+    var headers={"x-admin-password":pw()};
+    if(body)headers["content-type"]="application/json";
+    return fetch(location.origin+url,{method:method,headers:headers,body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.error||("HTTP "+r.status));return d;});});
+  }
+  function render(list){
+    var box=$("mod-list");
+    if(!list.length){box.innerHTML='<p class="muted">No pending comments.</p>';return;}
+    box.innerHTML=list.map(function(c){
+      return '<div class="card" style="margin-top:10px"><p><b>'+esc(c.route)+'</b> · '+esc(c.provider||"")+' · '+(c.rating?c.rating+"/5":"no rating")+' · '+esc(String(c.at||"").slice(0,10))+'</p><p>'+esc(c.text||"")+'</p><div class="row"><button type="button" class="primary" data-approve="1" data-route="'+esc(c.route)+'" data-id="'+esc(c.id)+'">Approve</button><button type="button" data-approve="0" data-route="'+esc(c.route)+'" data-id="'+esc(c.id)+'">Hide</button></div></div>';
+    }).join("");
+    box.querySelectorAll("[data-approve]").forEach(function(b){
+      b.addEventListener("click",function(){
+        b.disabled=true;
+        api("POST","/api/reports",{route:b.getAttribute("data-route"),id:b.getAttribute("data-id"),approve:b.getAttribute("data-approve")==="1"})
+          .then(function(){var card=b.closest(".card");if(card)card.remove();status("Saved.");})
+          .catch(function(e){b.disabled=false;status("Could not save: "+e.message);});
+      });
+    });
+  }
+  $("mod-load").addEventListener("click",function(){
+    status("Loading…");
+    api("GET","/api/reports?pending=1").then(function(d){var list=d.pending||[];render(list);status(list.length+" pending comment(s).");}).catch(function(e){status("Could not load: "+e.message);});
+  });
+  $("mod-clear").addEventListener("click",function(){$("mod-list").innerHTML="";status("");});
+})();
+</script>
 </body>
 </html>
