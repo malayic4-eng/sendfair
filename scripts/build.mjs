@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { buildReports, reportSummary } from "./report-data.mjs";
+import { FR, t, moneyFr, dateFr, assertFrKeys, frGrammar, capFirst } from "./i18n.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -361,29 +362,67 @@ function fitTitle(list, max = 60) {
   return ok || list.reduce((a, b) => (b.length < a.length ? b : a));
 }
 
-function header(prefix) {
+function header(prefix, lang, alternates = []) {
+  const fr = lang === "fr";
+  const alt = (alternates || []).find((a) => a.lang === (fr ? "en" : "fr"));
+  const altLink = alt ? `<a class="lang-switch" href="${esc(alt.href)}" hreflang="${alt.lang}" lang="${alt.lang}">${fr ? "English" : "Français"}</a>` : "";
+  const L = fr ? {
+    allRoutes: t("nav.allRoutes"), buildHouse: t("nav.buildHouse"), guides: t("nav.guides"), search: t("nav.search"),
+    embed: t("nav.embed"), howWeRank: t("nav.howWeRank"), about: t("nav.about"), language: t("nav.language"),
+    translateNote: t("nav.translateNote"), privacy: t("nav.privacy")
+  } : {
+    allRoutes: "All routes", buildHouse: "Build a house", guides: "Guides", search: "Search",
+    embed: "Rate widget for your site", howWeRank: "How we rank", about: "About", language: "Language",
+    translateNote: "Machine translation by Google. Amounts and service names stay as they are.", privacy: "Privacy"
+  };
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="Main"><a href="${link(prefix, "")}#corridors">All routes</a><a href="${link(prefix, "cost-to-build/")}">Build a house</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "embed/")}">Rate widget for your site</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "about/")}">About</a><button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="Translate this page"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">Language</span></button></nav>
-</div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">Machine translation by Google. Amounts and service names stay as they are. <a href="${link(prefix, "privacy/")}">Privacy</a></p></div></div></header>`;
+<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
+</div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">${L.translateNote} <a href="${link(prefix, "privacy/")}">${L.privacy}</a></p></div></div></header>`;
 }
 
-function footer(prefix) {
+function footer(prefix, lang) {
+  const fr = lang === "fr";
+  const L = fr ? {
+    sendTo: t("footer.sendTo"), popularRoutes: t("footer.popularRoutes"), services: t("footer.services"), exchangeRates: t("footer.exchangeRates"),
+    buildHouse: t("footer.buildHouse"), sameHouse: t("footer.sameHouse"), materialPrices: t("footer.materialPrices"), whatReceipt: t("footer.whatReceipt"),
+    search: t("footer.search"), allPages: t("footer.allPages"), costIndex: t("footer.costIndex"), guides: t("footer.guides"),
+    costToBuild: t("footer.costToBuild"), fromGulf: t("footer.fromGulf"), about: t("footer.about"), contact: t("footer.contact"),
+    howRank: t("footer.howRank"), howMakeMoney: t("footer.howMakeMoney"), privacy: t("footer.privacy"), terms: t("footer.terms"),
+    cookies: t("footer.cookies"), accessibility: t("footer.accessibility"), cookieSettings: t("footer.cookieSettings"), install: t("footer.install"),
+    disclaimer: t("footer.disclaimer"), ratesBy: t("footer.ratesBy"),
+    copyright: t("footer.copyright", { legal: config.legalName || config.businessName || config.siteName, email: config.contactEmail })
+  } : {
+    sendTo: "Send money to", popularRoutes: "Popular routes", services: "Services", exchangeRates: "Exchange rates",
+    buildHouse: "Build a house", sameHouse: "Same house, every country", materialPrices: "Material prices", whatReceipt: "What the receipt prices",
+    search: "Search", allPages: "All pages", costIndex: "Remittance Cost Index", guides: "Guides",
+    costToBuild: "Cost to build a house", fromGulf: "Sending from the Gulf", about: "About", contact: "Contact",
+    howRank: "How we rank", howMakeMoney: "How we make money", privacy: "Privacy", terms: "Terms",
+    cookies: "Cookies", accessibility: "Accessibility", cookieSettings: "Cookie settings", install: "Add SendFair to your home screen",
+    disclaimer: "SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.",
+    ratesBy: "Mid-market reference rates by",
+    copyright: `\u00a9 ${new Date(NOW).getUTCFullYear()} ${config.siteName}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span>`
+  };
+  const FR_COST = new Set(["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"]);
+  const hub = (r) => hubPath(r);
+  const routeP = (s, r) => corridorPath(s, r);
+  const rateP = (a, b) => `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`;
+  const countryCost = (id) => fr && FR_COST.has(id) ? `fr/cost-to-build/${id}/` : `cost-to-build/${id}/`;
   return `<footer class="site-footer"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
 <div class="foot-cols">
-<div><h2>Send money to</h2><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul></div>
-<div><h2>Popular routes</h2><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, corridorPath(S, Rr))}">${esc(S.label)} to ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
-<div><h2>Services</h2><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
-<div><h2>Exchange rates</h2><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`)}">${a} to ${b}</a></li>`; }).join("")}</ul></div>
-<div><h2>Build a house</h2><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">Same house, every country</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a></li><li><a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What the receipt prices</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
+<div><h2>${L.sendTo}</h2><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, hub(r))}">${esc(r.name)}</a></li>`).join("")}</ul></div>
+<div><h2>${L.popularRoutes}</h2><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, routeP(S, Rr))}">${esc(S.label)} ${fr ? "vers" : "to"} ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
+<div><h2>${L.services}</h2><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
+<div><h2>${L.exchangeRates}</h2><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, rateP(a, b))}">${a} ${fr ? "vers" : "to"} ${b}</a></li>`; }).join("")}</ul></div>
+<div><h2>${L.buildHouse}</h2><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, countryCost(id))}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
-<nav aria-label="Footer"><a href="${link(prefix, "search/")}">Search</a><a href="${link(prefix, "sitemap/")}">All pages</a><a href="${link(prefix, "reports/")}">Remittance Cost Index</a><a href="${link(prefix, "guides/")}">Guides</a><a href="${link(prefix, "cost-to-build/")}">Cost to build a house</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">Sending from the Gulf</a>` : ""}<a href="${link(prefix, "about/")}">About</a><a href="${link(prefix, "contact/")}">Contact</a><a href="${link(prefix, "methodology/")}">How we rank</a><a href="${link(prefix, "disclosure/")}">How we make money</a><a href="${link(prefix, "privacy/")}">Privacy</a><a href="${link(prefix, "terms/")}">Terms</a><a href="${link(prefix, "cookies/")}">Cookies</a><a href="${link(prefix, "accessibility/")}">Accessibility</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>Cookie settings</button><button type="button" class="install-btn" id="sf-install" hidden>Add SendFair to your home screen</button></nav>
-<p>SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.</p>
-<p>Mid-market reference rates by <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
-<p>&copy; ${new Date(NOW).getUTCFullYear()} ${esc(config.siteName)}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span></p>
+<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
+<p>${L.disclaimer}</p>
+<p>${L.ratesBy} <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
+<p>${L.copyright}</p>
 </div></footer>`;
 }
 
@@ -776,6 +815,166 @@ ${reports.length > 1 ? `<h2>The index over time</h2>${reportLineSvg(series)}` : 
   }
   return reports;
 }
+// ---------- French pages ----------
+// The same data and ranking as the English pages; only the copy and the money format change.
+const FR_RECEIVERS = new Set(["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda", "morocco"]);
+const frRouteRel = (s, r) => `fr/send-money/${s.id}-to-${r.id}/`;
+const frHubRel = (r) => `fr/send-money-to/${r.id}/`;
+const frRateRel = (s, r) => `fr/rates/${s.currency.toLowerCase()}-to-${r.currency.toLowerCase()}/`;
+const rateFr = (v) => Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 4 });
+const frLd = (items) => items.filter(Boolean).map((x) => ({ ...x, inLanguage: "fr" }));
+const frPayout = (key) => t("route." + ({ bank: "payoutBank", mobile: "payoutMobile", cash: "payoutCash" }[key] || "payoutBank"));
+const frSender = (s) => t(`names.senders.${s.id}`) || s.label;
+const frReceiver = (r) => t(`names.receivers.${r.id}`) || r.name;
+// "Du Royaume-Uni vers le Sénégal", "De l'Europe vers le Mali": link and breadcrumb labels.
+const frPair = (s, r) => capFirst(frGrammar(`de ${frSender(s)} vers ${frReceiver(r)}`));
+const frPayoutText = (r, k, v) => t(`names.payout.${r.id}.${k}`) || v;
+
+function frRoutePage(s, r, rel) {
+  const prefix = "../".repeat(rel.split("/").filter(Boolean).length);
+  const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]);
+  const fresh = ctx.rows.filter((x) => !x.stale);
+  const top = fresh[0] || null;
+  const trail = [[config.siteName, ""], [`Envoyer vers ${frReceiver(r)}`, frHubRel(r)], [frPair(s, r), rel]];
+  const faqs = [
+    [t("route.faqBestQ", { to: frReceiver(r) }), top ? t("route.faqBestA", { date: dateFr(quotesFile.updatedAt), best: top.p.name, gets: moneyFr(top.gets, r.currency), amount: moneyFr(ctx.amount, s.currency, 0) }) : t("route.faqCostA", { to: frReceiver(r) })],
+    [t("route.faqCostQ", { to: frReceiver(r) }), t("route.faqCostA", { to: frReceiver(r) })],
+    [t("route.faqTimeQ", { to: frReceiver(r) }), t("route.faqTimeA", { to: frReceiver(r) })],
+    [t("route.faqSafeQ", { to: frReceiver(r) }), t("route.faqSafeA", { to: frReceiver(r) })]
+  ];
+  const rows = ctx.rows.map((x) => `<tr><th scope="row">${esc(x.p.name)}</th><td class="num${x === top ? " top" : ""}">${esc(moneyFr(x.gets, r.currency))}</td><td>${x.ev.fee < 0.005 ? t("route.sansFrais") : esc(moneyFr(x.ev.fee, s.currency, 2))}</td><td class="num">${esc(rateFr(x.ev.rate))}</td><td>${x.stale ? t("route.notRechecked") : esc(dateFr(x.q.checkedAt, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }))}</td></tr>`).join("");
+  const payouts = Object.entries(r.payout || {}).map(([k, v]) => `<li><span>${esc(frPayout(k))}</span><span>${esc(frPayoutText(r, k, v))}</span></li>`).join("");
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>${esc(t("route.heading", { from: frSender(s), to: frReceiver(r) }))}</h1>
+<p class="lede">${esc((fresh.length || ctx.rows.length) === 1 ? t("route.ledeOne", { currency: r.currency }) : t("route.lede", { n: fresh.length || ctx.rows.length, currency: r.currency }))}</p>
+${ctx.rows.length ? `<p>${esc(t("route.tableFor", { amount: moneyFr(ctx.amount, s.currency, 0), from: "depuis " + frSender(s), date: dateFr(quotesFile.updatedAt) }))}</p>` : ""}
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col">${t("route.tableService")}</th><th scope="col" class="num">${t("route.tableGets")}</th><th scope="col">${t("route.tableFee")}</th><th scope="col" class="num">${t("route.tableRate")}</th><th scope="col">${t("route.tableChecked")}</th></tr></thead>
+<tbody>${rows}</tbody></table></div>
+<p class="note">${esc(t("route.staleNote"))}</p>
+<h2>${esc(t("route.howToSend", { from: frSender(s), to: frReceiver(r) }))}</h2>
+<ol class="howto">
+<li><strong>${t("route.howTo1Title")}</strong> ${esc(t("route.howTo1Text", { currency: r.currency }))}</li>
+<li><strong>${t("route.howTo2Title")}</strong> ${esc(t("route.howTo2Text"))}</li>
+<li><strong>${t("route.howTo3Title")}</strong> ${esc(t("route.howTo3Text"))}</li>
+<li><strong>${t("route.howTo4Title")}</strong> ${esc(t("route.howTo4Text"))}</li>
+</ol>
+<h2>${esc(t("route.receiveHeading", { to: frReceiver(r) }))}</h2>
+<ul class="payout-list">${payouts}</ul>
+<h2>${esc(t("route.tipsHeading"))}</h2>
+<ul class="tips"><li>${esc(t("route.tip1"))}</li><li>${esc(t("route.tip2"))}</li><li>${esc(t("route.tip3"))}</li><li>${esc(t("route.tip4"))}</li></ul>
+<h2>${esc(t("route.faqHeading", { to: frReceiver(r) }))}</h2>
+${faqBlock(faqs)}
+<h2>${esc(t("route.otherRoutes"))}</h2>
+<ul class="route-links">${corridors.receivers.filter((x) => FR_RECEIVERS.has(x.id) && x.id !== r.id).map((x) => `<li><a href="${link(prefix, frRouteRel(s, x))}">${esc(frPair(s, x))}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, frRouteRel(x, r))}">${esc(frPair(x, r))}</a></li>`).join("")}</ul>
+<p><a class="btn" href="${link(prefix, frHubRel(r))}">${t("route.compareAll")}</a></p>
+</div></div></section>`;
+  write(rel + "index.html", page({
+    prefix, canonical: rel, lang: "fr", og: "home",
+    title: top ? t("route.titleBest", { from: frSender(s), to: frReceiver(r), sc: s.currency, rc: r.currency }) : t("route.titleCompare", { from: frSender(s), to: frReceiver(r) }),
+    description: t("route.description", { from: frSender(s), to: frReceiver(r), date: dateFr(quotesFile.updatedAt) }),
+    jsonld: frLd([faqLd(faqs), crumbs(trail), rankItemList(ctx)]),
+    alternates: [{ lang: "en", href: `${site}/${corridorPath(s, r)}` }, { lang: "fr", href: `${site}/${rel}` }, { lang: "x-default", href: `${site}/${corridorPath(s, r)}` }],
+    noindex: !top, body
+  }));
+  if (top) urls.push(rel);
+}
+
+function frHubPage(r) {
+  const rel = frHubRel(r);
+  const prefix = "../".repeat(rel.split("/").filter(Boolean).length);
+  const lines = corridors.senders.map((s) => { const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]); return { s, ctx, top: ctx.rows.filter((x) => !x.stale)[0] || null }; });
+  const trail = [[config.siteName, ""], [`Envoyer vers ${frReceiver(r)}`, rel]];
+  const faqs = [
+    [t("route.faqCostQ", { to: frReceiver(r) }), t("route.faqCostA", { to: frReceiver(r) })],
+    [t("route.faqSafeQ", { to: frReceiver(r) }), t("route.faqSafeA", { to: frReceiver(r) })]
+  ];
+  const rows = lines.map((l) => `<tr><th scope="row"><a href="${link(prefix, frRouteRel(l.s, r))}">${esc(capFirst(frSender(l.s)))}</a></th><td class="num">${esc(moneyFr(l.ctx.amount, l.s.currency, 0))}</td><td>${l.top ? esc(l.top.p.name) : t("hub.beingChecked")}</td><td class="num top">${l.top ? esc(moneyFr(l.top.gets, r.currency)) : "—"}</td><td><a href="${link(prefix, frRouteRel(l.s, r))}">${t("hub.tableCompare")}</a></td></tr>`).join("");
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>${esc(t("hub.heading", { to: frReceiver(r) }))}</h1>
+<p class="lede">${esc(t("hub.lede", { to: frReceiver(r) }))}</p>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col">${t("hub.tableFrom")}</th><th scope="col" class="num">${t("hub.tablePay")}</th><th scope="col">${t("hub.tableBest")}</th><th scope="col" class="num">${t("hub.tableGets")}</th><th scope="col"></th></tr></thead>
+<tbody>${rows}</tbody></table></div>
+<h2>${esc(t("hub.receiveHeading", { to: frReceiver(r) }))}</h2>
+<ul class="payout-list">${Object.entries(r.payout || {}).map(([k, v]) => `<li><span>${esc(frPayout(k))}</span><span>${esc(frPayoutText(r, k, v))}</span></li>`).join("")}</ul>
+<h2>${esc(t("hub.faqHeading"))}</h2>
+${faqBlock(faqs)}
+<h2>${esc(t("hub.compareRoute"))}</h2>
+<ul class="route-links">${corridors.senders.map((s) => `<li><a href="${link(prefix, frRouteRel(s, r))}">${esc(frPair(s, r))}</a></li>`).join("")}</ul>
+</div></div></section>`;
+  write(rel + "index.html", page({
+    prefix, canonical: rel, lang: "fr", og: "home",
+    title: t("hub.title", { to: frReceiver(r) }), description: t("hub.lede", { to: frReceiver(r) }),
+    jsonld: frLd([faqLd(faqs), crumbs(trail)]),
+    alternates: [{ lang: "en", href: `${site}/${hubPath(r)}` }, { lang: "fr", href: `${site}/${rel}` }, { lang: "x-default", href: `${site}/${hubPath(r)}` }],
+    body
+  }));
+  urls.push(rel);
+}
+
+function frRatePage(s, r) {
+  const rel = frRateRel(s, r);
+  const prefix = "../".repeat(rel.split("/").filter(Boolean).length);
+  const ctx = routeContext(s, r, prefix, config.defaultAmounts[s.currency]);
+  if (!ctx.mid) return;
+  const fresh = ctx.rows.filter((x) => !x.stale);
+  const amts = [1, ...(STEP_AMOUNTS[s.currency] || [])];
+  const bestAt = (a) => { let b = null; for (const x of fresh) { const ev = R.evaluate(x.q, a); if (ev && (!b || ev.gets > b.gets)) b = { gets: ev.gets, p: x.p }; } return b; };
+  const trail = [[config.siteName, ""], [`${s.currency} vers ${r.currency}`, rel]];
+  const faqs = [
+    [`Quel est le taux ${s.currency} vers ${r.currency} aujourd'hui ?`, `Le taux du marché est 1 ${s.currency} = ${rateFr(ctx.mid)} ${r.currency} (${dateFr(quotesFile.updatedAt)}). Les services de transfert versent un peu moins après leur marge et leurs frais ; le tableau montre ce qui arrive avec le meilleur service vérifié.`],
+    [t("rates.midVsHeading"), t("rates.midVsText", { rc: r.currency, to: frReceiver(r) })]
+  ];
+  const rows = amts.map((a) => { const b = bestAt(a); return `<tr><th scope="row">${esc(moneyFr(a, s.currency, a < 10 ? 2 : 0))}</th><td class="num">${esc(moneyFr(a * ctx.mid, r.currency))}</td><td class="num top">${b ? esc(moneyFr(b.gets, r.currency)) : t("common.noOnlinePrices")}</td><td>${b ? esc(b.p.name) : "—"}</td></tr>`; }).join("");
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>${esc(t("rates.heading", { sc: s.currency, rc: r.currency, rate: rateFr(ctx.mid) }))}</h1>
+<p class="lede">${esc(t("rates.lede", { sc: s.currency, rc: r.currency, to: frReceiver(r), from: frSender(s), date: dateFr(quotesFile.updatedAt), hasData: "" }))}</p>
+<div class="converter" id="sf-conv-fr" data-mid="${ctx.mid}" data-cur="${esc(r.currency)}">
+  <label>${esc(t("rates.converterAmount", { sc: s.currency }))} <input type="number" inputmode="decimal" min="0" step="any" value="${config.defaultAmounts[s.currency]}" id="sf-conv-fr-in"></label>
+  <div class="conv-out"><span class="k">${esc(t("rates.converterMid"))}</span><span class="v num" id="sf-conv-fr-mid">${esc(moneyFr(config.defaultAmounts[s.currency] * ctx.mid, r.currency))}</span></div>
+  <a class="btn" href="${link(prefix, frHubRel(r))}">${esc(t("hub.heading", { to: frReceiver(r) }))}</a>
+</div>
+<h2>${esc(t("rates.arriveHeading", { to: frReceiver(r) }))}</h2>
+<div class="table-wrap"><table class="rates-table">
+<thead><tr><th scope="col">${t("rates.youSend")}</th><th scope="col" class="num">${t("rates.atMid")}</th><th scope="col" class="num">${t("rates.bestGives")}</th><th scope="col">${t("rates.service")}</th></tr></thead>
+<tbody>${rows}</tbody></table></div>
+<p class="note">${esc(t("rates.tableNote", { from: frSender(s), amount: moneyFr(ctx.amount, s.currency, 0), sc: s.currency }))}</p>
+<h2>${esc(t("rates.midVsHeading"))}</h2>
+<p>${esc(t("rates.midVsText", { rc: r.currency, to: frReceiver(r) }))}</p>
+<h2>${esc(t("rates.faqHeading"))}</h2>
+${faqBlock(faqs)}
+<h2>${esc(t("rates.sendHeading", { from: frSender(s), to: frReceiver(r) }))}</h2>
+<p><a class="btn" href="${link(prefix, frRouteRel(s, r))}">${esc(t("rates.compareAll", { from: frSender(s), to: frReceiver(r) }))}</a></p>
+</div></div></section>`;
+  const histDays = Object.keys(history.days || {}).sort();
+  const rateLd = { "@context": "https://schema.org", "@type": "ExchangeRateSpecification", inLanguage: "fr", currency: r.currency, currentExchangeRate: { "@type": "UnitPriceSpecification", price: +ctx.mid.toPrecision(6), priceCurrency: r.currency, validFrom: midmarket.updatedAt || quotesFile.updatedAt } };
+  const dsLd = { "@context": "https://schema.org", "@type": "Dataset", inLanguage: "fr", name: `Historique du taux ${s.currency}/${r.currency}`, variableMeasured: `Taux du marché ${s.currency}/${r.currency}`, temporalCoverage: histDays.length ? `${histDays[0]}/${histDays[histDays.length - 1]}` : String(midmarket.updatedAt || "").slice(0, 10), creator: { "@type": "Organization", name: config.siteName, url: site + "/" }, license: "https://creativecommons.org/licenses/by/4.0/" };
+  write(rel + "index.html", page({
+    prefix, canonical: rel, lang: "fr", og: "home",
+    title: t("rates.title", { sc: s.currency, rc: r.currency, rate: rateFr(ctx.mid) }),
+    description: `Taux ${s.currency} vers ${r.currency} aujourd'hui : 1 ${s.currency} = ${rateFr(ctx.mid)} ${r.currency}. Convertisseur, montant reçu avec le meilleur service et historique.`,
+    jsonld: frLd([faqLd(faqs), crumbs(trail), rateLd, dsLd]),
+    alternates: [{ lang: "en", href: `${site}/${ratePath(s, r)}` }, { lang: "fr", href: `${site}/${rel}` }, { lang: "x-default", href: `${site}/${ratePath(s, r)}` }],
+    noindex: !fresh.length, body
+  }));
+  if (fresh.length) urls.push(rel);
+}
+
+function writeFrenchPages() {
+  for (const r of corridors.receivers.filter((x) => FR_RECEIVERS.has(x.id))) {
+    for (const s of corridors.senders) frRoutePage(s, r, frRouteRel(s, r));
+    frHubPage(r);
+  }
+  for (const { s, r } of ratePairs) {
+    if (!FR_RECEIVERS.has(r.id)) continue;
+    if (!["EUR", "CAD", "USD"].includes(s.currency)) continue;
+    frRatePage(s, r);
+  }
+}
 function writeBuildPages() {
   const intro = `A receipt check for a simple house, including the finish, the plot works and the building permit: structure, block walls, roof, windows, doors, plaster, floor and wall tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, a basin, a shower, a kitchen sink, a septic tank, a boundary wall and a gate. The permit is that country's own published fee. On each line you can switch to another published type. Bungalow and maisonette are one floor and two floors of the same floor area. Standard finish is the listed price. Where a published whole-house band exists, it sits beside the receipt and includes a contractor. The plot of land and the contractor's fee are not in the receipt.`;
   const faqs = [
@@ -1015,6 +1214,7 @@ ${groups.map((g) => !g.list.some((s) => corridors.receivers.some((r) => (quotes[
 }
 
 function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og, ogType, buildPage, lang = "en", alternates = [], rank = true }) {
+  if (alternates.length && canonical) sitemapAlts[canonical] = alternates;
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
     routeUrl: link(prefix, "send-money/{from}-to-{to}/"),
@@ -1036,7 +1236,7 @@ var m=document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);if(m&&m[1]!=="en")load
     (buildPage ? `<script src="${prefix}assets/build-cost.js?v=${V.build}" defer></script>` : "") +
     (PREVIEW || DEMO ? "" : `<script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})});addEventListener("beforeinstallprompt",function(e){e.preventDefault();var b=document.getElementById("sf-install");if(!b)return;b.hidden=false;b.onclick=function(){b.hidden=true;e.prompt();};});</script>`);
   const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og, ogType, alternates });
-  const bodyStr = `<a class="skip" href="#content">${lang === "fr" ? "Aller au contenu" : "Skip to content"}</a>\n${header(prefix)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix)}\n${scripts}`;
+  const bodyStr = `<a class="skip" href="#content">${lang === "fr" ? "Aller au contenu" : "Skip to content"}</a>\n${header(prefix, lang, alternates)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix, lang)}\n${scripts}`;
   if (bodyOnly) return `${headStr}\n${bodyStr}`;
   return `<!doctype html>\n<html lang="${lang === "fr" ? "fr" : "en"}">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n${headStr}\n</head>\n<body>\n${bodyStr}\n</body>\n</html>\n`;
 }
@@ -1062,6 +1262,7 @@ function copyDir(src, dst) {
 import crypto from "node:crypto";
 const ver = (f) => crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, "src", f))).digest("hex").slice(0, 10);
 const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css"), build: ver("build-cost.js") };
+const sitemapAlts = {};
 
 // ---------- SEO helpers ----------
 const joinList = (a) => a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : a.join("");
@@ -1431,6 +1632,7 @@ ${(() => { const ids = new Set(fresh.map((x) => x.p.id)); const links = vsList.f
     write(rel + "index.html", page({
       prefix, canonical: rel, title, description, og: slug(s, r), noindex: !top,
       jsonld: [faqLd(faqs), crumbs(trail), rankItemList(ctx)],
+      alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRouteRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
       init: { from: s.id, to: r.id, pageUrl: `${site}/${rel}` }, body
     }));
     if (top) urls.push(rel);
@@ -1551,7 +1753,9 @@ ${faqBlock(faqs)}
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home",
     title: `Send money to ${r.name}: today's best rates compared`,
     description: `Compare every service that sends money to ${r.name}, ranked by what actually arrives after fees and the exchange-rate margin. Updated automatically.`,
-    jsonld: [faqLd(faqs), crumbs(trail)], body }));
+    jsonld: [faqLd(faqs), crumbs(trail)],
+    alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frHubRel(r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
+    body }));
   urls.push(rel);
 }
 
@@ -1857,7 +2061,9 @@ ${faqBlock(faqs)}
   write(rel + "index.html", page({ prefix, canonical: rel, og: slug(s, r), noindex: !pairHasData,
     title: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}`,
     description: `${sCur} to ${rCur} rate today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}. Converter, what arrives with the best transfer service, and rate history.`,
-    jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd], body }));
+    jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd],
+    alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRateRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
+    body }));
   if (pairHasData) urls.push(rel);
 }
 
@@ -2058,6 +2264,7 @@ fs.writeFileSync(path.join(OUT, "admin/index.html"), fs.readFileSync(path.join(R
 writeBuildPages();
 writeEmbedPage();
 writeReports();
+writeFrenchPages();
 
 function inlineLinks(prefix, text) {
   const safe = esc(text);
@@ -2280,7 +2487,7 @@ function writeHtmlSitemap() {
   urls.push("sitemap/");
 }
 writeHtmlSitemap();
-write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => { const lm = lastmodFor(u); return `  <url><loc>${site}/${u}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ""}</url>`; }).join("\n")}\n</urlset>\n`);
+write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.map((u) => { const lm = lastmodFor(u); const alts = sitemapAlts[u]; return `  <url><loc>${site}/${u}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ""}${alts ? alts.map((a) => `<xhtml:link rel="alternate" hreflang="${a.lang}" href="${a.href}"/>`).join("") : ""}</url>`; }).join("\n")}\n</urlset>\n`);
 // AI answer engines may read the site so SendFair can be cited in their answers; model-training crawlers are
 // blocked separately by Cloudflare's managed robots.txt, which Cloudflare puts above these lines.
 write("robots.txt", `User-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nAllow: /\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nSitemap: ${site}/sitemap.xml\n`);
