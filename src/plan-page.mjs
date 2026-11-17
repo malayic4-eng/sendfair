@@ -21,8 +21,11 @@ function quoteText(amount, total, cur) {
 export function planPage({ plan, logo, site, analytics = {} }) {
   const r = plan.receipt, cur = r.currency, country = plan.country;
   const withSet = String(plan.state && plan.state.with || "").split(",").filter(Boolean);
-  const q = new URLSearchParams(plan.state || {}).toString();
-  const reprice = `/cost-to-build/${country}/${q ? "?" + q : ""}`;
+  const st = Object.assign({}, plan.state || {});
+  const citySlug = /^[a-z]{2,30}$/.test(st.city || "") ? st.city : "";
+  delete st.city;
+  const q = new URLSearchParams(st).toString();
+  const reprice = `/cost-to-build/${country}/${citySlug ? citySlug + "/" : ""}${q ? "?" + q : ""}`;
   const link = `${site}/cost-to-build/${country}/plan/${plan.id}/`;
   const waText = "Here's the itemised cost of the house: " + link;
 
@@ -94,7 +97,7 @@ footer{color:var(--muted);font-size:.85rem;margin-top:22px;border-top:1px solid 
 <header class="wrap">
   <div class="brand">${logo || ""}<span>SendFair</span></div>
   <p class="kicker">Itemised house cost</p>
-  <h1>${esc(r.houseName)} in ${esc(r.countryName)}</h1>
+  <h1>${esc(r.houseName)} in ${r.citySlug ? esc(r.city) + ", " : ""}${esc(r.countryName)}</h1>
   <p class="meta">${esc(r.area)} m² · ${esc(r.shape)} · ${esc(r.city)} · Prices as of <strong>${esc(r.updated)}</strong></p>
   <div class="actions no-print">
     <button type="button" id="copy">Copy link</button>

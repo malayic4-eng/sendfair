@@ -372,13 +372,35 @@
         : { amount: null, source: "No architect or engineer fee scale was published in this check. Ask for their scale. This is not a permit.", url: "" }
     };
   }
-  var api = { estimate: estimate, fx: fx, priceOf: priceOf, choicesFor: choicesFor };
+  // A city factor multiplies materials and labour (not the permit) on the national receipt.
+  function applyRegion(est, factor) {
+    if (!(factor > 0) || Math.abs(factor - 1) < 1e-9) return est;
+    var lines = est.lines.map(function (l) {
+      if (l.group === "Permits") return l;
+      return Object.assign({}, l, { cost: l.cost > 0 ? l.cost * factor : l.cost });
+    });
+    var total = lines.reduce(function (s, l) { return s + (l.cost > 0 ? l.cost : 0); }, 0);
+    var stages = est.stages.map(function (g) {
+      return g.group === "Permits" ? g : Object.assign({}, g, { cost: g.cost > 0 ? g.cost * factor : g.cost });
+    });
+    return Object.assign({}, est, {
+      lines: lines, total: total, stages: stages,
+      contingency: Object.assign({}, est.contingency, { amount: total * est.contingency.rate }),
+      contractor: est.contractor.amount > 0 ? Object.assign({}, est.contractor, { amount: total * est.contractor.rate }) : est.contractor,
+      region: { factor: factor }
+    });
+  }
+  function regionalEstimate(data, id, m2, storeys, rates, picks, opts, factor) {
+    return applyRegion(estimate(data, id, m2, storeys, rates, picks, opts), factor);
+  }
+  var api = { estimate: estimate, regionalEstimate: regionalEstimate, fx: fx, priceOf: priceOf, choicesFor: choicesFor };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.SFBuild = api;
 
   if (typeof document === "undefined" || !document.getElementById("sf-build")) return;
   var box = document.getElementById("sf-build");
   var rootPath = box.getAttribute("data-root") || "";
+  var regionFactor = parseFloat(box.getAttribute("data-factor")) || 1;
   var out = document.getElementById("sf-build-out");
   function getJSON(p) {
     return fetch(rootPath + p, { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error(p); return r.json(); });
@@ -479,7 +501,7 @@
     var qs = new URLSearchParams(location.search);
     var picks = {};
     qs.forEach(function (v, k) { if (k.indexOf("opt_") === 0 && v) picks[k.slice(4)] = v; });
-    var house = qs.get("size") || "3";
+    var house = qs.get("size") || box.getAttribute("data-size") || "3";
     var storeys = qs.get("floors") === "2" ? 2 : 1;
     var custom = house === "custom";
     if (qs.get("m2")) { custom = true; house = "custom"; }
@@ -544,7 +566,7 @@
     }
     function draw() {
       var area = m2();
-      var est = estimate(data, country, area, storeys, rates, picks, { finish: finish, site: site });
+      var est = regionalEstimate(data, country, area, storeys, rates, picks, { finish: finish, site: site }, regionFactor);
       if (!est) { out.innerHTML = "<p>Choose a country we cover.</p>"; return; }
       var sent = sendHref(est.total);
       var s = sent.s;
@@ -841,6 +863,7 @@
       if (saveBtn) {
         var stateObj = {};
         new URLSearchParams(pageQuery().replace(/^\?/, "")).forEach(function (v, k) { stateObj[k] = v; });
+        if (box.getAttribute("data-city")) stateObj.city = box.getAttribute("data-city");
         saveBtn.disabled = true;
         saveBtn.textContent = lang === "fr" ? "Enregistrement…" : "Saving…";
         fetch(rootPath + "api/plan", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ country: country, state: stateObj }) })

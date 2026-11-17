@@ -5,7 +5,7 @@ import { json, sha256 } from "../_lib.js";
 import SFBuild from "../../src/build-cost.js";
 
 const ID_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789";
-const STATE_KEY = /^(size|floors|m2|finish|site|quote|with|from|opt_[a-z]{2,20})$/;
+const STATE_KEY = /^(size|floors|m2|finish|site|quote|with|from|city|opt_[a-z]{2,20})$/;
 
 function planId() {
   const b = crypto.getRandomValues(new Uint8Array(8));
@@ -55,14 +55,24 @@ export async function onRequestPost(context) {
   for (const [k, v] of Object.entries(clean)) if (k.indexOf("opt_") === 0 && v) picks[k.slice(4)] = v;
   const quote = Math.max(0, parseFloat(clean.quote) || 0);
 
+  // A city page saves its city; its published factor (data/regional-factors.json) scales materials and labour.
+  let city = null;
+  if (clean.city) {
+    let rf = null;
+    try { rf = await asset(context.env, context.request, "/data/regional-factors.json"); } catch {}
+    const c = rf && rf.countries && rf.countries[country] && rf.countries[country].cities && rf.countries[country].cities[clean.city];
+    if (c && c.factor > 0) city = { slug: clean.city, name: c.name, factor: c.factor };
+    else delete clean.city;
+  }
+
   let est;
-  try { est = SFBuild.estimate(data, country, area, storeys, (mid && mid.rates) || {}, picks, { finish, site }); }
+  try { est = SFBuild.regionalEstimate(data, country, area, storeys, (mid && mid.rates) || {}, picks, { finish, site }, city ? city.factor : 1); }
   catch { return json({ error: "Could not price that plan." }, 400); }
   if (!est || !(est.total > 0)) return json({ error: "Could not price that plan." }, 400);
 
   const house = (data.houses || []).find((h) => h.id === (clean.size || "3"));
   const receipt = {
-    countryName: est.country.name, city: est.country.city, currency: est.currency,
+    countryName: est.country.name, city: city ? city.name : est.country.city, citySlug: city ? city.slug : "", cityFactor: city ? city.factor : 1, currency: est.currency,
     area: Math.round(area), houseName: size === "custom" ? Math.round(area) + " m²" : (house ? house.name : Math.round(area) + " m²"),
     shape: storeys === 2 ? "maisonette, two floors" : "bungalow, one floor",
     lines: est.lines, total: est.total, stages: est.stages,
