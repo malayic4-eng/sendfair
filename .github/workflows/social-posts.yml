@@ -1,9 +1,8 @@
-name: Social posts
+name: Social posts (legacy queue)
 
+# Superseded by Daily Reel (social-reels.yml), which posts one Reel a day and at most two image posts
+# a week. This workflow is manual only so the old cadence cannot double-post.
 on:
-  schedule:
-    # Daily (05:00 UTC) - generates the day's ready-to-post social queue.
-    - cron: "0 5 * * *"
   workflow_dispatch:
 
 permissions:
