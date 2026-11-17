@@ -518,7 +518,7 @@
     $("sf-to").value = qs.get("to") || SF.to || last.to || "kenya";
     var cur = sender().currency;
     var qAmt = parseFloat(qs.get("amount"));
-    $("sf-amount").value = qAmt > 0 ? qAmt : (last.amount && last.currency === cur ? last.amount : (cfg.defaultAmounts || {})[cur] || 300);
+    $("sf-amount").value = qAmt > 0 ? qAmt : (SF.amount > 0 ? SF.amount : (last.amount && last.currency === cur ? last.amount : (cfg.defaultAmounts || {})[cur] || 300));
     if (last.payout && R.LABEL[last.payout]) setPayout(last.payout);
     if (last.payIn) S.payIn = last.payIn;
     if (last.promo) S.promo = !!last.promo;
@@ -573,6 +573,7 @@
     box.hidden = S.mode === "get";
     var list = (cfg.quickAmounts || {})[sender().currency] || [];
     var cur = parseFloat($("sf-amount").value);
+    if (cur > 0 && list.indexOf(cur) < 0) list = list.concat([cur]).sort(function (a, b) { return a - b; });
     box.innerHTML = list.map(function (a) { return '<button type="button" data-amt="' + a + '" aria-pressed="' + (a === cur) + '">' + (a >= 1000 ? a / 1000 + "k" : a) + "</button>"; }).join("");
   }
 
