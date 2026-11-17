@@ -25,7 +25,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Wrangler 4 (the R2 upload) needs Node 22.12 or later.
+          node-version: 22
       - name: Install dependencies
         run: npm ci
       - name: Install ffmpeg
@@ -45,10 +46,14 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        # --remote: Wrangler 4 writes to a local simulated bucket without it. Pinned to major 4.
         run: |
-          npx wrangler@latest r2 object put "$R2_BUCKET/social/${{ steps.date.outputs.date }}/reel.mp4" --file "data/social/reels/${{ steps.date.outputs.date }}/reel.mp4"
-          npx wrangler@latest r2 object put "$R2_BUCKET/social/${{ steps.date.outputs.date }}/cover.png" --file "data/social/reels/${{ steps.date.outputs.date }}/cover.png"
-          npx wrangler@latest r2 object put "$R2_BUCKET/social/${{ steps.date.outputs.date }}/image.png" --file "data/social/reels/${{ steps.date.outputs.date }}/image.png"
+          D="${{ steps.date.outputs.date }}"
+          npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/reel.mp4" --file "data/social/reels/$D/reel.mp4" --content-type video/mp4 --remote
+          npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/cover.png" --file "data/social/reels/$D/cover.png" --content-type image/png --remote
+          npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/image.png" --file "data/social/reels/$D/image.png" --content-type image/png --remote
+          # Instagram fetches the video from this address, so make sure it is really there.
+          curl -sfI "${{ vars.R2_PUBLIC_BASE }}/social/$D/reel.mp4" | grep -i -E "^(HTTP|content-type|content-length)"
       - name: Publish (dry run)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
         env:
