@@ -393,6 +393,14 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
     });
   }
+  function track(name, params) {
+    try {
+      if (localStorage.getItem("sf-consent") !== "all") return;
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(Object.assign({ event: name }, params || {}));
+      if (window.gtag) window.gtag("event", name, params || {});
+    } catch (e) {}
+  }
   Promise.all([getJSON("data/build-costs.json"), getJSON("data/midmarket.json"), getJSON("data/corridors.json")]).then(function (res) {
     var data = res[0], rates = (res[1] && res[1].rates) || {}, corridors = res[2];
     var country = box.getAttribute("data-country") || "kenya";
@@ -661,7 +669,7 @@
         '<p class="note">' + esc(lang === "fr" && frNote[country] ? frNote[country] : est.country.note) + "</p>" +
         '<div class="build-send"><div><span class="k">' + esc(sendK + (s ? s.name : "")) + '</span><strong class="num">' + esc(sent.amt ? money(sent.amt, s.currency) : "–") + '</strong><span class="s">' + esc(sendS) + '</span></div><a class="btn" href="' + esc(sent.href) + '">' + esc(sendBtn) + "</a>" + extraSend + "</div>" +
         '<p class="build-ask">' + esc(ask) + "</p>" +
-        '<p class="build-links"><button type="button" id="sf-build-print">' + (lang === "fr" ? "Imprimer ce reçu" : "Print this receipt") + '</button> <button type="button" id="sf-build-csv">' + (lang === "fr" ? "Télécharger le tableur" : "Download the spreadsheet") + '</button> <a href="' + esc(rootPath + "cost-to-build/material-prices/") + '">' + (lang === "fr" ? "Prix des matériaux" : "Material prices") + '</a> <a href="' + esc(rootPath + "cost-to-build/same-house/") + '">' + (lang === "fr" ? "La même maison dans chaque pays" : "The same house in every country") + '</a> <a href="' + esc(receiptPage) + '">' + (lang === "fr" ? "Ce que ce reçu chiffre" : "What this receipt prices") + "</a></p>" +
+        '<p class="build-links"><button type="button" id="sf-build-print">' + (lang === "fr" ? "Imprimer ce reçu" : "Print this receipt") + '</button> <button type="button" id="sf-build-csv">' + (lang === "fr" ? "Télécharger le tableur" : "Download the spreadsheet") + '</button> <button type="button" id="sf-build-save">' + (lang === "fr" ? "Enregistrer et partager ce plan" : "Save & share this plan") + '</button> <a href="' + esc(rootPath + "cost-to-build/material-prices/") + '">' + (lang === "fr" ? "Prix des matériaux" : "Material prices") + '</a> <a href="' + esc(rootPath + "cost-to-build/same-house/") + '">' + (lang === "fr" ? "La même maison dans chaque pays" : "The same house in every country") + '</a> <a href="' + esc(receiptPage) + '">' + (lang === "fr" ? "Ce que ce reçu chiffre" : "What this receipt prices") + "</a></p>" +
         '<div class="share"><a href="https://wa.me/?text=' + encodeURIComponent(orderMessage) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Envoyer la liste sur WhatsApp" : "Send the order list on WhatsApp") + '</a> <a href="https://wa.me/?text=' + encodeURIComponent(share) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Partager le total" : "Share the total") + '</a> <button type="button" id="sf-build-copy">' + (lang === "fr" ? "Copier le lien" : "Copy the link") + "</button></div>" +
         '<details class="build-src"><summary>' + (lang === "fr" ? "D'où viennent les prix" : "Where the prices come from") + "</summary><ul>" + est.lines.filter(function (l) { return l.source; }).map(function (l) {
           return "<li><strong>" + esc(shownLabel(l)) + ".</strong> " + esc(l.source) + (l.url ? ' <a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Source" : "Source") + "</a>" : "") + "</li>";
@@ -820,6 +828,21 @@
         };
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(lastLink).then(done).catch(fallback);
         else fallback();
+      }
+      var saveBtn = e.target.closest("#sf-build-save");
+      if (saveBtn) {
+        var stateObj = {};
+        new URLSearchParams(pageQuery().replace(/^\?/, "")).forEach(function (v, k) { stateObj[k] = v; });
+        saveBtn.disabled = true;
+        saveBtn.textContent = lang === "fr" ? "Enregistrement…" : "Saving…";
+        fetch(rootPath + "api/plan", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ country: country, state: stateObj }) })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (x) {
+            if (!x.ok) { saveBtn.disabled = false; saveBtn.textContent = (x.d && x.d.error) || (lang === "fr" ? "Échec — réessayez" : "Could not save — try again"); return; }
+            track("plan_saved", { country: country });
+            location.href = "/cost-to-build/" + country + "/plan/" + x.d.id + "/";
+          })
+          .catch(function () { saveBtn.disabled = false; saveBtn.textContent = lang === "fr" ? "Échec — vérifiez la connexion" : "Could not save — check your connection"; });
       }
     });
     draw();

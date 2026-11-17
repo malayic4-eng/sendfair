@@ -17,8 +17,8 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    // Run the Worker for admin, API, redirect, logo and result-image routes (the www redirect is a Cloudflare rule).
-    "run_worker_first": ["/admin*", "/api/*", "/go/*", "/logos/*", "/og/*"]
+    // Run the Worker for admin, API, redirect, logo, result-image and saved house-plan routes (the www redirect is a Cloudflare rule).
+    "run_worker_first": ["/admin*", "/api/*", "/go/*", "/logos/*", "/og/*", "/cost-to-build/*/plan/*"]
   },
   // The site's own address. www is forwarded to the main address.
   "routes": [
