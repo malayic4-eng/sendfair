@@ -1,0 +1,43 @@
+{
+  "_readme": [
+    "Partner links that are not transfer services: flights home, travel eSIMs, and sponsors on the house calculator.",
+    "travel.flightsUrl: the flight search each 'Search flights' button opens. Placeholders: {from} and {to} (airport or city codes, e.g. LON, NBO), {fromCity} and {toCity} (names), {route} (e.g. fly-kenya).",
+    "travel.flightsWrap: once Travelpayouts (or another network) approves you, paste its tracked link here with the destination replaced by {url}. Leave empty for a plain, untracked link.",
+    "travel.esimUrl / travel.esimWrap: the same for the eSIM button. {country} is the country name.",
+    "sponsors: paid listings on the house-calculator pages. Each needs id (lowercase, no spaces), name, category, blurb, url (https), countries (ids from data/build-costs.json), starts and ends (YYYY-MM-DD). Optional: phone, badge. A sponsor shows only between starts and ends, always labelled Sponsored, and never changes the receipt.",
+    "origins: departure cities per sending region. airports: arrival airports per receiving country. Codes are IATA city or airport codes."
+  ],
+  "travel": {
+    "flightsUrl": "https://www.google.com/travel/flights?q=Flights%20from%20{fromCity}%20to%20{toCity}",
+    "flightsWrap": "",
+    "esimUrl": "https://www.airalo.com/",
+    "esimWrap": ""
+  },
+  "origins": {
+    "uk": [["LON", "London"], ["MAN", "Manchester"], ["BHX", "Birmingham"]],
+    "us": [["NYC", "New York"], ["WAS", "Washington"], ["ATL", "Atlanta"], ["HOU", "Houston"]],
+    "canada": [["YTO", "Toronto"], ["YMQ", "Montreal"], ["YYC", "Calgary"]],
+    "europe": [["PAR", "Paris"], ["BRU", "Brussels"], ["AMS", "Amsterdam"], ["FRA", "Frankfurt"], ["ROM", "Rome"]],
+    "australia": [["SYD", "Sydney"], ["MEL", "Melbourne"], ["PER", "Perth"]]
+  },
+  "airports": {
+    "nigeria": [["LOS", "Lagos"], ["ABV", "Abuja"]],
+    "ghana": [["ACC", "Accra"]],
+    "kenya": [["NBO", "Nairobi"], ["MBA", "Mombasa"]],
+    "uganda": [["EBB", "Entebbe"]],
+    "zambia": [["LUN", "Lusaka"]],
+    "zimbabwe": [["HRE", "Harare"]],
+    "egypt": [["CAI", "Cairo"]],
+    "morocco": [["CMN", "Casablanca"], ["RAK", "Marrakech"]],
+    "senegal": [["DSS", "Dakar"]],
+    "ivorycoast": [["ABJ", "Abidjan"]],
+    "mali": [["BKO", "Bamako"]],
+    "cameroon": [["DLA", "Douala"], ["NSI", "Yaoundé"]],
+    "ethiopia": [["ADD", "Addis Ababa"]],
+    "southafrica": [["JNB", "Johannesburg"], ["CPT", "Cape Town"]],
+    "tanzania": [["DAR", "Dar es Salaam"], ["JRO", "Kilimanjaro"]],
+    "drc": [["FIH", "Kinshasa"]],
+    "rwanda": [["KGL", "Kigali"]]
+  },
+  "sponsors": []
+}

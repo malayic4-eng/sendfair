@@ -706,3 +706,18 @@ details p { margin-top: 10px; color: var(--muted); }
 .comments p { margin: 4px 0 0; }
 .chart { margin: 16px 0; }
 .chart svg { width: 100%; height: auto; display: block; }
+/* Sponsored listings under the house calculator, and the flying-home pointer on transfer pages */
+.sponsor-box { margin: 18px 0; padding: 14px 16px; border: 1px dashed var(--line-strong); border-radius: 16px; background: var(--paper); display: grid; gap: 10px; }
+.sponsor-box p { margin: 0; }
+.sponsor-box.empty { font-size: .9rem; color: var(--muted); }
+.sponsor-head { font-size: .82rem; font-weight: 650; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+.sponsor-tag { background: var(--marigold-soft); color: var(--marigold-ink); border-radius: 999px; padding: 2px 10px; font-size: .74rem; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
+.sponsor-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.sponsor-card { text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 4px; }
+.sponsor-card:hover { border-color: var(--line-strong); }
+.sponsor-card .k { font-size: .76rem; font-weight: 650; color: var(--muted); }
+.sponsor-card strong { font: 720 1.08rem/1.2 var(--font-display); }
+.sponsor-card .s { font-size: .86rem; color: var(--muted); }
+.fly-note { background: var(--paper); border-radius: 14px; padding: 10px 14px; }
+.fly-links { margin-bottom: 8px !important; }
+@media print { .sponsor-box, .fly-note { display: none !important; } }
