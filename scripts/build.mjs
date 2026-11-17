@@ -1470,7 +1470,7 @@ ${crumbNav(prefix, trail)}
 <h1>${esc(A.name)} vs ${esc(B.name)} on ${esc(s.label)} to ${esc(r.name)}: which delivers more?</h1>
 <p class="lede">${esc(verdict)}</p>
 <div class="vs-cards">${[A, B].map((P) => { const x = P === A ? a : b; return `<div class="vs-card"><h2 class="with-badge">${R.badge(P, "b-md")}${esc(P.name)}</h2><dl>
-<div><dt>They get ${esc(amtSym)}</dt><dd>${esc(plain(R.money(x.gets, r.currency)))}</dd></div>
+<div><dt>For ${esc(amtSym)} they get</dt><dd>${esc(plain(R.money(x.gets, r.currency)))}</dd></div>
 <div><dt>Fee</dt><dd>${esc(R.feeStr(x.q, s.currency))}</dd></div>
 <div><dt>Rating</dt><dd>${ratingLine(P)}</dd></div></dl>
 <a class="btn" href="${esc(hrefFor(prefix)(P, "compare-route"))}" target="_blank" rel="sponsored nofollow noopener">Go to ${esc(P.name)}</a> <a href="${link(prefix, provPath(P))}">Full review</a></div>`; }).join("")}</div>
