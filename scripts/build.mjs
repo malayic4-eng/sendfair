@@ -314,6 +314,8 @@ ${ogImg}
 <meta name="color-scheme" content="light dark"><meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#101428" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="${prefix}favicon.svg" type="image/svg+xml">
 <link rel="icon" href="${prefix}favicon-48.png" sizes="48x48" type="image/png">
+<link rel="icon" href="${prefix}icon-192.png" sizes="192x192" type="image/png">
+<link rel="shortcut icon" href="${prefix}favicon.ico">
 <link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png"><link rel="manifest" href="${prefix}manifest.webmanifest">
 ${fonts}
 <link rel="stylesheet" href="${prefix}assets/style.css?v=${V.css}">
