@@ -10,7 +10,7 @@ for (const [cid, photos] of Object.entries(list.countries || {})) {
     const file = `data/social/photo-cache/${p.id}.jpg`;
     if (fs.existsSync(file) && fs.statSync(file).size > 20000) { ok++; continue; }
     try {
-      const r = await fetch(`https://unsplash.com/photos/${p.id}/download?force=true&w=1600&fm=jpg&q=80`, { redirect: "follow" });
+      const r = await fetch(`${p.src}?w=1400&q=80&fm=jpg&fit=crop`, { redirect: "follow" });
       const type = r.headers.get("content-type") || "";
       if (!r.ok || !type.startsWith("image/")) throw new Error(`${r.status} ${type}`);
       const buf = Buffer.from(await r.arrayBuffer());
