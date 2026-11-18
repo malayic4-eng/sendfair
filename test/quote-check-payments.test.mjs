@@ -85,8 +85,14 @@ test("the provider verify call checks amount and currency before release", async
 });
 
 test("an unsupported provider currency falls back to the USD fee", () => {
+  const config = mergeConfig({ ...JSON.parse(fs.readFileSync(path.join(ROOT, "config/quote-check.json"), "utf8")), payment: { provider: "paystack" } });
   assert.deepEqual(resolveCharge(config, "GBP", "paystack"), { currency: "USD", amount: 12 });
   assert.deepEqual(resolveCharge(config, "KES", "paystack"), { currency: "KES", amount: 1500 });
   assert.deepEqual(resolveCharge(config, "GBP", "flutterwave"), { currency: "GBP", amount: 9 });
   assert.ok(PROVIDERS.paystack.supported.includes("KES"));
+});
+
+test("a Kenyan Paystack account is charged in KES whatever the quote currency", async () => {
+  const cfg = mergeConfig({ payment: { provider: "paystack", currencies: ["KES"] } });
+  for (const cur of ["NGN", "GBP", "UGX", "KES"]) assert.deepEqual(resolveCharge(cfg, cur, "paystack"), { currency: "KES", amount: 1500 });
 });

@@ -77,6 +77,7 @@ test("verdict bands use the configured -15% / +15% / +35% thresholds", () => {
 });
 
 test("prices are set for the six supported currencies and fall back to USD", () => {
+  const config = mergeConfig({});
   assert.deepEqual(priceFor(config, "KES"), { currency: "KES", amount: 1500 });
   assert.deepEqual(priceFor(config, "GBP"), { currency: "GBP", amount: 9 });
   assert.deepEqual(priceFor(config, "UGX"), { currency: "USD", amount: 12 });

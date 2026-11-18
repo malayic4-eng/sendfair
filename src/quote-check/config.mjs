@@ -34,6 +34,11 @@ export function mergeConfig(raw) {
     const code = String(cur || "").toUpperCase();
     if (/^[A-Z]{3}$/.test(code) && Number(amount) > 0) prices[code] = Number(amount);
   }
+  // When the merchant account only takes some currencies, only those fees are shown or charged.
+  const payCurrencies = src.payment && Array.isArray(src.payment.currencies)
+    ? src.payment.currencies.map((c) => String(c).toUpperCase()).filter((c) => prices[c] > 0)
+    : [];
+  if (payCurrencies.length) for (const cur of Object.keys(prices)) if (!payCurrencies.includes(cur)) delete prices[cur];
   return {
     ...base,
     ...src,

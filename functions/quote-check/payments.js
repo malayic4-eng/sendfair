@@ -26,10 +26,16 @@ export function providerFor(env, settings, id) {
 export function resolveCharge(settings, quoteCurrency, providerId) {
   const base = priceFor(settings, quoteCurrency);
   const provider = PROVIDERS[providerId] || PROVIDERS.test;
-  if (provider.supported.includes(base.currency)) return base;
+  // A merchant account only takes the currencies it is enabled for (a Kenyan Paystack account
+  // takes KES), so config.payment.currencies narrows what the provider can charge in.
+  const allowed = settings.payment && Array.isArray(settings.payment.currencies) && settings.payment.currencies.length && providerId !== "test"
+    ? settings.payment.currencies.map((c) => String(c).toUpperCase())
+    : null;
+  const supported = allowed ? provider.supported.filter((c) => allowed.includes(c)) : provider.supported;
+  if (supported.includes(base.currency)) return base;
   const usd = settings.prices && settings.prices.USD;
-  if (provider.supported.includes("USD") && usd > 0) return { currency: "USD", amount: usd };
-  for (const cur of provider.supported) {
+  if (supported.includes("USD") && usd > 0) return { currency: "USD", amount: usd };
+  for (const cur of supported) {
     if (settings.prices && settings.prices[cur] > 0) return { currency: cur, amount: settings.prices[cur] };
   }
   return base;

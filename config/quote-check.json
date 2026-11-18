@@ -9,7 +9,7 @@
     "GBP": 9,
     "EUR": 10
   },
-  "defaultPriceCurrency": "USD",
+  "defaultPriceCurrency": "KES",
   "thresholds": {
     "below": -0.15,
     "above": 0.15,
@@ -31,13 +31,16 @@
     "ballast": 12
   },
   "extraction": {
-    "provider": "openai",
-    "model": "",
+    "provider": "anthropic",
+    "model": "claude-sonnet-5-5",
     "maxLines": 200
   },
   "payment": {
-    "provider": "test",
-    "testMode": false
+    "provider": "paystack",
+    "testMode": false,
+    "currencies": [
+      "KES"
+    ]
   },
   "ownerEmail": "hello@sendfair.africa",
   "fromEmail": "hello@sendfair.africa",
