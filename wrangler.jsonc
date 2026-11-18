@@ -27,9 +27,8 @@
   ],
   // Storage for delivery reports and click counts (namespace "sendfair").
   "kv_namespaces": [{ "binding": "SENDFAIR_KV", "id": "4184f9d4de9440119baf9408cecc938a" }],
-  // Quote Check uploads. Create a private R2 bucket named sendfair-quote-check, then uncomment
-  // these two lines and deploy. Without it, Quote Check falls back to KV and refuses files over 18 MB.
-  // "r2_buckets": [{ "binding": "QUOTE_CHECK_FILES", "bucket_name": "sendfair-quote-check" }],
+  // Quote Check uploads, in the private R2 bucket sendfair-quote-check.
+  "r2_buckets": [{ "binding": "QUOTE_CHECK_FILES", "bucket_name": "sendfair-quote-check" }],
   // Outbound email for rate alerts (Cloudflare Email Service). The domain must be
   // onboarded for Email Sending (Compute > Email Service > Email Sending) before emails send.
   "send_email": [{ "name": "EMAIL" }],
