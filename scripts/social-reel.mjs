@@ -43,9 +43,14 @@ function photosFor(cid, date) {
   let list = {};
   try { list = read("data/social/photos.json"); } catch {}
   const ids = ((list.countries || {})[cid] || []).map((p) => p.id).filter((id) => fs.existsSync(`data/social/photo-cache/${id}.jpg`));
-  const day = Math.floor(new Date(date + "T00:00:00Z").getTime() / 864e5) || 0;
-  const pick = (n) => (ids.length ? D.asset(`data/social/photo-cache/${ids[(day + n) % ids.length]}.jpg`, "image/jpeg") : null);
-  return { a: pick(0), b: ids.length > 1 ? pick(1) : pick(0) };
+  if (!ids.length) return { a: null, b: null };
+  // A country comes round about every 17 days; each visit moves on to the next pair of photos, so the
+  // same country never repeats the photos of its previous reel, and the hook and the ending differ.
+  const [y, m, d] = String(date).split("-").map(Number);
+  const day = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86400000) || 0;
+  const visit = Math.floor(day / 17);
+  const at = (n) => D.asset(`data/social/photo-cache/${ids[(visit * 2 + n) % ids.length]}.jpg`, "image/jpeg");
+  return { a: at(0), b: ids.length > 1 ? at(1) : at(0) };
 }
 function countryOf(route) {
   const recv = new Set(read("data/corridors.json").receivers.map((r) => r.id));
