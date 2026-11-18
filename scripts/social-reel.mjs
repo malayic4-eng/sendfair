@@ -58,15 +58,22 @@ ${inner}
 <rect x="${MARGIN}" y="1580" width="${W - MARGIN * 2}" height="4" fill="${MARIGOLD}" opacity="0.5"/>
 </svg>`;
 }
+// Shrink long headlines instead of cutting them: try each size until the text fits in maxLines.
+function fit(text, steps) {
+  for (const st of steps) { const lines = wrap(text, st.chars); if (lines.length <= st.max) return { ...st, lines }; }
+  const last = steps[steps.length - 1];
+  return { ...last, lines: wrap(text, last.chars) };
+}
 function hookFrame(hook, tag) {
-  const lines = wrap(hook, 26).slice(0, 3);
+  const f = fit(hook, [{ chars: 26, max: 3, size: 76, lh: 86 }, { chars: 30, max: 4, size: 66, lh: 76 }, { chars: 34, max: 5, size: 58, lh: 68 }]);
   const y0 = 520;
-  const text = lines.map((l, i) => `<text x="${W / 2}" y="${y0 + i * 86}" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="700" fill="${WHITE}" text-anchor="middle">${esc(l)}</text>`).join("");
+  const text = f.lines.map((l, i) => `<text x="${W / 2}" y="${y0 + i * f.lh}" font-family="Arial, Helvetica, sans-serif" font-size="${f.size}" font-weight="700" fill="${WHITE}" text-anchor="middle">${esc(l)}</text>`).join("");
   return base(text, tag);
 }
 function rowFrame(hook, row, active, tag) {
-  const hlines = wrap(hook, 30).slice(0, 2);
-  const head = hlines.map((l, i) => `<text x="${W / 2}" y="${430 + i * 54}" font-family="Arial, Helvetica, sans-serif" font-size="46" fill="${MUTED}" text-anchor="middle">${esc(l)}</text>`).join("");
+  const f = fit(hook, [{ chars: 30, max: 2, size: 46, lh: 54 }, { chars: 38, max: 3, size: 38, lh: 46 }, { chars: 44, max: 4, size: 32, lh: 38 }]);
+  const hlines = f.lines;
+  const head = hlines.map((l, i) => `<text x="${W / 2}" y="${(f.lines.length > 2 ? 400 : 430) + i * f.lh}" font-family="Arial, Helvetica, sans-serif" font-size="${f.size}" fill="${MUTED}" text-anchor="middle">${esc(l)}</text>`).join("");
   const big = `<text x="${W / 2}" y="980" font-family="Arial, Helvetica, sans-serif" font-size="120" font-weight="700" fill="${MARIGOLD}" text-anchor="middle">${esc(active.value)}</text>
 <text x="${W / 2}" y="860" font-family="Arial, Helvetica, sans-serif" font-size="54" fill="${WHITE}" text-anchor="middle">${esc(active.label)}</text>`;
   const list = row.map((r, i) => `<text x="${MARGIN}" y="${1160 + i * 74}" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="${r === active ? MARIGOLD : MUTED}">${esc(r.label)} — ${esc(r.value)}</text>`).join("");
@@ -83,8 +90,8 @@ function endFrame(tag) {
 }
 function imageSvg(image, tag) {
   const wh = 1350, ww = 1080;
-  const lines = wrap(image.headline, 24).slice(0, 3);
-  const head = lines.map((l, i) => `<text x="${ww / 2}" y="${430 + i * 78}" font-family="Arial, Helvetica, sans-serif" font-size="68" font-weight="700" fill="${WHITE}" text-anchor="middle">${esc(l)}</text>`).join("");
+  const f = fit(image.headline, [{ chars: 24, max: 3, size: 68, lh: 78 }, { chars: 30, max: 4, size: 56, lh: 66 }, { chars: 36, max: 5, size: 48, lh: 56 }]);
+  const head = f.lines.map((l, i) => `<text x="${ww / 2}" y="${430 + i * f.lh}" font-family="Arial, Helvetica, sans-serif" font-size="${f.size}" font-weight="700" fill="${WHITE}" text-anchor="middle">${esc(l)}</text>`).join("");
   const rows = image.rows.map((r, i) => `<text x="${MARGIN}" y="${760 + i * 92}" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="${MUTED}">${esc(r.label)}</text><text x="${ww - MARGIN}" y="${760 + i * 92}" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="${MARIGOLD}" text-anchor="end">${esc(r.value)}</text>`).join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${ww}" height="${wh}" viewBox="0 0 ${ww} ${wh}">
 <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${DEEP}"/><stop offset="1" stop-color="${INDIGO}"/></linearGradient></defs>
