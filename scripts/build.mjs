@@ -413,7 +413,7 @@ function header(prefix, lang, alternates = []) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><a href="${link(prefix, "quote-check/")}">Quote Check</a><a href="${link(prefix, "")}#alerts">${fr ? "Alertes de taux" : "Rate alerts"}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
+<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><div class="nav-svc"><button type="button" class="nav-svc-btn" id="sf-svc-btn" aria-expanded="false" aria-controls="sf-svc-menu">${fr ? "Services" : "Services"}<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="nav-drop" id="sf-svc-menu">${serviceGroups(prefix).map((g) => `<div class="nav-drop-group"><span class="nav-drop-h">${esc(g.title)}</span>${g.items.map((it) => `<a href="${it.href}" data-svc="nav-${it.id}">${esc(it.name)}${it.tag ? ` <span class="svc-tag">${esc(it.tag)}</span>` : ""}</a>`).join("")}</div>`).join("")}</div></div><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
 </div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">${L.translateNote} <a href="${link(prefix, "privacy/")}">${L.privacy}</a></p></div></div></header>`;
 }
 
@@ -425,7 +425,7 @@ function footer(prefix, lang) {
     search: t("footer.search"), allPages: t("footer.allPages"), costIndex: t("footer.costIndex"), guides: t("footer.guides"),
     costToBuild: t("footer.costToBuild"), fromGulf: t("footer.fromGulf"), about: t("footer.about"), contact: t("footer.contact"),
     howRank: t("footer.howRank"), howMakeMoney: t("footer.howMakeMoney"), privacy: t("footer.privacy"), terms: t("footer.terms"),
-    cookies: t("footer.cookies"), accessibility: t("footer.accessibility"), cookieSettings: t("footer.cookieSettings"), install: t("footer.install"),
+    cookies: t("footer.cookies"), accessibility: t("footer.accessibility"), embed: t("nav.embed"), cookieSettings: t("footer.cookieSettings"), install: t("footer.install"),
     disclaimer: t("footer.disclaimer"), ratesBy: t("footer.ratesBy"),
     copyright: t("footer.copyright", { legal: config.legalName || config.businessName || config.siteName, email: config.contactEmail })
   } : {
@@ -434,7 +434,7 @@ function footer(prefix, lang) {
     search: "Search", allPages: "All pages", costIndex: "Remittance Cost Index", guides: "Guides",
     costToBuild: "Cost to build a house", fromGulf: "Sending from the Gulf", about: "About", contact: "Contact",
     howRank: "How we rank", howMakeMoney: "How we make money", privacy: "Privacy", terms: "Terms",
-    cookies: "Cookies", accessibility: "Accessibility", cookieSettings: "Cookie settings", install: "Add SendFair to your home screen",
+    cookies: "Cookies", accessibility: "Accessibility", embed: "Rate widget for your site", cookieSettings: "Cookie settings", install: "Add SendFair to your home screen",
     disclaimer: "SendFair compares money transfer services and estimates what it costs to build a house back home. We do not send, hold or exchange money, and we do not build the house. Rates change through the day; always confirm the final amount on the provider's own screen before you pay.",
     ratesBy: "Mid-market reference rates by",
     copyright: `\u00a9 ${new Date(NOW).getUTCFullYear()} ${config.siteName}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span>`
@@ -454,7 +454,7 @@ function footer(prefix, lang) {
 <div><h2>${L.buildHouse}</h2><ul>${QC_ON ? `<li><a href="${link(prefix, "quote-check/")}">Quote Check</a></li>` : ""}<li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, countryCost(id))}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
-<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a><a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
+<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a><a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
 <p>${L.disclaimer}</p>
 <p>${L.ratesBy} <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>${L.copyright}</p>
@@ -830,8 +830,8 @@ ${countryId ? `<p><a class="btn" href="${link(prefix, `cost-to-build/${countryId
 }
 
 // "Everything SendFair does": one short tile per service, grouped, right under the comparison.
-function servicesHub(prefix) {
-  const groups = [
+function serviceGroups(prefix) {
+  return [
     { title: "Send money", items: [
       { id: "compare", href: link(prefix, "") + "#corridors", name: "Compare transfers", text: "See which service delivers the most on your route, after fees and the rate markup." },
       { id: "rates", href: link(prefix, "") + "#rates-today", name: "Exchange rates today", text: "Mid-market rates for every currency we cover, checked through the day." },
@@ -846,6 +846,10 @@ function servicesHub(prefix) {
       { id: "flying-home", href: link(prefix, "flying-home/"), name: "Flying home", text: "Flights, eSIMs and money tips for the trip back home." }
     ] }
   ];
+}
+
+function servicesHub(prefix) {
+  const groups = serviceGroups(prefix);
   return `<section class="block services-hub" aria-labelledby="services-hub-h"><div class="wrap">
 <div class="section-head"><h2 id="services-hub-h">Everything SendFair does</h2><p class="lede">Free tools for sending money home and building back home. Pick one.</p></div>
 <div class="svc-groups">${groups.map((g) => `<div class="svc-group"><h3>${esc(g.title)}</h3><ul class="svc-list">${g.items.map((it) => `<li><a class="svc-tile" href="${it.href}" data-svc="${it.id}"><span class="svc-name">${esc(it.name)}${it.tag ? ` <span class="svc-tag">${esc(it.tag)}</span>` : ""}</span><span class="svc-text">${esc(it.text)}</span></a></li>`).join("")}</ul></div>`).join("")}</div>

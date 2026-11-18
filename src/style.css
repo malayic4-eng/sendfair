@@ -742,3 +742,25 @@ details p { margin-top: 10px; color: var(--muted); }
   .svc-text { display: none; }
   .svc-name { font-size: .92rem; white-space: nowrap; }
 }
+
+/* Services dropdown in the top menu */
+.nav-svc { position: relative; display: flex; align-items: center; }
+.nav-svc-btn { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 4px 0; font: inherit; color: var(--on-band-muted); cursor: pointer; }
+.nav-svc-btn:hover, .nav-svc-btn[aria-expanded="true"] { color: var(--on-band); }
+.nav-svc-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.nav-drop { display: none; position: absolute; top: calc(100% + 8px); left: -16px; z-index: 50; min-width: 250px; padding: 10px 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.nav-svc.open .nav-drop { display: block; }
+@media (hover: hover) and (min-width: 721px) { .nav-svc:hover .nav-drop { display: block; } .nav-svc:hover .nav-drop::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 10px; } }
+.nav-drop-group + .nav-drop-group { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+.nav-drop-h { display: block; padding: 4px 10px; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 650; }
+.site-nav .nav-drop a { display: block; padding: 7px 10px; border-radius: 8px; color: var(--ink); font-weight: 550; white-space: nowrap; }
+.site-nav .nav-drop a:hover, .site-nav .nav-drop a:focus-visible { background: var(--paper); color: var(--ink); }
+@media (max-width: 720px) {
+  .nav-svc { display: block; width: 100%; }
+  .nav-svc-btn { display: none; }
+  .nav-drop { display: block; position: static; min-width: 0; padding: 0; background: none; border: 0; box-shadow: none; }
+  .nav-drop-group + .nav-drop-group { margin-top: 0; padding-top: 0; border-top: 0; }
+  .nav-drop-h { padding: 10px 0 2px; color: var(--on-band-muted); opacity: .75; }
+  .site-nav .nav-drop a { padding: 8px 0; color: var(--on-band-muted); border-radius: 0; }
+  .site-nav .nav-drop a:hover { background: none; color: var(--on-band); }
+}

@@ -982,6 +982,17 @@
       }
     });
 
+  // Services dropdown in the top menu: click to open, Escape or a click elsewhere closes it.
+  (function () {
+    var btn = document.getElementById("sf-svc-btn");
+    if (!btn) return;
+    var wrap = btn.parentNode;
+    function set(open) { wrap.classList.toggle("open", open); btn.setAttribute("aria-expanded", String(open)); }
+    btn.addEventListener("click", function (e) { e.stopPropagation(); set(!wrap.classList.contains("open")); });
+    document.addEventListener("click", function (e) { if (!wrap.contains(e.target)) set(false); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && wrap.classList.contains("open")) { set(false); btn.focus(); } });
+  })();
+
   // Service tiles on the homepage: count which ones people use.
   document.addEventListener("click", function (e) {
     var tile = e.target.closest && e.target.closest("[data-svc]");
