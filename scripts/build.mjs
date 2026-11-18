@@ -2026,7 +2026,7 @@ write("index.html", page({
   body: yourRoutesHtml + tool({
     ctx: homeCtx,
     heading: "Send money home. Build a house back home.",
-    sub: `Two tools for the diaspora. Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup — then price a house back home before you build. ${homeProof}`
+    sub: `Free tools for the diaspora: compare money transfers to Africa by what your family actually receives, price a house back home, check a builder's quote${QC_ON ? "," : " (opening soon)"} and get a morning rate alert for your route. ${homeProof}`
   }) + servicesHub("") + buildTeaser("") + quoteCheckCard("", null) + guideTeaser("") + corridorGrid("") + `
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
