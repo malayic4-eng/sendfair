@@ -76,6 +76,5 @@ jobs:
             echo "No change"
           else
             git commit -m "Update partner feed quotes (automatic)"
-            git pull --rebase
-            git push
+            for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
           fi
