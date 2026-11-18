@@ -70,8 +70,8 @@ function background(pal, photo, zoom = 1, shade = "bottom") {
   const defs = `<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${pal.top}"/><stop offset="1" stop-color="${pal.bottom}"/></linearGradient>
 <radialGradient id="glowA" cx="0.85" cy="0.12" r="0.55"><stop offset="0" stop-color="${pal.accent}" stop-opacity="0.45"/><stop offset="1" stop-color="${pal.accent}" stop-opacity="0"/></radialGradient>
 <radialGradient id="glowB" cx="0.1" cy="0.92" r="0.6"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
-<linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.55"/><stop offset="0.28" stop-color="#000" stop-opacity="0.05"/><stop offset="0.5" stop-color="${pal.bottom}" stop-opacity="0.25"/><stop offset="0.78" stop-color="${pal.bottom}" stop-opacity="0.9"/><stop offset="1" stop-color="${pal.bottom}" stop-opacity="0.97"/></linearGradient>
-<linearGradient id="tint" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${pal.top}" stop-opacity="0.35"/><stop offset="1" stop-color="${pal.bottom}" stop-opacity="0.15"/></linearGradient>
+<linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.45"/><stop offset="0.2" stop-color="#000" stop-opacity="0"/><stop offset="0.52" stop-color="${pal.bottom}" stop-opacity="0.1"/><stop offset="0.7" stop-color="${pal.bottom}" stop-opacity="0.78"/><stop offset="1" stop-color="${pal.bottom}" stop-opacity="0.96"/></linearGradient>
+<linearGradient id="tint" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${pal.top}" stop-opacity="0.14"/><stop offset="1" stop-color="${pal.bottom}" stop-opacity="0.04"/></linearGradient>
 <pattern id="dots" width="36" height="36" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="2" fill="#fff" opacity="0.07"/></pattern>`;
   if (photo) {
     const pw = W * zoom, ph = H * zoom;
