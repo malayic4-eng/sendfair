@@ -9,6 +9,18 @@ import * as alert from "../functions/api/alert.js";
 import * as ask from "../functions/api/ask.js";
 import * as plan from "../functions/api/plan.js";
 import * as whatsapp from "../functions/api/whatsapp.js";
+import * as quoteUpload from "../functions/quote-check/upload.js";
+import * as quoteStatus from "../functions/quote-check/status.js";
+import * as quoteCheckout from "../functions/quote-check/checkout.js";
+import * as quoteWebhook from "../functions/quote-check/webhook.js";
+import * as quoteTestPay from "../functions/quote-check/test-pay.js";
+import * as quoteReport from "../functions/quote-check/report.js";
+import * as quoteAdmin from "../functions/quote-check/admin.js";
+import { loadSettings, testMode as isQuoteTestMode } from "../functions/quote-check/settings.js";
+import { getOrder } from "../functions/quote-check/store.js";
+import { runPurge } from "../functions/quote-check/orders.js";
+import { renderTestPayPage } from "../functions/quote-check/pay-test-page.mjs";
+import { priceFor } from "../src/quote-check/config.mjs";
 import { sha256 } from "../functions/_lib.js";
 import { resultImage } from "./og-worker.js";
 import { planResponse } from "./plan-worker.js";
@@ -143,6 +155,40 @@ export default {
     const lm = path.match(/^\/logos\/([a-z]+)\.png$/);
     if (lm) return logo(lm[1], request, ctx);
 
+    // ---- Quote Check (paid quote review) ----
+    if (path === "/api/quote-check/upload") return request.method === "POST" ? quoteUpload.onRequestPost(context) : quoteUpload.onRequest();
+    if (path === "/api/quote-check/status") return request.method === "GET" ? quoteStatus.onRequestGet(context) : quoteStatus.onRequest();
+    if (path === "/api/quote-check/checkout") return request.method === "POST" ? quoteCheckout.onRequestPost(context) : quoteCheckout.onRequest();
+    if (path === "/api/quote-check/test-pay") return request.method === "POST" ? quoteTestPay.onRequestPost(context) : quoteTestPay.onRequest();
+    const qw = path.match(/^\/api\/quote-check\/webhook\/([a-z]+)$/);
+    if (qw) return request.method === "POST" ? quoteWebhook.onRequestPost(context, qw[1]) : quoteWebhook.onRequest();
+    const qr = path.match(/^\/quote-check\/report\/([a-z0-9]{20,40})(\/pdf)?$/);
+    if (qr) {
+      if (request.method !== "GET") return new Response("Method not allowed.", { status: 405 });
+      return quoteReport.onRequestGet(context, qr[1], !!qr[2]);
+    }
+    const qt = path.match(/^\/quote-check\/pay\/test\/([a-z0-9]{6,24})$/);
+    if (qt && request.method === "GET") {
+      const settings = await loadSettings(env, request).catch(() => null);
+      if (!settings || !isQuoteTestMode(env, settings.config)) return env.ASSETS.fetch(request);
+      const order = await getOrder(env, qt[1]);
+      const view = url.searchParams.get("t") || "";
+      if (!order || order.token !== view) return new Response("Test checkout not found.", { status: 404, headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
+      if (order.status === "paid" || order.status === "report sent") return Response.redirect(`${url.origin}/quote-check/report/${order.token}/`, 303);
+      const price = order.payment && order.payment.amount > 0
+        ? { amount: order.payment.amount, currency: order.payment.currency }
+        : priceFor(settings.config, order.quoteCurrency);
+      return new Response(renderTestPayPage({ order, amount: price.amount, currency: price.currency }), {
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" }
+      });
+    }
+    const qa = path.match(/^\/admin\/quote-checks\/api\/([a-z]+)$/);
+    if (qa) {
+      if (request.method === "GET") return quoteAdmin.onRequestGet(context, qa[1]);
+      if (request.method === "POST") return quoteAdmin.onRequestPost(context, qa[1]);
+      return json({ error: "Method not allowed." }, 405);
+    }
+
     if (path === "/api/report") return request.method === "POST" ? report.onRequestPost(context) : report.onRequest(context);
     if (path === "/api/reports") return request.method === "POST" ? reports.onRequestPost(context) : reports.onRequestGet(context);
     if (path === "/api/stats" && request.method === "GET") return stats.onRequestGet(context);
@@ -166,7 +212,9 @@ export default {
     return env.ASSETS.fetch(request);
   },
   // Daily, after the morning and evening rate checks: confirmation emails and rate alerts.
+  // Quote Check also purges uploads, extracted data and reports after the retention period.
   async scheduled(event, env, ctx) {
     ctx.waitUntil(alert.runAlerts(env).then((r) => console.log("alerts", JSON.stringify(r))));
+    ctx.waitUntil(runPurge(env).then((r) => console.log("quote-check purge", JSON.stringify(r))).catch((e) => console.log("quote-check purge failed", e && e.message)));
   }
 };

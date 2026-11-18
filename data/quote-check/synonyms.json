@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "updated": "2026-11-18",
+  "note": "Owner-editable. Add the words your local builders use for each item under global or countries. Matching is done on whole words and phrases after punctuation is removed. An item key must exist in data/build-costs.json. Keep the exclude list for things SendFair does not price.",
+  "exclude": [
+    "architect",
+    "architectural fee",
+    "architects fee",
+    "structural engineer",
+    "quantity surveyor",
+    "contractor fee",
+    "contractors fee",
+    "contractor margin",
+    "contractor profit",
+    "profit and overhead",
+    "overhead and profit",
+    "land purchase",
+    "plot purchase",
+    "survey fee",
+    "soil test",
+    "soil investigation"
+  ],
+  "global": {
+    "cement": ["cement", "simiti", "simenti", "ciment", "saruji", "cement bag", "bag of cement", "50kg cement", "opc", "ppc"],
+    "steel": ["steel", "rebar", "reinforcement", "reinforcement bar", "twisted bar", "deformed bar", "steel bar", "iron bar", "y12", "12mm bar", "12 mm bar"],
+    "roof": ["roofing", "roof sheet", "roof sheets", "roofing sheet", "roofing sheets", "iron sheet", "iron sheets", "corrugated sheet", "corrugated sheets", "mabati", "box profile", "gauge 30", "gauge 28", "aluzinc"],
+    "sand": ["sand", "sharp sand", "river sand", "plaster sand", "building sand", "mchanga"],
+    "mason": ["mason", "masonry", "masonary", "mason days", "mason labour", "mason labor", "bricklayer", "fundi wa tofali"],
+    "hand": ["labourer", "labourers", "laborer", "laborers", "helper", "helpers", "casual labour", "casual labor", "unskilled labour", "unskilled labor", "hand labour", "porter"],
+    "blocks": ["block", "blocks", "concrete block", "concrete blocks", "hollow block", "hollow blocks", "sandcrete block", "sandcrete blocks", "cement block", "cement blocks", "6 inch block", "9 inch block", "blockwork"],
+    "ballast": ["ballast", "hardcore", "aggregate", "gravel", "coarse aggregate", "granite", "chippings", "3/4 inch", "stone base"],
+    "timber": ["timber", "truss", "trusses", "roof timber", "roof truss", "roof trusses", "wood", "mbao", "timber battens"],
+    "window": ["window", "windows", "aluminium window", "aluminum window", "glazing", "window frame", "sliding window", "casement window"],
+    "doorIn": ["internal door", "internal doors", "interior door", "interior doors", "flush door", "flush doors", "wooden door", "wooden doors", "bedroom door", "bathroom door", "panel door"],
+    "doorOut": ["external door", "external doors", "main door", "security door", "steel door", "front door", "entrance door"],
+    "tiles": ["tiles", "tile", "floor tile", "floor tiles", "ceramic tile", "ceramic tiles", "porcelain tile", "porcelain tiles", "wall tile", "wall tiles"],
+    "ceiling": ["ceiling", "ceilings", "ceiling board", "ceiling boards", "gypsum", "plasterboard", "ceiling sheet", "fibre cement board"],
+    "paint": ["paint", "painting", "emulsion", "wall paint", "matt emulsion", "primer", "gloss", "undercoat"],
+    "elecPoint": ["wiring", "electrical", "electric", "electrical point", "socket", "light point", "switch", "conduit", "cable"],
+    "pipe": ["pipe", "pipes", "plumbing", "ppr pipe", "pvc pipe", "water pipe", "plumbing pipe"],
+    "wc": ["wc", "toilet", "water closet", "cistern", "toilet pan"],
+    "tank": ["tank", "water tank", "storage tank", "1000 litre tank", "1000 liter tank"],
+    "painter": ["painter", "painting labour", "painting labor", "painter days"],
+    "spark": ["electrician", "sparky", "electrical labour", "electrical labor", "electrician days"],
+    "plumber": ["plumber", "plumbing labour", "plumbing labor", "plumber days"],
+    "carpenter": ["carpenter", "carpentry", "carpenter days", "fundi wa mbao"],
+    "ceilingFrame": ["ceiling frame", "ceiling channel", "metal ceiling", "ceiling grid", "suspension frame"],
+    "gutter": ["gutter", "gutters", "downpipe", "downpipes", "rainwater goods", "fascia"],
+    "formwork": ["formwork", "shuttering", "slab formwork", "soffit"],
+    "basin": ["basin", "wash basin", "hand basin", "wash hand basin"],
+    "shower": ["shower", "shower tray", "shower mixer", "electric shower"],
+    "sink": ["sink", "kitchen sink", "single bowl sink"],
+    "septic": ["septic", "septic tank", "soak pit", "soakaway", "biodigester"],
+    "kitchen": ["kitchen", "cupboard", "cupboards", "cabinet", "cabinets", "kitchen unit", "kitchen cupboard", "base unit", "wall unit"],
+    "wardrobe": ["wardrobe", "wardrobes", "closet", "fitted wardrobe", "built in wardrobe"],
+    "boundary": ["boundary wall", "perimeter wall", "fence", "fencing", "machine cut stone", "machine-cut stone", "machine cut stones", "machine-cut stones", "9x9 stones", "9 x 9 stones"],
+    "gate": ["gate", "gates", "vehicle gate", "metal gate", "sliding gate"],
+    "planFee": ["permit", "building permit", "plan approval", "plan fee", "building plan", "construction permit", "development permit"],
+    "occupation": ["occupation certificate", "occupancy certificate", "completion certificate"],
+    "healthFee": ["health fee", "public health", "health inspection", "health vetting"]
+  },
+  "countries": {
+    "kenya": {
+      "cement": ["bamburi", "bamburi fundi", "fundi cement"],
+      "roof": ["mabati", "iron sheets", "box profile", "gauge 30"],
+      "blocks": ["6 inch block", "6 inch blocks", "machine cut block"],
+      "sand": ["river sand", "plaster sand"],
+      "hand": ["fundi msaidizi", "msaidizi"],
+      "timber": ["mbao", "roof mbao"],
+      "tiles": ["tiles", "ceramic tiles"],
+      "kitchen": ["kitchen cabinets", "kitchen cupboards"],
+      "septic": ["septic tank", "soak pit"],
+      "boundary": ["machine cut stones", "machine-cut stones", "9x9 stones", "perimeter wall"]
+    },
+    "nigeria": {
+      "cement": ["dangote", "dangote 3x", "ibese", "obajana", "bag of cement"],
+      "blocks": ["9 inch block", "9 inch blocks", "6 inch block", "sandcrete", "sandcrete blocks"],
+      "sand": ["sharp sand", "plaster sand", "river sand"],
+      "ballast": ["granite", "chippings", "gravel", "3/4 inch granite"],
+      "roof": ["stone coated", "aluzinc", "longspan", "roofing sheet", "iron sheets"],
+      "mason": ["bricklayer", "mason"],
+      "hand": ["labourer", "laborer"],
+      "paint": ["dulux"],
+      "kitchen": ["kitchen cabinet", "kitchen cabinets"],
+      "boundary": ["fence", "perimeter fence", "block wall"]
+    },
+    "ghana": {
+      "cement": ["ghacem", "diamond cement", "supacem", "bag of cement"],
+      "blocks": ["sandcrete", "sandcrete blocks", "6 inch block", "6 inch blocks"],
+      "ballast": ["chippings", "3/4 inch granite", "granite"],
+      "roof": ["aluminium roofing", "aluminum roofing", "roofing sheet", "longspan", "iron sheets"],
+      "mason": ["mason", "bricklayer"],
+      "hand": ["labourer", "laborer"],
+      "kitchen": ["kitchen cabinet", "kitchen cabinets"],
+      "boundary": ["wall", "fence", "perimeter wall"],
+      "gate": ["metal gate", "sliding gate"]
+    },
+    "uganda": {
+      "cement": ["simba cement", "tororo cement", "hima cement"],
+      "roof": ["iron sheets", "mabati", "gauge 28"],
+      "blocks": ["blocks", "concrete blocks"],
+      "sand": ["lake sand", "plaster sand"],
+      "boundary": ["perimeter wall", "fence"]
+    },
+    "tanzania": {
+      "cement": ["twiga cement", "simba cement"],
+      "roof": ["iron sheets", "mabati", "gauge 30"],
+      "blocks": ["blocks", "concrete blocks"],
+      "boundary": ["perimeter wall", "fence"]
+    },
+    "zambia": {
+      "cement": ["lafarge", "dangote", "science cement"],
+      "roof": ["iron sheets", "roofing sheets"],
+      "blocks": ["blocks", "concrete blocks"],
+      "boundary": ["wall", "fence"]
+    },
+    "zimbabwe": {
+      "cement": ["ppc", "lafarge", "khaya cement"],
+      "roof": ["iron sheets", "ibr", "roofing sheets"],
+      "blocks": ["blocks", "concrete blocks"],
+      "boundary": ["durawall", "precast wall", "fence"]
+    },
+    "southafrica": {
+      "cement": ["ppc", "afrisam", "surebuild"],
+      "roof": ["ibr", "corrugated iron", "roofing sheet"],
+      "blocks": ["blocks", "concrete blocks", "maxi brick"],
+      "boundary": ["boundary wall", "precast wall"]
+    }
+  }
+}

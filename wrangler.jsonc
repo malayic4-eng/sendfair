@@ -18,7 +18,7 @@
     "binding": "ASSETS",
     "not_found_handling": "404-page",
     // Run the Worker for admin, API, redirect, logo, result-image, saved house-plan and embed-widget routes (the www redirect is a Cloudflare rule).
-    "run_worker_first": ["/admin*", "/api/*", "/go/*", "/logos/*", "/og/*", "/cost-to-build/*/plan/*", "/embed/widget*"]
+    "run_worker_first": ["/admin*", "/api/*", "/go/*", "/logos/*", "/og/*", "/cost-to-build/*/plan/*", "/embed/widget*", "/quote-check/report/*", "/quote-check/pay/*"]
   },
   // The site's own address. www is forwarded to the main address.
   "routes": [
@@ -27,13 +27,17 @@
   ],
   // Storage for delivery reports and click counts (namespace "sendfair").
   "kv_namespaces": [{ "binding": "SENDFAIR_KV", "id": "4184f9d4de9440119baf9408cecc938a" }],
+  // Quote Check uploads. Create a private R2 bucket named sendfair-quote-check, then uncomment
+  // these two lines and deploy. Without it, Quote Check falls back to KV and refuses files over 18 MB.
+  // "r2_buckets": [{ "binding": "QUOTE_CHECK_FILES", "bucket_name": "sendfair-quote-check" }],
   // Outbound email for rate alerts (Cloudflare Email Service). The domain must be
   // onboarded for Email Sending (Compute > Email Service > Email Sending) before emails send.
   "send_email": [{ "name": "EMAIL" }],
   // AI helper (chat assistant) powered by Cloudflare Workers AI.
   "ai": { "binding": "AI" },
   // Rate alerts run after the morning (11:30) and evening (21:30) Nairobi rate checks.
-  "triggers": { "crons": ["30 8 * * *", "30 18 * * *"] },
+  // The 03:00 run also deletes Quote Check uploads, extracted data and reports after the retention period.
+  "triggers": { "crons": ["30 8 * * *", "30 18 * * *", "0 3 * * *"] },
   "observability": { "enabled": true },
   // Keep settings added in the Cloudflare dashboard (such as ADMIN_PASSWORD) when a new version deploys.
   "keep_vars": true

@@ -393,7 +393,7 @@
   function regionalEstimate(data, id, m2, storeys, rates, picks, opts, factor) {
     return applyRegion(estimate(data, id, m2, storeys, rates, picks, opts), factor);
   }
-  var api = { estimate: estimate, regionalEstimate: regionalEstimate, fx: fx, priceOf: priceOf, choicesFor: choicesFor };
+  var api = { estimate: estimate, regionalEstimate: regionalEstimate, fx: fx, priceOf: priceOf, choicesFor: choicesFor, quantities: quantities };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.SFBuild = api;
 

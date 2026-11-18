@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { buildReports, reportSummary } from "./report-data.mjs";
 import { FR, t, moneyFr, dateFr, assertFrKeys, frGrammar, capFirst } from "./i18n.mjs";
+import { mergeConfig as mergeQuoteCheckConfig, priceFor as quoteCheckPrice } from "../src/quote-check/config.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -41,6 +42,17 @@ if (!midmarket.rates || !Object.keys(midmarket.rates).length) fail(["data/midmar
 const buildCosts = readOptional("data/build-costs.json", { countries: {}, houses: [], updated: "" });
 const regionalFactors = readOptional("data/regional-factors.json", { countries: {} });
 if (!buildCosts.countries || !Object.keys(buildCosts.countries).length) fail(["data/build-costs.json is missing or has no countries"]);
+
+// Quote Check. QUOTE_CHECK_ENABLED=true turns the public pages and calls-to-action on at build time.
+// The Worker checks the same env var at runtime, so uploads and payments stay off until it is set there too.
+const QC_CONFIG_FILE = read("config/quote-check.json");
+const QC = mergeQuoteCheckConfig(QC_CONFIG_FILE);
+const QC_ENV = process.env.QUOTE_CHECK_ENABLED;
+const QC_ON = QC_ENV === "true" || QC_ENV === "1" || ((QC_ENV == null || QC_ENV === "") && QC.enabled === true);
+const QC_TEST = process.env.QUOTE_CHECK_TEST_MODE === "true" || process.env.QUOTE_CHECK_TEST_MODE === "1" || ((process.env.QUOTE_CHECK_TEST_MODE == null || process.env.QUOTE_CHECK_TEST_MODE === "") && QC.payment.testMode === true);
+const QC_SYNONYMS = read("data/quote-check/synonyms.json");
+if (!QC.prices || !Object.keys(QC.prices).length) fail(["config/quote-check.json needs at least one price in prices"]);
+if (!/^\d{4}-\d{2}-\d{2}$/.test(String(buildCosts.updated || ""))) fail(["data/build-costs.json needs an updated date in YYYY-MM-DD form"]);
 
 // Kinds of service, used to compare ways of sending on the Gulf guide.
 const METHOD = {
@@ -303,7 +315,7 @@ function jsonldGraph(items) {
   const graph = list.map((item) => { const { "@context": _ctx, ...rest } = item; return rest; });
   return `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph })}</script>`;
 }
-function head({ title, description, canonical, prefix, jsonld = [], noindex = false, og = "home", ogType = "website", alternates = [] }) {
+function head({ title, description, canonical, prefix, jsonld = [], noindex = false, og = "home", ogType = "website", alternates = [], extraCss = [] }) {
   const ads = ""; // AdSense now loads only after the visitor accepts optional cookies (see src/app.js).
   const cfa = config.cfAnalyticsToken && !DEMO ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${esc(config.cfAnalyticsToken)}"}'></script>` : "";
   // Impact (affiliate network, used by Remitly and others): site verification and link tracking.
@@ -337,6 +349,7 @@ ${ogImg}
 <link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png"><link rel="manifest" href="${prefix}manifest.webmanifest">
 ${fonts}
 <link rel="stylesheet" href="${prefix}assets/style.css?v=${V.css}">
+${extraCss.map((f) => `<link rel="stylesheet" href="${prefix}assets/${f}?v=${V[f === "quote-check.css" ? "qccss" : f.replace(".css", "")] || ""}">`).join("\n")}
 ${jsonldGraph(jsonld)}
 ${config.googleSiteVerification ? `<meta name="google-site-verification" content="${esc(config.googleSiteVerification)}">` : ""}
 ${config.bingSiteVerification ? `<meta name="msvalidate.01" content="${esc(config.bingSiteVerification)}">` : ""}
@@ -378,7 +391,7 @@ function header(prefix, lang, alternates = []) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
+<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a>${QC_ON ? `<a href="${link(prefix, "quote-check/")}">Quote Check</a>` : ""}<a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
 </div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">${L.translateNote} <a href="${link(prefix, "privacy/")}">${L.privacy}</a></p></div></div></header>`;
 }
 
@@ -416,7 +429,7 @@ function footer(prefix, lang) {
 <div><h2>${L.popularRoutes}</h2><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, routeP(S, Rr))}">${esc(S.label)} ${fr ? "vers" : "to"} ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
 <div><h2>${L.services}</h2><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
 <div><h2>${L.exchangeRates}</h2><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, rateP(a, b))}">${a} ${fr ? "vers" : "to"} ${b}</a></li>`; }).join("")}</ul></div>
-<div><h2>${L.buildHouse}</h2><ul><li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, countryCost(id))}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
+<div><h2>${L.buildHouse}</h2><ul>${QC_ON ? `<li><a href="${link(prefix, "quote-check/")}">Quote Check</a></li>` : ""}<li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, countryCost(id))}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
 <nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
@@ -557,6 +570,263 @@ function buildWidget(prefix, countryId, lang, opts = {}) {
 </div>
 <div id="sf-build-out"><p class="note">${fr ? "Calcul des quantités…" : "Working out the quantities…"}</p></div>
 </div>`;
+}
+
+// ---------- Quote Check (paid builder-quote review) ----------
+const QUOTE_CHECK_LOCAL_TERMS = {
+  kenya: "mabati, sandcrete blocks, river sand and fundi days",
+  nigeria: "Dangote cement, sandcrete blocks, sharp sand, granite and bricklayer days",
+  ghana: "Ghacem cement, sandcrete blocks, chippings and mason days",
+  uganda: "iron sheets, concrete blocks, lake sand and mason days",
+  tanzania: "iron sheets, concrete blocks, sand and mason days",
+  zambia: "iron sheets, concrete blocks, sand and bricklayer days",
+  zimbabwe: "IBR sheets, concrete blocks, sand and builder days",
+  southafrica: "IBR sheets, concrete blocks, sand and builder days"
+};
+function quoteCheckCurrencyOptions(selected) {
+  const set = new Set(Object.values(buildCosts.countries).map((c) => c.currency));
+  for (const cur of Object.keys(QC.prices)) set.add(cur);
+  ["USD", "GBP", "EUR"].forEach((c) => set.add(c));
+  return [...set].sort().map((c) => `<option value="${esc(c)}"${c === selected ? " selected" : ""}>${esc(c)}</option>`).join("");
+}
+function quoteCheckPriceString() {
+  return Object.entries(QC.prices).map(([cur, amount]) => `${cur} ${Number(amount).toLocaleString("en")}`).join(" · ");
+}
+function quoteCheckClientConfig() {
+  return {
+    enabled: QC_ON,
+    prices: QC.prices,
+    defaultPriceCurrency: QC.defaultPriceCurrency,
+    maxFiles: QC.limits.maxFiles,
+    maxFileMb: QC.limits.maxFileMb,
+    maxTotalMb: QC.limits.maxTotalMb,
+    testMode: QC_TEST,
+    countries: Object.fromEntries(Object.entries(buildCosts.countries).map(([id, c]) => [id, { currency: c.currency, name: c.name }]))
+  };
+}
+
+function quoteCheckHero(countryId) {
+  const c = countryId ? buildCosts.countries[countryId] : null;
+  const where = c ? ` in ${esc(c.name)}` : "";
+  const price = quoteCheckPrice(QC, c ? c.currency : "KES");
+  return `<section class="qc-hero"><div class="wrap">
+<div>
+<p class="qc-kicker">SendFair Quote Check${c ? " · " + esc(c.name) : ""}</p>
+<h1>Is your builder's quote${where} fair?</h1>
+<p class="qc-lede">We check it line by line against today's local prices — cement, blocks, roofing, tiles, labour days and the permit — and show you where it sits. You see the quote total and how many lines we can match before you pay.</p>
+<div class="qc-hero-actions"><a class="qc-btn" href="#check">Check my quote</a><a class="qc-btn qc-btn-ghost" href="#sample">See a sample report</a></div>
+</div>
+<div class="qc-hero-card">
+<p class="qc-kicker">One-off fee</p>
+<p class="qc-price" data-qc-price>${price.currency} ${Number(price.amount).toLocaleString("en")}</p>
+<p style="font-size:.82rem;color:var(--on-indigo-muted);margin:0 0 12px">Free preview first. Pay only to unlock the line-by-line report.</p>
+<ul>
+<li>Every matched line, with our local price and the date checked</li>
+<li>A verdict: below, within, above or well above typical</li>
+<li>Quantity checks and questions to ask your builder</li>
+<li>A private web report and a PDF by email</li>
+</ul>
+</div>
+</div></section>`;
+}
+
+function quoteCheckPanels(countryId) {
+  const c = countryId ? buildCosts.countries[countryId] : null;
+  return `<section class="qc-block"><div class="wrap">
+<div class="qc-section-head"><h2>What we check, and what we don't</h2><p>${c ? `The same published ${esc(c.name)} prices behind our <a href="${link("../../", `cost-to-build/${countryId}/`)}">house calculator</a>, applied to the quote in front of you.` : "The same published prices behind our house calculator, applied to the quote in front of you."}</p></div>
+<div class="qc-two">
+<div class="qc-panel yes"><h3>What we check</h3><ul>
+<li>Cement, steel, sand, ballast, blocks, roofing, timber, windows, doors, tiles, ceiling, paint, kitchen, wardrobes, plumbing and electrical lines.</li>
+<li>Trade days: mason, labourer, carpenter, painter, electrician and plumber, where the quote prices them separately.</li>
+<li>The published building permit and plan fees for the stated floor area.</li>
+<li>The quote's own arithmetic: quantity x unit price against the line total, and the lines against the quote total.</li>
+<li>Quantity sanity checks for cement, blocks, roofing and other items, using the same planning take-off as the calculator.</li>
+<li>A currency conversion at the mid-market rate when the quote is written in a different currency from the price list.</li>
+</ul></div>
+<div class="qc-panel no"><h3>What we don't check</h3><ul>
+<li>The plot of land, stamp duty, survey and title work.</li>
+<li>The contractor's fee, profit, overhead, financing and site preliminaries.</li>
+<li>Architect's, engineer's and quantity surveyor's fees, and design changes.</li>
+<li>Structural design, soil conditions, retaining walls, water and power connections.</li>
+<li>Anything not in our price data, including imported or specialist finishes. Those lines are listed as not checked, never given an invented price.</li>
+<li>Whether the builder is honest or the workmanship is good. We check the numbers, not the person.</li>
+</ul></div>
+</div>
+</div></section>`;
+}
+
+function quoteCheckSteps() {
+  return `<section class="qc-block alt"><div class="wrap">
+<div class="qc-section-head"><h2>How it works</h2><p>Upload the quote. We read it, check it and show you a free preview before you pay.</p></div>
+<div class="qc-steps">
+<div class="qc-step"><h3>Upload the quote</h3><p>A PDF, a photo of a printed or handwritten quote, an XLSX or a CSV. Up to ${QC.limits.maxFiles} files, ${QC.limits.maxFileMb} MB each.</p></div>
+<div class="qc-step"><h3>See the free preview</h3><p>The number of line items, the quote total we detected, and how many lines we can match to our local prices. No line-level verdicts yet.</p></div>
+<div class="qc-step"><h3>Pay once, read the report</h3><p>Unlock the line-by-line table, the verdict, quantity checks and the questions to ask. The private link works on your phone; the PDF arrives by email.</p></div>
+</div>
+</div></section>`;
+}
+
+function quoteCheckForm(prefix, countryId) {
+  const selected = countryId || "kenya";
+  const c = buildCosts.countries[selected] || buildCosts.countries.kenya;
+  const price = quoteCheckPrice(QC, c.currency);
+  const countryOptions = Object.entries(buildCosts.countries).map(([id, x]) => `<option value="${esc(id)}"${id === selected ? " selected" : ""}>${esc(x.name)} (${esc(x.currency)})</option>`).join("");
+  const disabled = QC_ON ? "" : " disabled";
+  return `<div class="qc-form-wrap">
+<form class="qc-form" id="qc-form" method="post" action="/api/quote-check/upload" enctype="multipart/form-data" data-enabled="${QC_ON ? "true" : "false"}" data-config="${esc(JSON.stringify(quoteCheckClientConfig()))}">
+<h2>Check my quote</h2>
+<p class="qc-hint">Free preview first. We ask for the country, the house and an email so we can send the report and match the right local prices.</p>
+<div id="qc-disabled" class="qc-alert qc-test"${QC_ON ? " hidden" : ""}><strong>Quote Check is in review.</strong> Uploads and payments are switched off. Set <code>QUOTE_CHECK_ENABLED=true</code> in the Worker and rebuild to take quotes.</div>
+${QC_TEST && QC_ON ? '<div class="qc-alert qc-test"><strong>Test mode.</strong> Sample quotes are used for Kenya, Nigeria and Ghana. No card is charged. Do not use this build for real customers.</div>' : ""}
+<div class="qc-grid">
+<div class="qc-field"><label for="qc-country">Country</label><select id="qc-country" name="country" required>${countryOptions}</select></div>
+<div class="qc-field"><label for="qc-town">Town, county or state</label><input id="qc-town" name="town" type="text" maxlength="120" placeholder="e.g. ${esc(c.city || "Nairobi")}" required></div>
+<div class="qc-field"><label for="qc-bedrooms">Bedrooms</label><select id="qc-bedrooms" name="bedrooms" required>${[1,2,3,4,5,6].map((n) => `<option value="${n}"${n === 3 ? " selected" : ""}>${n}${n === 6 ? "+" : ""}</option>`).join("")}</select></div>
+<div class="qc-field"><label for="qc-storeys">House type</label><select id="qc-storeys" name="storeys" required><option value="1" selected>Bungalow (one floor)</option><option value="2">Maisonette (two floors)</option></select></div>
+<div class="qc-field"><label for="qc-m2">Approximate floor area, m²</label><input id="qc-m2" name="m2" type="number" min="20" max="1000" step="1" value="110" required><span class="qc-hint">A 3-bedroom bungalow is often about 100–120 m².</span></div>
+<div class="qc-field"><label for="qc-quote-currency">Quote currency</label><select id="qc-quote-currency" name="quoteCurrency" required>${quoteCheckCurrencyOptions(c.currency)}</select></div>
+<div class="qc-field full"><label for="qc-email">Email for the report</label><input id="qc-email" name="email" type="email" autocomplete="email" maxlength="200" placeholder="you@example.com" required><span class="qc-hint">We send the private report link and the PDF here.</span></div>
+</div>
+<div class="qc-field full">
+<span class="qc-label" id="qc-files-label">The quote</span>
+<div class="qc-drop" id="qc-drop" role="button" tabindex="0" aria-labelledby="qc-files-label">
+<strong>Drop the quote here, or click to choose</strong>
+<span>PDF, JPG/PNG photo, XLSX or CSV · up to ${QC.limits.maxFiles} files · ${QC.limits.maxFileMb} MB each</span>
+<input id="qc-files" name="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.csv" required${disabled}>
+</div>
+<ul class="qc-files" id="qc-file-list" aria-live="polite"></ul>
+</div>
+<label class="qc-consent"><input type="checkbox" name="consent" value="on" required><span>I agree to SendFair processing these files to produce this report, and I accept the <a href="${link(prefix, "terms/")}">terms</a> and the <a href="${link(prefix, "privacy/")}">privacy policy</a>. I confirm I have the right to share this quote.</span></label>
+<div class="qc-error" id="qc-error" role="alert" tabindex="-1" hidden></div>
+<div class="qc-progress" id="qc-progress" hidden><span class="qc-spinner" aria-hidden="true"></span><span>Uploading and reading the quote…</span></div>
+<button class="qc-btn" id="qc-submit" type="submit"${disabled}>Check my quote</button>
+<noscript><p class="qc-small">Quote Check needs JavaScript to upload the files. Email <a href="mailto:${esc(config.contactEmail)}">${esc(config.contactEmail)}</a> if you cannot use the form.</p></noscript>
+</form>
+<div class="qc-side">
+<div class="qc-side-card"><h3>One-off fee</h3><p class="qc-side-price" data-qc-price>${price.currency} ${Number(price.amount).toLocaleString("en")}</p><p>Free preview first. Pay only if you want the line-by-line report. The charge currency is confirmed at checkout.</p></div>
+<div class="qc-side-card"><h3>What you get</h3><ul><li>A private web report with a line-by-line table.</li><li>Our typical unit price and the date we checked it.</li><li>A PDF sent to your email.</li><li>The unmatched lines, listed separately as not checked.</li><li>Questions to ask your builder.</li></ul></div>
+<div class="qc-side-card"><h3>Your files</h3><p>Stored privately, never on a public URL. Deleted together with the extracted data ${QC.retentionDays} days after the report. Under the Kenya Data Protection Act and, for diaspora users, GDPR/UK GDPR.</p></div>
+</div>
+</div>`;
+}
+
+function quoteCheckSample(countryId) {
+  const c = countryId ? buildCosts.countries[countryId] : buildCosts.countries.kenya;
+  const cur = c.currency;
+  return `<section class="qc-block" id="sample"><div class="wrap">
+<div class="qc-section-head"><h2>A sample report</h2><p>Example figures from a Kenya quote, shown to explain the format. They are not a real quote and not a price for your house.</p></div>
+<div class="qc-cards">
+<div class="qc-card"><span class="qc-card-k">Quote total detected</span><strong class="qc-card-v">KES 3,642,600</strong><span class="qc-card-s">19 line items</span></div>
+<div class="qc-card"><span class="qc-card-k">SendFair estimate for matched items</span><strong class="qc-card-v">KES 2,859,130</strong><span class="qc-card-s">16 of 19 lines matched</span></div>
+<div class="qc-card"><span class="qc-card-k">Difference on matched items</span><strong class="qc-card-v qc-up">+KES 525,970</strong><span class="qc-card-s">+18.4% · matched value KES 3,385,100</span></div>
+<div class="qc-card qc-verdict qc-flag-above"><span class="qc-card-k">Verdict</span><strong class="qc-card-v">Above typical</strong><span class="qc-card-s">Ask about the flagged lines before you agree.</span></div>
+</div>
+<div class="table-wrap qc-table-wrap"><table class="rates-table qc-table">
+<caption>Sample line-by-line rows. Our prices checked ${esc(buildCosts.updated)}.</caption>
+<thead><tr><th>Item as written</th><th>Our match</th><th class="num">Qty</th><th>Unit</th><th class="num">Quoted unit</th><th class="num">Our typical unit</th><th class="num">Difference</th><th>Flag</th></tr></thead>
+<tbody>
+<tr><td><strong>Cement, 50kg bags</strong></td><td>Cement<span class="qc-line-note">Bamburi Fundi, top of the range</span></td><td class="num">650</td><td>bags</td><td class="num">KES 820</td><td class="num">KES 780<span class="qc-src">checked ${esc(buildCosts.updated)}</span></td><td class="num"><span class="qc-flag-within">+5.1%</span></td><td><span class="qc-flag qc-flag-within">Within typical range</span></td></tr>
+<tr><td><strong>Mabati iron sheets, gauge 30</strong></td><td>Roofing</td><td class="num">220</td><td>m²</td><td class="num">KES 720</td><td class="num">KES 580<span class="qc-src">checked ${esc(buildCosts.updated)}</span></td><td class="num"><span class="qc-flag-above">+24.1%</span></td><td><span class="qc-flag qc-flag-above">Above typical</span></td></tr>
+<tr><td><strong>Ceiling boards</strong></td><td>Ceiling boards<span class="qc-line-note">arithmetic does not add up</span></td><td class="num">110</td><td>m²</td><td class="num">KES 250</td><td class="num">KES 182<span class="qc-src">checked ${esc(buildCosts.updated)}</span></td><td class="num"><span class="qc-flag-well">+37.4%</span></td><td><span class="qc-flag qc-flag-well">Well above typical</span></td></tr>
+<tr><td><strong>Machine-cut stones 9x9</strong></td><td>Not checked<span class="qc-line-note">our boundary-wall price is per metre, the quote is per piece</span></td><td class="num">500</td><td>pieces</td><td class="num">KES 60</td><td class="num">—</td><td class="num">—</td><td><span class="qc-flag qc-flag-none">Not checked</span></td></tr>
+<tr><td><strong>Architect's fee</strong></td><td>Not checked<span class="qc-line-note">outside our price data</span></td><td class="num">1</td><td>each</td><td class="num">KES 150,000</td><td class="num">—</td><td class="num">—</td><td><span class="qc-flag qc-flag-none">Not checked</span></td></tr>
+</tbody></table></div>
+<p class="qc-small">The full report also lists quantity checks and the questions to ask your builder. Prices are checked ${esc(buildCosts.updated)}.</p>
+</div></section>`;
+}
+
+function quoteCheckFaqs(countryId) {
+  const c = countryId ? buildCosts.countries[countryId] : null;
+  const where = c ? ` in ${c.name}` : "";
+  const cur = c ? c.currency : "KES";
+  const price = quoteCheckPrice(QC, cur);
+  return [
+    ["What is SendFair Quote Check?", `It is a paid review of a builder's quote${where}. We read the quote, match each line to the same published local prices behind our house calculator, and show you where the quote sits. It is a comparison, not a valuation or a quantity survey.`],
+    ["What do you check?", "Materials, trade days, the published permit fees, the quote's own arithmetic, and quantities where we have a planning take-off. Every matched line shows our typical unit price and the date we checked it."],
+    ["What don't you check?", "Land, the contractor's fee or profit, architect's and engineer's fees, structural design, soil conditions, site preliminaries and anything not in our price data. Those lines are listed separately as not checked; we never invent a price for them."],
+    ["How much does it cost?", `One-off fee: ${price.currency} ${Number(price.amount).toLocaleString("en")} for a ${cur} quote. Other currencies: ${quoteCheckPriceString()}. The free preview comes first; you pay only to unlock the line-by-line report. The exact charge currency is confirmed at checkout.`],
+    ["When do I pay?", "After you upload. You see the number of line items, the quote total and how many lines we can match for free. The line-level verdicts unlock after payment."],
+    ["What can I upload?", `A PDF, a JPG or PNG photo of a printed or handwritten quote, an XLSX spreadsheet or a CSV bill of quantities. Up to ${QC.limits.maxFiles} files, ${QC.limits.maxFileMb} MB each.`],
+    ["How current are the prices?", `The house-build prices were checked ${buildCosts.updated} and are refreshed monthly. Every report shows the date on each matched price. Prices vary by site, supplier and season.`],
+    ["What happens to my files?", `They are stored privately, never on a public URL, and deleted together with the extracted data ${QC.retentionDays} days after the report. Payment records are kept for accounting. The privacy policy on this site explains this in full.`],
+    ["What if my quote is in a different currency?", "We compare in the country's price currency and convert the quote at the mid-market rate on the day. The report states the rate it used."],
+    ["Is this a professional valuation?", "No. It is an estimate for comparison, not a professional valuation or quantity survey. Always confirm a price with your own supplier and ask your builder about anything flagged."]
+  ];
+}
+
+function quoteCheckPage(countryId) {
+  const c = countryId ? buildCosts.countries[countryId] : null;
+  const name = c ? c.name : "";
+  const terms = countryId && QUOTE_CHECK_LOCAL_TERMS[countryId] ? QUOTE_CHECK_LOCAL_TERMS[countryId] : "cement, blocks, roofing, sand, labour days and the permit";
+  const faqs = quoteCheckFaqs(countryId);
+  const rel = countryId ? `quote-check/${countryId}/` : "quote-check/";
+  const prefix = countryId ? "../../" : "../";
+  const price = quoteCheckPrice(QC, c ? c.currency : "KES");
+  const title = countryId
+    ? `Quote Check ${name}: is your builder's quote fair? · ${config.siteName}`
+    : `Quote Check: is your builder's quote fair? · ${config.siteName}`;
+  const description = countryId
+    ? `Send a builder's quote in ${name} for a line-by-line check against today's local prices: ${terms}. Free preview, then a paid report.`
+    : `Check a builder's quote line by line against today's local prices in 17 African countries. Free preview, then a fixed-fee report with a verdict, quantity checks and questions to ask.`;
+  const trail = countryId
+    ? [[config.siteName, ""], ["Quote Check", "quote-check/"], [name, rel]]
+    : [[config.siteName, ""], ["Quote Check", rel]];
+  const ld = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: `SendFair Quote Check${countryId ? " " + name : ""}`,
+      serviceType: "Builder quote review",
+      provider: { "@type": "Organization", name: config.siteName, url: site },
+      areaServed: countryId ? name : Object.values(buildCosts.countries).map((x) => x.name),
+      description: "A line-by-line comparison of a builder's quote with SendFair's published local construction prices.",
+      offers: { "@type": "Offer", price: price.amount, priceCurrency: price.currency, availability: QC_ON ? "https://schema.org/InStock" : "https://schema.org/PreOrder" }
+    },
+    crumbs(trail),
+    faqLd(faqs)
+  ];
+  const body = `${quoteCheckHero(countryId)}
+${quoteCheckPanels(countryId)}
+${quoteCheckSteps()}
+<section class="qc-block" id="check"><div class="wrap">
+<div class="qc-section-head"><h2>Upload the quote</h2><p>${countryId ? `Prices are the published ${esc(name)} figures behind our <a href="${link(prefix, `cost-to-build/${countryId}/`)}">${esc(name)} house calculator</a>.` : "Choose the country and we use that country's published prices. The report is a comparison, not a valuation."}</p></div>
+${quoteCheckForm(prefix, countryId)}
+</div></section>
+${quoteCheckSample(countryId)}
+<section class="qc-block alt"><div class="wrap">
+<div class="qc-section-head"><h2>Questions</h2></div>
+${faqBlock(faqs)}
+<p class="qc-small">Quote Check is run by ${esc(config.legalName || config.siteName)} from Nairobi. It is an estimate for comparison, not a professional valuation or quantity survey. Read the <a href="${link(prefix, "privacy/")}">privacy policy</a> and the <a href="${link(prefix, "terms/")}">terms</a>.</p>
+${countryId ? "" : `<h2>Quote Check by country</h2><ul class="route-links">${Object.keys(buildCosts.countries).map((id) => `<li><a href="${link(prefix, `quote-check/${id}/`)}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul>`}
+${countryId ? `<p><a class="btn" href="${link(prefix, `cost-to-build/${countryId}/`)}">Price the whole house in ${esc(name)}</a></p>` : ""}
+</div></section>`;
+  write(rel + "index.html", page({
+    prefix, canonical: rel, noindex: !QC_ON, og: "home", extraCss: ["quote-check.css"], extraJs: "quote-check.js",
+    title, description, jsonld: ld, body
+  }));
+  if (QC_ON) urls.push(rel);
+}
+
+function quoteCheckCard(prefix, countryId) {
+  if (!QC_ON) return "";
+  const rel = countryId ? `quote-check/${countryId}/` : "quote-check/";
+  const c = countryId ? buildCosts.countries[countryId] : null;
+  const price = quoteCheckPrice(QC, c ? c.currency : "KES");
+  return `<section class="block" id="quote-check-home"><div class="wrap">
+<div class="section-head"><h2>Got a quote already? Check it.</h2><p class="lede">A builder's lump sum is hard to read. Send us the quote and we check it line by line against today's local prices${c ? ` in ${esc(c.name)}` : ""}: materials, trade days and the permit. Free preview, then a fixed-fee report.</p></div>
+<div class="build-card" style="max-width:640px">
+<span class="k">SendFair Quote Check${c ? " · " + esc(c.name) : ""}</span>
+<strong>${price.currency} ${Number(price.amount).toLocaleString("en")} <span style="font:600 .8rem var(--font-body);color:var(--muted)">one-off, after a free preview</span></strong>
+<span class="s">Line-by-line table, a verdict, quantity checks, questions to ask your builder, a private web report and a PDF by email. Land and the contractor's fee are not included.</span>
+<p style="margin:10px 0 0"><a class="btn" href="${link(prefix, rel)}">Check my quote</a> <a class="btn btn-ghost" href="${link(prefix, rel)}#sample">See a sample</a></p>
+</div>
+</div></section>`;
+}
+
+function quoteCheckInlineCta(prefix, countryId) {
+  if (!QC_ON) return "";
+  const rel = countryId ? `quote-check/${countryId}/` : "quote-check/";
+  return `<div class="build-card" style="margin:18px 0 0"><span class="k">Got a quote already?</span><strong>Check it line by line</strong><span class="s">SendFair Quote Check compares a builder's quote with the same local prices used here${countryId ? ` for ${esc(buildCosts.countries[countryId].name)}` : ""}. Free preview first.</span><p style="margin:8px 0 0"><a class="btn" href="${link(prefix, rel)}">Open Quote Check</a></p></div>`;
 }
 
 function buildTeaser(prefix) {
@@ -1011,6 +1281,7 @@ function writeBuildPages() {
 <h1>${id ? `Cost to build a house in ${esc(buildCosts.countries[id].name)}` : "House cost calculator"}</h1>
 <p class="lede">${esc(intro)}</p>
 ${buildWidget(prefix, id || "kenya")}
+${quoteCheckInlineCta(prefix, id)}
 <p class="build-links"><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a> <a href="${link(prefix, "cost-to-build/same-house/")}">The same 3-bedroom bungalow in every country</a> <a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What this receipt prices</a></p>
 ${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(id) ? `<p><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">Lire cette page en français</a></p>` : ""}
 ${id ? `<h2>By size</h2><ul class="route-links">${[2, 3, 4].map((n) => `<li><a href="${link(prefix, `cost-to-build/${id}/${n}-bedroom/`)}">${n}-bedroom house</a></li>`).join("")}</ul>` : ""}
@@ -1048,6 +1319,8 @@ ${faqBlock(faqs)}
   writeReceiptPage();
   writeFrenchHouses();
   writeRegionPages();
+  quoteCheckPage(null);
+  for (const id of Object.keys(buildCosts.countries)) quoteCheckPage(id);
 }
 
 function writeReceiptPage() {
@@ -1233,7 +1506,7 @@ ${groups.map((g) => !g.list.some((s) => corridors.receivers.some((r) => (quotes[
 </div></section>`;
 }
 
-function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og, ogType, buildPage, lang = "en", alternates = [], rank = true }) {
+function page({ prefix, title, description, canonical, body, jsonld, noindex, init, bodyOnly, og, ogType, buildPage, lang = "en", alternates = [], rank = true, extraCss = [], extraJs = "" }) {
   if (alternates.length && canonical) sitemapAlts[canonical] = alternates;
   const sf = {
     root: prefix, siteUrl: site, disclosureHref: link(prefix, "disclosure/"),
@@ -1254,8 +1527,9 @@ var m=document.cookie.match(/googtrans=.en.([a-zA-Z-]+)/);if(m&&m[1]!=="en")load
     (rank ? `<script src="${prefix}assets/rank.js?v=${V.rank}" defer></script>` : "") +
     `<script src="${prefix}assets/app.js?v=${V.app}" defer></script>` +
     (buildPage ? `<script src="${prefix}assets/build-cost.js?v=${V.build}" defer></script>` : "") +
+    (extraJs ? `<script src="${prefix}assets/${extraJs}?v=${V[extraJs === "quote-check.js" ? "qcjs" : extraJs.replace(".js", "")] || ""}" defer></script>` : "") +
     (PREVIEW || DEMO ? "" : `<script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})});addEventListener("beforeinstallprompt",function(e){e.preventDefault();var b=document.getElementById("sf-install");if(!b)return;b.hidden=false;b.onclick=function(){b.hidden=true;e.prompt();};});</script>`);
-  const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og, ogType, alternates });
+  const headStr = head({ title, description, canonical, prefix, jsonld, noindex, og, ogType, alternates, extraCss });
   const bodyStr = `<a class="skip" href="#content">${lang === "fr" ? "Aller au contenu" : "Skip to content"}</a>\n${header(prefix, lang, alternates)}\n<main id="content" tabindex="-1">${body}</main>\n${footer(prefix, lang)}\n${scripts}`;
   if (bodyOnly) return `${headStr}\n${bodyStr}`;
   return `<!doctype html>\n<html lang="${lang === "fr" ? "fr" : "en"}">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n${headStr}\n</head>\n<body>\n${bodyStr}\n</body>\n</html>\n`;
@@ -1281,7 +1555,7 @@ function copyDir(src, dst) {
 // Each page asks for style.css?v=<hash> etc., so browsers fetch new files as soon as they change.
 import crypto from "node:crypto";
 const ver = (f) => crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, "src", f))).digest("hex").slice(0, 10);
-const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css"), build: ver("build-cost.js") };
+const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css"), build: ver("build-cost.js"), qccss: ver("quote-check.css"), qcjs: ver("quote-check.js"), qcreport: ver("quote-check-report.js") };
 const sitemapAlts = {};
 
 // ---------- SEO helpers ----------
@@ -1484,11 +1758,11 @@ function amountsTable(ctx) {
 // ---------- build ----------
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(path.join(OUT, "assets"), { recursive: true });
-for (const f of ["style.css", "app.js", "rank.js", "fonts.css", "build-cost.js"]) fs.copyFileSync(path.join(ROOT, "src", f), path.join(OUT, "assets", f));
+for (const f of ["style.css", "app.js", "rank.js", "fonts.css", "build-cost.js", "quote-check.css", "quote-check.js", "quote-check-report.js"]) fs.copyFileSync(path.join(ROOT, "src", f), path.join(OUT, "assets", f));
 function minifyCss(s) {
   return s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{}:;,])\s*/g, "$1").replace(/;}/g, "}").trim();
 }
-for (const f of ["style.css", "fonts.css"]) {
+for (const f of ["style.css", "fonts.css", "quote-check.css"]) {
   const file = path.join(OUT, "assets", f);
   fs.writeFileSync(file, minifyCss(fs.readFileSync(file, "utf8")));
 }
@@ -1508,7 +1782,10 @@ write("data/history.json", JSON.stringify(history));
 const wiseFeed = path.join(ROOT, "data/wise-feed.json");
 if (fs.existsSync(wiseFeed) && !DEMO) fs.copyFileSync(wiseFeed, path.join(OUT, "data/wise-feed.json"));
 if (demoReports) write("data/reports-demo.json", JSON.stringify(demoReports));
-write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, preferAutoAfterHours: config.preferAutoAfterHours, handLockHours: config.handLockHours, regionalAverageCost: config.regionalAverageCost }));
+write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, preferAutoAfterHours: config.preferAutoAfterHours, handLockHours: config.handLockHours, regionalAverageCost: config.regionalAverageCost, ga4MeasurementId: config.ga4MeasurementId || "", quoteCheckEnabled: QC_ON, quoteCheckAssets: { siteCss: V.css, qccss: V.qccss, app: V.app, report: V.qcreport, fonts: V.fonts } }));
+write("data/quote-check/config.json", JSON.stringify({ ...QC, enabled: QC_ON }, null, 2));
+write("data/quote-check/synonyms.json", JSON.stringify(QC_SYNONYMS, null, 2));
+if (fs.existsSync(path.join(ROOT, "data/quote-check/fixtures"))) copyDir(path.join(ROOT, "data/quote-check/fixtures"), path.join(OUT, "data/quote-check/fixtures"));
 
 const urls = [];
 const S0 = corridors.senders.find((s) => s.id === "uk") || corridors.senders[0];
@@ -1547,7 +1824,7 @@ write("index.html", page({
     ctx: homeCtx,
     heading: "Send money home. Build a house back home.",
     sub: `Two tools for the diaspora. Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup — then price a house back home before you build. ${homeProof}`
-  }) + buildTeaser("") + guideTeaser("") + corridorGrid("") + `
+  }) + buildTeaser("") + quoteCheckCard("", null) + guideTeaser("") + corridorGrid("") + `
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
 <ol class="steps">
@@ -2181,7 +2458,8 @@ const privacyItems = [
   `<li><strong>Page speed on this device.</strong> The browser can note how fast the last page felt. That note stays on the device. It is not a published traffic report, and it is not a 75th-percentile field measurement.</li>`,
   (config.ga4MeasurementId || config.gtmContainerId || config.clarityProjectId) ? `<li><strong>Optional analytics.</strong> If you accept optional cookies, Google Analytics and Microsoft Clarity load. Clarity records how visitors move around the site to help us improve it. They stay off when you choose essential only, and they are not loaded while their IDs are blank.</li>` : "",
   `<li><strong>Offline copies and logos.</strong> Your browser keeps a copy of the pages you open on SendFair so they still load without a connection; this stays on your device. Service logos are fetched by our server from each provider's public website, so your browser only ever connects to sendfair.africa for them.</li>`,
-  `<li><strong>Hosting.</strong> The site is hosted by Cloudflare, which processes basic technical data (such as IP address) to deliver pages and protect against abuse.</li>`
+  `<li><strong>Hosting.</strong> The site is hosted by Cloudflare, which processes basic technical data (such as IP address) to deliver pages and protect against abuse.</li>`,
+  `<li><strong>Quote Check (paid quote review).</strong> If you use <a href="${link("../", "quote-check/")}">Quote Check</a>, we store the files you upload, the country, town, house details, quote currency, your email address, and the line items extracted from the quote. We use them to read the quote, match it to our published prices, produce the report and email it to you. The file is processed by our AI extraction provider, the payment by our payment provider, and the report email by our email provider. We keep the payment reference, amount and status, but never your card details. Uploaded files, extracted data and reports are deleted ${QC.retentionDays} days after the report; payment records are kept for accounting and tax. Our legal bases are performance of the contract (producing the report you paid for), legitimate interests (preventing fraud and improving the service), and consent where the law requires it. For Kenya this is processed under the Data Protection Act 2019; for UK and European users, UK GDPR and GDPR apply. You can ask for a copy, correction or deletion through the contact page.</li>`
 ].filter(Boolean).join("");
 
 const trust = {
@@ -2242,6 +2520,8 @@ const trust = {
 <p>Last updated ${today}.</p>
 <p>SendFair provides information to help you compare money transfer services, and an estimate of what it costs to build a simple house back home. It is not financial advice, we are not a money transfer business, and the house figure is not a contractor's quote.</p>
 <p>The house estimate leaves out land, the contractor's fee and several other costs named on that page. Material menus use published types and published ranges. A guide is not a shop receipt. Always check the current price at the yard before you buy or send.</p>
+<h2>Quote Check</h2>
+<p>Quote Check is a paid comparison of a builder's quote with our published local prices. It is not a valuation, quantity survey, structural design or guarantee of workmanship. The one-off fee is shown before payment, and the free preview comes first. If we cannot produce a report after payment, we refund the fee. You confirm that you have the right to upload the quote and that it does not contain another person's private information. We may refuse or refund an order that cannot be read. A report link is private to you; do not publish it. Card payments are handled by our payment provider under its own terms. Uploaded files, extracted data and reports are deleted ${QC.retentionDays} days after the report, as described in the privacy policy.</p>
 <p>We work to keep rates accurate, but they change through the day and can differ on the provider's site. Always confirm the final amount, fee and delivery time with the provider before paying. We are not responsible for transfers you make with any provider, or for losses from relying on a rate shown here.</p>
 <p>Delivery-time reports come from other visitors and are shown as they are given.</p>
 <p>Provider names belong to their owners. Their appearance here does not mean they endorse SendFair.</p>${config.legalName || config.companyNumber || config.legalAddress || config.governingLaw ? "<p>" + esc(config.legalName || config.siteName) + (config.companyNumber ? ", company number " + esc(config.companyNumber) : "") + (config.legalAddress ? ", " + esc(config.legalAddress) : "") + "." + (config.governingLaw ? " These terms are governed by " + esc(config.governingLaw) + " law." : "") + "</p>" : ""}`],
@@ -2283,6 +2563,8 @@ write("404.html", page({ prefix: "/", canonical: null, rank: false, title: `Page
 // Rate Desk (never indexed)
 fs.mkdirSync(path.join(OUT, "admin"), { recursive: true });
 fs.writeFileSync(path.join(OUT, "admin/index.html"), fs.readFileSync(path.join(ROOT, "src/admin.html"), "utf8").replace(/assets\/fonts\.css(?!\?)/g, `assets/fonts.css?v=${V.fonts}`).replace(/assets\/rank\.js(?!\?)/g, `assets/rank.js?v=${V.rank}`));
+fs.mkdirSync(path.join(OUT, "admin/quote-checks"), { recursive: true });
+fs.writeFileSync(path.join(OUT, "admin/quote-checks/index.html"), fs.readFileSync(path.join(ROOT, "src/quote-check-admin.html"), "utf8"));
 
 // SEO and hosting files
 writeBuildPages();
@@ -2492,10 +2774,11 @@ function writeHtmlSitemap() {
   const pretty = (u) => (u === "" ? "Home" : u.replace(/\/$/, "").split("/").pop().replace(/-/g, " "));
   const groups = [
     ["Guides", (u) => u.startsWith("guides/")],
+    ["Quote Check", (u) => u.startsWith("quote-check/")],
     ["Cost to build", (u) => u.startsWith("cost-to-build/")],
     ["Send money", (u) => u.startsWith("send-money") && !/^send-money\/[^/]+\/\d+\/$/.test(u)],
     ["Services and rates", (u) => u.startsWith("providers/") || u.startsWith("compare/") || u.startsWith("rates/")],
-    ["About this site", (u) => !u.startsWith("guides/") && !u.startsWith("cost-to-build/") && !u.startsWith("send-money") && !u.startsWith("providers/") && !u.startsWith("compare/") && !u.startsWith("rates/")]
+    ["About this site", (u) => !u.startsWith("guides/") && !u.startsWith("quote-check/") && !u.startsWith("cost-to-build/") && !u.startsWith("send-money") && !u.startsWith("providers/") && !u.startsWith("compare/") && !u.startsWith("rates/")]
   ];
   const body = groups.map(([name, test]) => {
     const list = urls.filter(test);
@@ -2514,7 +2797,7 @@ writeHtmlSitemap();
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.map((u) => { const lm = lastmodFor(u); const alts = sitemapAlts[u]; return `  <url><loc>${site}/${u}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ""}${alts ? alts.map((a) => `<xhtml:link rel="alternate" hreflang="${a.lang}" href="${a.href}"/>`).join("") : ""}</url>`; }).join("\n")}\n</urlset>\n`);
 // AI answer engines may read the site so SendFair can be cited in their answers; model-training crawlers are
 // blocked separately by Cloudflare's managed robots.txt, which Cloudflare puts above these lines.
-write("robots.txt", `User-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nAllow: /\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nSitemap: ${site}/sitemap.xml\n`);
+write("robots.txt", `User-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nAllow: /\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nDisallow: /quote-check/report/\nDisallow: /quote-check/pay/\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nDisallow: /quote-check/report/\nDisallow: /quote-check/pay/\nSitemap: ${site}/sitemap.xml\n`);
 // Installable app: the manifest and a small service worker that keeps the last pages viewed for offline use.
 write("manifest.webmanifest", JSON.stringify({
   name: "SendFair: compare transfers and house-build costs", short_name: "SendFair",
@@ -2572,6 +2855,12 @@ write("_headers", `/*
   Content-Type: application/manifest+json
   Cache-Control: public, max-age=86400
 /admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+/quote-check/report/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+/quote-check/pay/*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
 `);

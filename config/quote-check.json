@@ -1,0 +1,46 @@
+{
+  "enabled": false,
+  "serviceName": "Quote Check",
+  "prices": {
+    "KES": 1500,
+    "NGN": 12000,
+    "GHS": 120,
+    "USD": 12,
+    "GBP": 9,
+    "EUR": 10
+  },
+  "defaultPriceCurrency": "USD",
+  "thresholds": {
+    "below": -0.15,
+    "above": 0.15,
+    "wellAbove": 0.35
+  },
+  "limits": {
+    "maxFiles": 5,
+    "maxFileMb": 15,
+    "maxTotalMb": 45,
+    "uploadsPerHour": 6,
+    "uploadsPerEmailPerDay": 3
+  },
+  "retentionDays": 30,
+  "quantityTolerance": 0.4,
+  "roofSheetM2": 2.7,
+  "steelBarKg": 10.65,
+  "lorryM3": {
+    "sand": 11,
+    "ballast": 12
+  },
+  "extraction": {
+    "provider": "openai",
+    "model": "",
+    "maxLines": 200
+  },
+  "payment": {
+    "provider": "test",
+    "testMode": true
+  },
+  "ownerEmail": "hello@sendfair.africa",
+  "fromEmail": "hello@sendfair.africa",
+  "consentVersion": "2026-11-18",
+  "disclaimer": "This is an estimate for comparison, not a professional valuation or quantity survey. Prices vary by site, supplier and season. Always confirm a price with your own supplier and ask your builder about anything flagged here."
+}

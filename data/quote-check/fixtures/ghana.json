@@ -1,0 +1,137 @@
+{
+  "name": "Ghana sample quote",
+  "country": "ghana",
+  "town": "Accra",
+  "bedrooms": 3,
+  "storeys": 1,
+  "m2": 110,
+  "quoteCurrency": "GHS",
+  "extraction": {
+    "currency": "GHS",
+    "quote_total": 410510,
+    "line_items": [
+      {
+        "description": "Ghacem cement 50kg",
+        "quantity": 640,
+        "unit": "bags",
+        "unit_price": 135,
+        "line_total": 86400,
+        "currency": "GHS"
+      },
+      {
+        "description": "Sandcrete blocks 6 inch",
+        "quantity": 4900,
+        "unit": "pieces",
+        "unit_price": 9.5,
+        "line_total": 46550,
+        "currency": "GHS"
+      },
+      {
+        "description": "Rough sand",
+        "quantity": 45,
+        "unit": "m3",
+        "unit_price": 320,
+        "line_total": 14400,
+        "currency": "GHS"
+      },
+      {
+        "description": "Chippings 3/4 inch",
+        "quantity": 25,
+        "unit": "m3",
+        "unit_price": 300,
+        "line_total": 7500,
+        "currency": "GHS"
+      },
+      {
+        "description": "Steel reinforcement",
+        "quantity": 3200,
+        "unit": "kg",
+        "unit_price": 17,
+        "line_total": 54400,
+        "currency": "GHS"
+      },
+      {
+        "description": "Aluminium roofing sheets",
+        "quantity": 210,
+        "unit": "m2",
+        "unit_price": 280,
+        "line_total": 58800,
+        "currency": "GHS"
+      },
+      {
+        "description": "Floor tiles",
+        "quantity": 120,
+        "unit": "m2",
+        "unit_price": 180,
+        "line_total": 21600,
+        "currency": "GHS"
+      },
+      {
+        "description": "Emulsion paint",
+        "quantity": 130,
+        "unit": "litres",
+        "unit_price": 22,
+        "line_total": 2860,
+        "currency": "GHS"
+      },
+      {
+        "description": "Mason",
+        "quantity": 120,
+        "unit": "days",
+        "unit_price": 320,
+        "line_total": 38400,
+        "currency": "GHS"
+      },
+      {
+        "description": "Labourers",
+        "quantity": 160,
+        "unit": "days",
+        "unit_price": 160,
+        "line_total": 25600,
+        "currency": "GHS"
+      },
+      {
+        "description": "Septic tank",
+        "quantity": 1,
+        "unit": "each",
+        "unit_price": 18000,
+        "line_total": 18000,
+        "currency": "GHS"
+      },
+      {
+        "description": "Building permit",
+        "quantity": 1,
+        "unit": "each",
+        "unit_price": 6000,
+        "line_total": 6000,
+        "currency": "GHS"
+      },
+      {
+        "description": "Architect's fee",
+        "quantity": 1,
+        "unit": "each",
+        "unit_price": 30000,
+        "line_total": 30000,
+        "currency": "GHS"
+      }
+    ],
+    "notes": "Sample fixture. Septic tank is a guide price in our Ghana data, so it is not checked."
+  },
+  "expected": {
+    "verdict": "well_above",
+    "matchedLines": 11,
+    "totalLines": 13,
+    "unmatchedLines": 2,
+    "diffPct": 0.399,
+    "quantityFlags": 1,
+    "arithmeticLineErrors": 0,
+    "totalError": false,
+    "unmatched": [
+      "Septic tank",
+      "Architect's fee"
+    ],
+    "quantityFlagKeys": [
+      "blocks"
+    ]
+  }
+}

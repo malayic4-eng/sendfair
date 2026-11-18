@@ -972,4 +972,9 @@
         $("sf-results").innerHTML = '<div class="empty"><strong>Rates could not load.</strong><span>Check your connection and refresh the page.</span></div>';
       }
     });
+
+  // Other small scripts on the page (Quote Check) use the same consent-gated event helper.
+  window.SF = SF;
+  SF.track = sfEvent;
+  SF.allowOptional = allowOptional;
 })();

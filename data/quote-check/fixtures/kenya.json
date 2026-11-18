@@ -1,0 +1,186 @@
+{
+  "name": "Kenya sample quote",
+  "country": "kenya",
+  "town": "Nairobi",
+  "bedrooms": 3,
+  "storeys": 1,
+  "m2": 110,
+  "quoteCurrency": "KES",
+  "extraction": {
+    "currency": "KES",
+    "quote_total": 3642600,
+    "line_items": [
+      {
+        "description": "Cement, 50kg bags",
+        "quantity": 650,
+        "unit": "bags",
+        "unit_price": 820,
+        "line_total": 533000,
+        "currency": "KES"
+      },
+      {
+        "description": "Steel reinforcement bars",
+        "quantity": 3200,
+        "unit": "kg",
+        "unit_price": 145,
+        "line_total": 464000,
+        "currency": "KES"
+      },
+      {
+        "description": "Ballast / hardcore",
+        "quantity": 25,
+        "unit": "m3",
+        "unit_price": 2600,
+        "line_total": 65000,
+        "currency": "KES"
+      },
+      {
+        "description": "River sand",
+        "quantity": 45,
+        "unit": "m3",
+        "unit_price": 4600,
+        "line_total": 207000,
+        "currency": "KES"
+      },
+      {
+        "description": "6 inch sandcrete blocks",
+        "quantity": 4800,
+        "unit": "pieces",
+        "unit_price": 42,
+        "line_total": 201600,
+        "currency": "KES"
+      },
+      {
+        "description": "Mabati iron sheets, gauge 30",
+        "quantity": 220,
+        "unit": "m2",
+        "unit_price": 720,
+        "line_total": 158400,
+        "currency": "KES"
+      },
+      {
+        "description": "Roof timber (mbao)",
+        "quantity": 210,
+        "unit": "m2",
+        "unit_price": 3000,
+        "line_total": 630000,
+        "currency": "KES"
+      },
+      {
+        "description": "Mason labour",
+        "quantity": 130,
+        "unit": "days",
+        "unit_price": 1800,
+        "line_total": 234000,
+        "currency": "KES"
+      },
+      {
+        "description": "Labourers",
+        "quantity": 170,
+        "unit": "days",
+        "unit_price": 900,
+        "line_total": 153000,
+        "currency": "KES"
+      },
+      {
+        "description": "Floor tiles 60x60",
+        "quantity": 120,
+        "unit": "m2",
+        "unit_price": 1700,
+        "line_total": 204000,
+        "currency": "KES"
+      },
+      {
+        "description": "Ceiling boards",
+        "quantity": 110,
+        "unit": "m2",
+        "unit_price": 250,
+        "line_total": 20000,
+        "currency": "KES"
+      },
+      {
+        "description": "Emulsion paint",
+        "quantity": 130,
+        "unit": "litres",
+        "unit_price": 120,
+        "line_total": 15600,
+        "currency": "KES"
+      },
+      {
+        "description": "Aluminium windows",
+        "quantity": 10,
+        "unit": "each",
+        "unit_price": 15000,
+        "line_total": 150000,
+        "currency": "KES"
+      },
+      {
+        "description": "Internal flush doors",
+        "quantity": 6,
+        "unit": "each",
+        "unit_price": 7000,
+        "line_total": 42000,
+        "currency": "KES"
+      },
+      {
+        "description": "Water tank 1000L",
+        "quantity": 1,
+        "unit": "each",
+        "unit_price": 25000,
+        "line_total": 25000,
+        "currency": "KES"
+      },
+      {
+        "description": "Septic tank",
+        "quantity": 1,
+        "unit": "each",
+        "unit_price": 180000,
+        "line_total": 180000,
+        "currency": "KES"
+      },
+      {
+        "description": "Machine-cut stones 9x9",
+        "quantity": 500,
+        "unit": "pieces",
+        "unit_price": 60,
+        "line_total": 30000,
+        "currency": "KES"
+      },
+      {
+        "description": "Architect's fee",
+        "quantity": 1,
+        "unit": "each",
+        "unit_price": 150000,
+        "line_total": 150000,
+        "currency": "KES"
+      },
+      {
+        "description": "Building permit",
+        "quantity": 1,
+        "unit": "each",
+        "unit_price": 120000,
+        "line_total": 120000,
+        "currency": "KES"
+      }
+    ],
+    "notes": "Sample fixture. One line total is deliberately wrong so the arithmetic check has something to find."
+  },
+  "expected": {
+    "verdict": "above",
+    "matchedLines": 16,
+    "totalLines": 19,
+    "unmatchedLines": 3,
+    "diffPct": 0.1835,
+    "quantityFlags": 1,
+    "arithmeticLineErrors": 1,
+    "totalError": true,
+    "unmatched": [
+      "Water tank 1000L",
+      "Machine-cut stones 9x9",
+      "Architect's fee"
+    ],
+    "quantityFlagKeys": [
+      "blocks"
+    ]
+  }
+}

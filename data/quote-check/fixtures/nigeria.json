@@ -1,0 +1,127 @@
+{
+  "name": "Nigeria sample quote",
+  "country": "nigeria",
+  "town": "Lagos",
+  "bedrooms": 3,
+  "storeys": 1,
+  "m2": 110,
+  "quoteCurrency": "NGN",
+  "extraction": {
+    "currency": "NGN",
+    "quote_total": 27302500,
+    "line_items": [
+      {
+        "description": "Dangote cement 50kg",
+        "quantity": 620,
+        "unit": "bags",
+        "unit_price": 13500,
+        "line_total": 8370000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Sandcrete blocks 6 inch",
+        "quantity": 3200,
+        "unit": "pieces",
+        "unit_price": 880,
+        "line_total": 2816000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Sharp sand",
+        "quantity": 45,
+        "unit": "m3",
+        "unit_price": 9800,
+        "line_total": 441000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Granite chippings 3/4 inch",
+        "quantity": 25,
+        "unit": "m3",
+        "unit_price": 39000,
+        "line_total": 975000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Steel reinforcement 12mm",
+        "quantity": 3100,
+        "unit": "kg",
+        "unit_price": 1020,
+        "line_total": 3162000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Iron sheets / roofing",
+        "quantity": 210,
+        "unit": "m2",
+        "unit_price": 1850,
+        "line_total": 388500,
+        "currency": "NGN"
+      },
+      {
+        "description": "Floor tiles 60x60",
+        "quantity": 120,
+        "unit": "m2",
+        "unit_price": 8800,
+        "line_total": 1056000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Dulux emulsion paint",
+        "quantity": 130,
+        "unit": "litres",
+        "unit_price": 7800,
+        "line_total": 1014000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Mason / bricklayer",
+        "quantity": 120,
+        "unit": "days",
+        "unit_price": 13500,
+        "line_total": 1620000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Labourers",
+        "quantity": 160,
+        "unit": "days",
+        "unit_price": 6000,
+        "line_total": 960000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Timber trusses",
+        "quantity": 200,
+        "unit": "m2",
+        "unit_price": 30000,
+        "line_total": 6000000,
+        "currency": "NGN"
+      },
+      {
+        "description": "Architect's fee",
+        "quantity": 1,
+        "unit": "each",
+        "unit_price": 500000,
+        "line_total": 500000,
+        "currency": "NGN"
+      }
+    ],
+    "notes": "Sample fixture. Timber has no local Nigerian price in our data, so it is listed as not checked."
+  },
+  "expected": {
+    "verdict": "within",
+    "matchedLines": 10,
+    "totalLines": 12,
+    "unmatchedLines": 2,
+    "diffPct": 0.0322,
+    "quantityFlags": 0,
+    "arithmeticLineErrors": 0,
+    "totalError": false,
+    "unmatched": [
+      "Timber trusses",
+      "Architect's fee"
+    ],
+    "quantityFlagKeys": []
+  }
+}
