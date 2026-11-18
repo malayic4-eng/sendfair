@@ -17,7 +17,7 @@ const titleMap = new Map();
 const descMap = new Map();
 const linked = new Set();
 
-const skipHref = (h) => !h || /^(https?:|mailto:|tel:|data:|javascript:)/.test(h) || h.startsWith("//") || h.includes("/go/") || /^go\//.test(h);
+const skipHref = (h) => !h || /^(https?:|mailto:|tel:|data:|javascript:)/.test(h) || h.startsWith("//") || h.includes("/go/") || /^go\//.test(h) || h.startsWith("/admin/") || h.startsWith("admin/");
 const resolve = (file, href) => {
   if (href.startsWith("/")) return path.join(OUT, href.slice(1));
   return path.resolve(path.dirname(file), href);

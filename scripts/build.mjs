@@ -10,6 +10,8 @@ import { buildReports, reportSummary } from "./report-data.mjs";
 import { FR, t, moneyFr, dateFr, assertFrKeys, frGrammar, capFirst } from "./i18n.mjs";
 import { mergeConfig as mergeQuoteCheckConfig, priceFor as quoteCheckPrice } from "../src/quote-check/config.mjs";
 import { TRAVEL_IDS, sponsorsFor, flightTarget, esimTarget } from "../src/partner-links.mjs";
+import { historySummary } from "./rate-summary.mjs";
+import { loadQuestions, questionPage, questionsIndex, relatedQuestions } from "./questions.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -20,6 +22,7 @@ const DEMO = args.includes("--demo");
 const PREVIEW = args.includes("--preview");
 const OUT = path.resolve(ROOT, args.includes("--out") ? args[args.indexOf("--out") + 1] : "dist");
 const NOW = Date.now();
+const rateText = (v) => Number(v).toLocaleString("en", { maximumFractionDigits: 4 });
 
 function read(p) {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8")); }
@@ -42,6 +45,7 @@ let midmarket = read("data/midmarket.json");
 if (!midmarket.rates || !Object.keys(midmarket.rates).length) fail(["data/midmarket.json is missing or has no rates"]);
 const buildCosts = readOptional("data/build-costs.json", { countries: {}, houses: [], updated: "" });
 const regionalFactors = readOptional("data/regional-factors.json", { countries: {} });
+const questions = loadQuestions(path.join(ROOT, "data/questions.json"));
 const partners = readOptional("data/partners.json", { travel: {}, origins: {}, airports: {}, sponsors: [] });
 if (!buildCosts.countries || !Object.keys(buildCosts.countries).length) fail(["data/build-costs.json is missing or has no countries"]);
 {
@@ -454,7 +458,7 @@ function footer(prefix, lang) {
 <div><h2>${L.buildHouse}</h2><ul>${QC_ON ? `<li><a href="${link(prefix, "quote-check/")}">Quote Check</a></li>` : ""}<li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, countryCost(id))}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
-<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a><a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
+<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "questions/")}">Questions</a><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a><a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
 <p>${L.disclaimer}</p>
 <p>${L.ratesBy} <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>${L.copyright}</p>
@@ -834,7 +838,7 @@ function serviceGroups(prefix) {
   return [
     { title: "Send money", items: [
       { id: "compare", href: link(prefix, "") + "#corridors", name: "Compare transfers", text: "See which service delivers the most on your route, after fees and the rate markup." },
-      { id: "rates", href: link(prefix, "") + "#rates-today", name: "Exchange rates today", text: "Mid-market rates for every currency we cover, checked through the day." },
+      { id: "rates", href: link(prefix, "rates/"), name: "Exchange rates today", text: "Every currency pair, with today's mid-market rate and the 7-day change." },
       { id: "index", href: link(prefix, "reports/"), name: "Remittance Cost Index", text: "What sending money home really costs, route by route, every month." }
     ] },
     { title: "Build a house", items: [
@@ -846,6 +850,14 @@ function serviceGroups(prefix) {
       { id: "flying-home", href: link(prefix, "flying-home/"), name: "Flying home", text: "Flights, eSIMs and money tips for the trip back home." }
     ] }
   ];
+}
+
+function peopleAlsoAsk({ prefix, country = null, sender = null, topic = "send", limit = 4 }) {
+  const live = questions.filter((q) => q.status === "live" && q.topic === topic);
+  if (!live.length) return "";
+  const list = relatedQuestions(live, { slug: "__people__", country, sender, topic }, limit);
+  if (!list.length) return "";
+  return `<h2>People also ask</h2><ul class="route-links">${list.map((q) => `<li><a href="${link(prefix, `questions/${q.slug}/`)}">${esc(q.question)}</a></li>`).join("")}</ul>`;
 }
 
 function servicesHub(prefix) {
@@ -1489,6 +1501,7 @@ ${id ? sponsorBox(id, prefix) : ""}
 ${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(id) ? `<p><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">Lire cette page en français</a></p>` : ""}
 ${id ? `<h2>By size</h2><ul class="route-links">${[2, 3, 4].map((n) => `<li><a href="${link(prefix, `cost-to-build/${id}/${n}-bedroom/`)}">${n}-bedroom house</a></li>`).join("")}</ul>` : ""}
 ${id ? (() => { const rc = regionalFactors.countries[id]; const filled = rc ? Object.entries(rc.cities || {}).filter(([, city]) => city.factor > 0) : []; return filled.length ? `<h2>By city</h2><ul class="route-links">${filled.map(([slug, city]) => `<li><a href="${link(prefix, `cost-to-build/${id}/${slug}/`)}">${esc(city.name)}</a></li>`).join("")}</ul>` : ""; })() : ""}
+${id ? peopleAlsoAsk({ prefix, country: id, topic: "build" }) : ""}
 <h2>Other countries</h2>
 <ul class="route-links">${Object.keys(buildCosts.countries).map((cid) => `<li><a href="${link(prefix, `cost-to-build/${cid}/`)}">${esc(buildCosts.countries[cid].name)}</a></li>`).join("")}</ul>
 <h2>Questions</h2>
@@ -2049,6 +2062,7 @@ ${corridors.senders.map((s) => { const rs = corridors.receivers.filter((r) => ro
 <ul class="route-links">${vsPairs().map(([a, b]) => `<li><a href="${link("", vsPath(a, b))}">${esc(a.name)} vs ${esc(b.name)}</a></li>`).join("")}</ul>
 <div class="section-head" style="margin-top:32px" id="rates-today"><h2>Exchange rates today</h2></div>
 <ul class="route-links">${ratePairs.map(({ s, r }) => `<li><a href="${link("", ratePath(s, r))}">${s.currency} to ${r.currency}</a></li>`).join("")}</ul>
+<p><a class="btn btn-ghost" href="${link("", "rates/")}">All exchange rates</a></p>
 <div class="section-head" style="margin-top:32px"><h2>Questions</h2></div>
 ${faqBlock(homeFaqs)}
 </div></section>` + alerts()
@@ -2131,6 +2145,7 @@ ${s.region === "gulf" ? `<p class="note"><a href="${link(prefix, GULF_GUIDE)}">E
 ${faqBlock(faqs)}
 ${(() => { const ids = new Set(fresh.map((x) => x.p.id)); const links = vsList.filter(([CA, CB]) => ids.has(CA.id) && ids.has(CB.id)).map(([CA, CB]) => `<li><a href="${link(prefix, vsRoutePath(CA, CB, s, r))}">${esc(CA.name)} vs ${esc(CB.name)} on ${esc(s.label)} to ${esc(r.name)}</a></li>`); return links.length ? `<h2>Compare two services on this route</h2><ul class="route-links">${links.join("")}</ul>` : ""; })()}
 ${config.whatsappNumber ? `<p class="wa"><a class="btn" href="https://wa.me/${esc(String(config.whatsappNumber).replace(/[^\d]/g, ""))}?text=${encodeURIComponent(`Hi SendFair, ${s.currency} to ${r.name} ${ctx.amount}`)}" target="_blank" rel="noopener">Ask us on WhatsApp</a></p>` : ""}
+${peopleAlsoAsk({ prefix, country: r.id, sender: s.id, topic: "send" })}
 <h2>Other routes</h2>
 <ul class="route-links">${corridors.receivers.filter((x) => x.id !== r.id).map((x) => `<li><a href="${link(prefix, corridorPath(s, x))}">${esc(s.label)} to ${esc(x.name)}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
 </div></div></section>` + reportSection(ctx) + alerts();
@@ -2519,6 +2534,34 @@ ${faqBlock(faqs)}
   }
 }
 
+// Exchange-rate index: every pair grouped by the sending country.
+function writeRatesIndex() {
+  const rel = "rates/", prefix = "../";
+  const trail = [[config.siteName, ""], ["Exchange rates", rel]];
+  const groups = [];
+  for (const s of corridors.senders) {
+    const pairs = ratePairs.filter((x) => x.s.id === s.id);
+    if (!pairs.length) continue;
+    const rows = pairs.map(({ s: ss, r }) => {
+      const ctx = routeContext(ss, r, prefix, config.defaultAmounts[ss.currency]);
+      if (!ctx.mid) return null;
+      const sum = historySummary(ctx.hist, { mid: ctx.mid });
+      const ch = sum.lines.find((l) => l.id === "change7");
+      return { rel: ratePath(ss, r), label: `${ss.currency} to ${r.currency}`, mid: ctx.mid, change: ch ? ch.change : null };
+    }).filter(Boolean);
+    if (rows.length) groups.push({ s, rows });
+  }
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>Exchange rates today</h1>
+<p class="lede">The mid-market rate for every currency pair SendFair covers, with the 7-day change. A pair links to its converter, its 30-day history and the service that delivers the most for your amount. Rates checked ${esc(dateLong)}.</p>
+${groups.map((g) => `<h2>From ${esc(g.s.short)}</h2><div class="table-wrap"><table class="rates-table"><thead><tr><th scope="col">Pair</th><th scope="col" class="num">Today</th><th scope="col" class="num">7-day change</th></tr></thead><tbody>${g.rows.map((row) => `<tr><th scope="row"><a href="${link(prefix, row.rel)}">${esc(row.label)}</a></th><td class="num">${esc(rateText(row.mid))}</td><td class="num">${row.change == null ? "—" : `${row.change >= 0 ? "+" : ""}${row.change.toFixed(1)}%`}</td></tr>`).join("")}</tbody></table></div>`).join("")}
+<p class="note">The 7-day change compares today's mid-market rate with the latest check on or before seven days ago, or the first check when the history is exactly seven checks long. A dash means we do not have seven checks yet.</p>
+</div></div></section>`;
+  write(rel + "index.html", page({ prefix, canonical: rel, og: "home", title: `Exchange rates today: every currency pair | ${config.siteName}`, description: "Today's mid-market rate for every currency pair SendFair covers, with the 7-day change and a link to the converter, history and best service.", jsonld: [crumbs(trail)], body }));
+  urls.push(rel);
+}
+
 // Exchange-rate pages: "GBP to KES today" with a converter, for every sending and receiving currency.
 for (const { s, r } of ratePairs) {
   const rel = ratePath(s, r), prefix = "../../";
@@ -2537,12 +2580,15 @@ for (const { s, r } of ratePairs) {
     [`Why is the rate I get lower than the mid-market rate?`, `Transfer services add a margin to the mid-market rate and may charge a fee. The difference is their price, which is why SendFair ranks services by the amount that actually arrives.`]
   ];
   const histDays = Object.keys(history.days || {}).sort();
+  const histSummary = historySummary(ctx.hist, { mid: ctx.mid });
+  const historyBlock = histSummary.lines.length ? `<div class="facts">${histSummary.lines.map((l) => l.id === "change7" ? `<div><span class="k">Today vs 7 days ago</span><span class="v">${l.change >= 0 ? "+" : ""}${l.change.toFixed(1)}%</span></div>` : l.id === "best30" ? `<div><span class="k">Best day in the last 30 days</span><span class="v">${new Date(l.date + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })} (${esc(plain(R.money(l.amount, r.currency)))})</span></div>` : l.id === "range30" ? `<div><span class="k">Range in the last 30 days</span><span class="v">${rateText(l.low)}–${rateText(l.high)}</span></div>` : "").join("")}</div>` : "";
   const rateLd = { "@context": "https://schema.org", "@type": "ExchangeRateSpecification", currency: s.currency, currentExchangeRate: { "@type": "UnitPriceSpecification", price: +ctx.mid.toPrecision(6), priceCurrency: r.currency, unitText: `1 ${s.currency}`, validFrom: midmarket.updatedAt || quotesFile.updatedAt } };
   const dsLd = { "@context": "https://schema.org", "@type": "Dataset", name: `${s.currency} to ${r.currency} mid-market rate history`, description: `Daily ${s.currency} to ${r.currency} mid-market exchange rate recorded by SendFair, with the amount the best money transfer service delivered from ${s.name} to ${r.name} on each day it was checked.`, url: `${site}/${rel}`, isAccessibleForFree: true, variableMeasured: `${s.currency}/${r.currency} mid-market rate`, temporalCoverage: histDays.length ? `${histDays[0]}/${histDays[histDays.length - 1]}` : String(midmarket.updatedAt || "").slice(0, 10), creator: { "@type": "Organization", name: config.siteName, url: site + "/" }, license: "https://creativecommons.org/licenses/by/4.0/" };
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>${esc(s.currency)} to ${esc(r.currency)} today: 1 ${esc(s.currency)} = ${R.rateStr(ctx.mid)} ${esc(r.currency)}</h1>
 <p class="lede">The mid-market rate for ${esc(sCur)} to ${esc(rCur)}${pairHasData ? `, and what actually arrives in ${esc(r.name)} when you send money from ${esc(s.short)} with the best service we checked on ${esc(dateLong)}` : `. No transfer service publishes online prices from ${esc(s.short)} to ${esc(r.name)} yet`}.</p>
+${historyBlock}
 <div class="converter" id="sf-conv" data-mid="${ctx.mid}" data-from="${s.currency}" data-to="${r.currency}">
   <label>Amount in ${esc(s.currency)} <input type="number" inputmode="decimal" min="0" step="any" value="${config.defaultAmounts[s.currency]}" id="sf-conv-in"></label>
   <div class="conv-out"><span class="k">At the mid-market rate</span><span class="v num" id="sf-conv-mid">${esc(plain(R.money(config.defaultAmounts[s.currency] * ctx.mid, r.currency)))}</span></div>
@@ -2566,13 +2612,28 @@ ${faqBlock(faqs)}
 <p><a class="btn" href="${link(prefix, corridorPath(s, r))}">Compare all services for ${esc(s.label)} to ${esc(r.name)}</a></p>
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: slug(s, r), noindex: !pairHasData,
-    title: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}`,
-    description: `${sCur} to ${rCur} rate today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}. Converter, what arrives with the best transfer service, and rate history.`,
+    title: `${s.currency} to ${r.currency} today: rate, 30-day history and best service | ${config.siteName}`,
+    description: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}, the 30-day range and the best service for your amount. Checked ${dateLong}.`,
     jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd],
     alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRateRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
     body }));
   if (pairHasData) urls.push(rel);
 }
+
+writeRatesIndex();
+
+// Question pages from data/questions.json: only live entries with data at build time.
+const questionDeps = { config, corridors, buildCosts, midmarket, quotes: quotesFile, providers, feed: wiseFeedData.routes, now: NOW, site, questions };
+for (const q of questions) {
+  if (q.status !== "live") continue;
+  const data = questionPage(q, questionDeps);
+  if (!data) { console.log(`Question skipped (no data): ${q.slug}`); continue; }
+  write(data.canonical + "index.html", page({ prefix: data.prefix, canonical: data.canonical, title: data.title, description: data.description, jsonld: data.jsonld, body: data.body }));
+  urls.push(data.canonical);
+}
+const questionsIdx = questionsIndex(questions, questionDeps);
+write("questions/index.html", page({ prefix: "../", canonical: "questions/", title: questionsIdx.title, description: questionsIdx.description, jsonld: questionsIdx.jsonld, noindex: questionsIdx.noindex, body: questionsIdx.body }));
+if (questionsIdx.liveCount) urls.push("questions/");
 
 // Gulf guide: every Gulf route at a glance, and how the ways of sending compare (exchange houses, banks, wallets, apps, cash networks).
 if (gulfSenders.length) {
