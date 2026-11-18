@@ -77,7 +77,7 @@ export function questionAnswer(q, deps) {
     const top = ctx.rows.find((x) => !x.stale);
     if (!top) return null;
     const checkedAt = deps.quotes.updatedAt || new Date(deps.now).toISOString();
-    const direct = `The service that delivers the most from ${s.short} to ${r.name} today is ${top.p.name}: ${money(amount, s.currency)} arrives as ${money(top.gets, r.currency)} after fees and the exchange-rate margin, with rates checked ${dateLong(checkedAt)}.`;
+    const direct = `The service that delivers the most from ${s.short} to ${r.name} today is ${top.p.name}: ${s.currency} ${Number(amount).toLocaleString("en")} arrives as ${money(top.gets, r.currency)} after fees and the exchange-rate margin, with rates checked ${dateLong(checkedAt)}.`;
     return {
       type: "send",
       direct,
@@ -106,7 +106,7 @@ export function questionAnswer(q, deps) {
       };
     }
     if (/quote/i.test(slug) || /quote/i.test(question)) {
-      const direct = `A fair builder's quote should be close to our standard receipt for a 3-bedroom house in ${c.name}: about ${money(est.total, est.currency)} for materials and trade days at prices checked ${dateLong(checkedAt)}. A quote far above that usually includes land, the contractor's fee, or work the receipt leaves out.`;
+      const direct = `A useful benchmark is our standard receipt for a 3-bedroom house in ${c.name}: about ${money(est.total, est.currency)} for materials and trade days at prices checked ${dateLong(checkedAt)}. If your quote is much higher, ask your builder to itemise it: it may include land, their fee or work our receipt leaves out, or some prices may be high.`;
       return { type: "build-quote", direct, figures: { total: +est.total.toFixed(2), currency: est.currency, checkedAt }, country: c, est };
     }
     const direct = `A 3-bedroom house of about ${house.m2} m² in ${c.name} comes to about ${money(est.total, est.currency)} in the standard finish, at prices checked ${dateLong(checkedAt)}. That is materials and trade days; land and the contractor's fee are not included.`;
@@ -128,7 +128,7 @@ export function relatedQuestions(all, q, limit = 4) {
 
 const HOW = {
   send: "We record the rate and fee each service quotes on the route, apply the amount you send, and rank by the amount that actually arrives. Quotes are checked through the day; stale quotes are excluded, and no service pays for a better position.",
-  build: "The receipt uses the quantities and published prices in data/build-costs.json: cement, steel, blocks, roof, finishes, trade days and the published permit fee. It leaves out land, the contractor's fee and a contingency. The total is for a 3-bedroom house of about 110 m².",
+  build: "The receipt uses standard quantities for the house and the local prices we checked for cement, steel, blocks, roof, finishes, trade days and the published permit fee. It leaves out land, the contractor's fee and a contingency. The total is for a 3-bedroom house of about 110 m².",
   "build-cement": "The cement line in the standard receipt is the quantity for a 3-bedroom house of about 110 m²: concrete, block mortar, plaster and floor screed. It is a planning figure, not a shop order.",
   "build-quote": "We compare the quote with the itemised standard receipt for a 3-bedroom house in the country. The receipt covers materials and trade days; land, the contractor's fee and a contingency sit outside it."
 };

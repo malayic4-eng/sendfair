@@ -30,9 +30,9 @@ function check(name, fn) {
   catch (e) { failures++; console.error("FAIL " + name + ": " + (e && e.message)); }
 }
 
-check("data/questions.json seeds 12 valid draft questions", () => {
+check("data/questions.json holds 12 valid questions", () => {
   assert.equal(questions.length, 12);
-  assert.equal(questions.every((q) => q.status === "draft"), true);
+  assert.equal(questions.every((q) => ["draft", "live"].includes(q.status)), true);
   assert.equal(new Set(questions.map((q) => q.slug)).size, 12);
   for (const q of questions) { assert.ok(q.country); assert.ok(["send", "build"].includes(q.topic)); }
 });
@@ -102,7 +102,7 @@ check("missing data does not build a page", () => {
 });
 
 check("questions index is noindex while every question is draft", () => {
-  const idx = questionsIndex(questions, deps);
+  const idx = questionsIndex(questions.map((q) => ({ ...q, status: "draft" })), deps);
   assert.equal(idx.noindex, true);
   assert.equal(idx.liveCount, 0);
 });
