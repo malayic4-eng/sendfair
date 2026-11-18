@@ -18,9 +18,9 @@ export function historySummary(hist, { mid = null, today = null } = {}) {
   const lastD = pts[pts.length - 1].d;
   const todayD = today || lastD;
   const cutoff7 = shift(todayD, 7);
-  // Prefer the latest check on/before seven days ago; with exactly seven daily checks, the first
-  // check is the best available reference (six days back) and is still a real value.
-  const old = cutoff7 ? pts.filter((p) => p.d <= cutoff7).slice(-1)[0] || (pts.length >= 7 ? pts[0] : null) : null;
+  // The latest check on or before seven days ago. No such check (history shorter than a week) = no line,
+  // so "7 days ago" is never a six-day comparison.
+  const old = cutoff7 ? pts.filter((p) => p.d <= cutoff7).slice(-1)[0] || null : null;
   const change = old && old.mid > 0 && mid > 0 ? (mid / old.mid - 1) * 100 : null;
 
   const cutoff30 = shift(todayD, 30);
@@ -31,7 +31,7 @@ export function historySummary(hist, { mid = null, today = null } = {}) {
 
   const lines = [];
   if (pts.length >= 7 && change != null) lines.push({ id: "change7", change: +change.toFixed(2) });
-  if (pts.length >= 7 && best) lines.push({ id: "best30", date: best.d, amount: best.best });
+  if (pts.length >= 7 && best) lines.push({ id: "best30", date: best.d, amount: best.best, sent: best.amount || null });
   if (pts.length >= 7 && range) lines.push({ id: "range30", low: range.low, high: range.high });
   return { days: pts.length, lastD, change, best, range, lines };
 }

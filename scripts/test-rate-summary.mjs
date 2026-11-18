@@ -21,6 +21,7 @@ check("10 days: change, best day and range are all present", () => {
   const best = s.lines.find((l) => l.id === "best30");
   assert.equal(best.date, day(10));
   assert.equal(best.amount, 1009);
+  assert.equal(best.sent, 10);
   const range = s.lines.find((l) => l.id === "range30");
   assert.equal(range.low, 100);
   assert.equal(range.high, 109);
@@ -32,11 +33,11 @@ check("5 days: every line is hidden", () => {
   assert.deepEqual(s.lines, []);
 });
 
-check("7 days: change uses the earliest check, best and range are present", () => {
+check("7 checks spanning 6 days: no 7-day line, best and range are present", () => {
   const s = historySummary(series(4, 10), { mid: 109 });
   assert.equal(s.days, 7);
-  assert.ok(Math.abs(s.change - ((109 / 100 - 1) * 100)) < 0.02);
-  assert.equal(s.lines.some((l) => l.id === "change7"), true);
+  assert.equal(s.change, null);
+  assert.equal(s.lines.some((l) => l.id === "change7"), false);
   assert.equal(s.lines.some((l) => l.id === "best30"), true);
   assert.equal(s.lines.some((l) => l.id === "range30"), true);
 });

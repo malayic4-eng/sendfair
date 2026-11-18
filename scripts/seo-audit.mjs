@@ -65,6 +65,8 @@ for (const file of files) {
   if (linked.has(file)) continue;
   const r = rel(file);
   if (r === "404.html" || r === "offline.html" || r.startsWith("admin/")) continue;
+  // A page kept out of search on purpose (noindex) is not an orphan problem.
+  if (/<meta name="robots" content="noindex/.test(fs.readFileSync(file, "utf8"))) continue;
   add("medium", "orphan-page", file, "no inbound internal links");
 }
 
