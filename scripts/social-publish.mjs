@@ -55,7 +55,25 @@ async function fbReel(pt, description) {
   if (!up.ok) throw new Error("upload " + up.status + " " + (await up.text()).slice(0, 200));
   const fin = await fetch(`https://graph.facebook.com/${version}/${pageId}/video_reels`, { method: "POST", body: new URLSearchParams({ upload_phase: "finish", video_id: start.video_id, video_state: "PUBLISHED", description, access_token: pt }) }).then((r) => r.json());
   if (fin.error || fin.success === false) throw new Error(JSON.stringify(fin));
+  await fbCaptions(start.video_id, pt);
   return start.video_id;
+}
+// Closed captions (Facebook can't auto-caption reels with no speech). Never fails the post.
+async function fbCaptions(videoId, pt) {
+  const file = `${dir}/captions.en_US.srt`;
+  if (!fs.existsSync(file)) return;
+  for (let i = 0; i < 6; i++) {
+    try {
+      const form = new FormData();
+      form.append("captions_file", new Blob([fs.readFileSync(file)], { type: "application/octet-stream" }), "captions.en_US.srt");
+      form.append("default_locale", "en_US");
+      form.append("access_token", pt);
+      const r = await fetch(`https://graph.facebook.com/${version}/${videoId}/captions`, { method: "POST", body: form }).then((x) => x.json());
+      if (r.success || r.id) { console.log("[facebook] captions: added"); return; }
+      console.log("[facebook] captions:", JSON.stringify(r.error || r).slice(0, 200));
+    } catch (e) { console.log("[facebook] captions failed:", e.message); }
+    await sleep(20000); // the video may still be processing
+  }
 }
 // Music from Instagram's own library (Instagram Audio API, Facebook Login). Tries the configured
 // searches, then trending; skips very short clips and tracks used in the last 14 posts; picks one

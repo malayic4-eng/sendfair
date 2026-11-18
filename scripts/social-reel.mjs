@@ -70,16 +70,19 @@ async function main() {
   const photos = photosFor(cid, plan.date);
   const ctx = { cid, country: recv ? recv.name : "", pal: D.palette(cid), photoA: photos.a, photoB: photos.b, date: prettyDate(reel.checkDate), providers: read("data/providers.json").providers };
   // Hook: slow zoom over the photo (or the gradient), 2.4 s.
-  for (let i = 0; i < 24; i++) release("hook", D.hookFrame(ctx, reel.hook, tag, i / 23), 0.1);
+  // Hook: headline readable from the first frame, slow zoom, 1.8 s.
+  const hookStep = String(reel.hook).length > 60 ? 0.16 : String(reel.hook).length > 40 ? 0.12 : 0.1; // ~1.8–2.9 s, longer for long headlines
+  for (let i = 0; i < 18; i++) release("hook", D.hookFrame(ctx, reel.hook, tag, i / 17), hookStep);
   // Each number: the card slides up while the figure counts, then holds.
   reel.numbers.forEach((row, idx) => {
     const steps = [0.2, 0.4, 0.6, 0.75, 0.88, 0.96];
     steps.forEach((k, j) => release(`row-${idx}-${j}`, D.rowFrame(ctx, reel.hook, reel.numbers, idx, countValue(row, k), Math.min(1, (j + 1) / steps.length)), 0.06));
-    release(`row-${idx}`, D.rowFrame(ctx, reel.hook, reel.numbers, idx, row.value, 1), 1.9);
+    release(`row-${idx}`, D.rowFrame(ctx, reel.hook, reel.numbers, idx, row.value, 1), 1.5);
   });
-  for (let i = 0; i < 6; i++) release("cta", D.ctaFrame(ctx, i / 5), i < 5 ? 0.08 : 2.0);
-  release("end", D.endFrame(ctx), 1.2);
-  // Keep 12–20 s by stretching or trimming the row holds.
+  // No separate end card: the call to action ends the reel so it loops straight back to the hook,
+  // which keeps viewers watching (completion rate).
+  for (let i = 0; i < 6; i++) release("cta", D.ctaFrame(ctx, i / 5), i < 5 ? 0.08 : 1.8);
+  // Keep within schedule.reel.minSeconds–maxSeconds by stretching or trimming the holds.
   let total = frames.reduce((a, f) => a + f.secs, 0);
   const holds = frames.filter((f) => f.secs >= 1);
   if (total < schedule.reel.minSeconds) { const add = (schedule.reel.minSeconds - total) / holds.length; holds.forEach((f) => { f.secs += add; }); }
@@ -89,11 +92,25 @@ async function main() {
   for (let i = 0; i < frames.length; i++) {
     const png = await renderPng(frames[i].svg);
     fs.writeFileSync(path.join(OUT, "frames", String(i).padStart(3, "0") + ".png"), png);
-    if (frames[i].name === "hook" && (i === 23 || i === frames.findLastIndex((f) => f.name === "hook"))) fs.writeFileSync(path.join(OUT, "cover.png"), png);
+    if (frames[i].name === "hook" && (i === 17 || i === frames.findLastIndex((f) => f.name === "hook"))) fs.writeFileSync(path.join(OUT, "cover.png"), png);
   }
   // concat list for ffmpeg (each still held for its duration)
   const concat = frames.map((f, i) => `file 'frames/${String(i).padStart(3, "0")}.png'\nduration ${f.secs.toFixed(3)}`).join("\n") + `\nfile 'frames/${String(frames.length - 1).padStart(3, "0")}.png'\n`;
   fs.writeFileSync(path.join(OUT, "concat.txt"), concat);
+  // Closed captions (SRT) of what's on screen, for Facebook, which can't auto-caption reels without speech.
+  {
+    const ts = (t) => { const ms = Math.round(t * 1000), h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, sec = Math.floor(ms / 1000) % 60; return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")},${String(ms % 1000).padStart(3, "0")}`; };
+    const spans = []; let t0 = 0;
+    for (const f of frames) {
+      const key = f.name === "hook" ? "hook" : f.name === "cta" ? "cta" : f.name.split("-").slice(0, 2).join("-");
+      const last = spans[spans.length - 1];
+      if (last && last.key === key) last.end = t0 + f.secs; else spans.push({ key, start: t0, end: t0 + f.secs });
+      t0 += f.secs;
+    }
+    const textFor = (k) => k === "hook" ? reel.hook : k === "cta" ? "Who pays the most today? Compare your own amount at sendfair.africa" : (() => { const r = reel.numbers[Number(k.split("-")[1])]; return r ? `${r.label}: ${r.value}` : ""; })();
+    const srt = spans.map((sp, i) => `${i + 1}\n${ts(sp.start)} --> ${ts(sp.end)}\n${textFor(sp.key)}\n`).join("\n");
+    fs.writeFileSync(path.join(OUT, "captions.en_US.srt"), srt);
+  }
 
   let mp4 = null;
   if (hasFfmpeg) {

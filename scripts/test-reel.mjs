@@ -1,5 +1,5 @@
 // Renders one Reel of each template locally (no posting) and checks:
-// duration 12-20 s, 1080x1920, a silent audio track (Instagram mixes library music into it), under 15 MB when ffmpeg is available; every on-screen final
+// duration within schedule.reel min–max seconds, 1080x1920, a silent audio track (Instagram mixes library music into it), under 15 MB when ffmpeg is available; every on-screen final
 // number matches the site's ranking; captions carry ?ref= links. Without ffmpeg it validates the stills
 // and the manifest and says so.
 import fs from "node:fs";
@@ -13,6 +13,7 @@ const BC = require("../src/build-cost.js");
 const read = (p) => JSON.parse(fs.readFileSync(p, "utf8"));
 const config = read("config.json");
 const corridors = read("data/corridors.json");
+const schedule = read("data/social/schedule.json");
 const quotes = read("data/quotes.json");
 const providers = read("data/providers.json").providers;
 const buildCosts = read("data/build-costs.json");
@@ -94,7 +95,7 @@ for (const template of templates) {
     execFileSync(process.execPath, ["scripts/social-reel.mjs"], { stdio: "inherit" });
     const manifest = read(`data/social/reels/${plan.date}/manifest.json`);
     rendered++;
-    if (!(manifest.durationSeconds >= 12 && manifest.durationSeconds <= 20)) add(`${template} duration ${manifest.durationSeconds}s`);
+    if (!(manifest.durationSeconds >= schedule.reel.minSeconds && manifest.durationSeconds <= schedule.reel.maxSeconds)) add(`${template} duration ${manifest.durationSeconds}s`);
     checkNumbers(plan);
     for (const ref of ["ig", "fb", "tt"]) if (!manifest.captions[{ ig: "instagram", fb: "facebook", tt: "tiktok" }[ref]].includes(`?ref=${ref}`)) add(`${template} caption missing ?ref=${ref}`);
     const cover = pngSize(`data/social/reels/${plan.date}/cover.png`);
@@ -113,7 +114,7 @@ for (const template of templates) {
         const m = /max_volume:\s*(-?[\d.]+|-inf) dB/.exec(r.stderr || "");
         if (m && m[1] !== "-inf" && Number(m[1]) > -60) add(`${template} audio track is not silent (${m[1]} dB)`);
       }
-      if (!(secs >= 12 && secs <= 20)) add(`${template} mp4 duration ${secs}`);
+      if (!(secs >= schedule.reel.minSeconds - 0.2 && secs <= schedule.reel.maxSeconds + 0.2)) add(`${template} mp4 duration ${secs}`);
       if (bytes >= 15000000) add(`${template} mp4 ${Math.round(bytes / 1048576)} MB`);
     }
     console.log(`ok ${template}: ${manifest.durationSeconds}s${ffmpeg ? `, ${(fs.statSync(`data/social/reels/${plan.date}/reel.mp4`).size / 1048576).toFixed(1)} MB` : " (stills only, no ffmpeg)"}`);

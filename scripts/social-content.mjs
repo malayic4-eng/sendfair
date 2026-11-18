@@ -275,6 +275,13 @@ export function buildPlan(now = new Date(), forceTemplate = null) {
   const imageDay = (schedule.imagePostDays || []).includes(wd);
   const worthImage = imageDay && ["house", "rate-move", "best-vs-average", "tip"].includes(template);
   const image = worthImage ? buildImage(reel) : null;
+  // Ask for shares and follows (Facebook's suggestions), just above the hashtags.
+  const ask = { instagram: "Share this with someone who sends money home 🔁 Follow @sendfair for a new rate check every day.", facebook: "Share this with someone who sends money home 🔁 Follow SendFair for a new rate check every day.", tiktok: "Share with someone who sends money home 🔁 Follow for daily rate checks." };
+  for (const k of Object.keys(ask)) {
+    const c = reel.captions[k] || "";
+    const at = c.lastIndexOf("\n\n#");
+    reel.captions[k] = at >= 0 ? `${c.slice(0, at)}\n\n${ask[k]}${c.slice(at)}` : `${c}\n\n${ask[k]}`;
+  }
   return { date, weekday: wd, template, route: reel.route, reel, image, generatedAt: now.toISOString(), schedule };
 }
 
