@@ -1,9 +1,9 @@
 // Renders one Reel of each template locally (no posting) and checks:
-// duration 12-20 s, 1080x1920, no audio, under 15 MB when ffmpeg is available; every on-screen final
+// duration 12-20 s, 1080x1920, a silent audio track (Instagram mixes library music into it), under 15 MB when ffmpeg is available; every on-screen final
 // number matches the site's ranking; captions carry ?ref= links. Without ffmpeg it validates the stills
 // and the manifest and says so.
 import fs from "node:fs";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { buildPlan } from "./social-content.mjs";
 
@@ -107,7 +107,12 @@ for (const template of templates) {
       const audio = (probe.streams || []).some((s) => s.codec_type === "audio");
       const bytes = Number(probe.format.size), secs = Number(probe.format.duration);
       if (!v || v.width !== 1080 || v.height !== 1920) add(`${template} video ${v && v.width}x${v && v.height}`);
-      if (audio) add(`${template} has an audio track`);
+      if (!audio) add(`${template} has no audio track (Instagram needs one to add music)`);
+      else {
+        const r = spawnSync("ffmpeg", ["-v", "info", "-i", `data/social/reels/${plan.date}/reel.mp4`, "-af", "volumedetect", "-vn", "-f", "null", "-"], { encoding: "utf8" });
+        const m = /max_volume:\s*(-?[\d.]+|-inf) dB/.exec(r.stderr || "");
+        if (m && m[1] !== "-inf" && Number(m[1]) > -60) add(`${template} audio track is not silent (${m[1]} dB)`);
+      }
       if (!(secs >= 12 && secs <= 20)) add(`${template} mp4 duration ${secs}`);
       if (bytes >= 15000000) add(`${template} mp4 ${Math.round(bytes / 1048576)} MB`);
     }

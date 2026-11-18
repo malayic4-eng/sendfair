@@ -51,8 +51,8 @@ async function fbReel(pt, description) {
   const start = await fetch(`https://graph.facebook.com/${version}/${pageId}/video_reels`, { method: "POST", body: new URLSearchParams({ upload_phase: "start", access_token: pt }) }).then((r) => r.json());
   if (!start.video_id || !start.upload_url) throw new Error(JSON.stringify(start.error || start));
   const buf = fs.readFileSync(`${dir}/reel.mp4`);
-  const up = await fetch(start.upload_url, { method: "PUT", headers: { Authorization: `OAuth ${pt}`, offset: "0", file_size: String(buf.length), "Content-Type": "application/octet-stream" }, body: buf });
-  if (!up.ok) throw new Error("upload " + up.status);
+  const up = await fetch(start.upload_url, { method: "POST", headers: { Authorization: `OAuth ${pt}`, offset: "0", file_size: String(buf.length), "Content-Type": "application/octet-stream" }, body: buf });
+  if (!up.ok) throw new Error("upload " + up.status + " " + (await up.text()).slice(0, 200));
   const fin = await fetch(`https://graph.facebook.com/${version}/${pageId}/video_reels`, { method: "POST", body: new URLSearchParams({ upload_phase: "finish", video_id: start.video_id, video_state: "PUBLISHED", description, access_token: pt }) }).then((r) => r.json());
   if (fin.error || fin.success === false) throw new Error(JSON.stringify(fin));
   return start.video_id;
@@ -93,12 +93,25 @@ async function igReel(igId, pt, caption) {
   if (!c.id && audio) { console.log("[instagram] reel with music refused, posting without:", JSON.stringify(c.error || c).slice(0, 200)); c = await igContainer(igId, pt, caption, null); }
   else if (audio) { igAudioUsed = audio; console.log(`[instagram] music: ${audio.title} — ${audio.artist} (${audio.query})`); }
   if (!c.id) throw new Error(JSON.stringify(c.error || c));
-  for (let i = 0; i < 30; i++) {
-    const st = await fetch(`https://graph.facebook.com/${version}/${c.id}?fields=status_code,status&access_token=${pt}`).then((r) => r.json());
-    if (st.status_code === "FINISHED") break;
-    if (st.status_code === "ERROR") throw new Error(JSON.stringify(st));
-    await sleep(5000);
+  const wait = async (id) => {
+    for (let i = 0; i < 36; i++) {
+      const st = await fetch(`https://graph.facebook.com/${version}/${id}?fields=status_code,status&access_token=${pt}`).then((r) => r.json());
+      if (st.status_code === "FINISHED") return null;
+      if (st.status_code === "ERROR") return st;
+      await sleep(5000);
+    }
+    return null;
+  };
+  let err = await wait(c.id);
+  if (err && igAudioUsed) {
+    // Processing with music failed: post the same reel without music rather than falling back to the image.
+    console.log("[instagram] processing with music failed, retrying without:", JSON.stringify(err).slice(0, 200));
+    igAudioUsed = null;
+    c = await igContainer(igId, pt, caption, null);
+    if (!c.id) throw new Error(JSON.stringify(c.error || c));
+    err = await wait(c.id);
   }
+  if (err) throw new Error(JSON.stringify(err));
   const pub = await fetch(`https://graph.facebook.com/${version}/${igId}/media_publish`, { method: "POST", body: new URLSearchParams({ creation_id: c.id, access_token: pt }) }).then((r) => r.json());
   if (!pub.id) throw new Error(JSON.stringify(pub.error || pub));
   return pub.id;
