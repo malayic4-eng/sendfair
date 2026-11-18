@@ -57,8 +57,41 @@ async function fbReel(pt, description) {
   if (fin.error || fin.success === false) throw new Error(JSON.stringify(fin));
   return start.video_id;
 }
+// Music from Instagram's own library (Instagram Audio API, Facebook Login). Tries the configured
+// searches, then trending; skips very short clips and tracks used in the last 14 posts; picks one
+// per day deterministically. Any failure returns null and the reel posts without music.
+async function pickIgAudio(igId, pt) {
+  if (schedule.igMusic === false) return null;
+  const queries = (schedule.igAudioQueries && schedule.igAudioQueries.length ? schedule.igAudioQueries : ["afrobeats", "amapiano", "afropop", "highlife"]).concat([""]);
+  const recent = new Set((log.attempts || []).filter((a) => a.audioId).slice(-14).map((a) => a.audioId));
+  const day = parseInt(createHash("sha256").update(plan.date).digest("hex").slice(0, 8), 16);
+  for (let i = 0; i < queries.length; i++) {
+    const q = queries[(day + i) % (queries.length - 1)] ;
+    const query = i === queries.length - 1 ? "" : q;
+    for (const tk of [token, pt]) {
+      try {
+        const u = `https://graph.facebook.com/${version}/ig_audio?audio_type=music&user_id=${igId}${query ? "&search_query=" + encodeURIComponent(query) : ""}&access_token=${encodeURIComponent(tk)}`;
+        const data = await fetch(u).then((r) => r.json());
+        const list = (data.audio || data.data || []).filter((a) => a.audio_id && (a.duration_in_ms || 30000) >= 15000 && !recent.has(String(a.audio_id)));
+        if (data.error) { console.log(`[instagram] audio search "${query || "trending"}": ${data.error.message}`); continue; }
+        if (list.length) { const a = list[day % Math.min(list.length, 5)]; return { id: String(a.audio_id), title: a.title || "", artist: a.display_artist || "", query: query || "trending" }; }
+        break;
+      } catch (e) { console.log("[instagram] audio search failed:", e.message); }
+    }
+  }
+  return null;
+}
+async function igContainer(igId, pt, caption, audio) {
+  const body = { media_type: "REELS", video_url: reelUrl, caption, cover_url: coverUrl, share_to_feed: "true", access_token: pt };
+  if (audio) body.audio_configuration = JSON.stringify({ audio_id: audio.id, audio_volume: 80, video_volume: 100 });
+  return fetch(`https://graph.facebook.com/${version}/${igId}/media`, { method: "POST", body: new URLSearchParams(body) }).then((r) => r.json());
+}
+let igAudioUsed = null;
 async function igReel(igId, pt, caption) {
-  const c = await fetch(`https://graph.facebook.com/${version}/${igId}/media`, { method: "POST", body: new URLSearchParams({ media_type: "REELS", video_url: reelUrl, caption, cover_url: coverUrl, share_to_feed: "true", access_token: pt }) }).then((r) => r.json());
+  const audio = await pickIgAudio(igId, pt);
+  let c = await igContainer(igId, pt, caption, audio);
+  if (!c.id && audio) { console.log("[instagram] reel with music refused, posting without:", JSON.stringify(c.error || c).slice(0, 200)); c = await igContainer(igId, pt, caption, null); }
+  else if (audio) { igAudioUsed = audio; console.log(`[instagram] music: ${audio.title} — ${audio.artist} (${audio.query})`); }
   if (!c.id) throw new Error(JSON.stringify(c.error || c));
   for (let i = 0; i < 30; i++) {
     const st = await fetch(`https://graph.facebook.com/${version}/${c.id}?fields=status_code,status&access_token=${pt}`).then((r) => r.json());
@@ -127,7 +160,7 @@ async function main() {
     try {
       if (!reelUrl) throw new Error("no public REEL_URL");
       const id = await igReel(igId, pt, reelCaption.instagram);
-      record({ platform: "instagram", type: "reel", status: "posted", postId: id, idem: kIg, link: reelCaption.instagram.match(/https?:\S+/)?.[0] || "" });
+      record({ platform: "instagram", type: "reel", status: "posted", postId: id, idem: kIg, link: reelCaption.instagram.match(/https?:\S+/)?.[0] || "", ...(igAudioUsed ? { audioId: igAudioUsed.id, audio: `${igAudioUsed.title} — ${igAudioUsed.artist}` } : {}) });
     } catch (e) {
       record({ platform: "instagram", type: "reel", status: "failed", idem: kIg, error: String(e.message || e).slice(0, 300) });
       if (imageUrl) { try { const id = await igImage(igId, pt, reelCaption.instagram); record({ platform: "instagram", type: "image", status: "posted", postId: id, idem: idem("instagram-image"), fallback: true }); } catch (e2) { record({ platform: "instagram", type: "image", status: "failed", idem: idem("instagram-image"), fallback: true, error: String(e2.message || e2).slice(0, 300) }); } }
