@@ -1,7 +1,7 @@
 {
 	"scripts": {
 		"build": "node scripts/build.mjs",
-		"test": "node test/quote-check.test.mjs && node test/quote-check-api.test.mjs && node test/quote-check-payments.test.mjs"
+		"test": "node test/quote-check.test.mjs && node test/quote-check-api.test.mjs && node test/quote-check-payments.test.mjs && node scripts/test-rate-summary.mjs && node scripts/test-questions.mjs"
 	},
 	"dependencies": {
 		"@fontsource/figtree": "^5.3.0",

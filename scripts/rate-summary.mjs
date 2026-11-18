@@ -30,8 +30,10 @@ export function historySummary(hist, { mid = null, today = null } = {}) {
   const range = mids.length ? { low: Math.min(...mids), high: Math.max(...mids) } : null;
 
   const lines = [];
-  if (pts.length >= 7 && change != null) lines.push({ id: "change7", change: +change.toFixed(2) });
+  const changeFrom = old ? old.d : null;
+  const changeDays = old ? Math.round((Date.parse(todayD) - Date.parse(old.d)) / DAY) : null;
+  if (pts.length >= 7 && change != null) lines.push({ id: "change7", change: +change.toFixed(2), from: changeFrom, days: changeDays });
   if (pts.length >= 7 && best) lines.push({ id: "best30", date: best.d, amount: best.best });
   if (pts.length >= 7 && range) lines.push({ id: "range30", low: range.low, high: range.high });
-  return { days: pts.length, lastD, change, best, range, lines };
+  return { days: pts.length, lastD, change, changeFrom, changeDays, best, range, lines };
 }

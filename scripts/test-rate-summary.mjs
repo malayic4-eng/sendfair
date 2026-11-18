@@ -15,6 +15,7 @@ const series = (from, to, startMid = 100) => Array.from({ length: to - from + 1 
 check("10 days: change, best day and range are all present", () => {
   const s = historySummary(series(1, 10), { mid: 109 });
   assert.equal(s.days, 10);
+  assert.equal(s.changeDays, 7);
   assert.equal(s.lines.length, 3);
   const change = s.lines.find((l) => l.id === "change7");
   assert.ok(Math.abs(change.change - ((109 / 102 - 1) * 100)) < 0.02);
@@ -35,6 +36,7 @@ check("5 days: every line is hidden", () => {
 check("7 days: change uses the earliest check, best and range are present", () => {
   const s = historySummary(series(4, 10), { mid: 109 });
   assert.equal(s.days, 7);
+  assert.equal(s.changeDays, 6);
   assert.ok(Math.abs(s.change - ((109 / 100 - 1) * 100)) < 0.02);
   assert.equal(s.lines.some((l) => l.id === "change7"), true);
   assert.equal(s.lines.some((l) => l.id === "best30"), true);
@@ -67,6 +69,7 @@ check("empty history: no lines", () => {
 check("today argument controls the 7-day cutoff", () => {
   // History ends on day 8, but today is day 10, so the 7-day point is day 3 (mid 102).
   const s = historySummary(series(1, 8), { mid: 108, today: day(10) });
+  assert.equal(s.changeDays, 7);
   assert.ok(Math.abs(s.change - ((108 / 102 - 1) * 100)) < 0.02);
   assert.equal(s.lines.some((l) => l.id === "change7"), true);
 });

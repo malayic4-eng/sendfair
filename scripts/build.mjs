@@ -11,7 +11,7 @@ import { FR, t, moneyFr, dateFr, assertFrKeys, frGrammar, capFirst } from "./i18
 import { mergeConfig as mergeQuoteCheckConfig, priceFor as quoteCheckPrice } from "../src/quote-check/config.mjs";
 import { TRAVEL_IDS, sponsorsFor, flightTarget, esimTarget } from "../src/partner-links.mjs";
 import { historySummary } from "./rate-summary.mjs";
-import { loadQuestions, questionPage, questionsIndex, relatedQuestions } from "./questions.mjs";
+import { loadQuestions, questionAnswer, questionPage, questionsIndex, relatedQuestions } from "./questions.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -23,6 +23,7 @@ const PREVIEW = args.includes("--preview");
 const OUT = path.resolve(ROOT, args.includes("--out") ? args[args.indexOf("--out") + 1] : "dist");
 const NOW = Date.now();
 const rateText = (v) => Number(v).toLocaleString("en", { maximumFractionDigits: 4 });
+const todayIso = new Date(NOW).toISOString().slice(0, 10);
 
 function read(p) {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8")); }
@@ -206,6 +207,22 @@ const quotes = quotesFile.quotes || {};
 const isAutoQ = (q) => q.source === "wise-feed" || q.source === "worldremit" || q.source === "scrape" || /^Updated automatically from/.test(q.note || "");
 const handCheckedRoutes = Object.entries(quotes).filter(([, list]) => (list || []).some((q) => !isAutoQ(q))).length;
 const wiseFeedData = readOptional("data/wise-feed.json", { routes: {} });
+// Question pages: only live entries whose data exists. The same built set feeds the index and the
+// "People also ask" blocks, so nothing links to a page that was skipped for missing data.
+const questionDeps = { config, corridors, buildCosts, midmarket, quotes: quotesFile, providers, feed: wiseFeedData.routes, now: NOW, site, questions, quoteCheckOn: QC_ON };
+const liveQuestions = questions.filter((q) => q.status === "live");
+const buildableQuestions = liveQuestions.filter((q) => {
+  if (questionAnswer(q, questionDeps)) return true;
+  console.log(`Question skipped (no data): ${q.slug}`);
+  return false;
+});
+const questionPageDeps = { ...questionDeps, questions: buildableQuestions };
+const questionPages = new Map();
+for (const q of buildableQuestions) {
+  const data = questionPage(q, questionPageDeps);
+  if (data) questionPages.set(q.slug, data);
+  else console.log(`Question skipped (no data): ${q.slug}`);
+}
 const gitDate = (() => { try { return require("child_process").execSync("git log -1 --format=%cs -- scripts/build.mjs config.json", { cwd: ROOT }).toString().trim().slice(0, 10); } catch { return ""; } })();
 const guideByUrl = {};
 for (const a of (readOptional("data/guides.json", { articles: [] }).articles || [])) guideByUrl[`guides/${a.pillar}/${a.slug}/`] = a;
@@ -853,7 +870,9 @@ function serviceGroups(prefix) {
 }
 
 function peopleAlsoAsk({ prefix, country = null, sender = null, topic = "send", limit = 4 }) {
-  const live = questions.filter((q) => q.status === "live" && q.topic === topic);
+  let live = questions.filter((q) => q.status === "live" && questionPages.has(q.slug) && q.topic === topic);
+  if (country) live = live.filter((q) => q.country === country);
+  if (sender && topic === "send") live = live.filter((q) => q.sender === sender);
   if (!live.length) return "";
   const list = relatedQuestions(live, { slug: "__people__", country, sender, topic }, limit);
   if (!list.length) return "";
@@ -2556,7 +2575,7 @@ ${crumbNav(prefix, trail)}
 <h1>Exchange rates today</h1>
 <p class="lede">The mid-market rate for every currency pair SendFair covers, with the 7-day change. A pair links to its converter, its 30-day history and the service that delivers the most for your amount. Rates checked ${esc(dateLong)}.</p>
 ${groups.map((g) => `<h2>From ${esc(g.s.short)}</h2><div class="table-wrap"><table class="rates-table"><thead><tr><th scope="col">Pair</th><th scope="col" class="num">Today</th><th scope="col" class="num">7-day change</th></tr></thead><tbody>${g.rows.map((row) => `<tr><th scope="row"><a href="${link(prefix, row.rel)}">${esc(row.label)}</a></th><td class="num">${esc(rateText(row.mid))}</td><td class="num">${row.change == null ? "—" : `${row.change >= 0 ? "+" : ""}${row.change.toFixed(1)}%`}</td></tr>`).join("")}</tbody></table></div>`).join("")}
-<p class="note">The 7-day change compares today's mid-market rate with the latest check on or before seven days ago, or the first check when the history is exactly seven checks long. A dash means we do not have seven checks yet.</p>
+<p class="note">The 7-day change compares today's mid-market rate with the latest check on or before seven days ago, or the first check when that is the only reference. A dash means we do not have seven checks yet.</p>
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: "home", title: `Exchange rates today: every currency pair | ${config.siteName}`, description: "Today's mid-market rate for every currency pair SendFair covers, with the 7-day change and a link to the converter, history and best service.", jsonld: [crumbs(trail)], body }));
   urls.push(rel);
@@ -2580,15 +2599,18 @@ for (const { s, r } of ratePairs) {
     [`Why is the rate I get lower than the mid-market rate?`, `Transfer services add a margin to the mid-market rate and may charge a fee. The difference is their price, which is why SendFair ranks services by the amount that actually arrives.`]
   ];
   const histDays = Object.keys(history.days || {}).sort();
-  const histSummary = historySummary(ctx.hist, { mid: ctx.mid });
+  const histSummary = historySummary(ctx.hist, { mid: ctx.mid, today: todayIso });
   const historyBlock = histSummary.lines.length ? `<div class="facts">${histSummary.lines.map((l) => l.id === "change7" ? `<div><span class="k">Today vs 7 days ago</span><span class="v">${l.change >= 0 ? "+" : ""}${l.change.toFixed(1)}%</span></div>` : l.id === "best30" ? `<div><span class="k">Best day in the last 30 days</span><span class="v">${new Date(l.date + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })} (${esc(plain(R.money(l.amount, r.currency)))})</span></div>` : l.id === "range30" ? `<div><span class="k">Range in the last 30 days</span><span class="v">${rateText(l.low)}–${rateText(l.high)}</span></div>` : "").join("")}</div>` : "";
+  const changeNote = histSummary.lines.some((l) => l.id === "change7") && histSummary.changeDays !== 7 && histSummary.changeFrom
+    ? `<p class="note">The 7-day comparison uses the first check on ${new Date(histSummary.changeFrom + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })} (${histSummary.changeDays} days ago); there is no check exactly seven days back.</p>`
+    : "";
   const rateLd = { "@context": "https://schema.org", "@type": "ExchangeRateSpecification", currency: s.currency, currentExchangeRate: { "@type": "UnitPriceSpecification", price: +ctx.mid.toPrecision(6), priceCurrency: r.currency, unitText: `1 ${s.currency}`, validFrom: midmarket.updatedAt || quotesFile.updatedAt } };
   const dsLd = { "@context": "https://schema.org", "@type": "Dataset", name: `${s.currency} to ${r.currency} mid-market rate history`, description: `Daily ${s.currency} to ${r.currency} mid-market exchange rate recorded by SendFair, with the amount the best money transfer service delivered from ${s.name} to ${r.name} on each day it was checked.`, url: `${site}/${rel}`, isAccessibleForFree: true, variableMeasured: `${s.currency}/${r.currency} mid-market rate`, temporalCoverage: histDays.length ? `${histDays[0]}/${histDays[histDays.length - 1]}` : String(midmarket.updatedAt || "").slice(0, 10), creator: { "@type": "Organization", name: config.siteName, url: site + "/" }, license: "https://creativecommons.org/licenses/by/4.0/" };
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>${esc(s.currency)} to ${esc(r.currency)} today: 1 ${esc(s.currency)} = ${R.rateStr(ctx.mid)} ${esc(r.currency)}</h1>
 <p class="lede">The mid-market rate for ${esc(sCur)} to ${esc(rCur)}${pairHasData ? `, and what actually arrives in ${esc(r.name)} when you send money from ${esc(s.short)} with the best service we checked on ${esc(dateLong)}` : `. No transfer service publishes online prices from ${esc(s.short)} to ${esc(r.name)} yet`}.</p>
-${historyBlock}
+${historyBlock}${changeNote}
 <div class="converter" id="sf-conv" data-mid="${ctx.mid}" data-from="${s.currency}" data-to="${r.currency}">
   <label>Amount in ${esc(s.currency)} <input type="number" inputmode="decimal" min="0" step="any" value="${config.defaultAmounts[s.currency]}" id="sf-conv-in"></label>
   <div class="conv-out"><span class="k">At the mid-market rate</span><span class="v num" id="sf-conv-mid">${esc(plain(R.money(config.defaultAmounts[s.currency] * ctx.mid, r.currency)))}</span></div>
@@ -2611,9 +2633,11 @@ ${faqBlock(faqs)}
 <h2>Send money from ${esc(s.short)} to ${esc(r.name)}</h2>
 <p><a class="btn" href="${link(prefix, corridorPath(s, r))}">Compare all services for ${esc(s.label)} to ${esc(r.name)}</a></p>
 </div></div></section>`;
+  const rateTitle = pairHasData ? `${s.currency} to ${r.currency} today: rate, 30-day history and best service | ${config.siteName}` : `${s.currency} to ${r.currency} today: mid-market rate and 30-day history | ${config.siteName}`;
+  const rateDesc = pairHasData ? `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}, the 30-day range and the best service for your amount. Checked ${dateLong}.` : `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}, the mid-market rate and 30-day history. No transfer service publishes online prices from ${s.short} to ${r.name} yet. Checked ${dateLong}.`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: slug(s, r), noindex: !pairHasData,
-    title: `${s.currency} to ${r.currency} today: rate, 30-day history and best service | ${config.siteName}`,
-    description: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}, the 30-day range and the best service for your amount. Checked ${dateLong}.`,
+    title: rateTitle,
+    description: rateDesc,
     jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd],
     alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRateRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
     body }));
@@ -2623,15 +2647,11 @@ ${faqBlock(faqs)}
 writeRatesIndex();
 
 // Question pages from data/questions.json: only live entries with data at build time.
-const questionDeps = { config, corridors, buildCosts, midmarket, quotes: quotesFile, providers, feed: wiseFeedData.routes, now: NOW, site, questions };
-for (const q of questions) {
-  if (q.status !== "live") continue;
-  const data = questionPage(q, questionDeps);
-  if (!data) { console.log(`Question skipped (no data): ${q.slug}`); continue; }
+for (const data of questionPages.values()) {
   write(data.canonical + "index.html", page({ prefix: data.prefix, canonical: data.canonical, title: data.title, description: data.description, jsonld: data.jsonld, body: data.body }));
   urls.push(data.canonical);
 }
-const questionsIdx = questionsIndex(questions, questionDeps);
+const questionsIdx = questionsIndex(buildableQuestions, questionPageDeps);
 write("questions/index.html", page({ prefix: "../", canonical: "questions/", title: questionsIdx.title, description: questionsIdx.description, jsonld: questionsIdx.jsonld, noindex: questionsIdx.noindex, body: questionsIdx.body }));
 if (questionsIdx.liveCount) urls.push("questions/");
 

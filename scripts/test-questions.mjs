@@ -30,10 +30,10 @@ function check(name, fn) {
   catch (e) { failures++; console.error("FAIL " + name + ": " + (e && e.message)); }
 }
 
-check("data/questions.json seeds 12 valid draft questions", () => {
-  assert.equal(questions.length, 12);
-  assert.equal(questions.every((q) => q.status === "draft"), true);
-  assert.equal(new Set(questions.map((q) => q.slug)).size, 12);
+check("data/questions.json seeds at least 12 valid questions", () => {
+  assert.ok(questions.length >= 12);
+  assert.ok(questions.every((q) => ["draft", "live"].includes(q.status)));
+  assert.equal(new Set(questions.map((q) => q.slug)).size, questions.length);
   for (const q of questions) { assert.ok(q.country); assert.ok(["send", "build"].includes(q.topic)); }
 });
 
@@ -73,8 +73,14 @@ check("cement answer uses the cement line in the receipt", () => {
 check("quote-fair answer uses the standard total and links quote-check", () => {
   const ans = questionAnswer(live("is-my-builders-quote-fair"), deps);
   assert.ok(ans && ans.type === "build-quote");
-  const page = questionPage(live("is-my-builders-quote-fair"), deps);
+  const page = questionPage(live("is-my-builders-quote-fair"), { ...deps, quoteCheckOn: true });
   assert.ok(page && page.body.includes("quote-check/"));
+});
+
+check("quote-check CTA is omitted when Quote Check is off", () => {
+  const page = questionPage(live("is-my-builders-quote-fair"), { ...deps, quoteCheckOn: false });
+  assert.ok(page);
+  assert.equal(page.body.includes("quote-check/"), false);
 });
 
 check("question page carries the question, answer, CTAs and GA4 events", () => {
@@ -102,7 +108,8 @@ check("missing data does not build a page", () => {
 });
 
 check("questions index is noindex while every question is draft", () => {
-  const idx = questionsIndex(questions, deps);
+  const allDraft = questions.map((q) => ({ ...q, status: "draft" }));
+  const idx = questionsIndex(allDraft, { ...deps, questions: allDraft });
   assert.equal(idx.noindex, true);
   assert.equal(idx.liveCount, 0);
 });

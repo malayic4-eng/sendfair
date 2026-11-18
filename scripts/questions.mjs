@@ -96,7 +96,7 @@ export function questionAnswer(q, deps) {
     const slug = String(q.slug || ""), question = String(q.question || "");
     if (/cement/i.test(slug) || /cement/i.test(question)) {
       const line = (est.lines || []).find((l) => /cement/i.test(l.label));
-      if (!line || !(line.qty > 0)) return null;
+      if (!line || !(line.qty > 0) || !(line.cost > 0)) return null;
       const direct = `A 3-bedroom house of about ${house.m2} m² in ${c.name} needs about ${Math.round(line.qty)} bags of 50 kg cement, costing about ${money(line.cost, est.currency)} at the prices checked ${dateLong(checkedAt)}.`;
       return {
         type: "build-cement",
@@ -142,15 +142,17 @@ export function questionPage(q, deps) {
   const trail = [["SendFair", ""], ["Questions", "questions/"], [q.question, rel]];
   const related = relatedQuestions(deps.questions || [], q, 4);
   const ctas = ans.type === "send"
-    ? [
-        { target: "route", label: `Compare every service from ${ans.s.label} to ${ans.r.name}`, href: link(prefix, `send-money/${ans.s.id}-to-${ans.r.id}/`) },
-        { target: "rates", label: `${ans.s.currency} to ${ans.r.currency} rate and history`, href: link(prefix, `rates/${ans.s.currency.toLowerCase()}-to-${ans.r.currency.toLowerCase()}/`) },
-        { target: "calculator", label: `Cost to build in ${ans.r.name}`, href: link(prefix, `cost-to-build/${ans.r.id}/`) }
-      ]
-    : [
-        { target: "calculator", label: `Open the ${ans.country.name} house calculator`, href: link(prefix, `cost-to-build/${q.country}/`) },
-        { target: "quote-check", label: "Check a builder's quote", href: link(prefix, "quote-check/") }
-      ];
+    ? (() => {
+        const list = [{ target: "route", label: `Compare every service from ${ans.s.label} to ${ans.r.name}`, href: link(prefix, `send-money/${ans.s.id}-to-${ans.r.id}/`) }];
+        if (ans.s.currency !== ans.r.currency) list.push({ target: "rates", label: `${ans.s.currency} to ${ans.r.currency} rate and history`, href: link(prefix, `rates/${ans.s.currency.toLowerCase()}-to-${ans.r.currency.toLowerCase()}/`) });
+        list.push({ target: "calculator", label: `Cost to build in ${ans.r.name}`, href: link(prefix, `cost-to-build/${ans.r.id}/`) });
+        return list;
+      })()
+    : (() => {
+        const list = [{ target: "calculator", label: `Open the ${ans.country.name} house calculator`, href: link(prefix, `cost-to-build/${q.country}/`) }];
+        if (deps.quoteCheckOn !== false) list.push({ target: "quote-check", label: "Check a builder's quote", href: link(prefix, "quote-check/") });
+        return list;
+      })();
   const ctaHtml = ctas.map((c, i) => `<a class="btn${i ? " btn-ghost" : ""}" href="${c.href}" data-qcta="${c.target}">${esc(c.label)}</a>`).join(" ");
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
