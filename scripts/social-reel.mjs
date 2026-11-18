@@ -137,7 +137,8 @@ async function main() {
   let mp4 = null;
   if (hasFfmpeg) {
     try {
-      execFileSync("ffmpeg", ["-y", "-f", "concat", "-safe", "0", "-i", "concat.txt", "-vf", "fps=30,format=yuv420p", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-an", "-movflags", "+faststart", "reel.mp4"], { cwd: OUT, stdio: "ignore" });
+      // A silent AAC track is included on purpose: Instagram needs an audio stream to mix library music into.
+      execFileSync("ffmpeg", ["-y", "-f", "concat", "-safe", "0", "-i", "concat.txt", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-vf", "fps=30,format=yuv420p", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", "reel.mp4"], { cwd: OUT, stdio: "ignore" });
       mp4 = "reel.mp4";
       console.log(`Reel: ${OUT}/reel.mp4 (${(fs.statSync(path.join(OUT, mp4)).size / 1048576).toFixed(1)} MB, ${total.toFixed(1)}s)`);
     } catch (e) { console.error("ffmpeg failed:", e.message); }
