@@ -1,0 +1,606 @@
+{
+ "license": "Unsplash License (free for commercial use, no attribution required). Each photo was checked as a free (not Unsplash+) photo, at least 3840 px on its long side, tagged with a location in that country. Downloaded at build time by scripts/fetch-reel-photos.mjs into data/social/photo-cache/ at 2160x3840.",
+ "countries": {
+  "senegal": [
+   {
+    "id": "W9XDGeJDnL0",
+    "src": "https://images.unsplash.com/photo-1637166514815-8b923a08f8e8",
+    "page": "https://unsplash.com/photos/W9XDGeJDnL0",
+    "size": "4000x6000",
+    "note": "Dakar, Sénégal — a view of a hill with a statue on top of it"
+   },
+   {
+    "id": "QuCvjY4gCng",
+    "src": "https://images.unsplash.com/photo-1657302699239-c350f0372260",
+    "page": "https://unsplash.com/photos/QuCvjY4gCng",
+    "size": "2828x4242",
+    "note": "Gorée, Dakar, Senegal — boats on the beach"
+   },
+   {
+    "id": "mR4c4ha9TdQ",
+    "src": "https://images.unsplash.com/photo-1758061290793-c8df7171bbb1",
+    "page": "https://unsplash.com/photos/mR4c4ha9TdQ",
+    "size": "6000x4000",
+    "note": "Île de Gorée, Dakar, Senegal — Narrow street lined with colorful buildings and f"
+   },
+   {
+    "id": "2ew_aw99x28",
+    "src": "https://images.unsplash.com/photo-1611258490565-4a06c019e631",
+    "page": "https://unsplash.com/photos/2ew_aw99x28",
+    "size": "6000x3376",
+    "note": "Route de la Corniche Ouest, Dakar, Sénégal — white concrete building near body o"
+   }
+  ],
+  "zambia": [
+   {
+    "id": "IZHcwmcp6Zw",
+    "src": "https://images.unsplash.com/photo-1643580018337-5af73fe3c21a",
+    "page": "https://unsplash.com/photos/IZHcwmcp6Zw",
+    "size": "3960x2640",
+    "note": "Lusaka, Zambia — a large building with a crane on top of it"
+   },
+   {
+    "id": "U1kBzh95xP4",
+    "src": "https://images.unsplash.com/photo-1784042369597-8e41a1e536b8",
+    "page": "https://unsplash.com/photos/U1kBzh95xP4",
+    "size": "6000x4000",
+    "note": "New Kasama, Lusaka, Zambia — Arid landscape with distant mountains and foregroun"
+   },
+   {
+    "id": "YxwdPUKSVWo",
+    "src": "https://images.unsplash.com/photo-1714484964374-ff49ac595879",
+    "page": "https://unsplash.com/photos/YxwdPUKSVWo",
+    "size": "6048x8064",
+    "note": "Lusaka, Lusaka, Zambia — a tall building with a clock on the side of it"
+   },
+   {
+    "id": "CJGNXiuOUkc",
+    "src": "https://images.unsplash.com/photo-1775880645881-9ca8494a1c21",
+    "page": "https://unsplash.com/photos/CJGNXiuOUkc",
+    "size": "4080x3072",
+    "note": "UNZA Chapel, Lusaka, Zambia — Grassy field with trees under a cloudy blue sky"
+   }
+  ],
+  "zimbabwe": [
+   {
+    "id": "CtqY0-G72qg",
+    "src": "https://images.unsplash.com/photo-1575285272212-d52e915d01c7",
+    "page": "https://unsplash.com/photos/CtqY0-G72qg",
+    "size": "5760x3840",
+    "note": "Harare, Zimbabwe — beige city building"
+   },
+   {
+    "id": "2xDt8ahOBCE",
+    "src": "https://images.unsplash.com/photo-1721012970985-3ca71fe3877c",
+    "page": "https://unsplash.com/photos/2xDt8ahOBCE",
+    "size": "6000x4000",
+    "note": "Harare, Zimbabwe — A view of a city with tall buildings"
+   },
+   {
+    "id": "V3VKKSayZP0",
+    "src": "https://images.unsplash.com/photo-1698157126635-07ddf3a1f25e",
+    "page": "https://unsplash.com/photos/V3VKKSayZP0",
+    "size": "3024x4032",
+    "note": "Harare, Zimbabwe — a very tall building sitting next to a bridge"
+   },
+   {
+    "id": "1DeiN3AsCH4",
+    "src": "https://images.unsplash.com/photo-1662831328181-8d2df5898ad4",
+    "page": "https://unsplash.com/photos/1DeiN3AsCH4",
+    "size": "3000x4000",
+    "note": "Harare, Zimbabwe — a group of tall buildings"
+   },
+   {
+    "id": "OAqjZgcwalk",
+    "src": "https://images.unsplash.com/photo-1662831328199-eb872a4ced96",
+    "page": "https://unsplash.com/photos/OAqjZgcwalk",
+    "size": "3000x4000",
+    "note": "Harare, Zimbabwe — a group of palm trees"
+   }
+  ],
+  "egypt": [
+   {
+    "id": "pwMbtwA9LRc",
+    "src": "https://images.unsplash.com/photo-1572252009286-268acec5ca0a",
+    "page": "https://unsplash.com/photos/pwMbtwA9LRc",
+    "size": "5464x3643",
+    "note": "Cairo, Egypt — The Mosque of Rifai and Sultan Hassan in the historic city o"
+   },
+   {
+    "id": "ibVv-7G9RFs",
+    "src": "https://images.unsplash.com/photo-1774425329088-36801b6f09be",
+    "page": "https://unsplash.com/photos/ibVv-7G9RFs",
+    "size": "6016x4016",
+    "note": "Cairo, Egypt — Pyramids visible over a hazy cityscape with modern buildings"
+   },
+   {
+    "id": "1Ng-7ESDjvk",
+    "src": "https://images.unsplash.com/photo-1626692880062-35c360fb6afc",
+    "page": "https://unsplash.com/photos/1Ng-7ESDjvk",
+    "size": "6000x4000",
+    "note": "Cairo, Egypt — white and blue boat on water near city buildings during dayt"
+   },
+   {
+    "id": "MB2eoqiNKiw",
+    "src": "https://images.unsplash.com/photo-1710211288826-b7df3ab71588",
+    "page": "https://unsplash.com/photos/MB2eoqiNKiw",
+    "size": "3840x2312",
+    "note": "Khan el-Khalili, El-Gamaleya, El Gamaliya, Cairo, Egypt — a narrow alley way wit"
+   }
+  ],
+  "morocco": [
+   {
+    "id": "CFKksjYRSQ8",
+    "src": "https://images.unsplash.com/photo-1597212618440-806262de4f6b",
+    "page": "https://unsplash.com/photos/CFKksjYRSQ8",
+    "size": "4512x3000",
+    "note": "Marrakech, Morocco — The Koutoubia Mosque minaret rising above Marrakesh with sn"
+   },
+   {
+    "id": "Dql2_LN5sRg",
+    "src": "https://images.unsplash.com/photo-1580746738099-1cb74f972feb",
+    "page": "https://unsplash.com/photos/Dql2_LN5sRg",
+    "size": "3024x4032",
+    "note": "Marrakech, Morocco — Baskets of colorful spices and dried flowers in a tradition"
+   },
+   {
+    "id": "eEHJ1ZSAZTg",
+    "src": "https://images.unsplash.com/photo-1770970389629-86cac3ef3e12",
+    "page": "https://unsplash.com/photos/eEHJ1ZSAZTg",
+    "size": "3072x4096",
+    "note": "Marrakesh, Marrakesh, Morocco — Busy marketplace with a tall minaret at dusk"
+   },
+   {
+    "id": "nnDgdAGoeAE",
+    "src": "https://images.unsplash.com/photo-1549140600-78c9b8275e9d",
+    "page": "https://unsplash.com/photos/nnDgdAGoeAE",
+    "size": "3456x5184",
+    "note": "Tinmel Mosque, Tinmel, Morocco — A series of red brick arches forming a long cor"
+   }
+  ],
+  "ivorycoast": [
+   {
+    "id": "ir5PK5Itae0",
+    "src": "https://images.unsplash.com/photo-1785095617583-e408f4b451ca",
+    "page": "https://unsplash.com/photos/ir5PK5Itae0",
+    "size": "7952x5304",
+    "note": "Plateau, Abidjan, Côte d'Ivoire — Distant cityscape across water under a blue s"
+   },
+   {
+    "id": "Pnxq9vtgpds",
+    "src": "https://images.unsplash.com/photo-1773402992044-921b62a690f3",
+    "page": "https://unsplash.com/photos/Pnxq9vtgpds",
+    "size": "5568x3712",
+    "note": "Abidjan, Côte d'Ivoire — A red car driving on a road with motion blur"
+   },
+   {
+    "id": "PkfE-NwXbfU",
+    "src": "https://images.unsplash.com/photo-1650285642154-f53a21bc6356",
+    "page": "https://unsplash.com/photos/PkfE-NwXbfU",
+    "size": "4032x2268",
+    "note": "Assouikro, Côte d'Ivoire — a group of rocks sitting in the middle of a lake"
+   },
+   {
+    "id": "L0EuqiZyVMg",
+    "src": "https://images.unsplash.com/photo-1781508202134-8cf0d8b11df3",
+    "page": "https://unsplash.com/photos/L0EuqiZyVMg",
+    "size": "7884x5259",
+    "note": "Korhogo, Côte d'Ivoire — Town nestled among green trees with hills in the distan"
+   },
+   {
+    "id": "W2tPZON_d4s",
+    "src": "https://images.unsplash.com/photo-1781467031828-ab5fe7f467ab",
+    "page": "https://unsplash.com/photos/W2tPZON_d4s",
+    "size": "7888x5261",
+    "note": "Korhogo, Côte d'Ivoire — Town surrounded by green trees with distant hills"
+   }
+  ],
+  "mali": [
+   {
+    "id": "yMwqKyPMiyY",
+    "src": "https://images.unsplash.com/photo-1663602535131-e1936a6f368a",
+    "page": "https://unsplash.com/photos/yMwqKyPMiyY",
+    "size": "3355x4597",
+    "note": "Bamako, Mali — a flag on a flagpole"
+   }
+  ],
+  "cameroon": [
+   {
+    "id": "HV_TYd3KAQA",
+    "src": "https://images.unsplash.com/photo-1615463669098-521a22047a1e",
+    "page": "https://unsplash.com/photos/HV_TYd3KAQA",
+    "size": "6016x3384",
+    "note": "Yaounde, Cameroon — aerial view of houses and trees during daytime"
+   },
+   {
+    "id": "TQWSvCfrogw",
+    "src": "https://images.unsplash.com/photo-1636385918427-7aa474ffa8ae",
+    "page": "https://unsplash.com/photos/TQWSvCfrogw",
+    "size": "6000x4000",
+    "note": "Poste Centrale, Yaoundé, Cameroun — a group of cars driving down a street"
+   },
+   {
+    "id": "9ZFn__BKP_s",
+    "src": "https://images.unsplash.com/photo-1615463738213-b9381d217b4e",
+    "page": "https://unsplash.com/photos/9ZFn__BKP_s",
+    "size": "6016x3384",
+    "note": "Bansoa, Cameroon — green trees under white clouds during daytime"
+   },
+   {
+    "id": "MdNOvU9uFuo",
+    "src": "https://images.unsplash.com/photo-1615463668140-d294c94ec8ef",
+    "page": "https://unsplash.com/photos/MdNOvU9uFuo",
+    "size": "6016x3384",
+    "note": "Yaounde, Cameroon — green trees on brown mountain under blue sky during daytime"
+   },
+   {
+    "id": "YMk8h7xoja0",
+    "src": "https://images.unsplash.com/photo-1659947234286-213fd15f0bcc",
+    "page": "https://unsplash.com/photos/YMk8h7xoja0",
+    "size": "4128x3096",
+    "note": "Mbalmayo, Cameroon — a road with trees and houses along it"
+   }
+  ],
+  "ethiopia": [
+   {
+    "id": "YPLosSc3w6A",
+    "src": "https://images.unsplash.com/photo-1624314138470-5a2f24623f10",
+    "page": "https://unsplash.com/photos/YPLosSc3w6A",
+    "size": "4032x3024",
+    "note": "Addis Ababa, Ethiopia — body of water near city buildings during da"
+   },
+   {
+    "id": "WMB-Fb5LHeg",
+    "src": "https://images.unsplash.com/photo-1647316703389-e114712500e5",
+    "page": "https://unsplash.com/photos/WMB-Fb5LHeg",
+    "size": "6720x4480",
+    "note": "Addis Ababa, Ethiopia — a night view of a city with a lot of tall buildings"
+   },
+   {
+    "id": "Yx1akv9YI5E",
+    "src": "https://images.unsplash.com/photo-1734865934450-719ef6f59a37",
+    "page": "https://unsplash.com/photos/Yx1akv9YI5E",
+    "size": "3072x4096",
+    "note": "Addis Ababa, Ethiopia — A view of a city with a lot of tall buildin"
+   },
+   {
+    "id": "r3JBHwlRFMI",
+    "src": "https://images.unsplash.com/photo-1686143293611-85158a1a9370",
+    "page": "https://unsplash.com/photos/r3JBHwlRFMI",
+    "size": "6720x4035",
+    "note": "Ethio Telecom Headquarters, Churchill Avenue, Addis Ababa, Ethiopia"
+   },
+   {
+    "id": "vpCmyM2KPEA",
+    "src": "https://images.unsplash.com/photo-1771495562804-373fb516114c",
+    "page": "https://unsplash.com/photos/vpCmyM2KPEA",
+    "size": "5263x3509",
+    "note": "Addis Ababa, Ethiopia — Busy city street with cars and tall buildings at dusk"
+   }
+  ],
+  "tanzania": [
+   {
+    "id": "lZLgqIiFHSw",
+    "src": "https://images.unsplash.com/photo-1589177900326-900782f88a55",
+    "page": "https://unsplash.com/photos/lZLgqIiFHSw",
+    "size": "4912x3264",
+    "note": "Dar es Salaam, Tanzania — aerial view of city buildings during daytime"
+   },
+   {
+    "id": "_WT7Mg1dG3w",
+    "src": "https://images.unsplash.com/photo-1568216681201-1edacc6c8048",
+    "page": "https://unsplash.com/photos/_WT7Mg1dG3w",
+    "size": "5456x3064",
+    "note": "Dar es Salaam, Tanzania — body of water near buildings at daytime"
+   },
+   {
+    "id": "AbUnkdIElTc",
+    "src": "https://images.unsplash.com/photo-1674334264912-704cb2a24b37",
+    "page": "https://unsplash.com/photos/AbUnkdIElTc",
+    "size": "6240x4160",
+    "note": "Dar es Salaam, Tanzania — a view of a city and a body of water"
+   },
+   {
+    "id": "1bubgYf5zeY",
+    "src": "https://images.unsplash.com/photo-1635161517754-2d596cf8a540",
+    "page": "https://unsplash.com/photos/1bubgYf5zeY",
+    "size": "5211x3474",
+    "note": "Dar es Salaam, Tanzania — a large body of water with a boat in the middle of it"
+   },
+   {
+    "id": "pxeA-AaEcCA",
+    "src": "https://images.unsplash.com/photo-1589235330824-97e034d322e9",
+    "page": "https://unsplash.com/photos/pxeA-AaEcCA",
+    "size": "5472x3080",
+    "note": "Dar es Salaam, Tanzania — cars on road near high rise buildings during daytime"
+   }
+  ],
+  "drc": [
+   {
+    "id": "StJWD4ci8wY",
+    "src": "https://images.unsplash.com/photo-1623930180584-1b14bc584169",
+    "page": "https://unsplash.com/photos/StJWD4ci8wY",
+    "size": "4417x2934",
+    "note": "Masina, Kinshasa, DR Congo — cars on road under blue sky"
+   },
+   {
+    "id": "BIbsOnzKbM0",
+    "src": "https://images.unsplash.com/photo-1695071622156-e2c293906645",
+    "page": "https://unsplash.com/photos/BIbsOnzKbM0",
+    "size": "8256x5504",
+    "note": "Kinshasa, DR Congo — a train on a train track in a city"
+   },
+   {
+    "id": "dRcmuwABzKI",
+    "src": "https://images.unsplash.com/photo-1729006122953-e3cafd3dd875",
+    "page": "https://unsplash.com/photos/dRcmuwABzKI",
+    "size": "3000x4000",
+    "note": "Gare Centrale, Kinshasa, DR Congo"
+   },
+   {
+    "id": "CDo6aAgMmuI",
+    "src": "https://images.unsplash.com/photo-1657671520058-64293338bf94",
+    "page": "https://unsplash.com/photos/CDo6aAgMmuI",
+    "size": "8256x5504",
+    "note": "Kinshasa, DR Congo — a stone building with a tower"
+   },
+   {
+    "id": "zvX32kOFNyk",
+    "src": "https://images.unsplash.com/photo-1723222661594-2181baf9c76d",
+    "page": "https://unsplash.com/photos/zvX32kOFNyk",
+    "size": "6960x4640",
+    "note": "Port of Kinshasa, DR Congo — a large crane"
+   }
+  ],
+  "rwanda": [
+   {
+    "id": "d-eWGvLCZfQ",
+    "src": "https://images.unsplash.com/photo-1598605272254-16f0c0ecdfa5",
+    "page": "https://unsplash.com/photos/d-eWGvLCZfQ",
+    "size": "5435x3623",
+    "note": "Kigali, Rwanda — white and blue concrete building near green trees and body o"
+   },
+   {
+    "id": "d_3BZ9wISCc",
+    "src": "https://images.unsplash.com/photo-1786795468102-84cd1ac41cd8",
+    "page": "https://unsplash.com/photos/d_3BZ9wISCc",
+    "size": "5280x3956",
+    "note": "Kigali, Rwanda — An aerial view of Nyandungu Eco-Park with winding paths"
+   },
+   {
+    "id": "TvpAVeqOZSo",
+    "src": "https://images.unsplash.com/photo-1565349479047-d6211d4efc90",
+    "page": "https://unsplash.com/photos/TvpAVeqOZSo",
+    "size": "5039x3360",
+    "note": "Kigali, Rwanda — brown concrete house"
+   },
+   {
+    "id": "XXjhX0my9x0",
+    "src": "https://images.unsplash.com/photo-1648708511872-5426c0f29c27",
+    "page": "https://unsplash.com/photos/XXjhX0my9x0",
+    "size": "5729x3572",
+    "note": "Kigali, Rwanda — a building with a sign on the front"
+   },
+   {
+    "id": "VikU8k-XJ54",
+    "src": "https://images.unsplash.com/photo-1689013398932-b576a11e07a1",
+    "page": "https://unsplash.com/photos/VikU8k-XJ54",
+    "size": "4288x2848",
+    "note": "Kigali, Rwanda — a view of a city from a hill top"
+   }
+  ],
+  "nigeria": [
+   {
+    "id": "67ruAEYmp4c",
+    "src": "https://images.unsplash.com/photo-1618828665011-0abd973f7bb8",
+    "page": "https://unsplash.com/photos/67ruAEYmp4c",
+    "size": "4028x2265",
+    "note": "Lagos, Nigeria — aerial view of city buildings during daytime"
+   },
+   {
+    "id": "kF0-RhpHhRA",
+    "src": "https://images.unsplash.com/photo-1719314073622-9399d167725b",
+    "page": "https://unsplash.com/photos/kF0-RhpHhRA",
+    "size": "2775x3865",
+    "note": "Lekki-Ikoyi Link Bridge, Lagos, Nigeria — A very tall bridge over a large body"
+   },
+   {
+    "id": "EMjpo0YjHPw",
+    "src": "https://images.unsplash.com/photo-1765475467677-579353b25ce0",
+    "page": "https://unsplash.com/photos/EMjpo0YjHPw",
+    "size": "8000x6000",
+    "note": "Victoria Island, Lagos, Nigeria — Boats navigate a wide river beside a modern ci"
+   },
+   {
+    "id": "cFT_Xq4XyA0",
+    "src": "https://images.unsplash.com/photo-1648023199223-25d3622bcb13",
+    "page": "https://unsplash.com/photos/cFT_Xq4XyA0",
+    "size": "6000x4000",
+    "note": "Idumota Avenue, Lagos, Nigeria — a busy city street filled with lots of traffic"
+   },
+   {
+    "id": "9ySEZ-ugtJA",
+    "src": "https://images.unsplash.com/photo-1618828665347-d870c38c95c7",
+    "page": "https://unsplash.com/photos/9ySEZ-ugtJA",
+    "size": "2253x4005",
+    "note": "Lagos, Nigeria — city skyline under blue sky during daytime"
+   },
+   {
+    "id": "-96tbWkSmLE",
+    "src": "https://images.unsplash.com/photo-1785094165691-643aa8db87ca",
+    "page": "https://unsplash.com/photos/-96tbWkSmLE",
+    "size": "3504x5256",
+    "note": "Lagos Island, Lagos, Nigeria — Bustling city with tall buildings, heavy traffic"
+   }
+  ],
+  "kenya": [
+   {
+    "id": "LTh5pGyvKAM",
+    "src": "https://images.unsplash.com/photo-1611348524140-53c9a25263d6",
+    "page": "https://unsplash.com/photos/LTh5pGyvKAM",
+    "size": "6016x4000",
+    "note": "Nairobi, Kenya — city skyline under white sky during daytime"
+   },
+   {
+    "id": "i0uxlHOhb1Y",
+    "src": "https://images.unsplash.com/photo-1781504798134-53a5a833c34f",
+    "page": "https://unsplash.com/photos/i0uxlHOhb1Y",
+    "size": "5121x3456",
+    "note": "Strathmore University, Nairobi, Kenya — Urban landscape featuring various buildi"
+   },
+   {
+    "id": "FzkGHmvvsto",
+    "src": "https://images.unsplash.com/photo-1635595358293-03620e36be48",
+    "page": "https://unsplash.com/photos/FzkGHmvvsto",
+    "size": "6000x4000",
+    "note": "Nairobi National Park, Kenya — a herd of zebra on a dry grass field"
+   },
+   {
+    "id": "7XA8SJ5ODq4",
+    "src": "https://images.unsplash.com/photo-1634662101368-fa8021773862",
+    "page": "https://unsplash.com/photos/7XA8SJ5ODq4",
+    "size": "6000x4000",
+    "note": "Nairobi, Kenya — a giraffe standing in a field with a city in the background"
+   },
+   {
+    "id": "8JnXfVk6PdI",
+    "src": "https://images.unsplash.com/photo-1781504842018-c51ce0dac23f",
+    "page": "https://unsplash.com/photos/8JnXfVk6PdI",
+    "size": "4110x3323",
+    "note": "Upper Hill, Nairobi, Kenya — Modern cityscape"
+   },
+   {
+    "id": "Zkao_QBEjk8",
+    "src": "https://images.unsplash.com/photo-1596005554384-d293674c91d7",
+    "page": "https://unsplash.com/photos/Zkao_QBEjk8",
+    "size": "6016x3889",
+    "note": "Nairobi, Kenya — skyline at night"
+   }
+  ],
+  "ghana": [
+   {
+    "id": "-CgUhaShACE",
+    "src": "https://images.unsplash.com/photo-1630386226447-af0a955c1009",
+    "page": "https://unsplash.com/photos/-CgUhaShACE",
+    "size": "4872x3432",
+    "note": "Accra, Ghana — white concrete building with flag on top during daytime"
+   },
+   {
+    "id": "9ieZ4ooO4-4",
+    "src": "https://images.unsplash.com/photo-1727023663921-967d01f69c7e",
+    "page": "https://unsplash.com/photos/9ieZ4ooO4-4",
+    "size": "6000x4000",
+    "note": "Black Star Square, Accra, Ghana"
+   },
+   {
+    "id": "mSJgxKNXcag",
+    "src": "https://images.unsplash.com/photo-1770721666620-65cb94e2df3c",
+    "page": "https://unsplash.com/photos/mSJgxKNXcag",
+    "size": "4032x3024",
+    "note": "Accra, Ghana — Building with a clock tower and surrounding white structures"
+   },
+   {
+    "id": "zCAh6tOWFt8",
+    "src": "https://images.unsplash.com/photo-1589104602532-9cee07f8f62c",
+    "page": "https://unsplash.com/photos/zCAh6tOWFt8",
+    "size": "4332x3456",
+    "note": "Ada, Ghana — red boat on water near green palm trees"
+   },
+   {
+    "id": "5YdLNHzwux4",
+    "src": "https://images.unsplash.com/photo-1718766304636-cb9309953a55",
+    "page": "https://unsplash.com/photos/5YdLNHzwux4",
+    "size": "3024x4032",
+    "note": "Accra, Ghana — A view of a city from the top of a building"
+   },
+   {
+    "id": "5KDeRR5gzVk",
+    "src": "https://images.unsplash.com/photo-1770721666603-650f0fdd8ff5",
+    "page": "https://unsplash.com/photos/5KDeRR5gzVk",
+    "size": "4032x3024",
+    "note": "Accra, Ghana — White building with a clock tower and palm trees"
+   }
+  ],
+  "uganda": [
+   {
+    "id": "lii0uaz8Ieo",
+    "src": "https://images.unsplash.com/photo-1675756261486-09bd1e0f6c8a",
+    "page": "https://unsplash.com/photos/lii0uaz8Ieo",
+    "size": "5789x3256",
+    "note": "Kampala, Uganda — a view of a city from a tall building"
+   },
+   {
+    "id": "Q3ymlvOJGFs",
+    "src": "https://images.unsplash.com/photo-1763220207281-c4d0febb61a8",
+    "page": "https://unsplash.com/photos/Q3ymlvOJGFs",
+    "size": "7938x5292",
+    "note": "Kampala, Uganda — City skyline bathed in warm sunset light"
+   },
+   {
+    "id": "KWHsl_llyvc",
+    "src": "https://images.unsplash.com/photo-1777887544354-74a7248c8a74",
+    "page": "https://unsplash.com/photos/KWHsl_llyvc",
+    "size": "5468x3645",
+    "note": "Kampala, Uganda — City skyline with modern buildings nestled among trees"
+   },
+   {
+    "id": "Ppivf5iYqv8",
+    "src": "https://images.unsplash.com/photo-1585995568130-390c8db58340",
+    "page": "https://unsplash.com/photos/Ppivf5iYqv8",
+    "size": "3024x4032",
+    "note": "Kampala, Uganda — bird flying over white and blue building"
+   },
+   {
+    "id": "VmQhLYDuSbk",
+    "src": "https://images.unsplash.com/photo-1675345653570-e239fa15bef8",
+    "page": "https://unsplash.com/photos/VmQhLYDuSbk",
+    "size": "4000x6000",
+    "note": "Kampala, Uganda — a small village with a stream running through it"
+   }
+  ],
+  "southafrica": [
+   {
+    "id": "_h-L45TSmGM",
+    "src": "https://images.unsplash.com/photo-1636706519609-988babca3dd5",
+    "page": "https://unsplash.com/photos/_h-L45TSmGM",
+    "size": "5186x3140",
+    "note": "Johannesburg, South Africa — skyline at golden hour"
+   },
+   {
+    "id": "xvJVDUoGpoU",
+    "src": "https://images.unsplash.com/photo-1577948000111-9c970dfe3743",
+    "page": "https://unsplash.com/photos/xvJVDUoGpoU",
+    "size": "4032x3024",
+    "note": "Johannesburg, South Africa — aerial view of the city skyline"
+   },
+   {
+    "id": "LuiwD6fnKM8",
+    "src": "https://images.unsplash.com/photo-1654575998971-4f467c8a89c1",
+    "page": "https://unsplash.com/photos/LuiwD6fnKM8",
+    "size": "4729x2660",
+    "note": "Johannesburg, South Africa — a view of a city with tall buildings"
+   },
+   {
+    "id": "ybjhQsdXxzY",
+    "src": "https://images.unsplash.com/photo-1602578984228-c98a9b995f3e",
+    "page": "https://unsplash.com/photos/ybjhQsdXxzY",
+    "size": "4000x2667",
+    "note": "Johannesburg, South Africa — city skyline under blue and white cloudy sky"
+   },
+   {
+    "id": "f0RvpwF-iXE",
+    "src": "https://images.unsplash.com/photo-1552937075-967cf58b74a4",
+    "page": "https://unsplash.com/photos/f0RvpwF-iXE",
+    "size": "6000x4000",
+    "note": "Johannesburg City Centre, South Africa — cityscape during daytime"
+   },
+   {
+    "id": "kws8dJ9wfwc",
+    "src": "https://images.unsplash.com/photo-1610307766999-01f45d259959",
+    "page": "https://unsplash.com/photos/kws8dJ9wfwc",
+    "size": "5617x3745",
+    "note": "Johannesburg, South Africa — city skyline at night"
+   }
+  ]
+ }
+}

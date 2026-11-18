@@ -6,13 +6,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { Resvg, initWasm } from "@resvg/resvg-wasm";
+import * as D from "./reel-design.mjs";
 
 const read = (p) => JSON.parse(fs.readFileSync(p, "utf8"));
 const plan = read("data/social/plan.json");
 const schedule = plan.schedule || read("data/social/schedule.json");
 const OUT = `data/social/reels/${plan.date}`;
-const INDIGO = "#1b2470", DEEP = "#101428", MARIGOLD = "#f6b52b", WHITE = "#ffffff", MUTED = "#c9cdea";
-const W = 1080, H = 1920, MARGIN = 90;
+const W = 1080, H = 1920;
 
 // resvg-wasm cannot see system fonts, so the brand font ships with the repo (Figtree, SIL OFL 1.1,
 // converted from the @fontsource WOFF files to TTF). The same files are used on every machine.
@@ -30,79 +30,33 @@ async function renderPng(svg) {
 const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const TAG = { route: "Today's rates", "best-vs-average": "Best vs average", house: "House costs", tip: "Money tip", "rate-move": "Rate move" };
 const prettyDate = (d) => { const x = new Date(String(d || "") + "T00:00:00Z"); return isNaN(x.getTime()) ? String(d || "") : x.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }); };
-function wrap(text, max = 24) {
-  const words = String(text || "").split(/\s+/), lines = [];
-  let line = "";
-  for (const w of words) { if ((line + " " + w).trim().length > max) { if (line) lines.push(line); line = w; } else line = (line + " " + w).trim(); }
-  if (line) lines.push(line);
-  return lines;
-}
 const numPrefix = (value) => { const m = String(value).match(/^([A-Z]{3})\s/); return m ? m[1] + " " : ""; };
 function countValue(row, k) {
   if (typeof row.final !== "number" || !isFinite(row.final)) return row.value;
-  if (String(row.value).trim().endsWith("%")) return `${(row.final * k).toFixed(1)}%`;
-  if (/^[+-]?\d+(\.\d+)?%$/.test(String(row.value).trim())) return `${(row.final * k).toFixed(1)}%`;
+  if (/^[+-]?\d+(\.\d+)?%$/.test(String(row.value).trim())) { const v = (row.final * k).toFixed(1); return `${String(row.value).trim().startsWith("+") && row.final * k > 0 ? "+" : ""}${v}%`; }
   const prefix = numPrefix(row.value);
   return `${prefix}${Math.round(row.final * k).toLocaleString("en")}`;
 }
-function base(inner, tag = "") {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${DEEP}"/><stop offset="1" stop-color="${INDIGO}"/></linearGradient></defs>
-<rect width="${W}" height="${H}" fill="url(#g)"/>
-<rect x="0" y="0" width="${W}" height="8" fill="${MARIGOLD}"/>
-<g><rect x="${MARGIN}" y="90" width="86" height="86" rx="22" fill="${MARIGOLD}"/><text x="${MARGIN + 43}" y="150" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="700" fill="${DEEP}" text-anchor="middle">SF</text>
-<text x="${MARGIN + 110}" y="150" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="${WHITE}">SendFair</text></g>
-${tag ? `<text x="${W - MARGIN}" y="150" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="${MUTED}" text-anchor="end">${esc(tag)}</text>` : ""}
-${inner}
-<text x="${MARGIN}" y="1550" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="${MUTED}">Checked ${esc(prettyDate(plan.reel.checkDate))} · sendfair.africa</text>
-<rect x="${MARGIN}" y="1580" width="${W - MARGIN * 2}" height="4" fill="${MARIGOLD}" opacity="0.5"/>
-</svg>`;
+// Photos are downloaded into data/social/photo-cache/ by scripts/fetch-reel-photos.mjs (Unsplash
+// License: free for commercial use). Without them the frames use the country gradient.
+function photosFor(cid, date) {
+  let list = {};
+  try { list = read("data/social/photos.json"); } catch {}
+  const ids = ((list.countries || {})[cid] || []).map((p) => p.id).filter((id) => fs.existsSync(`data/social/photo-cache/${id}.jpg`));
+  if (!ids.length) return { a: null, b: null };
+  // A country comes round about every 17 days; each visit moves on to the next pair of photos, so the
+  // same country never repeats the photos of its previous reel, and the hook and the ending differ.
+  const [y, m, d] = String(date).split("-").map(Number);
+  const day = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86400000) || 0;
+  const visit = Math.floor(day / 17);
+  const at = (n) => D.asset(`data/social/photo-cache/${ids[(visit * 2 + n) % ids.length]}.jpg`, "image/jpeg");
+  return { a: at(0), b: ids.length > 1 ? at(1) : at(0) };
 }
-// Shrink long headlines instead of cutting them: try each size until the text fits in maxLines.
-function fit(text, steps) {
-  for (const st of steps) { const lines = wrap(text, st.chars); if (lines.length <= st.max) return { ...st, lines }; }
-  const last = steps[steps.length - 1];
-  return { ...last, lines: wrap(text, last.chars) };
+function countryOf(route) {
+  const recv = new Set(read("data/corridors.json").receivers.map((r) => r.id));
+  const parts = String(route || "").split("-");
+  return parts.find((x) => recv.has(x)) || "";
 }
-function hookFrame(hook, tag) {
-  const f = fit(hook, [{ chars: 26, max: 3, size: 76, lh: 86 }, { chars: 30, max: 4, size: 66, lh: 76 }, { chars: 34, max: 5, size: 58, lh: 68 }]);
-  const y0 = 520;
-  const text = f.lines.map((l, i) => `<text x="${W / 2}" y="${y0 + i * f.lh}" font-family="Arial, Helvetica, sans-serif" font-size="${f.size}" font-weight="700" fill="${WHITE}" text-anchor="middle">${esc(l)}</text>`).join("");
-  return base(text, tag);
-}
-function rowFrame(hook, row, active, tag) {
-  const f = fit(hook, [{ chars: 30, max: 2, size: 46, lh: 54 }, { chars: 38, max: 3, size: 38, lh: 46 }, { chars: 44, max: 4, size: 32, lh: 38 }]);
-  const hlines = f.lines;
-  const head = hlines.map((l, i) => `<text x="${W / 2}" y="${(f.lines.length > 2 ? 400 : 430) + i * f.lh}" font-family="Arial, Helvetica, sans-serif" font-size="${f.size}" fill="${MUTED}" text-anchor="middle">${esc(l)}</text>`).join("");
-  const big = `<text x="${W / 2}" y="980" font-family="Arial, Helvetica, sans-serif" font-size="120" font-weight="700" fill="${MARIGOLD}" text-anchor="middle">${esc(active.value)}</text>
-<text x="${W / 2}" y="860" font-family="Arial, Helvetica, sans-serif" font-size="54" fill="${WHITE}" text-anchor="middle">${esc(active.label)}</text>`;
-  const list = row.map((r, i) => `<text x="${MARGIN}" y="${1160 + i * 74}" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="${r === active ? MARIGOLD : MUTED}">${esc(r.label)} — ${esc(r.value)}</text>`).join("");
-  return base(head + big + list, tag);
-}
-function ctaFrame(tag) {
-  return base(`<text x="${W / 2}" y="820" font-family="Arial, Helvetica, sans-serif" font-size="60" fill="${MUTED}" text-anchor="middle">Compare yours at</text>
-<text x="${W / 2}" y="960" font-family="Arial, Helvetica, sans-serif" font-size="104" font-weight="700" fill="${MARIGOLD}" text-anchor="middle">sendfair.africa</text>
-<rect x="${W / 2 - 250}" y="1040" width="500" height="96" rx="48" fill="${MARIGOLD}"/><text x="${W / 2}" y="1103" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" fill="${DEEP}" text-anchor="middle">Compare your amount</text>`, tag);
-}
-function endFrame(tag) {
-  return base(`<text x="${W / 2}" y="880" font-family="Arial, Helvetica, sans-serif" font-size="58" fill="${WHITE}" text-anchor="middle">Compare yours at</text>
-<text x="${W / 2}" y="1000" font-family="Arial, Helvetica, sans-serif" font-size="80" font-weight="700" fill="${MARIGOLD}" text-anchor="middle">sendfair.africa</text>`, tag);
-}
-function imageSvg(image, tag) {
-  const wh = 1350, ww = 1080;
-  const f = fit(image.headline, [{ chars: 24, max: 3, size: 68, lh: 78 }, { chars: 30, max: 4, size: 56, lh: 66 }, { chars: 36, max: 5, size: 48, lh: 56 }]);
-  const head = f.lines.map((l, i) => `<text x="${ww / 2}" y="${430 + i * f.lh}" font-family="Arial, Helvetica, sans-serif" font-size="${f.size}" font-weight="700" fill="${WHITE}" text-anchor="middle">${esc(l)}</text>`).join("");
-  const rows = image.rows.map((r, i) => `<text x="${MARGIN}" y="${760 + i * 92}" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="${MUTED}">${esc(r.label)}</text><text x="${ww - MARGIN}" y="${760 + i * 92}" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="${MARIGOLD}" text-anchor="end">${esc(r.value)}</text>`).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${ww}" height="${wh}" viewBox="0 0 ${ww} ${wh}">
-<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${DEEP}"/><stop offset="1" stop-color="${INDIGO}"/></linearGradient></defs>
-<rect width="${ww}" height="${wh}" fill="url(#g)"/><rect width="${ww}" height="8" fill="${MARIGOLD}"/>
-<g><rect x="${MARGIN}" y="80" width="78" height="78" rx="20" fill="${MARIGOLD}"/><text x="${MARGIN + 39}" y="133" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" fill="${DEEP}" text-anchor="middle">SF</text></g>
-${head}${rows}
-<text x="${MARGIN}" y="${wh - 190}" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="${MUTED}">${esc(image.footnote)}</text>
-<rect x="${MARGIN}" y="${wh - 140}" width="330" height="72" rx="36" fill="${MARIGOLD}"/><text x="${MARGIN + 165}" y="${wh - 94}" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="${DEEP}" text-anchor="middle">sendfair.africa</text>
-</svg>`;
-}
-
 const hasFfmpeg = (() => { try { execFileSync("ffmpeg", ["-version"], { stdio: "ignore" }); return true; } catch { return false; } })();
 
 async function main() {
@@ -111,24 +65,31 @@ async function main() {
   const tag = TAG[reel.template] || "";
   const frames = [];
   const release = (name, svg, secs) => frames.push({ name, svg, secs });
-  release("hook", hookFrame(reel.hook, tag), 2.0);
-  for (const row of reel.numbers) {
-    release("count-" + frames.length + "a", rowFrame(reel.hook, reel.numbers, { ...row, value: countValue(row, 0.4) }, tag), 0.22);
-    release("count-" + frames.length + "b", rowFrame(reel.hook, reel.numbers, { ...row, value: countValue(row, 0.8) }, tag), 0.22);
-    release("row-" + row.label, rowFrame(reel.hook, reel.numbers, row, tag), 1.8);
-  }
-  release("cta", ctaFrame(tag), 1.4);
-  release("end", endFrame(tag), 1.0);
+  const cid = countryOf(reel.route);
+  const recv = read("data/corridors.json").receivers.find((r) => r.id === cid);
+  const photos = photosFor(cid, plan.date);
+  const ctx = { cid, country: recv ? recv.name : "", pal: D.palette(cid), photoA: photos.a, photoB: photos.b, date: prettyDate(reel.checkDate), providers: read("data/providers.json").providers };
+  // Hook: slow zoom over the photo (or the gradient), 2.4 s.
+  for (let i = 0; i < 24; i++) release("hook", D.hookFrame(ctx, reel.hook, tag, i / 23), 0.1);
+  // Each number: the card slides up while the figure counts, then holds.
+  reel.numbers.forEach((row, idx) => {
+    const steps = [0.2, 0.4, 0.6, 0.75, 0.88, 0.96];
+    steps.forEach((k, j) => release(`row-${idx}-${j}`, D.rowFrame(ctx, reel.hook, reel.numbers, idx, countValue(row, k), Math.min(1, (j + 1) / steps.length)), 0.06));
+    release(`row-${idx}`, D.rowFrame(ctx, reel.hook, reel.numbers, idx, row.value, 1), 1.9);
+  });
+  for (let i = 0; i < 6; i++) release("cta", D.ctaFrame(ctx, i / 5), i < 5 ? 0.08 : 2.0);
+  release("end", D.endFrame(ctx), 1.2);
   // Keep 12–20 s by stretching or trimming the row holds.
   let total = frames.reduce((a, f) => a + f.secs, 0);
-  if (total < schedule.reel.minSeconds) { const add = (schedule.reel.minSeconds - total) / frames.length; frames.forEach((f) => { f.secs += add; }); }
+  const holds = frames.filter((f) => f.secs >= 1);
+  if (total < schedule.reel.minSeconds) { const add = (schedule.reel.minSeconds - total) / holds.length; holds.forEach((f) => { f.secs += add; }); }
   total = frames.reduce((a, f) => a + f.secs, 0);
-  if (total > schedule.reel.maxSeconds) { const cut = (total - schedule.reel.maxSeconds) / frames.length; frames.forEach((f) => { f.secs = Math.max(0.12, f.secs - cut); }); }
+  if (total > schedule.reel.maxSeconds) { const cut = (total - schedule.reel.maxSeconds) / holds.length; holds.forEach((f) => { f.secs = Math.max(0.6, f.secs - cut); }); }
 
   for (let i = 0; i < frames.length; i++) {
     const png = await renderPng(frames[i].svg);
     fs.writeFileSync(path.join(OUT, "frames", String(i).padStart(3, "0") + ".png"), png);
-    if (i === 0) fs.writeFileSync(path.join(OUT, "cover.png"), png);
+    if (frames[i].name === "hook" && (i === 23 || i === frames.findLastIndex((f) => f.name === "hook"))) fs.writeFileSync(path.join(OUT, "cover.png"), png);
   }
   // concat list for ffmpeg (each still held for its duration)
   const concat = frames.map((f, i) => `file 'frames/${String(i).padStart(3, "0")}.png'\nduration ${f.secs.toFixed(3)}`).join("\n") + `\nfile 'frames/${String(frames.length - 1).padStart(3, "0")}.png'\n`;
@@ -147,7 +108,7 @@ async function main() {
   }
 
   const image = plan.image || { headline: reel.hook, rows: reel.numbers.slice(0, 3), footnote: `Source: SendFair (sendfair.africa) · checked ${reel.checkDate}`, cta: "sendfair.africa", link: "" };
-  const imagePng = await renderPng(imageSvg(image, "image"));
+  const imagePng = await renderPng(D.imagePost(ctx, image));
   fs.writeFileSync(path.join(OUT, "image.png"), imagePng);
   if (plan.image) fs.writeFileSync(path.join(OUT, `image-${plan.date}.png`), imagePng);
   for (const platform of ["instagram", "facebook", "tiktok"]) {

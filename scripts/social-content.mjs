@@ -78,13 +78,40 @@ function bestChanged(route, days = 7) {
 
 const hashtagsFor = (r, extra = []) => [...(tags.generic || []), ...(tags[r.id] || []), ...extra].slice(0, 5).join(" ");
 
-const HOUSE_CITIES = [
-  { cid: "kenya", city: "nairobi", label: "Nairobi", country: "Kenya" },
-  { cid: "nigeria", city: "lagos", label: "Lagos", country: "Nigeria" },
-  { cid: "nigeria", city: "abuja", label: "Abuja", country: "Nigeria" },
-  { cid: "ghana", city: "accra", label: "Accra", country: "Ghana" },
-  { cid: "uganda", city: "kampala", label: "Kampala", country: "Uganda" }
-];
+// Every receiving country takes a turn, ordered so neighbours and the same region don't follow each
+// other. Each is paired with where most of its diaspora sends from, alternating each time round.
+const REEL_ORDER = ["kenya", "nigeria", "ghana", "southafrica", "senegal", "uganda", "zimbabwe", "morocco", "ethiopia", "cameroon", "tanzania", "ivorycoast", "zambia", "egypt", "rwanda", "mali", "drc"];
+const REEL_SENDERS = {
+  kenya: ["uk", "us"], nigeria: ["uk", "us", "canada"], ghana: ["uk", "us"], southafrica: ["uk", "australia"],
+  senegal: ["europe", "us"], uganda: ["uk", "us"], zimbabwe: ["uk", "australia"], morocco: ["europe", "canada"],
+  ethiopia: ["us", "canada"], cameroon: ["europe", "us"], tanzania: ["uk", "us"], ivorycoast: ["europe", "us"],
+  zambia: ["uk", "us"], egypt: ["us", "europe"], rwanda: ["europe", "uk"], mali: ["europe", "us"], drc: ["europe", "canada"]
+};
+function reelRoute(index, needRows = 3) {
+  const n = REEL_ORDER.length, cycle = Math.floor(index / n);
+  for (let k = 0; k < n; k++) {
+    const cid = REEL_ORDER[(index + k) % n];
+    const prefs = REEL_SENDERS[cid] || ["uk"];
+    const turn = cycle % prefs.length;
+    const order = [...new Set([...prefs.slice(turn), ...prefs.slice(0, turn), ...corridors.senders.map((x) => x.id)])];
+    for (const sid of order) {
+      const route = `${sid}-${cid}`;
+      const p = routeParts(route);
+      if (!p) continue;
+      const data = rowsFor(route, (config.defaultAmounts || {})[p.s.currency] || 250);
+      if (data && data.rows.length >= needRows) return route;
+    }
+  }
+  return (config.priorityRoutes || [])[0];
+}
+// House reels follow the same country order: the main city where we have city factors, else the country.
+const HOUSE_MAIN_CITY = { kenya: ["nairobi", "Nairobi"], nigeria: ["lagos", "Lagos"], ghana: ["accra", "Accra"], uganda: ["kampala", "Kampala"] };
+function houseCity(index) {
+  const cid = REEL_ORDER[index % REEL_ORDER.length];
+  const r = corridors.receivers.find((x) => x.id === cid);
+  const c = HOUSE_MAIN_CITY[cid];
+  return c ? { cid, city: c[0], label: c[1], country: r.name } : { cid, city: "country", label: r.name, country: r.name };
+}
 
 function houses(city) {
   const house = (buildCosts.houses || []).find((h) => h.id === "3") || { m2: 110 };
@@ -103,8 +130,7 @@ const TIPS = [
 ];
 
 function buildReel(template, dateStr, index) {
-  const priority = config.priorityRoutes || Object.keys(quotes.quotes || {});
-  const route = priority[index % priority.length];
+  const route = reelRoute(index);
   const p = routeParts(route);
   if (!p) return null;
   const amount = config.defaultAmounts[p.s.currency] || 250;
@@ -160,10 +186,10 @@ function buildReel(template, dateStr, index) {
   }
 
   if (template === "house") {
-    const city = HOUSE_CITIES[index % HOUSE_CITIES.length];
+    const city = houseCity(index);
     const h = houses(city);
     if (!h) return null;
-    const url = `${site}/cost-to-build/${city.cid}/${city.city}/3-bedroom/`;
+    const url = city.city === "country" ? `${site}/cost-to-build/${city.cid}/3-bedroom/` : `${site}/cost-to-build/${city.cid}/${city.city}/3-bedroom/`;
     return {
       template, route: `${city.cid}-${city.city}`, from: city.label, to: city.country, amount: 0, currency: "XOF", receiveCurrency: h.std.currency,
       hook: `What does a 3-bedroom house cost in ${city.label}?`,

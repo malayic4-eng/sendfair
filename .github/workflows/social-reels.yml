@@ -35,6 +35,8 @@ jobs:
         run: node scripts/test-reel.mjs
       - name: Build today's plan
         run: node scripts/social-content.mjs
+      - name: Download background photos (Unsplash)
+        run: node scripts/fetch-reel-photos.mjs
       - name: Render the Reel, cover, image and captions
         run: node scripts/social-reel.mjs
       - name: Read the date
