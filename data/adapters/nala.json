@@ -1,0 +1,23 @@
+{
+  "id": "nala",
+  "name": "NALA",
+  "provider": "nala",
+  "kind": "partner-feed",
+  "status": "stub",
+  "env": { "url": "NALA_FEED_URL", "key": "NALA_FEED_KEY" },
+  "auth": { "header": "Authorization", "prefix": "Bearer " },
+  "format": "json",
+  "rowsPath": "quotes",
+  "mapping": {
+    "route": "corridor",
+    "rate": "rate",
+    "fee": "fee",
+    "feePct": "fee_pct",
+    "payout": "payout",
+    "checkedAt": "checked_at",
+    "speed": "speed"
+  },
+  "defaults": { "payout": ["bank"], "speed": "" },
+  "maxAgeHours": 24,
+  "note": "Disabled until NALA_FEED_URL and NALA_FEED_KEY are set. The feed must be the official NALA partner feed."
+}
