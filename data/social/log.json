@@ -1,0 +1,84 @@
+{
+ "attempts": [
+  {
+   "at": "2026-11-17T17:48:18.957Z",
+   "date": "2026-11-17",
+   "template": "route",
+   "route": "uk-nigeria",
+   "platform": "instagram",
+   "type": "reel",
+   "status": "dry-run",
+   "idem": "b4ac23bd6605795a",
+   "link": "https://sendfair.africa/send-money/uk-to-nigeria/?ref=ig"
+  },
+  {
+   "at": "2026-11-17T17:48:18.960Z",
+   "date": "2026-11-17",
+   "template": "route",
+   "route": "uk-nigeria",
+   "platform": "facebook",
+   "type": "reel",
+   "status": "dry-run",
+   "idem": "f6a29c8bb8b7541f",
+   "link": "https://sendfair.africa/send-money/uk-to-nigeria/?ref=fb"
+  },
+  {
+   "at": "2026-11-17T17:48:18.964Z",
+   "date": "2026-11-17",
+   "template": "route",
+   "route": "uk-nigeria",
+   "platform": "tiktok",
+   "type": "reel",
+   "status": "dry-run",
+   "idem": "929eef20d799efd9"
+  },
+  {
+   "at": "2026-11-17T17:53:37.798Z",
+   "date": "2026-11-17",
+   "template": "route",
+   "route": "uk-nigeria",
+   "platform": "instagram",
+   "type": "reel",
+   "status": "posted",
+   "postId": "17969164614079337",
+   "idem": "b4ac23bd6605795a",
+   "link": "https://sendfair.africa/send-money/uk-to-nigeria/?ref=ig"
+  },
+  {
+   "at": "2026-11-17T17:53:37.903Z",
+   "date": "2026-11-17",
+   "template": "route",
+   "route": "uk-nigeria",
+   "platform": "facebook",
+   "type": "reel",
+   "status": "failed",
+   "idem": "f6a29c8bb8b7541f",
+   "error": "{\"message\":\"(#200) Subject does not have permission to post videos on this target, due to lack of pages_show_list permission.\",\"type\":\"OAuthException\",\"code\":200,\"fbtrace_id\":\"Ali3zij9e8apHWAUIj3d1Ah\"}"
+  },
+  {
+   "at": "2026-11-17T17:53:44.322Z",
+   "date": "2026-11-17",
+   "template": "route",
+   "route": "uk-nigeria",
+   "platform": "facebook",
+   "type": "image",
+   "status": "posted",
+   "postId": "122096137233558346",
+   "idem": "b7c3ad1fed2c3445",
+   "fallback": true
+  },
+  {
+   "at": "2026-11-17T17:53:44.323Z",
+   "date": "2026-11-17",
+   "template": "route",
+   "route": "uk-nigeria",
+   "platform": "tiktok",
+   "type": "reel",
+   "status": "manual",
+   "postId": "",
+   "idem": "929eef20d799efd9",
+   "error": "",
+   "note": "TikTok flag off or no token; files saved in data/social/tiktok/"
+  }
+ ]
+}

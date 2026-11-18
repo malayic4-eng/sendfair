@@ -82,6 +82,23 @@ How the site treats age: older than 36 hours shows "Not rechecked today", ranks 
 ### Affiliate links
 When a program approves you, open `data/providers.json` on GitHub (pencil icon), paste the link into that provider's `affiliateUrl`, commit. If the network supports a tracking or sub-ID parameter, put `{route}` there (for example `...&subid={route}`) and each route's earnings show separately in the network's reports.
 
+### Flying-home pages and travel links (`data/partners.json` → `travel`)
+`/flying-home/` and one page per country compare flights home, recommend a travel eSIM, and link back to the transfer routes. Today the buttons open Google Flights and Airalo directly and earn nothing. Once Travelpayouts (no traffic minimum) approves you:
+1. In Travelpayouts, connect the flight brand and Airalo, and make a tracked link for each.
+2. Paste the flight brand's search URL into `flightsUrl`, using `{from}` and `{to}` for the codes (e.g. LON, NBO) or `{fromCity}` and `{toCity}` for the names.
+3. Paste Travelpayouts' tracked link into `flightsWrap` with the destination part replaced by `{url}`. Do the same for `esimUrl` and `esimWrap`.
+The links then show as affiliate links and the disclosure page updates itself. Clicks are counted under routes named `fly-<country>`.
+
+### Sponsored listings on the house calculator (`data/partners.json` → `sponsors`)
+Sell up to three listings per country to builders, suppliers, SACCOs and banks. The pitch page is `/advertise/`. To publish one, add it to `sponsors`:
+```json
+{ "id": "mjenzi-bora", "name": "Mjenzi Bora Ltd", "category": "Builder", "badge": "NCA 4",
+  "blurb": "Bungalows in Machakos and Kiambu, with weekly photo updates for clients abroad.",
+  "url": "https://wa.me/2547XXXXXXXX", "phone": "+254 7XX XXX XXX",
+  "countries": ["kenya"], "starts": "2026-12-01", "ends": "2026-12-31" }
+```
+It appears, labelled Sponsored, under the calculator on that country's pages from `starts` to `ends` and disappears on its own afterwards. Each sponsor's clicks are counted under `build-<country>`, so you can send them a monthly report from the click stats. If no sponsor is booked, the slot shows an "Advertise here" note instead.
+
 ### Google AdSense (UK visitors need a consent message)
 1. Apply at adsense.google.com after 20–30 days live with traffic.
 2. **Before turning ads on:** in AdSense open **Privacy & messaging** and publish the **European regulations** consent message. Google requires a certified consent message for visitors in the UK and Europe; its own one is free.

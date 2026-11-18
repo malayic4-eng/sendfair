@@ -1,0 +1,37 @@
+name: Weekly social summary
+
+on:
+  schedule:
+    - cron: "0 7 * * 1" # Monday 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Send the weekly summary
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+          # Owner's address for the internal report (a preview copy of a draft; never sent to subscribers).
+          SOCIAL_REPORT_EMAIL: ${{ vars.SOCIAL_REPORT_EMAIL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/social-weekly.mjs
+      - name: Commit the enriched log
+        if: always()
+        run: |
+          git config user.name "sendfair-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/social/log.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update social log with weekly views"
+          git pull --rebase
+          git push

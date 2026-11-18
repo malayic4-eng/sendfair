@@ -169,6 +169,15 @@
     s.src = cfg.impactSrc;
     document.head.appendChild(s);
   }
+  // Travelpayouts Drive: travel offers, only on pages whose build sets driveSrc (the flying-home pages), after consent.
+  function loadDrive() {
+    if (!allowOptional() || !cfg.driveSrc || document.querySelector('script[src*="emrldco.com"]')) return;
+    var s = document.createElement("script");
+    s.async = true;
+    s.setAttribute("data-cmp-ab", "2");
+    s.src = cfg.driveSrc;
+    document.head.appendChild(s);
+  }
   function loadAds() {
     if (!allowOptional() || !cfg.adsenseClient || document.getElementById("sf-ads")) return;
     var s = document.createElement("script");
@@ -488,7 +497,7 @@
   }
   function setupConsentBar() {
     if (document.getElementById("sf-consent") || consentChoice()) {
-      if (consentChoice() === "all") { loadTrackers(); loadImpact(); loadAds(); }
+      if (consentChoice() === "all") { loadTrackers(); loadImpact(); loadAds(); loadDrive(); }
       return;
     }
     var bar = document.createElement("div");
@@ -502,7 +511,7 @@
       try { localStorage.setItem("sf-consent", JSON.stringify(choice)); } catch (err) {}
       bar.remove();
       if (choice === "essential") stripImpact();
-      if (choice === "all") { loadTrackers(); loadImpact(); loadAds(); }
+      if (choice === "all") { loadTrackers(); loadImpact(); loadAds(); loadDrive(); }
     });
   }
 

@@ -9,6 +9,7 @@ import { createRequire } from "node:module";
 import { buildReports, reportSummary } from "./report-data.mjs";
 import { FR, t, moneyFr, dateFr, assertFrKeys, frGrammar, capFirst } from "./i18n.mjs";
 import { mergeConfig as mergeQuoteCheckConfig, priceFor as quoteCheckPrice } from "../src/quote-check/config.mjs";
+import { TRAVEL_IDS, sponsorsFor, flightTarget, esimTarget } from "../src/partner-links.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -41,7 +42,26 @@ let midmarket = read("data/midmarket.json");
 if (!midmarket.rates || !Object.keys(midmarket.rates).length) fail(["data/midmarket.json is missing or has no rates"]);
 const buildCosts = readOptional("data/build-costs.json", { countries: {}, houses: [], updated: "" });
 const regionalFactors = readOptional("data/regional-factors.json", { countries: {} });
+const partners = readOptional("data/partners.json", { travel: {}, origins: {}, airports: {}, sponsors: [] });
 if (!buildCosts.countries || !Object.keys(buildCosts.countries).length) fail(["data/build-costs.json is missing or has no countries"]);
+{
+  const p = [], seen = new Set(), provIds = new Set((providersFile.providers || []).map((x) => x.id));
+  const isDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "");
+  for (const sp of partners.sponsors || []) {
+    const at = `data/partners.json sponsor "${sp.id || sp.name || "?"}"`;
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(sp.id || "")) p.push(`${at}: id must be lowercase letters, numbers and dashes`);
+    if (seen.has(sp.id) || provIds.has(sp.id) || TRAVEL_IDS.includes(sp.id)) p.push(`${at}: id is already used`);
+    seen.add(sp.id);
+    for (const k of ["name", "category", "blurb"]) if (!sp[k]) p.push(`${at}: needs a ${k}`);
+    if (!/^https:\/\//.test(sp.url || "")) p.push(`${at}: url must start with https://`);
+    if (!isDate(sp.starts) || !isDate(sp.ends)) p.push(`${at}: starts and ends must be dates like 2026-12-01`);
+    if (!(sp.countries || []).length) p.push(`${at}: needs at least one country`);
+    for (const c of sp.countries || []) if (!buildCosts.countries[c]) p.push(`${at}: unknown country "${c}" (use the ids in data/build-costs.json)`);
+    if ((sp.blurb || "").length > 220) p.push(`${at}: keep the blurb under 220 characters`);
+  }
+  for (const k of ["flightsWrap", "esimWrap"]) { const w = (partners.travel || {})[k]; if (w && (!/^https:\/\//.test(w) || !w.includes("{url}"))) p.push(`data/partners.json travel.${k} must start with https:// and contain {url}`); }
+  if (p.length) fail(p);
+}
 
 // Quote Check. QUOTE_CHECK_ENABLED=true turns the public pages and calls-to-action on at build time.
 // The Worker checks the same env var at runtime, so uploads and payments stay off until it is set there too.
@@ -280,9 +300,11 @@ const logo = tile("#111853", 1.1, 34);
 const wallet = `<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18v3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="8" width="16" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="16" cy="13.5" r="1.4" fill="currentColor"/></svg>`;
 const fbIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M13.5 21v-7.1h2.4l.4-2.9h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V4.9c-.3 0-1.1-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.6V11H8.4v2.9h2.4V21h2.7z"/></svg>`;
 const igIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>`;
+const ttIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M16.6 3h-3.1v12.3a2.7 2.7 0 1 1-2.7-2.7c.3 0 .5 0 .8.1V9.5a5.9 5.9 0 1 0 5 5.8V9.1a7.4 7.4 0 0 0 4.3 1.4V7.4a4.3 4.3 0 0 1-4.3-4.4z"/></svg>`;
 const socialProfiles = [
   config.facebookUrl ? { name: "Facebook", url: config.facebookUrl, icon: fbIcon } : null,
-  config.instagramUrl ? { name: "Instagram", url: config.instagramUrl, icon: igIcon } : null
+  config.instagramUrl ? { name: "Instagram", url: config.instagramUrl, icon: igIcon } : null,
+  config.tiktokUrl ? { name: "TikTok", url: config.tiktokUrl, icon: ttIcon } : null
 ].filter(Boolean);
 const waIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.6a8.5 8.5 0 0 1-12.6 7.5L3 21l1.9-5.4A8.5 8.5 0 1 1 21 11.6z"/><path d="M8.6 8.9c.2-.5.5-.5.8-.5h.5c.2 0 .4 0 .5.4l.6 1.5c.1.2 0 .4-.1.6l-.4.5c-.1.1-.2.3 0 .6.5.9 1.3 1.6 2.2 2.1.3.2.5.1.6 0l.5-.5c.2-.2.3-.2.6-.1l1.5.7c.3.2.4.3.4.5v.5c0 .4-.2.7-.6.9-.5.3-1.1.4-1.7.2-1.9-.5-3.7-2.1-4.8-4.1-.4-.7-.6-1.4-.4-2 .1-.3.2-.5.3-.8z" fill="currentColor" stroke="none"/></svg>`;
 const footerSocials = [...socialProfiles, ...(config.whatsappChannelUrl ? [{ name: "WhatsApp", url: config.whatsappChannelUrl, icon: waIcon }] : [])];
@@ -432,7 +454,7 @@ function footer(prefix, lang) {
 <div><h2>${L.buildHouse}</h2><ul>${QC_ON ? `<li><a href="${link(prefix, "quote-check/")}">Quote Check</a></li>` : ""}<li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, countryCost(id))}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
-<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
+<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a><a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
 <p>${L.disclaimer}</p>
 <p>${L.ratesBy} <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>${L.copyright}</p>
@@ -898,6 +920,7 @@ ${crumbNav(prefix, trail)}
   <div><span class="k">Prices checked</span><span class="v">${esc(buildCosts.updated)}</span></div>
 </div>
 ${buildWidget(prefix, cid, "en", { factor, size: house ? house.id : "", city: city ? rel.split("/")[2] : "" })}
+${sponsorBox(cid, prefix)}
 <h2>The itemised receipt</h2>
 <div class="table-wrap"><table class="rates-table">
 <thead><tr><th scope="col">Item</th><th scope="col">Quantity</th><th scope="col" class="num">Rate</th><th scope="col" class="num">Amount</th></tr></thead>
@@ -1162,7 +1185,7 @@ ${config.whatsappNumber ? `<p class="wa"><a class="btn" href="https://wa.me/${es
 </div></div></section>`;
   write(rel + "index.html", page({
     prefix, canonical: rel, lang: "fr", og: "home",
-    title: top ? t("route.titleBest", { from: frSender(s), to: frReceiver(r), sc: s.currency, rc: r.currency }) : t("route.titleCompare", { from: frSender(s), to: frReceiver(r) }),
+    title: frGrammar(top ? t("route.titleBest", { from: frSender(s), to: frReceiver(r), sc: s.currency, rc: r.currency }) : t("route.titleCompare", { from: frSender(s), to: frReceiver(r) })),
     description: t("route.description", { from: frSender(s), to: frReceiver(r), date: dateFr(quotesFile.updatedAt) }),
     jsonld: frLd([faqLd(faqs), crumbs(trail), rankItemList(ctx)]),
     alternates: [{ lang: "en", href: `${site}/${corridorPath(s, r)}` }, { lang: "fr", href: `${site}/${rel}` }, { lang: "x-default", href: `${site}/${corridorPath(s, r)}` }],
@@ -1265,6 +1288,158 @@ function writeFrenchPages() {
     frRatePage(s, r);
   }
 }
+// ---- Partners: house-calculator sponsors, flights home, eSIMs (data/partners.json) ----
+const TRACK_PARTNERS = !!config.trackClicks && !DEMO;
+const sponsorHref = (prefix, sp, cid) => TRACK_PARTNERS ? `${prefix}go/${encodeURIComponent(sp.id)}?r=build-${cid}` : sp.url;
+const flightHref = (prefix, r, o, d) => TRACK_PARTNERS
+  ? `${prefix}go/flights?o=${o}&d=${d}&r=fly-${r.id}`
+  : flightTarget(partners, { origin: o, dest: d, receiver: r.id, route: `fly-${r.id}` });
+const esimHref = (prefix, r) => TRACK_PARTNERS ? `${prefix}go/esim?r=fly-${r.id}` : esimTarget(partners, { countryName: r.name, route: `fly-${r.id}` });
+const flightsTracked = !!(partners.travel || {}).flightsWrap;
+const esimTracked = !!(partners.travel || {}).esimWrap;
+const relFor = (tracked) => tracked ? "sponsored nofollow noopener" : "nofollow noopener";
+const hasFlyPage = (r) => ((partners.airports || {})[r.id] || []).length > 0;
+const flyPath = (r) => `flying-home/${r.id}/`;
+
+// Paid listing under the house calculator. Labelled, outside the receipt, and only between its dates.
+function sponsorBox(cid, prefix, lang) {
+  const c = buildCosts.countries[cid];
+  if (!c) return "";
+  const list = sponsorsFor(partners, cid, NOW).slice(0, 3);
+  if (lang === "fr") {
+    const nom = t(`names.receivers.${cid}`) || c.name;
+    if (!list.length) return `<aside class="sponsor-box empty" aria-label="Publicité"><p><strong>Constructeurs, quincailleries, banques et coopératives :</strong> cet espace est vu par les familles de la diaspora qui chiffrent leur maison avant d'envoyer l'argent. <a href="${link(prefix, "advertise/")}">Annoncer ici</a></p></aside>`;
+    return `<aside class="sponsor-box" aria-label="Sponsorisé">
+<p class="sponsor-head"><span class="sponsor-tag">Sponsorisé</span> ${esc(capFirst(nom))}</p>
+<div class="sponsor-cards">${list.map((sp) => `<a class="sponsor-card" href="${esc(sponsorHref(prefix, sp, cid))}" target="_blank" rel="sponsored noopener"><span class="k">${esc(sp.category)}${sp.badge ? ` · ${esc(sp.badge)}` : ""}</span><strong>${esc(sp.name)}</strong><span class="s">${esc(sp.blurb)}</span>${sp.phone ? `<span class="s">${esc(sp.phone)}</span>` : ""}</a>`).join("")}</div>
+<p class="note">Annonces payantes. Elles ne font pas partie du devis et ne changent aucun prix de cette page. Vérifiez l'immatriculation d'un constructeur et demandez des références avant de payer. <a href="${link(prefix, "advertise/")}">Annoncer ici</a></p>
+</aside>`;
+  }
+  if (!list.length) {
+    return `<aside class="sponsor-box empty" aria-label="Advertising"><p><strong>Builders, hardware suppliers, SACCOs and banks in ${esc(c.name)}:</strong> this space is seen by families abroad who are pricing a house in ${esc(c.name)} before they send the money. <a href="${link(prefix, "advertise/")}">Advertise here</a></p></aside>`;
+  }
+  return `<aside class="sponsor-box" aria-label="Sponsored">
+<p class="sponsor-head"><span class="sponsor-tag">Sponsored</span> Featured in ${esc(c.name)}</p>
+<div class="sponsor-cards">${list.map((sp) => `<a class="sponsor-card" href="${esc(sponsorHref(prefix, sp, cid))}" target="_blank" rel="sponsored noopener"><span class="k">${esc(sp.category)}${sp.badge ? ` · ${esc(sp.badge)}` : ""}</span><strong>${esc(sp.name)}</strong><span class="s">${esc(sp.blurb)}</span>${sp.phone ? `<span class="s">${esc(sp.phone)}</span>` : ""}</a>`).join("")}</div>
+<p class="note">Sponsored listings are paid for. They are not part of the receipt and do not change any price on this page. Check a builder's registration and ask for references and receipts before you pay anyone. <a href="${link(prefix, "advertise/")}">Advertise here</a></p>
+</aside>`;
+}
+
+// Short pointer from transfer pages to the flying-home page for that country.
+function flyNote(r, prefix) {
+  if (!hasFlyPage(r)) return "";
+  return `<p class="fly-note">Flying home to ${esc(r.name)}? <a href="${link(prefix, flyPath(r))}">Compare flights, get a travel eSIM and plan the money you'll need on arrival</a>.</p>`;
+}
+
+const FLY_TIPS = [
+  "Search early for December. Fares for the weeks around Christmas and New Year usually climb as seats sell, so start comparing in September or October and set a price alert on the search page.",
+  "Move your dates by a day or two. Midweek departures and returns in the first days of January are often cheaper than the weekend before Christmas; the date grid on the search page shows the difference.",
+  "Count the stops, not just the price. A one-stop trip through a Gulf, Istanbul, Addis Ababa, Nairobi or European hub can be much cheaper than a direct flight, but check the layover length and whether the transit country needs a visa for you.",
+  "Price the luggage before you book. Families flying home carry gifts, so compare the fare with the bags you will really check in. Extra bags booked online are usually cheaper than paying at the airport.",
+  "Check your passport and entry rules on the official government site: many countries want at least six months left on your passport, and some need an e-visa or electronic travel authorisation before you fly."
+];
+const ARRIVE_TIPS = [
+  "A travel eSIM gives you data the moment you land, before you can buy and register a local SIM. Your phone must support eSIM and be unlocked. Local SIM cards usually need registration with your passport at an official shop.",
+  "Avoid swapping a big sum at an airport exchange counter. Sending money ahead to your family's mobile money wallet or bank account, at the rate on SendFair, usually leaves more in hand.",
+  "If you're visiting a building site, take the itemised house receipt with you and compare it with the bags, blocks and days actually on site."
+];
+
+function writeFlyingHome() {
+  const rs = corridors.receivers.filter(hasFlyPage);
+  if (!rs.length) return;
+  const senders = corridors.senders.filter((s) => ((partners.origins || {})[s.id] || []).length);
+  const travelDisclosure = (flightsTracked || esimTracked)
+    ? `Some flight and eSIM links are affiliate links: if you book, we may earn a commission at no extra cost to you. It never changes the advice on this page.`
+    : `Flight and eSIM links open the search sites directly. SendFair earns nothing from them.`;
+  for (const r of rs) {
+    const rel = flyPath(r), prefix = "../../";
+    const ports = partners.airports[r.id];
+    const nets = networks(r);
+    const portNames = joinList(ports.map(([code, name]) => `${name} (${code})`));
+    const trail = [[config.siteName, ""], ["Flying home", "flying-home/"], [r.name, rel]];
+    const faqs = [
+      [`Which airports do people fly into in ${r.name}?`, `The main international airports are ${ports.map(([code, name]) => `${name} (${code})`).join(" and ")}. Use the search buttons on this page to compare flights from the UK, the US, Canada, Europe and Australia.`],
+      [`When should I book flights home to ${r.name} for December?`, `Start comparing in September or October. Fares for the weeks around Christmas and New Year usually rise as seats sell, and moving your dates by a day or two can make a large difference.`],
+      [`How do I get mobile data when I land in ${r.name}?`, `A travel eSIM works as soon as you land if your phone supports eSIM and is unlocked. A local SIM is usually cheaper for a long stay but needs registration with your passport at an official shop.`],
+      [`What's the cheapest way to have money ready when I arrive in ${r.name}?`, `Send it ahead to a family member's ${nets.length ? `mobile money wallet (${joinList(nets)}) or ` : ""}bank account using the best rate on SendFair, rather than exchanging cash at the airport.`]
+    ];
+    const fromBlocks = senders.map((s) => {
+      const origins = partners.origins[s.id];
+      return `<h3>From ${esc(s.short)}</h3><ul class="route-links fly-links">${origins.flatMap(([o, oName]) => ports.map(([d, dName]) => `<li><a href="${esc(flightHref(prefix, r, o, d))}" target="_blank" rel="${relFor(flightsTracked)}">${esc(oName)} to ${esc(dName)}</a></li>`)).join("")}</ul>`;
+    }).join("\n");
+    const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>Flying home to ${esc(r.name)}</h1>
+<p class="lede">Compare flights into ${esc(portNames)}, get mobile data for when you land, and send the money you'll need ahead of you at a fair rate. Planning for December? Read the booking tips first.</p>
+<h2>Search flights to ${esc(r.name)}</h2>
+<p>Pick your nearest city. Each button opens a flight search for that route, where you choose your dates and compare airlines.</p>
+${fromBlocks}
+<h2>Booking tips for the December rush</h2>
+<ul class="tips">${FLY_TIPS.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+<h2>When you land</h2>
+<ul class="tips">${ARRIVE_TIPS.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+<p><a class="btn" href="${esc(esimHref(prefix, r))}" target="_blank" rel="${relFor(esimTracked)}">Get a travel eSIM for ${esc(r.name)}</a></p>
+<h2>Send money ahead to ${esc(r.name)}</h2>
+<p>Compare what arrives${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""} before you travel:</p>
+<ul class="route-links">${corridors.senders.filter((s) => s.region !== "gulf").map((s) => `<li><a href="${link(prefix, corridorPath(s, r))}">${esc(s.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
+${buildCosts.countries[r.id] ? `<p>Visiting a building site? <a href="${link(prefix, `cost-to-build/${r.id}/`)}">Open the ${esc(r.name)} house calculator</a> and take the itemised receipt with you.</p>` : ""}
+<p class="note">${esc(travelDisclosure)} Fares and availability are set by the airlines and booking sites; check the final price before you pay.</p>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+<h2>Flying home to another country</h2>
+<ul class="route-links">${rs.filter((x) => x.id !== r.id).map((x) => `<li><a href="${link(prefix, flyPath(x))}">${esc(x.name)}</a></li>`).join("")}</ul>
+</div></div></section>`;
+    write(rel + "index.html", page({ prefix, canonical: rel, rank: false, og: "home",
+      title: fitTitle([`Flights home to ${r.name}: fares, eSIM and money`, `Flights home to ${r.name}`], 49) + ` · ${config.siteName}`,
+      description: fitDescription([`Compare flights to ${portNames} from the UK, US, Canada, Europe and Australia.`, `December booking tips, a travel eSIM and the cheapest way to have money ready when you land.`]),
+      jsonld: [faqLd(faqs), crumbs(trail)], body }));
+    urls.push(rel);
+  }
+  const trail = [[config.siteName, ""], ["Flying home", "flying-home/"]];
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav("../", trail)}
+<h1>Flying home</h1>
+<p class="lede">Compare flights home to ${rs.length} African countries from the UK, the US, Canada, Europe and Australia, with booking tips for the December rush, a travel eSIM for when you land, and the cheapest way to have money waiting for you.</p>
+<ul class="route-links big">${rs.map((r) => `<li><a href="${link("../", flyPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul>
+<h2>Booking tips for the December rush</h2>
+<ul class="tips">${FLY_TIPS.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+<p class="note">${esc(travelDisclosure)}</p>
+</div></div></section>`;
+  write("flying-home/index.html", page({ prefix: "../", canonical: "flying-home/", rank: false, og: "home",
+    title: `Flying home to Africa: flights, eSIM and money · ${config.siteName}`,
+    description: `Compare flights home to ${rs.length} African countries, with December booking tips, a travel eSIM and the cheapest way to have money ready when you land.`,
+    jsonld: [crumbs(trail)], body }));
+  urls.push("flying-home/");
+}
+
+function writeAdvertisePage() {
+  const countries = Object.values(buildCosts.countries).map((c) => c.name);
+  const trail = [[config.siteName, ""], ["Advertise", "advertise/"]];
+  const body = `<section class="block page"><div class="wrap"><article class="prose">
+${crumbNav("../", trail)}
+<h1>Advertise on SendFair</h1>
+<p class="lede">SendFair is used by Africans living in the UK, the US, Canada, Europe and Australia to compare money transfers home and to price a house before they send the money for it. If you build, supply materials, lend or sell property in ${esc(joinList(countries.slice(0, 3)))} or another of the ${countries.length} countries we cover, this is the moment they are deciding who to trust.</p>
+<h2>Featured listing on the house calculator</h2>
+<p>Your business appears under the house calculator for the country you choose: the country page, the 2-, 3- and 4-bedroom pages and the city pages. Up to three listings per country, so yours is never lost in a crowd. Each listing has your name, what you do, a short description, a phone number if you like, and a link to your site or WhatsApp.</p>
+<p>It suits contractors and builders, hardware and materials suppliers, quantity surveyors and architects, SACCOs and banks with diaspora mortgages or building loans, land and title-search services, and real-estate developers.</p>
+<h2>The rules</h2>
+<ul class="tips">
+<li>Every listing is labelled <strong>Sponsored</strong> and sits outside the receipt. Paying never changes a price, a quantity or the total.</li>
+<li>Listings never appear inside the money-transfer rankings, which are sorted only by how much arrives.</li>
+<li>We check that your business is registered${countries.includes("Kenya") ? " (for contractors in Kenya, your NCA registration)" : ""} and may decline a listing that our readers could be harmed by.</li>
+<li>You get a monthly report of the clicks your listing received.</li>
+</ul>
+<h2>Founding sponsors</h2>
+<p>We are taking our first sponsors now, at founding rates that stay fixed for as long as you renew. Email <span class="email">${esc(config.contactEmail)}</span> with your business name, registration number, the country and towns you serve, a description of up to 30 words, and the link you want people to open. We reply with the rate and a start date.</p>
+<p class="note">See <a href="${link("../", "disclosure/")}">how we make money</a> for how sponsorship, referrals and advertising are kept apart from the rankings.</p>
+</article></div></section>`;
+  write("advertise/index.html", page({ prefix: "../", canonical: "advertise/", rank: false,
+    title: `Advertise on SendFair: reach the diaspora building home`,
+    description: `Featured listings for builders, suppliers, SACCOs and banks on SendFair's house calculator, seen by Africans abroad pricing a house in ${countries.length} countries.`,
+    jsonld: [crumbs(trail)], body }));
+  urls.push("advertise/");
+}
+
 function writeBuildPages() {
   const intro = `A receipt check for a simple house, including the finish, the plot works and the building permit: structure, block walls, roof, windows, doors, plaster, floor and wall tiles, a framed ceiling, paint, kitchen cupboards, wardrobes, wiring, plumbing, a basin, a shower, a kitchen sink, a septic tank, a boundary wall and a gate. The permit is that country's own published fee. On each line you can switch to another published type. Bungalow and maisonette are one floor and two floors of the same floor area. Standard finish is the listed price. Where a published whole-house band exists, it sits beside the receipt and includes a contractor. The plot of land and the contractor's fee are not in the receipt.`;
   const faqs = [
@@ -1282,6 +1457,7 @@ function writeBuildPages() {
 <p class="lede">${esc(intro)}</p>
 ${buildWidget(prefix, id || "kenya")}
 ${quoteCheckInlineCta(prefix, id)}
+${id ? sponsorBox(id, prefix) : ""}
 <p class="build-links"><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a> <a href="${link(prefix, "cost-to-build/same-house/")}">The same 3-bedroom bungalow in every country</a> <a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What this receipt prices</a></p>
 ${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(id) ? `<p><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">Lire cette page en français</a></p>` : ""}
 ${id ? `<h2>By size</h2><ul class="route-links">${[2, 3, 4].map((n) => `<li><a href="${link(prefix, `cost-to-build/${id}/${n}-bedroom/`)}">${n}-bedroom house</a></li>`).join("")}</ul>` : ""}
@@ -1405,6 +1581,7 @@ function writeFrenchHouses() {
 <p class="lede">${esc(intro)}</p>
 <p>La navigation du site est en anglais. Cette page et le reçu sont en français. <a href="${link("../../../", en)}">Read this page in English</a>.</p>
 ${buildWidget("../../../", id, "fr")}
+${sponsorBox(id, "../../../", "fr")}
 <p class="build-links"><a href="${link("../../../", "cost-to-build/material-prices/")}">Prix des matériaux</a> <a href="${link("../../../", "cost-to-build/same-house/")}">La même maison</a> <a href="${link("../../../", "fr/cost-to-build/what-this-receipt-is/")}">Ce que ce reçu chiffre</a></p>
 <h2>Autres pays en français</h2>
 <ul class="route-links">${ids.filter((x) => x !== id).map((x) => `<li><a href="${link("../../../", `fr/cost-to-build/${x}/`)}">${esc(nameIn[x])}</a></li>`).join("")}</ul>
@@ -1515,6 +1692,8 @@ function page({ prefix, title, description, canonical, body, jsonld, noindex, in
       trackClicks: !!config.trackClicks && !DEMO, reportsEnabled: !!config.reportsEnabled && !DEMO, demo: DEMO,
       ga4: config.ga4MeasurementId || "", gtm: config.gtmContainerId || "", clarity: config.clarityProjectId || "",
       impactSrc: config.impactSrc || "", adsenseClient: config.adsenseClient || "",
+      // Travelpayouts Drive runs only on the flying-home pages, never near the transfer rankings.
+      driveSrc: !DEMO && String(canonical || "").startsWith("flying-home/") ? (config.travelpayoutsDriveSrc || "") : "",
       translateLanguages: config.translateLanguages || "en,fr,ar,sw,pt,ha,yo,am,so",
       newsletter: config.newsletterFormAction || "" },
     ...(init || {})
@@ -1776,6 +1955,7 @@ write("data/providers.json", JSON.stringify(providersFile));
 write("data/quotes.json", JSON.stringify(quotesFile));
 write("data/midmarket.json", JSON.stringify(midmarket));
 write("data/build-costs.json", JSON.stringify(buildCosts));
+write("data/partners.json", JSON.stringify(partners));
 // Published city factors only (null = not published), for saved plans priced by the Worker.
 write("data/regional-factors.json", JSON.stringify({ countries: Object.fromEntries(Object.entries(regionalFactors.countries || {}).map(([cid, rc]) => [cid, { cities: Object.fromEntries(Object.entries(rc.cities || {}).filter(([, c]) => c.factor > 0).map(([slug, c]) => [slug, { name: c.name, factor: c.factor }])) }])) }));
 write("data/history.json", JSON.stringify(history));
@@ -1916,6 +2096,7 @@ ${alertForm(ctx)}
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
 ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
 ${houseNote(r, prefix)}
+${flyNote(r, prefix)}
 <h2 id="tips">Good to know before you send</h2>
 <ul class="tips">${tipsFor(s, r).map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
 ${s.region === "gulf" ? `<p class="note"><a href="${link(prefix, GULF_GUIDE)}">Exchange house, bank, wallet or app? How the ways of sending from the Gulf compare</a></p>` : ""}
@@ -2041,6 +2222,7 @@ ${crumbNav(prefix, trail)}
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
 ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
 ${houseNote(r, prefix)}
+${flyNote(r, prefix)}
 <h2>Good to know before you send to ${esc(r.name)}</h2>
 <ul class="tips">${[...(TIPS[r.id] || []), ...TIPS_ALL].map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
 <h2>Questions</h2>
@@ -2503,7 +2685,8 @@ const trust = {
 <p>SendFair is free to use. We earn money in two ways:</p>
 <ul><li><strong>Referral commissions.</strong> ${hasAffiliate ? 'Some "Go to" buttons are affiliate links. If you open an account and make your first transfer, the provider may pay us a fee. You pay the same either way.' : 'We intend to earn a referral commission from some providers when you sign up through us. Those affiliate links are being added as each provider approves us, and you never pay more.'}</li>${hasAds ? `<li><strong>Advertising.</strong> Some pages show ads served by Google. Ads are labelled as ads, are never placed inside the ranking, and advertisers cannot choose or influence where a service ranks.</li>` : `<li><strong>Advertising.</strong> We don't show ads at the moment. If we ever do, they will be labelled, kept out of the ranking, and this page will say so.</li>`}</ul>
 <p>Neither affects the ranking. Results are sorted only by how much your recipient receives. Providers that pay us nothing appear and rank on the same terms.</p>
-<p>The house-cost pages are not paid for by a supplier or a contractor. Choosing a roof sheet, a door or a tile does not earn us a fee.</p>`],
+<ul><li><strong>Sponsored listings.</strong> Builders, suppliers, SACCOs and banks can pay for a listing under the house calculator for a country. Each one is labelled Sponsored, sits outside the receipt and never changes a price, a quantity or the total. Sponsors never appear in the transfer rankings. See <a href="${link("../", "advertise/")}">advertise on SendFair</a>.</li><li><strong>Travel links.</strong> ${(partners.travel || {}).flightsWrap || (partners.travel || {}).esimWrap ? "Some flight and eSIM links on the flying-home pages are affiliate links. If you book, we may earn a commission at no extra cost to you." : "The flight and eSIM links on the flying-home pages open the search sites directly and earn us nothing at the moment. If that changes, the links will be marked and this page will say so."}</li></ul>
+<p>The receipt itself is not paid for by a supplier or a contractor. Choosing a roof sheet, a door or a tile does not earn us a fee.</p>`],
   "privacy/": ["Privacy policy", "How SendFair handles personal data: the little it collects, mostly an email if you set a rate alert, your rights, and how to contact us.", `
 <h1>Privacy policy</h1>
 <p>Last updated ${today}.</p>
@@ -2568,6 +2751,8 @@ fs.writeFileSync(path.join(OUT, "admin/quote-checks/index.html"), fs.readFileSyn
 
 // SEO and hosting files
 writeBuildPages();
+writeFlyingHome();
+writeAdvertisePage();
 writeEmbedPage();
 writeReports();
 writeFrenchPages();
@@ -2822,7 +3007,7 @@ write("_headers", `/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://utt.impactcdn.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://translate.googleapis.com https://utt.impactcdn.com https://*.impact.com; frame-src https://*.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com https://challenges.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self' https://buttondown.com; object-src 'none'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://utt.impactcdn.com https://emrldco.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://translate.googleapis.com https://utt.impactcdn.com https://*.impact.com https://emrldco.com; frame-src https://*.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com https://challenges.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self' https://buttondown.com; object-src 'none'
 /data/*
   Cache-Control: public, max-age=300
 /assets/fonts/*

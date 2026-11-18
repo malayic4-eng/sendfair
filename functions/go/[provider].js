@@ -1,6 +1,40 @@
 // GET /go/<provider>?r=<route>  -> counts the click, then sends the visitor to the provider (affiliate link if set).
 // An affiliateUrl may contain {route}, which is replaced with the route so networks can report earnings per route.
+// Non-transfer partners (flights, eSIMs, house-calculator sponsors) come from data/partners.json:
+//   /go/flights?o=LON&d=NBO&r=fly-kenya   /go/esim?r=fly-kenya   /go/<sponsor-id>?r=build-kenya
 import { siteData } from "../_lib.js";
+import { TRAVEL_IDS, flightTarget, esimTarget, sponsorTarget } from "../../src/partner-links.mjs";
+
+async function partnerRedirect(context, id, route) {
+  const home = new URL("/", context.request.url).toString();
+  let partners, receivers;
+  try {
+    const [pr, cr] = await Promise.all(["/data/partners.json", "/data/corridors.json"].map((p) => context.env.ASSETS.fetch(new URL(p, context.request.url))));
+    if (!pr.ok || !cr.ok) return null;
+    partners = await pr.json();
+    receivers = (await cr.json()).receivers || [];
+  } catch { return null; }
+  const isSponsor = (partners.sponsors || []).some((x) => x.id === id);
+  if (!TRAVEL_IDS.includes(id) && !isSponsor) return null;
+  const q = new URL(context.request.url).searchParams;
+  const m = /^(fly|build)-([a-z]+)$/.exec(route);
+  const receiver = m && receivers.find((r) => r.id === m[2]);
+  let target = null, safeRoute = "unknown";
+  if (id === "flights" && m && m[1] === "fly" && receiver) {
+    target = flightTarget(partners, { origin: q.get("o") || "", dest: q.get("d") || "", receiver: receiver.id, route });
+    safeRoute = route;
+  } else if (id === "esim" && m && m[1] === "fly" && receiver) {
+    target = esimTarget(partners, { countryName: receiver.name, route });
+    safeRoute = route;
+  } else if (isSponsor) {
+    target = sponsorTarget(partners, id);
+    const sp = partners.sponsors.find((x) => x.id === id);
+    if (m && m[1] === "build" && (sp.countries || []).includes(m[2])) safeRoute = route;
+    if (!target) target = new URL(m && m[1] === "build" ? `/cost-to-build/${m[2]}/` : "/cost-to-build/", context.request.url).toString();
+  }
+  if (!target) target = home;
+  return { target, safeRoute };
+}
 
 export async function onRequestGet(context) {
   const id = String(context.params.provider || "");
@@ -8,10 +42,15 @@ export async function onRequestGet(context) {
   let data;
   try { data = await siteData(context); } catch { return Response.redirect(new URL("/", context.request.url).toString(), 302); }
   const p = data.pmap[id];
-  if (!p) return Response.redirect(new URL("/", context.request.url).toString(), 302);
-
-  const safeRoute = data.routes.has(route) ? route : "unknown";
-  const target = (p.affiliateUrl || p.website).replace("{route}", encodeURIComponent(safeRoute));
+  let target, safeRoute;
+  if (p) {
+    safeRoute = data.routes.has(route) ? route : "unknown";
+    target = (p.affiliateUrl || p.website).replace("{route}", encodeURIComponent(safeRoute));
+  } else {
+    const partner = await partnerRedirect(context, id, route);
+    if (!partner) return Response.redirect(new URL("/", context.request.url).toString(), 302);
+    ({ target, safeRoute } = partner);
+  }
 
   const kv = context.env.SENDFAIR_KV;
   if (kv) {
