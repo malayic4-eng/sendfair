@@ -2015,8 +2015,8 @@ const homeFaqs = [
 write("index.html", page({
   prefix: "", canonical: "", bodyOnly: PREVIEW, og: "home",
   title: PREVIEW ? config.siteName : `Compare transfers to Africa and house-build costs | ${config.siteName}`,
-  description: `See which service delivers the most to ${corridors.receivers.length} African countries, then estimate what a house back home costs. Switch roof, windows, doors, tiles and paint. No land or contractor's fee.`,
-  jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/", description: "Compare money transfers to Africa by what arrives, and estimate the cost to build a house back home." },
+  description: `Compare money transfers to ${corridors.receivers.length} African countries by what arrives, price a house back home, and get a free morning rate alert. Independent, from Nairobi.`,
+  jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/", description: "Free tools for the African diaspora: compare money transfers to Africa by what arrives, estimate the cost to build a house back home, check a builder's quote, get daily rate alerts and plan the trip home." },
     { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail,
       ...(socialProfiles.length ? { sameAs: socialProfiles.map((s) => s.url) } : {}),
       ...(config.legalName || config.businessName ? { legalName: config.legalName || config.businessName } : {}), ...(config.founderName ? { founder: { "@type": "Person", name: config.founderName } } : {}), areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) },
