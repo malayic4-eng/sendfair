@@ -676,7 +676,7 @@ function quoteCheckForm(prefix, countryId) {
 <form class="qc-form" id="qc-form" method="post" action="/api/quote-check/upload" enctype="multipart/form-data" data-enabled="${QC_ON ? "true" : "false"}" data-config="${esc(JSON.stringify(quoteCheckClientConfig()))}">
 <h2>Check my quote</h2>
 <p class="qc-hint">Free preview first. We ask for the country, the house and an email so we can send the report and match the right local prices.</p>
-<div id="qc-disabled" class="qc-alert qc-test"${QC_ON ? " hidden" : ""}><strong>Quote Check is in review.</strong> Uploads and payments are switched off. Set <code>QUOTE_CHECK_ENABLED=true</code> in the Worker and rebuild to take quotes.</div>
+<div id="qc-disabled" class="qc-alert qc-test"${QC_ON ? " hidden" : ""}><strong>Quote Check opens soon.</strong> We are not taking quotes yet. Email <a href="mailto:hello@sendfair.africa">hello@sendfair.africa</a> and we will tell you when it opens.</div>
 ${QC_TEST && QC_ON ? '<div class="qc-alert qc-test"><strong>Test mode.</strong> Sample quotes are used for Kenya, Nigeria and Ghana. No card is charged. Do not use this build for real customers.</div>' : ""}
 <div class="qc-grid">
 <div class="qc-field"><label for="qc-country">Country</label><select id="qc-country" name="country" required>${countryOptions}</select></div>

@@ -24,7 +24,7 @@ export async function onRequestPost(context) {
 
   const providerId = paymentProviderId(env, settings.config);
   if (providerId === "test" && !isTestMode(env, settings.config)) {
-    return json({ error: "A live payment provider is not configured yet. Set PAYMENT_PROVIDER to paystack or flutterwave." }, 503, { code: "payment_not_configured" });
+    return json({ error: "Card payment is not set up yet. Please try again later or email hello@sendfair.africa." }, 503, { code: "payment_not_configured" });
   }
   const existing = order.payment;
   if (existing && existing.status === "pending" && existing.checkoutUrl && existing.createdAt) {

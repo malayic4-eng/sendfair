@@ -13,7 +13,7 @@ export const DEFAULT_CONFIG = {
   steelBarKg: 10.65,
   lorryM3: { sand: 11, ballast: 12 },
   extraction: { provider: "openai", model: "", maxLines: 200 },
-  payment: { provider: "test", testMode: true },
+  payment: { provider: "test", testMode: false },
   ownerEmail: "hello@sendfair.africa",
   fromEmail: "hello@sendfair.africa",
   consentVersion: "2026-11-18",

@@ -6,7 +6,7 @@ import { fileForExtraction } from "./files.js";
 
 const DEFAULTS = {
   openai: "gpt-4o",
-  anthropic: "claude-3-5-sonnet-latest",
+  anthropic: "", // set LLM_MODEL; older Claude 3.5 model names are retired
   google: "gemini-2.0-flash"
 };
 
@@ -165,7 +165,7 @@ export async function extractQuote({ env, request, settings, files, meta, testMo
   if (provider === "mock") return mockExtract({ env, request, meta });
 
   const key = keyFor(env, provider);
-  if (!key) {
+  if (!key || !modelFor(env, settings, provider)) {
     const err = new Error("Quote Check extraction is not configured yet.");
     err.code = "llm_not_configured";
     throw err;

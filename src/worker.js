@@ -214,7 +214,11 @@ export default {
   // Daily, after the morning and evening rate checks: confirmation emails and rate alerts.
   // Quote Check also purges uploads, extracted data and reports after the retention period.
   async scheduled(event, env, ctx) {
+    // The 03:00 UTC run is only the Quote Check purge; rate alerts keep their two daily runs.
+    if (event.cron === "0 3 * * *") {
+      ctx.waitUntil(runPurge(env).then((r) => console.log("quote-check purge", JSON.stringify(r))).catch((e) => console.log("quote-check purge failed", e && e.message)));
+      return;
+    }
     ctx.waitUntil(alert.runAlerts(env).then((r) => console.log("alerts", JSON.stringify(r))));
-    ctx.waitUntil(runPurge(env).then((r) => console.log("quote-check purge", JSON.stringify(r))).catch((e) => console.log("quote-check purge failed", e && e.message)));
   }
 };

@@ -20,7 +20,7 @@ export async function onRequestPost(context) {
   if (!settings) return fail("Quote Check is not available right now.", 503);
   const { config } = settings;
   if (!enabled(env, config)) {
-    return fail("Quote Check is switched off. Set QUOTE_CHECK_ENABLED=true to take uploads.", 503, { code: "disabled" });
+    return fail("Quote Check is not open yet. Email hello@sendfair.africa and we will tell you when it opens.", 503, { code: "disabled" });
   }
 
   let form;
