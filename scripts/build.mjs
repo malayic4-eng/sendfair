@@ -413,7 +413,7 @@ function header(prefix, lang, alternates = []) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a>${QC_ON ? `<a href="${link(prefix, "quote-check/")}">Quote Check</a>` : ""}<a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
+<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><a href="${link(prefix, "quote-check/")}">Quote Check</a><a href="${link(prefix, "")}#alerts">${fr ? "Alertes de taux" : "Rate alerts"}</a><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
 </div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">${L.translateNote} <a href="${link(prefix, "privacy/")}">${L.privacy}</a></p></div></div></header>`;
 }
 
@@ -554,7 +554,7 @@ function alerts() {
     body = `<div><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>`;
   } else return "";
   const confirm = config.newsletterFormAction ? " We ask you to confirm the address before the first message." : "";
-  return `<section class="alerts"><div class="wrap"><h2>Know when your rate moves</h2><p>One short message each morning: which service pays the most for your route today. Unsubscribe anytime.${confirm}</p>${body}</div></section>`;
+  return `<section class="alerts" id="alerts"><div class="wrap"><h2>Know when your rate moves</h2><p>One short message each morning: which service pays the most for your route today. Unsubscribe anytime.${confirm}</p>${body}</div></section>`;
 }
 
 function houseNote(r, prefix) {
@@ -827,6 +827,29 @@ ${countryId ? `<p><a class="btn" href="${link(prefix, `cost-to-build/${countryId
     title, description, jsonld: ld, body
   }));
   if (QC_ON) urls.push(rel);
+}
+
+// "Everything SendFair does": one short tile per service, grouped, right under the comparison.
+function servicesHub(prefix) {
+  const groups = [
+    { title: "Send money", items: [
+      { id: "compare", href: link(prefix, "") + "#corridors", name: "Compare transfers", text: "See which service delivers the most on your route, after fees and the rate markup." },
+      { id: "rates", href: link(prefix, "") + "#rates-today", name: "Exchange rates today", text: "Mid-market rates for every currency we cover, checked through the day." },
+      { id: "index", href: link(prefix, "reports/"), name: "Remittance Cost Index", text: "What sending money home really costs, route by route, every month." }
+    ] },
+    { title: "Build a house", items: [
+      { id: "calculator", href: link(prefix, "cost-to-build/"), name: "House cost calculator", text: `Price walls, roof, finishes, labour and the permit in ${Object.keys(buildCosts.countries).length} countries.` },
+      { id: "quote-check", href: link(prefix, "quote-check/"), name: "Quote Check", tag: QC_ON ? "" : "Opens soon", text: "Is your builder's quote fair? We check it line by line against local prices." }
+    ] },
+    { title: "Stay updated", items: [
+      { id: "alerts", href: link(prefix, "") + "#alerts", name: "Rate alerts", text: "One short message each morning with the best service for your route." },
+      { id: "flying-home", href: link(prefix, "flying-home/"), name: "Flying home", text: "Flights, eSIMs and money tips for the trip back home." }
+    ] }
+  ];
+  return `<section class="block services-hub" aria-labelledby="services-hub-h"><div class="wrap">
+<div class="section-head"><h2 id="services-hub-h">Everything SendFair does</h2><p class="lede">Free tools for sending money home and building back home. Pick one.</p></div>
+<div class="svc-groups">${groups.map((g) => `<div class="svc-group"><h3>${esc(g.title)}</h3><ul class="svc-list">${g.items.map((it) => `<li><a class="svc-tile" href="${it.href}" data-svc="${it.id}"><span class="svc-name">${esc(it.name)}${it.tag ? ` <span class="svc-tag">${esc(it.tag)}</span>` : ""}</span><span class="svc-text">${esc(it.text)}</span></a></li>`).join("")}</ul></div>`).join("")}</div>
+</div></section>`;
 }
 
 function quoteCheckCard(prefix, countryId) {
@@ -2004,7 +2027,7 @@ write("index.html", page({
     ctx: homeCtx,
     heading: "Send money home. Build a house back home.",
     sub: `Two tools for the diaspora. Compare money transfers to Africa by what your family actually receives, after the fee and the exchange-rate markup — then price a house back home before you build. ${homeProof}`
-  }) + buildTeaser("") + quoteCheckCard("", null) + guideTeaser("") + corridorGrid("") + `
+  }) + servicesHub("") + buildTeaser("") + quoteCheckCard("", null) + guideTeaser("") + corridorGrid("") + `
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
 <ol class="steps">
@@ -2020,7 +2043,7 @@ ${corridors.senders.map((s) => { const rs = corridors.receivers.filter((r) => ro
 <ul class="route-links big">${providersWithQuotes().map((p) => `<li><a class="with-badge" href="${link("", provPath(p))}">${R.badge(p)}${esc(p.name)} review</a></li>`).join("")}</ul>
 <div class="section-head" style="margin-top:32px"><h2>Head to head</h2></div>
 <ul class="route-links">${vsPairs().map(([a, b]) => `<li><a href="${link("", vsPath(a, b))}">${esc(a.name)} vs ${esc(b.name)}</a></li>`).join("")}</ul>
-<div class="section-head" style="margin-top:32px"><h2>Exchange rates today</h2></div>
+<div class="section-head" style="margin-top:32px" id="rates-today"><h2>Exchange rates today</h2></div>
 <ul class="route-links">${ratePairs.map(({ s, r }) => `<li><a href="${link("", ratePath(s, r))}">${s.currency} to ${r.currency}</a></li>`).join("")}</ul>
 <div class="section-head" style="margin-top:32px"><h2>Questions</h2></div>
 ${faqBlock(homeFaqs)}

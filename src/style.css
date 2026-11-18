@@ -721,3 +721,24 @@ details p { margin-top: 10px; color: var(--muted); }
 .fly-note { background: var(--paper); border-radius: 14px; padding: 10px 14px; }
 .fly-links { margin-bottom: 8px !important; }
 @media print { .sponsor-box, .fly-note { display: none !important; } }
+
+/* Everything SendFair does: grouped service tiles under the homepage comparison */
+.services-hub .svc-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.svc-group h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+.svc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.svc-tile { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); text-decoration: none; min-height: 44px; transition: border-color .15s, box-shadow .15s; }
+.svc-tile:hover, .svc-tile:focus-visible { border-color: var(--line-strong); box-shadow: var(--shadow); }
+.svc-name { font-weight: 700; font-size: 1rem; }
+.svc-text { font-size: .88rem; color: var(--muted); line-height: 1.4; }
+.svc-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: .7rem; font-weight: 650; background: var(--paper); border: 1px solid var(--line); color: var(--muted); vertical-align: 2px; }
+@media (max-width: 720px) {
+  .services-hub .svc-groups { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; padding-bottom: 6px; margin-inline: -18px; padding-inline: 18px; scroll-padding-inline: 18px; scrollbar-width: none; }
+  .services-hub .svc-groups::-webkit-scrollbar { display: none; }
+  .svc-group { display: contents; }
+  .svc-group h3 { display: none; }
+  .svc-list { display: contents; }
+  .svc-list li { flex: 0 0 auto; scroll-snap-align: start; }
+  .svc-tile { padding: 10px 14px; border-radius: 999px; }
+  .svc-text { display: none; }
+  .svc-name { font-size: .92rem; white-space: nowrap; }
+}

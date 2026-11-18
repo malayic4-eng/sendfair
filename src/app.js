@@ -982,6 +982,12 @@
       }
     });
 
+  // Service tiles on the homepage: count which ones people use.
+  document.addEventListener("click", function (e) {
+    var tile = e.target.closest && e.target.closest("[data-svc]");
+    if (tile) sfEvent("service_tile_click", { service: tile.getAttribute("data-svc") });
+  });
+
   // Other small scripts on the page (Quote Check) use the same consent-gated event helper.
   window.SF = SF;
   SF.track = sfEvent;
