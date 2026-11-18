@@ -1,0 +1,24 @@
+{
+  "id": "afriex",
+  "name": "Afriex",
+  "provider": "afriex",
+  "kind": "partner-feed",
+  "status": "stub",
+  "env": { "url": "AFRIEX_FEED_URL", "key": "AFRIEX_FEED_KEY" },
+  "auth": { "header": "Authorization", "prefix": "Bearer " },
+  "format": "csv",
+  "mapping": {
+    "from": "from_country",
+    "to": "to_country",
+    "rate": "rate",
+    "fee": "fee",
+    "payout": "payout",
+    "checkedAt": "checked_at",
+    "speed": "speed"
+  },
+  "fromMap": { "GB": "uk", "US": "us", "CA": "canada", "AU": "australia", "DE": "europe", "FR": "europe", "BE": "europe" },
+  "toMap": { "NG": "nigeria", "GH": "ghana", "KE": "kenya", "UG": "uganda", "ZM": "zambia", "ZW": "zimbabwe", "EG": "egypt", "MA": "morocco", "SN": "senegal", "CI": "ivorycoast", "ML": "mali", "CM": "cameroon", "ET": "ethiopia", "ZA": "southafrica", "TZ": "tanzania", "CD": "drc", "RW": "rwanda" },
+  "defaults": { "payout": ["bank"], "speed": "" },
+  "maxAgeHours": 24,
+  "note": "Disabled until AFRIEX_FEED_URL and AFRIEX_FEED_KEY are set. The feed must be the official Afriex partner feed."
+}

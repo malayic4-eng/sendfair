@@ -1,0 +1,27 @@
+{
+  "id": "taptapsend",
+  "name": "Taptap Send",
+  "provider": "taptapsend",
+  "kind": "partner-feed",
+  "status": "stub",
+  "env": { "url": "TAPTAPSEND_FEED_URL", "key": "TAPTAPSEND_FEED_KEY" },
+  "auth": { "header": "Authorization", "prefix": "Bearer " },
+  "format": "json",
+  "rowsPath": "",
+  "mapping": {
+    "from": "from_country",
+    "to": "to_country",
+    "rate": "exchange_rate",
+    "fee": "fee_fixed",
+    "feePct": "fee_percent",
+    "payout": "payout_methods",
+    "checkedAt": "updated_at",
+    "speed": "speed"
+  },
+  "feePctScale": 0.01,
+  "fromMap": { "FR": "europe", "BE": "europe", "GB": "uk", "US": "us", "CA": "canada", "AU": "australia" },
+  "toMap": { "SN": "senegal", "CI": "ivorycoast", "ML": "mali", "CM": "cameroon", "CD": "drc", "RW": "rwanda", "MA": "morocco", "NG": "nigeria", "GH": "ghana", "KE": "kenya", "UG": "uganda", "ZM": "zambia", "ZW": "zimbabwe", "EG": "egypt", "ET": "ethiopia", "ZA": "southafrica", "TZ": "tanzania" },
+  "defaults": { "payout": ["mobile"], "speed": "" },
+  "maxAgeHours": 24,
+  "note": "Disabled until TAPTAPSEND_FEED_URL and TAPTAPSEND_FEED_KEY are set. The feed must be the official Taptap Send partner feed."
+}

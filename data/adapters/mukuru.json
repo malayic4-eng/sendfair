@@ -1,0 +1,25 @@
+{
+  "id": "mukuru",
+  "name": "Mukuru",
+  "provider": "mukuru",
+  "kind": "partner-feed",
+  "status": "stub",
+  "env": { "url": "MUKURU_FEED_URL", "key": "MUKURU_FEED_KEY" },
+  "auth": { "header": "Authorization", "prefix": "Bearer " },
+  "format": "json",
+  "rowsPath": "data.rates",
+  "mapping": {
+    "from": "send_country",
+    "to": "receive_country",
+    "rate": "exchange_rate",
+    "fee": "fee",
+    "payout": "delivery",
+    "checkedAt": "updated_at",
+    "speed": "speed"
+  },
+  "fromMap": { "GB": "uk", "US": "us", "CA": "canada", "AU": "australia", "DE": "europe", "FR": "europe", "BE": "europe" },
+  "toMap": { "NG": "nigeria", "GH": "ghana", "KE": "kenya", "UG": "uganda", "ZM": "zambia", "ZW": "zimbabwe", "EG": "egypt", "MA": "morocco", "SN": "senegal", "CI": "ivorycoast", "ML": "mali", "CM": "cameroon", "ET": "ethiopia", "ZA": "southafrica", "TZ": "tanzania", "CD": "drc", "RW": "rwanda" },
+  "defaults": { "payout": ["bank", "cash"], "speed": "" },
+  "maxAgeHours": 24,
+  "note": "Disabled until MUKURU_FEED_URL and MUKURU_FEED_KEY are set. The feed must be the official Mukuru partner feed."
+}

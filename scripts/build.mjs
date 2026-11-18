@@ -203,7 +203,7 @@ for (const [file, providers] of [
   }
 }
 const quotes = quotesFile.quotes || {};
-const isAutoQ = (q) => q.source === "wise-feed" || q.source === "worldremit" || q.source === "scrape" || /^Updated automatically from/.test(q.note || "");
+const isAutoQ = (q) => q.source === "wise-feed" || q.source === "partner-feed" || q.source === "worldremit" || q.source === "scrape" || q.feed === true || /^Updated automatically|^From .+ partner feed/.test(q.note || "");
 const handCheckedRoutes = Object.entries(quotes).filter(([, list]) => (list || []).some((q) => !isAutoQ(q))).length;
 const wiseFeedData = readOptional("data/wise-feed.json", { routes: {} });
 const gitDate = (() => { try { return require("child_process").execSync("git log -1 --format=%cs -- scripts/build.mjs config.json", { cwd: ROOT }).toString().trim().slice(0, 10); } catch { return ""; } })();

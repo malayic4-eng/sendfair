@@ -1,0 +1,81 @@
+name: Partner feeds
+
+on:
+  schedule:
+    # Hourly. Adapters drop rows older than 24 hours, so a missed run is safe.
+    - cron: "0 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Fetch and log, do not write or commit
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: partner-feeds
+  cancel-in-progress: false
+
+jobs:
+  feeds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Test the adapter interface
+        run: node scripts/test-adapters.mjs
+      - name: Run partner feeds (dry run)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        env:
+          LEMFI_FEED_URL: ${{ secrets.LEMFI_FEED_URL }}
+          LEMFI_FEED_KEY: ${{ secrets.LEMFI_FEED_KEY }}
+          SENDWAVE_FEED_URL: ${{ secrets.SENDWAVE_FEED_URL }}
+          SENDWAVE_FEED_KEY: ${{ secrets.SENDWAVE_FEED_KEY }}
+          TAPTAPSEND_FEED_URL: ${{ secrets.TAPTAPSEND_FEED_URL }}
+          TAPTAPSEND_FEED_KEY: ${{ secrets.TAPTAPSEND_FEED_KEY }}
+          NALA_FEED_URL: ${{ secrets.NALA_FEED_URL }}
+          NALA_FEED_KEY: ${{ secrets.NALA_FEED_KEY }}
+          AFRIEX_FEED_URL: ${{ secrets.AFRIEX_FEED_URL }}
+          AFRIEX_FEED_KEY: ${{ secrets.AFRIEX_FEED_KEY }}
+          MUKURU_FEED_URL: ${{ secrets.MUKURU_FEED_URL }}
+          MUKURU_FEED_KEY: ${{ secrets.MUKURU_FEED_KEY }}
+        run: node scripts/fetch-provider-quotes.mjs --only=partner --dry-run
+      - name: Run partner feeds
+        if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
+        env:
+          LEMFI_FEED_URL: ${{ secrets.LEMFI_FEED_URL }}
+          LEMFI_FEED_KEY: ${{ secrets.LEMFI_FEED_KEY }}
+          SENDWAVE_FEED_URL: ${{ secrets.SENDWAVE_FEED_URL }}
+          SENDWAVE_FEED_KEY: ${{ secrets.SENDWAVE_FEED_KEY }}
+          TAPTAPSEND_FEED_URL: ${{ secrets.TAPTAPSEND_FEED_URL }}
+          TAPTAPSEND_FEED_KEY: ${{ secrets.TAPTAPSEND_FEED_KEY }}
+          NALA_FEED_URL: ${{ secrets.NALA_FEED_URL }}
+          NALA_FEED_KEY: ${{ secrets.NALA_FEED_KEY }}
+          AFRIEX_FEED_URL: ${{ secrets.AFRIEX_FEED_URL }}
+          AFRIEX_FEED_KEY: ${{ secrets.AFRIEX_FEED_KEY }}
+          MUKURU_FEED_URL: ${{ secrets.MUKURU_FEED_URL }}
+          MUKURU_FEED_KEY: ${{ secrets.MUKURU_FEED_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          OWNER_ALERT_EMAIL: ${{ secrets.OWNER_ALERT_EMAIL }}
+          OWNER_ALERT_FROM: ${{ secrets.OWNER_ALERT_FROM }}
+          OWNER_ALERT_WEBHOOK: ${{ secrets.OWNER_ALERT_WEBHOOK }}
+        run: node scripts/fetch-provider-quotes.mjs --only=partner
+      - name: Commit if changed
+        if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
+        run: |
+          git config user.name "sendfair-bot"
+          git config user.email "actions@users.noreply.github.com"
+          for f in data/quotes.json data/adapters/state.json data/adapters/log.jsonl data/adapters/alerts.jsonl; do
+            [ -f "$f" ] && git add "$f"
+          done
+          if git diff --cached --quiet; then
+            echo "No change"
+          else
+            git commit -m "Update partner feed quotes (automatic)"
+            git pull --rebase
+            git push
+          fi

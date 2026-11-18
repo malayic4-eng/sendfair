@@ -1,0 +1,24 @@
+{
+  "id": "sendwave",
+  "name": "Sendwave",
+  "provider": "sendwave",
+  "kind": "partner-feed",
+  "status": "stub",
+  "env": { "url": "SENDWAVE_FEED_URL", "key": "SENDWAVE_FEED_KEY" },
+  "auth": { "header": "Authorization", "prefix": "Bearer " },
+  "format": "csv",
+  "mapping": {
+    "from": "send_country",
+    "to": "receive_country",
+    "rate": "rate",
+    "fee": "fee",
+    "payout": "payout_methods",
+    "checkedAt": "checked_at",
+    "speed": "speed"
+  },
+  "fromMap": { "GB": "uk", "US": "us", "CA": "canada", "AU": "australia", "DE": "europe", "FR": "europe", "BE": "europe", "NL": "europe", "ES": "europe", "IT": "europe", "IE": "europe" },
+  "toMap": { "NG": "nigeria", "GH": "ghana", "KE": "kenya", "UG": "uganda", "ZM": "zambia", "ZW": "zimbabwe", "EG": "egypt", "MA": "morocco", "SN": "senegal", "CI": "ivorycoast", "ML": "mali", "CM": "cameroon", "ET": "ethiopia", "ZA": "southafrica", "TZ": "tanzania", "CD": "drc", "RW": "rwanda" },
+  "defaults": { "payout": ["bank"], "speed": "" },
+  "maxAgeHours": 24,
+  "note": "Disabled until SENDWAVE_FEED_URL and SENDWAVE_FEED_KEY are set. The feed must be the official Sendwave partner feed."
+}

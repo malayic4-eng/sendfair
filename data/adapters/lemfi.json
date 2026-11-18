@@ -1,0 +1,24 @@
+{
+  "id": "lemfi",
+  "name": "LemFi",
+  "provider": "lemfi",
+  "kind": "partner-feed",
+  "status": "stub",
+  "env": { "url": "LEMFI_FEED_URL", "key": "LEMFI_FEED_KEY" },
+  "auth": { "header": "Authorization", "prefix": "Bearer " },
+  "format": "json",
+  "rowsPath": "data.quotes",
+  "mapping": {
+    "route": "corridor",
+    "rate": "rate",
+    "fee": "fee",
+    "feePct": "fee_pct",
+    "payout": "payout",
+    "checkedAt": "checked_at",
+    "speed": "speed",
+    "refAmount": "ref_amount"
+  },
+  "defaults": { "payout": ["bank"], "speed": "" },
+  "maxAgeHours": 24,
+  "note": "Disabled until LEMFI_FEED_URL and LEMFI_FEED_KEY are set. The feed must be the official LemFi partner feed."
+}
