@@ -11,6 +11,7 @@ import { FR, t, moneyFr, dateFr, assertFrKeys, frGrammar, capFirst } from "./i18
 import { mergeConfig as mergeQuoteCheckConfig, priceFor as quoteCheckPrice } from "../src/quote-check/config.mjs";
 import { TRAVEL_IDS, sponsorsFor, flightTarget, esimTarget } from "../src/partner-links.mjs";
 import { historySummary } from "./rate-summary.mjs";
+import { applyOverrides, sharedCurrencies } from "./feed-lib.mjs";
 import { loadQuestions, questionPage, questionsIndex, relatedQuestions } from "./questions.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -122,12 +123,11 @@ const servesFrom = (p, sid) => !p.sendsFrom || p.sendsFrom.includes(sid);
   if (p.length) fail(p);
 })();
 
-// Hand-checked corrections for currencies where the free feed is off (kept for up to 36 hours).
+// Wise-based corrections for currencies where the free feed is off. Kept when older than 36 hours (marked
+// stale; midmarket.rateAt keeps each currency's real time for "Market rate from"), dropped after 7 days.
 try {
   const ov = JSON.parse(fs.readFileSync(path.join(ROOT, "data/mid-overrides.json"), "utf8"));
-  if (ov && ov.rates && NOW - new Date(ov.updatedAt).getTime() < 36 * 3600000 && midmarket.rates) {
-    Object.assign(midmarket.rates, ov.rates);
-    midmarket.overrideAt = ov.updatedAt;
+  if (applyOverrides(midmarket, ov, NOW).applied) {
     // The previous check's rates, for the "since yesterday" trend next to the market rate.
     if (ov.previous && ov.previous.rates) midmarket.previous = { updatedAt: ov.previous.updatedAt, rates: Object.assign({ USD: 1 }, ov.previous.rates) };
   }
@@ -313,17 +313,19 @@ const socialProfiles = [
 const waIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.6a8.5 8.5 0 0 1-12.6 7.5L3 21l1.9-5.4A8.5 8.5 0 1 1 21 11.6z"/><path d="M8.6 8.9c.2-.5.5-.5.8-.5h.5c.2 0 .4 0 .5.4l.6 1.5c.1.2 0 .4-.1.6l-.4.5c-.1.1-.2.3 0 .6.5.9 1.3 1.6 2.2 2.1.3.2.5.1.6 0l.5-.5c.2-.2.3-.2.6-.1l1.5.7c.3.2.4.3.4.5v.5c0 .4-.2.7-.6.9-.5.3-1.1.4-1.7.2-1.9-.5-3.7-2.1-4.8-4.1-.4-.7-.6-1.4-.4-2 .1-.3.2-.5.3-.8z" fill="currentColor" stroke="none"/></svg>`;
 const footerSocials = [...socialProfiles, ...(config.whatsappChannelUrl ? [{ name: "WhatsApp", url: config.whatsappChannelUrl, icon: waIcon }] : [])];
 
+const SHARED_CUR = sharedCurrencies(corridors);
 function routeContext(s, r, prefix, amount) {
   const k = `${s.id}-${r.id}`;
   const mid = R.midRate(midmarket, s.currency, r.currency);
   const list = quotes[k] || [];
-  const rows = R.rank({ list, providers, amount, payout: "all", mid, now: NOW, staleH, hideH, feed: wiseFeedData.routes[k] });
+  const rows = R.rank({ list, providers, amount, payout: "all", mid, now: NOW, staleH, hideH, feed: wiseFeedData.routes[k], feedTiers: (wiseFeedData.tiers || {})[k], country: r.iso2, sharedCurrency: SHARED_CUR.has(r.currency), refAmount: config.defaultAmounts[s.currency] });
   const cov = coverage[k] && coverage[k].length ? coverage[k] : Object.keys(providers).filter((id) => servesFrom(providers[id], s.id));
   return {
     s, r, key: k, amount, payout: "all", mid, rows, allRows: rows, hist: histFor(k), now: NOW, midPrev: midmarket.previous ? R.midRate(midmarket.previous, s.currency, r.currency) : null, midPrevAt: midmarket.previous && midmarket.previous.updatedAt, timeStyle: "absolute", anyQuotes: list.length > 0, reports: demoReports ? demoReports.routes[k] : {},
     hrefFor: hrefFor(prefix), disclosureHref: link(prefix, "disclosure/"), checkList: cov.map((id) => providers[id]).filter(Boolean),
     avgPct: config.regionalAverageCost.percent, avgLabel: config.regionalAverageCost.label,
-    midUpdated: midmarket && (midmarket.overrideAt || midmarket.updatedAt), quotesUpdated: quotesFile.updatedAt
+    midUpdated: R.midAt(midmarket, s.currency, r.currency), quotesUpdated: quotesFile.updatedAt,
+    feed: wiseFeedData.routes[k], feedTiers: (wiseFeedData.tiers || {})[k], country: r.iso2, sharedCurrency: SHARED_CUR.has(r.currency), refAmount: config.defaultAmounts[s.currency]
   };
 }
 

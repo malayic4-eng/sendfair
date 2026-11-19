@@ -3,7 +3,9 @@
 // feeds and returns Wise's rows in the internal quote format. It is only run with --all, because the
 // existing update-rates workflow already publishes the Wise feed through apply-wise-feed.mjs.
 import fs from "node:fs";
+import path from "node:path";
 import { toIso, withinHours } from "./adapter.mjs";
+import { routeInfo, countryOk } from "../feed-lib.mjs";
 
 export class WiseFeedAdapter {
   constructor(config = {}) {
@@ -15,16 +17,19 @@ export class WiseFeedAdapter {
 
   supports() { return true; }
 
-  async fetchQuotes({ now = Date.now(), feedFile = "data/wise-feed.json", routes = null } = {}) {
+  async fetchQuotes({ now = Date.now(), feedFile = "data/wise-feed.json", routes = null, corridors = null } = {}) {
     let feed;
     try { feed = JSON.parse(fs.readFileSync(feedFile, "utf8")); }
     catch { return { skipped: "no feed file", quotes: {} }; }
+    // Rows on a currency shared by several receiving countries must be marked with the route's country.
+    if (!corridors) { try { corridors = JSON.parse(fs.readFileSync(path.join(path.dirname(feedFile), "corridors.json"), "utf8")); } catch {} }
     const allowed = routes ? new Set(routes) : null;
     const quotes = {};
     for (const [route, list] of Object.entries(feed.routes || {})) {
       if (allowed && !allowed.has(route)) continue;
       for (const [id, f] of Object.entries(list || {})) {
         if (!(f && f.rate > 0)) continue;
+        if (corridors && !countryOk(f, routeInfo(corridors, route))) continue;
         const checkedAt = toIso(f.collected);
         if (!checkedAt || !withinHours(checkedAt, now, 24)) continue;
         (quotes[route] = quotes[route] || []).push({
@@ -37,7 +42,9 @@ export class WiseFeedAdapter {
           note: "Updated automatically from Wise's comparison data; confirm on the provider's site",
           refAmount: null,
           checkedAt,
-          source: "wise-feed"
+          source: "wise-feed",
+          ...(f.country ? { country: f.country } : {}),
+          ...(Array.isArray(((feed.tiers || {})[route] || {})[id]) ? { tiers: feed.tiers[route][id] } : {})
         });
       }
     }

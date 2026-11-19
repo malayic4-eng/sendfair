@@ -52,3 +52,13 @@ jobs:
             git pull --rebase
             git push
           fi
+      # Last, and even when an earlier step failed: fails the run (so GitHub emails the owner) when the
+      # Wise feed is older than 6 hours or empty, e.g. after the WISE_API_TOKEN expires.
+      - name: Check the rate data is fresh
+        if: always()
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          OWNER_ALERT_EMAIL: ${{ secrets.OWNER_ALERT_EMAIL }}
+          OWNER_ALERT_FROM: ${{ secrets.OWNER_ALERT_FROM }}
+          OWNER_ALERT_WEBHOOK: ${{ secrets.OWNER_ALERT_WEBHOOK }}
+        run: node scripts/check-data-fresh.mjs

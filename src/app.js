@@ -203,12 +203,19 @@
   function routeLabel(route) { return route.split("-").map(function (x) { return x.charAt(0).toUpperCase() + x.slice(1); }).join(" to "); }
   function receiverOf(route) { var id = route.split("-").slice(1).join("-"); return ((S.corridors && S.corridors.receivers) || []).find(function (r) { return r.id === id; }) || null; }
   function moneyShort(v, cur) { if (!cur) return ""; return cur + " " + (Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en") : v.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })); }
+  // Feed options for a route: tiers (prices at several amounts) and the receiving country, so a quote for a
+  // currency shared by several countries (USD, XOF) is only used when it was priced for this country.
+  function feedOpts(route, r) {
+    var n = 0;
+    ((S.corridors && S.corridors.receivers) || []).forEach(function (x) { if (x.currency === r.currency) n++; });
+    return { feedTiers: (S.feedTiers || {})[route] || null, country: r.iso2, sharedCurrency: n > 1 };
+  }
   function bestFor(route, amount) {
     var parts = route.split("-"), from = parts[0], to = parts.slice(1).join("-");
     var s = ((S.corridors && S.corridors.senders) || []).find(function (x) { return x.id === from; });
     var r = ((S.corridors && S.corridors.receivers) || []).find(function (x) { return x.id === to; });
     if (!s || !r) return null;
-    var rows = R.rank({ list: S.quotes[route] || [], feed: S.feed[route] || null, providers: S.providers, amount: amount, payout: "all", payIn: "all", promo: false, mid: R.midRate(S.mid, s.currency, r.currency), now: Date.now(), staleH: (cfg.staleAfterHours || 36), hideH: (cfg.hideAfterHours || 72), handLockH: (cfg.preferAutoAfterHours || cfg.handLockHours || 6), refAmount: (cfg.defaultAmounts || {})[s.currency] });
+    var rows = R.rank(Object.assign({ list: S.quotes[route] || [], feed: S.feed[route] || null, providers: S.providers, amount: amount, payout: "all", payIn: "all", promo: false, mid: R.midRate(S.mid, s.currency, r.currency), now: Date.now(), staleH: (cfg.staleAfterHours || 36), hideH: (cfg.hideAfterHours || 72), handLockH: (cfg.preferAutoAfterHours || cfg.handLockHours || 6), refAmount: (cfg.defaultAmounts || {})[s.currency] }, feedOpts(route, r)));
     var fresh = rows.filter(function (x) { return !x.stale; });
     return fresh.length ? { gets: fresh[0].gets, name: fresh[0].p.name } : null;
   }
@@ -673,6 +680,7 @@
     var mid = R.midRate(S.mid, s.currency, r.currency);
     var list = S.quotes[k] || [];
     var opts = { list: list, feed: S.feed[k] || null, providers: S.providers, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: S.promo, customer: S.promo ? "new" : "", mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72, handLockH: cfg.preferAutoAfterHours || cfg.handLockHours || 6, refAmount: (cfg.defaultAmounts || {})[s.currency] };
+    Object.assign(opts, feedOpts(k, r));
     var rows = R.rank(opts);
     var allRows = (S.payout === "all" && S.payIn === "all") ? rows : R.rank(Object.assign({}, opts, { payout: "all", payIn: "all" }));
     var hist = Object.keys((S.history || {}).days || {}).sort().map(function (d) { var e = S.history.days[d][k] || {}; return { d: d, mid: e.mid, best: e.best }; }).filter(function (e) { return e.mid || e.best; });
@@ -689,13 +697,13 @@
     });
     return {
       s: s, r: r, key: k, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: S.promo, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
-      list: list, feed: opts.feed, staleH: opts.staleH, hideH: opts.hideH, handLockH: opts.handLockH, providers: S.providers,
+      list: list, feed: opts.feed, feedTiers: opts.feedTiers, country: opts.country, sharedCurrency: opts.sharedCurrency, refAmount: opts.refAmount, staleH: opts.staleH, hideH: opts.hideH, handLockH: opts.handLockH, providers: S.providers,
       anyQuotes: list.length > 0, reports: S.reports, hrefFor: hrefFor, disclosureHref: SF.disclosureHref || "#",
       checkList: coverage.map(function (id) { return S.providers[id]; }).filter(Boolean),
       pending: coverage.map(function (id) { return S.providers[id]; }).filter(function (p) { return p && !ranked[p.id]; }),
       ssa: !!(R.SSA && R.SSA[r.id]),
       avgPct: (cfg.regionalAverageCost || {}).percent || 8.46, avgLabel: (cfg.regionalAverageCost || {}).label || "",
-      midUpdated: S.mid && S.mid.updatedAt, quotesUpdated: S.quotesUpdated,
+      midUpdated: R.midAt ? R.midAt(S.mid, s.currency, r.currency) : S.mid && S.mid.updatedAt, quotesUpdated: S.quotesUpdated,
       midPrev: S.mid && S.mid.previous ? R.midRate(S.mid.previous, s.currency, r.currency) : null, midPrevAt: S.mid && S.mid.previous && S.mid.previous.updatedAt
     };
   }
@@ -967,6 +975,7 @@
       S.mid = res[3];
       S.history = res[4];
       S.feed = (res[5] && res[5].routes) || {};
+      S.feedTiers = (res[5] && res[5].tiers) || {};
       fillSelects();
       bind();
       return loadReports();
