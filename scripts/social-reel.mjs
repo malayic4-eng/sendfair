@@ -28,7 +28,10 @@ async function renderPng(svg) {
   return new Resvg(clean, { fitTo: { mode: "width", value: W }, font: { fontBuffers: FONT_BUFFERS, defaultFontFamily: FONT_FAMILY } }).render().asPng();
 }
 const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const TAG = { route: "Today's rates", "best-vs-average": "Best vs average", house: "House costs", tip: "Money tip", "rate-move": "Rate move" };
+// The series name (plan.reel.series, set in social-content.mjs) labels the first frame; these are only
+// for plans built before series existed.
+const TAG = { route: "Rate of the day", "best-vs-average": "Best vs average", house: "What it costs to build", material: "Build back home", tip: "Sender's tip", "rate-move": "Rate alert" };
+const BUILDING = new Set(["house", "material"]);
 const prettyDate = (d) => { const x = new Date(String(d || "") + "T00:00:00Z"); return isNaN(x.getTime()) ? String(d || "") : x.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }); };
 const numPrefix = (value) => { const m = String(value).match(/^([A-Z]{3})\s/); return m ? m[1] + " " : ""; };
 function countValue(row, k) {
@@ -62,13 +65,14 @@ const hasFfmpeg = (() => { try { execFileSync("ffmpeg", ["-version"], { stdio: "
 async function main() {
   fs.mkdirSync(path.join(OUT, "frames"), { recursive: true });
   const reel = plan.reel;
-  const tag = TAG[reel.template] || "";
+  const tag = (reel.series && reel.series.name) || TAG[reel.template] || "";
   const frames = [];
   const release = (name, svg, secs) => frames.push({ name, svg, secs });
   const cid = countryOf(reel.route);
   const recv = read("data/corridors.json").receivers.find((r) => r.id === cid);
   const photos = photosFor(cid, plan.date);
-  const ctx = { cid, country: recv ? recv.name : "", pal: D.palette(cid), photoA: photos.a, photoB: photos.b, date: prettyDate(reel.checkDate), providers: read("data/providers.json").providers };
+  const ctx = { cid, country: recv ? recv.name : "", pal: D.palette(cid), photoA: photos.a, photoB: photos.b, date: prettyDate(reel.checkDate), providers: read("data/providers.json").providers, building: BUILDING.has(reel.template),
+    ...(reel.template === "material" ? { noBadge: true, lastNote: "the highest of these four, in dollars" } : {}) };
   // Hook: slow zoom over the photo (or the gradient), 2.4 s.
   // Hook: headline readable from the first frame, slow zoom, 1.8 s.
   const hookStep = String(reel.hook).length > 60 ? 0.16 : String(reel.hook).length > 40 ? 0.12 : 0.1; // ~1.8–2.9 s, longer for long headlines
@@ -107,7 +111,7 @@ async function main() {
       if (last && last.key === key) last.end = t0 + f.secs; else spans.push({ key, start: t0, end: t0 + f.secs });
       t0 += f.secs;
     }
-    const textFor = (k) => k === "hook" ? reel.hook : k === "cta" ? "Who pays the most today? Compare your own amount at sendfair.africa" : (() => { const r = reel.numbers[Number(k.split("-")[1])]; return r ? `${r.label}: ${r.value}` : ""; })();
+    const textFor = (k) => k === "hook" ? reel.hook : k === "cta" ? (ctx.building ? D.CTA_TEXT.building.srt : D.CTA_TEXT.transfer.srt) : (() => { const r = reel.numbers[Number(k.split("-")[1])]; return r ? `${r.label}: ${r.value}` : ""; })();
     const srt = spans.map((sp, i) => `${i + 1}\n${ts(sp.start)} --> ${ts(sp.end)}\n${textFor(sp.key)}\n`).join("\n");
     fs.writeFileSync(path.join(OUT, "captions.en_US.srt"), srt);
   }
@@ -154,11 +158,19 @@ async function main() {
   for (const platform of ["instagram", "facebook", "tiktok"]) {
     fs.writeFileSync(path.join(OUT, `caption-${platform}.txt`), reel.captions[platform] + "\n");
   }
+  const yt = reel.captions.youtube;
+  if (yt) fs.writeFileSync(path.join(OUT, "caption-youtube.txt"), `${yt.title}\n\n${yt.description}\n`);
   const manifest = {
     date: plan.date, template: plan.template, route: plan.route, durationSeconds: +total.toFixed(1),
     checkedAt: reel.checkedAt, checkDate: reel.checkDate, numbers: reel.numbers,
-    files: { reel: mp4, cover: "cover.png", image: "image.png", captions: ["instagram", "facebook", "tiktok"] },
+    files: { reel: mp4, cover: "cover.png", image: "image.png", captions: ["instagram", "facebook", "tiktok", ...(yt ? ["youtube"] : [])] },
+    // Final captions per platform. youtube is { title, description }. The Worker reads this file from
+    // R2 to post the same Reel to TikTok and YouTube Shorts.
     captions: reel.captions,
+    series: reel.series || null,
+    question: reel.question || "",
+    links: reel.links || null,
+    comments: reel.comments || null,
     image,
     carousel: carouselFiles ? { slides: carouselFiles, captions: plan.carousel.captions } : null
   };

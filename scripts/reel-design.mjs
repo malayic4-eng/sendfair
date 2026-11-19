@@ -82,15 +82,23 @@ function background(pal, photo, zoom = 1, shade = "bottom", W = 1080, H = 1920) 
 }
 
 function header(ctx, tag) {
-  const flag = FLAGS[ctx.cid];
+  // ctx.noBadge: content about several countries (material prices) shows no single flag or name.
+  const flag = ctx.noBadge ? null : FLAGS[ctx.cid];
   const badge = flag
     ? `<g transform="translate(${W - M - 120},96)"><clipPath id="fc"><rect width="120" height="80" rx="14"/></clipPath><g clip-path="url(#fc)">${flag(120, 80)}</g><rect width="120" height="80" rx="14" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="3"/></g>`
-    : ctx.country ? `<g transform="translate(${W - M},96)"><rect x="${-(ctx.country.length * 21 + 56)}" width="${ctx.country.length * 21 + 56}" height="80" rx="40" fill="#ffffff" fill-opacity="0.16" stroke="#fff" stroke-opacity="0.5" stroke-width="2"/>${t(-(ctx.country.length * 21 + 56) / 2, 52, 34, "#fff", esc(ctx.country), { bold: true, anchor: "middle" })}</g>` : "";
+    : ctx.country && !ctx.noBadge ? `<g transform="translate(${W - M},96)"><rect x="${-(ctx.country.length * 21 + 56)}" width="${ctx.country.length * 21 + 56}" height="80" rx="40" fill="#ffffff" fill-opacity="0.16" stroke="#fff" stroke-opacity="0.5" stroke-width="2"/>${t(-(ctx.country.length * 21 + 56) / 2, 52, 34, "#fff", esc(ctx.country), { bold: true, anchor: "middle" })}</g>` : "";
   return `<g transform="translate(${M},96)"><rect width="80" height="80" rx="22" fill="#ffffff"/>${t(40, 54, 40, ctx.pal.bottom, "SF", { bold: true, anchor: "middle" })}${t(100, 54, 38, "#fff", "SendFair", { bold: true })}</g>${badge}
-${tag ? `<g transform="translate(${M},${196})">${t(0, 34, 26, ctx.pal.accent, esc(tag.toUpperCase()), { bold: true, ls: 3 })}</g>` : ""}`;
+${tag ? seriesLabel(ctx, tag) : ""}`;
+}
+// The series name ("Rate of the day", "Sender's tip"…) under the logo on the first frame and the
+// carousel cover: a small dark pill with an accent dot, so it stays readable over any photo.
+function seriesLabel(ctx, tag) {
+  const label = String(tag).toUpperCase();
+  const w = Math.round(label.length * 21 + 84);
+  return `<g transform="translate(${M},200)"><rect width="${w}" height="58" rx="29" fill="#000" fill-opacity="0.38" stroke="#fff" stroke-opacity="0.22" stroke-width="2"/><circle cx="30" cy="29" r="8" fill="${ctx.pal.accent}"/>${t(52, 39, 26, ctx.pal.accent, esc(label), { bold: true, ls: 3 })}</g>`;
 }
 function footer(ctx) {
-  return `${t(M, H - 120, 28, "#fff", `Checked ${esc(ctx.date)} · rates and fees from sendfair.africa`, { opacity: 0.75 })}<rect x="${M}" y="${H - 96}" width="140" height="8" rx="4" fill="${ctx.pal.accent}"/>`;
+  return `${t(M, H - 120, 28, "#fff", `Checked ${esc(ctx.date)} · ${ctx.building ? "prices" : "rates and fees"} from sendfair.africa`, { opacity: 0.75 })}<rect x="${M}" y="${H - 96}" width="140" height="8" rx="4" fill="${ctx.pal.accent}"/>`;
 }
 const svg = (defs, body) => `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs>${defs}</defs>${body}</svg>`;
 
@@ -125,7 +133,7 @@ ${t(M + 70, cardY + 130, 52, "#3a3f55", esc(row.label), { bold: true })}
 ${logo ? `<g transform="translate(${W - M - 70 - 112},${cardY + 50})"><rect width="112" height="112" rx="28" fill="#f3f4f8"/><image href="${logo}" x="12" y="12" width="88" height="88"/></g>` : ""}
 ${t(M + 70, cardY + 340, valueSize, ctx.pal.top === "#ffffff" ? "#111" : darken(ctx.pal.top), esc(shownValue), { bold: true })}
 <rect x="${M + 70}" y="${cardY + 400}" width="${(W - 2 * M - 140) * Math.min(1, ease)}" height="14" rx="7" fill="${ctx.pal.accent}"/>
-${t(M + 70, cardY + 480, 32, "#6b7088", esc(activeIndex === rows.length - 1 ? "the number that matters" : `${activeIndex + 1} of ${rows.length}`))}
+${t(M + 70, cardY + 480, 32, "#6b7088", esc(activeIndex === rows.length - 1 ? (ctx.lastNote || "the number that matters") : `${activeIndex + 1} of ${rows.length}`))}
 </g>`;
   const chipY = cardY + 640;
   const chips = rows.map((r, i) => {
@@ -136,13 +144,19 @@ ${t(M + 48, y + 70, 40, on ? "#111" : "#fff", esc(r.label), { bold: on })}${t(W 
   return svg(bg.defs, bg.body + header(ctx, "") + head + card + chips + footer(ctx));
 }
 
-// Call to action over the second photo.
+// Call to action over the second photo. Building content (ctx.building: house costs, material
+// prices) asks people to price their own house instead of comparing a transfer.
+export const CTA_TEXT = {
+  transfer: { top: "Who pays the", accent: "most today?", sub: "Compare your own amount in seconds.", srt: "Who pays the most today? Compare your own amount at sendfair.africa" },
+  building: { top: "Price your", accent: "whole house", sub: "Every material and every line, free.", srt: "Price your whole house, every material and every line, at sendfair.africa" }
+};
 export function ctaFrame(ctx, k = 1) {
   const bg = background(ctx.pal, ctx.photoB || ctx.photoA, 1.04 - 0.04 * k);
   const pw = W - 2 * M;
+  const c = ctx.building ? CTA_TEXT.building : CTA_TEXT.transfer;
   return svg(bg.defs, bg.body + header(ctx, "") +
-    t(M, 1180, 92, "#fff", "Who pays the", { bold: true }) + t(M, 1290, 92, ctx.pal.accent, "most today?", { bold: true }) +
-    t(M, 1380, 40, "#fff", "Compare your own amount in seconds.", { opacity: 0.9 }) +
+    t(M, 1180, 92, "#fff", esc(c.top), { bold: true }) + t(M, 1290, 92, ctx.pal.accent, esc(c.accent), { bold: true }) +
+    t(M, 1380, 40, "#fff", esc(c.sub), { opacity: 0.9 }) +
     `<g transform="translate(${M},1450)"><rect width="${pw}" height="128" rx="64" fill="#ffffff"/>${t(pw / 2, 84, 56, darken(ctx.pal.top), "sendfair.africa", { bold: true, anchor: "middle" })}</g>` +
     t(M, 1660, 30, "#fff", "Free · independent · 17 African countries", { opacity: 0.8 }) + footer(ctx));
 }
@@ -186,7 +200,7 @@ function providerLogo(ctx, label) {
 const CW = 1080, CH = 1350;
 const svg45 = (defs, body) => `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${CW}" height="${CH}" viewBox="0 0 ${CW} ${CH}"><defs>${defs}</defs>${body}</svg>`;
 function footer45(ctx) {
-  return `${t(M, CH - 104, 26, "#fff", `Checked ${esc(ctx.date)} · rates and fees from sendfair.africa`, { opacity: 0.75 })}<rect x="${M}" y="${CH - 82}" width="140" height="8" rx="4" fill="${ctx.pal.accent}"/>`;
+  return `${t(M, CH - 104, 26, "#fff", `Checked ${esc(ctx.date)} · ${ctx.building ? "prices" : "rates and fees"} from sendfair.africa`, { opacity: 0.75 })}<rect x="${M}" y="${CH - 82}" width="140" height="8" rx="4" fill="${ctx.pal.accent}"/>`;
 }
 function progress45(ctx, n, total) {
   const dots = Array.from({ length: total }, (_, i) => `<rect x="${CW - M - (total - i) * 34 + 10}" y="${CH - 90}" width="${i === n - 1 ? 24 : 12}" height="12" rx="6" fill="${i === n - 1 ? ctx.pal.accent : "#ffffff"}" fill-opacity="${i === n - 1 ? 1 : 0.4}"/>`).join("");
@@ -222,7 +236,7 @@ ${t(M + 70, cardY + 120, 48, "#3a3f55", esc(row.label), { bold: true })}
 ${logo ? `<g transform="translate(${CW - M - 70 - 112},${cardY + 44})"><rect width="112" height="112" rx="28" fill="#f3f4f8"/><image href="${logo}" x="12" y="12" width="88" height="88"/></g>` : ""}
 ${t(M + 70, cardY + 320, valueSize, darken(ctx.pal.top), esc(row.value), { bold: true })}
 <rect x="${M + 70}" y="${cardY + 376}" width="${CW - 2 * M - 140}" height="14" rx="7" fill="${ctx.pal.accent}"/>
-${t(M + 70, cardY + 450, 30, "#6b7088", esc(idx === rows.length - 1 ? "the number that matters" : `${idx + 1} of ${rows.length}`))}`;
+${t(M + 70, cardY + 450, 30, "#6b7088", esc(idx === rows.length - 1 ? (ctx.lastNote || "the number that matters") : `${idx + 1} of ${rows.length}`))}`;
   return svg45(bg.defs, bg.body + header(ctx, "") + head + card + footer45(ctx) + progress45(ctx, n, total));
 }
 
@@ -240,8 +254,8 @@ export function carouselCta(ctx, n, total) {
   const bg = background(ctx.pal, ctx.photoB || ctx.photoA, 1, "bottom", CW, CH);
   const pw = CW - 2 * M;
   return svg45(bg.defs, bg.body + header(ctx, "") +
-    t(M, 720, 84, "#fff", "Save this for your", { bold: true }) + t(M, 820, 84, ctx.pal.accent, "next transfer", { bold: true }) +
-    t(M, 900, 38, "#fff", "Compare your own amount in seconds.", { opacity: 0.92 }) +
+    t(M, 720, 84, "#fff", "Save this for your", { bold: true }) + t(M, 820, 84, ctx.pal.accent, ctx.building ? "build back home" : "next transfer", { bold: true }) +
+    t(M, 900, 38, "#fff", ctx.building ? "Price your whole house in seconds." : "Compare your own amount in seconds.", { opacity: 0.92 }) +
     `<g transform="translate(${M},950)"><rect width="${pw}" height="116" rx="58" fill="#ffffff"/>${t(pw / 2, 77, 52, darken(ctx.pal.top), "sendfair.africa", { bold: true, anchor: "middle" })}</g>` +
     t(M, 1130, 30, "#fff", "Share with someone who sends money home", { opacity: 0.85 }) + footer45(ctx) + progress45(ctx, n, total));
 }
