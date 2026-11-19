@@ -6,11 +6,18 @@
 // nothing newer than the source is introduced. Without a "format", esbuild keeps top-level names, so
 // globals such as window.SF / window.SFRank and rank.js's `module.exports` branch for Node work as before.
 // Licence comments (/*! ... */) are kept.
-import { transformSync } from "esbuild";
+//
+// esbuild is a devDependency. If it is not installed (a workflow that runs the build without
+// `npm ci`), the scripts ship unminified with a warning instead of failing the build; the ?v= hashes
+// still match because build.mjs hashes whatever text is shipped.
+let transformSync = null;
+try { ({ transformSync } = await import("esbuild")); }
+catch { console.warn("minify: esbuild is not installed (run npm ci); browser scripts are shipped unminified."); }
 
 export const MINIFIED_JS = new Set(["app.js", "rank.js", "build-cost.js", "quote-check.js", "quote-check-report.js"]);
 
 export function minifyJs(code, name = "script.js") {
+  if (!transformSync) return code;
   const out = transformSync(code, {
     loader: "js",
     minify: true,
