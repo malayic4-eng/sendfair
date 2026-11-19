@@ -136,6 +136,8 @@ body { top: 0 !important; }
 .notif-main { display: grid; gap: 1px; min-width: 0; }
 .notif-head { display: flex; justify-content: space-between; gap: 8px; font-size: .75rem; color: var(--muted); }
 .notif-head strong { color: var(--ink); font-weight: 700; font-size: .8rem; }
+.notif-what { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.notif-tag { font: 700 .62rem/1 var(--font-body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 999px; padding: 3px 6px; }
 .notif p { font-size: .84rem; line-height: 1.3; }
 .notif b { font: 760 .98rem var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .phone figcaption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

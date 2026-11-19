@@ -470,8 +470,8 @@ function phone(ctx) {
   const n = R.notice(ctx);
   const home = R.homeTime(ctx.r.id, NOW);
   return `<figure class="phone" id="sf-phone">
-<div class="notif" id="sf-notif"><span class="notif-icon">${wallet}</span><div class="notif-main"><div class="notif-head"><strong id="sf-ph-title">${n.title}</strong><span><span id="sf-ph-city">${esc(home.city)}</span> <span id="sf-ph-time">${home.time}</span></span></div><p id="sf-ph-text">${n.text}</p></div></div>
-<figcaption id="sf-ph-cap">${n.cap}</figcaption>
+<div class="notif" id="sf-notif"><span class="notif-icon">${wallet}</span><div class="notif-main"><div class="notif-head"><span class="notif-what"><span class="notif-tag">Example</span> <strong id="sf-ph-title">${n.title}</strong></span><span><span id="sf-ph-city">${esc(home.city)}</span> <span id="sf-ph-time">${home.time}</span></span></div><p id="sf-ph-text">${n.text}</p></div></div>
+<figcaption>Example notification, not a real payment. It shows what today's best option would deliver: <span id="sf-ph-cap">${n.cap}</span></figcaption>
 </figure>`;
 }
 
