@@ -128,6 +128,29 @@ async function main() {
   const imagePng = await renderPng(D.imagePost(ctx, image));
   fs.writeFileSync(path.join(OUT, "image.png"), imagePng);
   if (plan.image) fs.writeFileSync(path.join(OUT, `image-${plan.date}.png`), imagePng);
+  // Carousel slides (carousel days only): 1080x1350 (4:5), the same renderer, fonts, palette and
+  // photos as the Reel. Instagram only accepts JPEG, so each slide is encoded to a high-quality JPEG
+  // (q 2, 4:4:4 chroma so text edges stay sharp). Without ffmpeg the PNGs are kept for review.
+  let carouselFiles = null;
+  if (plan.carousel) {
+    const rows = reel.numbers;
+    const total = rows.length + 3;
+    const svgs = [D.carouselCover(ctx, reel.hook, tag, total), ...rows.map((_, i) => D.carouselRow(ctx, reel.hook, rows, i, i + 2, total)), D.carouselInsight(ctx, plan.carousel.insight, total - 1, total), D.carouselCta(ctx, total, total)];
+    carouselFiles = [];
+    for (let i = 0; i < svgs.length; i++) {
+      const png = path.join(OUT, `carousel-${i + 1}.png`);
+      fs.writeFileSync(png, await renderPng(svgs[i]));
+      if (hasFfmpeg) {
+        const jpg = `carousel-${i + 1}.jpg`;
+        execFileSync("ffmpeg", ["-nostdin", "-y", "-v", "error", "-i", png, "-pix_fmt", "yuvj444p", "-q:v", "2", path.join(OUT, jpg)]);
+        carouselFiles.push(jpg);
+      } else carouselFiles.push(`carousel-${i + 1}.png`);
+    }
+    for (const platform of ["instagram", "facebook"]) {
+      fs.writeFileSync(path.join(OUT, `caption-carousel-${platform}.txt`), plan.carousel.captions[platform] + "\n");
+    }
+    console.log(`Carousel: ${carouselFiles.length} slides (${hasFfmpeg ? "JPEG" : "PNG only, no ffmpeg"})`);
+  }
   for (const platform of ["instagram", "facebook", "tiktok"]) {
     fs.writeFileSync(path.join(OUT, `caption-${platform}.txt`), reel.captions[platform] + "\n");
   }
@@ -136,7 +159,8 @@ async function main() {
     checkedAt: reel.checkedAt, checkDate: reel.checkDate, numbers: reel.numbers,
     files: { reel: mp4, cover: "cover.png", image: "image.png", captions: ["instagram", "facebook", "tiktok"] },
     captions: reel.captions,
-    image
+    image,
+    carousel: carouselFiles ? { slides: carouselFiles, captions: plan.carousel.captions } : null
   };
   fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 1) + "\n");
 

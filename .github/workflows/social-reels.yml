@@ -54,8 +54,15 @@ jobs:
           npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/reel.mp4" --file "data/social/reels/$D/reel.mp4" --content-type video/mp4 --remote
           npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/cover.png" --file "data/social/reels/$D/cover.png" --content-type image/png --remote
           npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/image.png" --file "data/social/reels/$D/image.png" --content-type image/png --remote
+          # Carousel days: each slide is a public image for Instagram's carousel.
+          # Instagram accepts JPEG only, so the .jpg slides are uploaded.
+          for f in data/social/reels/$D/carousel-*.jpg; do
+            [ -e "$f" ] || continue
+            npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/$(basename "$f")" --file "$f" --content-type image/jpeg --remote
+          done
           # Instagram fetches the video from this address, so make sure it is really there.
           curl -sfI "${{ vars.R2_PUBLIC_BASE }}/social/$D/reel.mp4" | grep -i -E "^(HTTP|content-type|content-length)"
+          if ls data/social/reels/$D/carousel-*.jpg >/dev/null 2>&1; then curl -sfI "${{ vars.R2_PUBLIC_BASE }}/social/$D/carousel-1.jpg" | grep -i -E "^(HTTP|content-type)"; fi
       - name: Publish (dry run)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
         env:

@@ -1,15 +1,16 @@
-# SendFair social: Reels first
+# SendFair social: Reels and carousels
 
-The daily social post is now **one short vertical Reel**, with image posts only when there is
-something worth a still. This replaces the old queue (`scripts/social-posts.mjs` → `post-facebook` /
+The daily social post is **one short vertical Reel on four days and an Instagram carousel on three**
+(Reels for reach to new people, carousels for saves and depth with people who already follow). This replaces the old queue (`scripts/social-posts.mjs` → `post-facebook` /
 `post-instagram`), whose two daily cron jobs are now manual-only so they cannot double-post.
 
 ## Schedule (`data/social/schedule.json`)
 
 | Key | Default | Meaning |
 |---|---|---|
-| `reelsPerDay` | 1 | One Reel every day |
-| `imagePostDays` | `["tue","fri"]` | Days an image post is allowed |
+| `reelsPerDay` | 1 | One Reel on every day that is not a carousel day |
+| `carouselDays` | `["tue","thu","sat"]` | Days that post a 4-slide carousel instead of a Reel on Instagram and Facebook |
+| `imagePostDays` | `[]` | Days a single image is posted. Empty now; a single image is still the fallback if a Reel or carousel fails |
 | `maxPerDay` | 2 | Never more than two automated posts per platform per day |
 | `postTimeNairobi` | `17:00` | UK lunchtime, US East Coast morning |
 | `templates` | route, best-vs-average, house, tip, rate-move | Rotated, no two days in a row the same |
@@ -18,6 +19,44 @@ something worth a still. This replaces the old queue (`scripts/social-posts.mjs`
 
 Routes rotate through `config.priorityRoutes`. Hashtags are per country in
 `data/social/hashtags.json`.
+
+## Carousel days
+
+On a `carouselDays` weekday the plan gets a carousel of 5–7 slides at 1080×1350 (4:5), rendered with
+the same renderer, Figtree fonts, country palette, header, flag, provider logos and the **same two
+4K country photos** the Reel would use that day (same per-country rotation in `data/social/photos.json`):
+
+1. Hook over the day's first photo, with a swipe cue
+2. One figure per slide (the same ranked numbers as the Reel), with the provider logo
+3. "What this means": one plain sentence whose every figure comes from those numbers
+4. Save and share over the day's second photo
+
+Slides are encoded to JPEG (Instagram accepts JPEG only) at `-q:v 2` with 4:4:4 chroma, uploaded to
+R2 as `social/<date>/carousel-N.jpg`.
+
+- **Instagram**: native carousel (child containers with `is_carousel_item=true`, a `CAROUSEL` parent,
+  then `media_publish`). Counts as one post toward the 50-a-day limit. Music cannot be attached to
+  carousels through the API (Reels only).
+- **Facebook Page**: the cover slide as a single photo. Multi-photo posts are not wired up yet.
+- **TikTok**: unchanged, still gets the Reel every day (flag is off).
+- The Reel is still rendered and archived on carousel days for hand-posting.
+- Idempotency keys `instagram-carousel` and `facebook-carousel`; log `type` is `carousel`. If the
+  carousel fails, Instagram posts the cover slide as an image and records `fallback: true`.
+
+To change the mix, edit `carouselDays` only.
+
+## Trial Reels and trending audio (Instagram)
+
+| Key | Default | Meaning |
+|---|---|---|
+| `igTrialReels` | true | Post Instagram Reels as Trial Reels (`trial_params`). Reels only |
+| `igTrialGraduation` | `SS_PERFORMANCE` | Share with followers automatically if the Reel performs well; `MANUAL` waits for you in the app |
+| `igAudioTrendingFirst` | true | Try Instagram's trending audio first, then the `igAudioQueries` genres |
+
+Trial Reels are shown to non-followers first and stay off the grid and followers' feeds unless they
+graduate. If Instagram refuses `trial_params` (for example an account that is not eligible yet), the
+Reel is posted as a normal Reel and the log shows `trial: false`. Set `igTrialReels` to false to
+stop trial posting.
 
 ## Daily flow
 
