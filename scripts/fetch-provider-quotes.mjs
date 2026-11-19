@@ -11,6 +11,7 @@ import { PartnerFeedAdapter } from "./providers/partner-feed.mjs";
 import { WiseFeedAdapter } from "./providers/wise.mjs";
 import { notifyOwner } from "./providers/notify.mjs";
 import { runFeeds } from "./providers/runner.mjs";
+import { applyOverrides } from "./feed-lib.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -32,8 +33,10 @@ const write = (p, text) => { if (!DRY) fs.writeFileSync(path.join(ROOT, p), text
 const config = read("config.json");
 const corridors = read("data/corridors.json");
 const quotesFile = read("data/quotes.json");
-const mid = read("data/midmarket.json").rates || {};
-try { const ov = read("data/mid-overrides.json"); if (ov && ov.rates && Date.now() - new Date(ov.updatedAt).getTime() < 36 * 3600000) Object.assign(mid, ov.rates); } catch {}
+const midmarket = read("data/midmarket.json");
+midmarket.rates = midmarket.rates || {};
+try { applyOverrides(midmarket, read("data/mid-overrides.json")); } catch {}
+const mid = midmarket.rates;
 const provFile = read("data/providers.json").providers;
 const providers = new Set(provFile.map((p) => p.id));
 const sendsFrom = Object.fromEntries(provFile.map((p) => [p.id, p.sendsFrom || []]));

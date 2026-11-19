@@ -2,7 +2,7 @@
 // An affiliateUrl may contain {route}, which is replaced with the route so networks can report earnings per route.
 // Non-transfer partners (flights, eSIMs, house-calculator sponsors) come from data/partners.json:
 //   /go/flights?o=LON&d=NBO&r=fly-kenya   /go/esim?r=fly-kenya   /go/<sponsor-id>?r=build-kenya
-import { siteData } from "../_lib.js";
+import { siteData, CLICK_PREFIX } from "../_lib.js";
 import { TRAVEL_IDS, flightTarget, esimTarget, sponsorTarget } from "../../src/partner-links.mjs";
 
 async function partnerRedirect(context, id, route) {
@@ -54,12 +54,12 @@ export async function onRequestGet(context) {
 
   const kv = context.env.SENDFAIR_KV;
   if (kv) {
+    // One key per click (c:<day>:<route>:<id>:<random>), counted by listing in /api/stats. A shared
+    // counter (read, add one, write) lost clicks when two landed at once; a unique key needs no read.
+    // Days before this change are still stored as clicks:<day>:<route>:<id> totals and are still read.
     const day = new Date().toISOString().slice(0, 10);
-    const key = `clicks:${day}:${safeRoute}:${id}`;
-    context.waitUntil((async () => {
-      const n = Number(await kv.get(key) || 0);
-      await kv.put(key, String(n + 1), { expirationTtl: 60 * 60 * 24 * 400 });
-    })());
+    const key = `${CLICK_PREFIX}${day}:${safeRoute}:${id}:${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
+    context.waitUntil(kv.put(key, "1", { expirationTtl: 60 * 60 * 24 * 400 }).catch(() => {}));
   }
   return new Response(null, {
     status: 302,

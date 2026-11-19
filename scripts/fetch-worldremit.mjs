@@ -1,7 +1,7 @@
 // Scrapes WorldRemit's public web quote for each SendFair route using a headless browser
 // (WorldRemit renders its rate with JavaScript, so a plain fetch returns no rate).
 // Writes data/worldremit-quotes.json (merged into the comparison by the build).
-// Run by .github/workflows/worldremit.yml on a schedule.
+// Run hourly by .github/workflows/update-midmarket.yml ("Update rates"), which commits all data sources at once.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

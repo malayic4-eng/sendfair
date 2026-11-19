@@ -132,9 +132,11 @@ alerts. A success resets the counter and `alerted`. A single failure does not fa
 
 ## Workflow
 
-`.github/workflows/partner-feeds.yml` runs hourly, runs the tests, then `--only=partner`. A manual
-`workflow_dispatch` has a `dry_run` input (default true) that fetches and logs but writes nothing.
-It commits `data/quotes.json`, the state and the logs.
+The hourly run is part of "Update rates" (`.github/workflows/update-midmarket.yml`): it runs the tests, then
+`--only=partner`, and its changes to `data/quotes.json`, the state and the logs go into that workflow's single
+commit, together with the rates, the Wise feed and the WorldRemit quotes.
+`.github/workflows/partner-feeds.yml` is now manual only: its `dry_run` input (default true) fetches and logs
+but writes nothing; with `dry_run` off it writes and commits like the hourly run.
 
 ## Tests
 

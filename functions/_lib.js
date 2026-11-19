@@ -4,6 +4,11 @@
 
 export const BUCKETS = { under1h: "Under 1 hour", sameday: "Same day", "1to2days": "1–2 days", longer: "Longer than 2 days" };
 
+// Click keys: one KV key per click, c:<YYYY-MM-DD>:<route>:<id>:<random> (see functions/go/[provider].js).
+// LEGACY_CLICK_PREFIX keys (clicks:<YYYY-MM-DD>:<route>:<id> = running total) hold the days before that change.
+export const CLICK_PREFIX = "c:";
+export const LEGACY_CLICK_PREFIX = "clicks:";
+
 export function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,

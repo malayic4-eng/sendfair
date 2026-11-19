@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { applyOverrides, sharedCurrencies } from "./feed-lib.mjs";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const R = createRequire(import.meta.url)(path.join(ROOT, "src/rank.js"));
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
@@ -17,7 +18,8 @@ const quotes = read(arg("--quotes", path.join(ROOT, "data/quotes.json")));
 let mid = { rates: {} };
 try { mid = read(arg("--midmarket", path.join(ROOT, "data/midmarket.json"))); } catch {}
 const ovFile = arg("--mid", path.join(ROOT, "data/mid-overrides.json"));
-if (ovFile !== "none") { try { const ov = read(ovFile); if (ov && ov.rates && Date.now() - new Date(ov.updatedAt).getTime() < 36 * 3600000) Object.assign(mid.rates = mid.rates || {}, ov.rates); } catch {} }
+mid.rates = mid.rates || {};
+if (ovFile !== "none") { try { applyOverrides(mid, read(ovFile)); } catch {} }
 mid.rates.USD = 1;
 const when = new Date(quotes.updatedAt || Date.now());
 const day = arg("--date", when.toISOString().slice(0, 10));
@@ -27,11 +29,12 @@ let hist = { note: "One entry per route per day: mid = mid-market rate, best = m
 try { hist = read(file); } catch {}
 
 const snap = {};
+const shared = sharedCurrencies(corridors);
 for (const s of corridors.senders) for (const r of corridors.receivers) {
   const key = `${s.id}-${r.id}`;
   const amount = config.defaultAmounts[s.currency];
   const m = R.midRate(mid, s.currency, r.currency);
-  const rows = R.rank({ list: (quotes.quotes || {})[key] || [], amount, payout: "all", providers, now: when.getTime(), staleH: 36, hideH: 72, mid: m });
+  const rows = R.rank({ list: (quotes.quotes || {})[key] || [], amount, payout: "all", providers, now: when.getTime(), staleH: 36, hideH: 72, mid: m, country: r.iso2, sharedCurrency: shared.has(r.currency) });
   const lead = R.leaders(rows);
   if (!m && !lead.length) continue;
   snap[key] = { mid: m ? +m.toPrecision(6) : null, amount, best: lead.length ? Math.round(lead[0].gets * 100) / 100 : null, by: lead.map((x) => x.p.id) };

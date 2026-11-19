@@ -45,6 +45,18 @@
     if (!r || !r[src] || !r[tgt]) return null;
     return r[tgt] / r[src];
   }
+  // When the mid-market rate for src -> tgt was read: the older of the two currencies' times
+  // (mid.rateAt per currency when the build applied Wise corrections, else the file's own time).
+  function midAt(mid, src, tgt) {
+    if (!mid) return null;
+    var at = mid.rateAt || {}, base = mid.base || "USD", out = null;
+    [src, tgt].forEach(function (c) {
+      if (!c || c === base) return;
+      var t = at[c] || mid.updatedAt;
+      if (t && (!out || t < out)) out = t;
+    });
+    return out || mid.overrideAt || mid.updatedAt || null;
+  }
   function ageHours(iso, now) {
     if (!iso) return Infinity;
     var t = new Date(iso).getTime();
@@ -69,18 +81,48 @@
     var f = q.feeFixed != null && q.feeFixed !== "" ? Number(q.feeFixed) : Number(q.fee) || 0;
     return { fixed: f || 0, pct: Number(q.feePct) || 0 };
   }
+  // Rate and fee read at several amounts (feed "tiers": [{amount, rate, fee}]). Needs two or more valid points.
+  function cleanTiers(t) {
+    if (!t || !t.length) return null;
+    var out = [], seen = {};
+    for (var i = 0; i < t.length; i++) {
+      var x = t[i], a = x && Number(x.amount), r = x && Number(x.rate), f = x && Number(x.fee || 0);
+      if (!(a > 0) || !(r > 0) || !isFinite(f) || f < 0 || seen[a]) continue;
+      seen[a] = 1;
+      out.push({ amount: a, rate: r, fee: f });
+    }
+    out.sort(function (a, b) { return a.amount - b.amount; });
+    return out.length > 1 ? out : null;
+  }
+  // Rate from the tier nearest the amount; fee interpolated between the neighbouring tiers (straight line
+  // through the nearest two outside the range), never below 0. covered: within a factor 3 of the checked range,
+  // the same tolerance the single-amount warning uses.
+  function tierAt(tiers, amount) {
+    var t = cleanTiers(tiers);
+    if (!t || !(amount > 0)) return null;
+    var near = t[0];
+    t.forEach(function (x) { if (Math.abs(x.amount - amount) < Math.abs(near.amount - amount)) near = x; });
+    var i = 0;
+    while (i < t.length - 2 && amount > t[i + 1].amount) i++;
+    var a = t[i], b = t[i + 1];
+    var fee = a.fee + (b.fee - a.fee) * (amount - a.amount) / (b.amount - a.amount);
+    var min = t[0].amount, max = t[t.length - 1].amount;
+    return { rate: near.rate, fee: Math.max(0, fee), at: near.amount, min: min, max: max, covered: amount >= min / 3 && amount <= max * 3 };
+  }
   // "You pay in total" model: total = sent + fixed fee + pct% of sent.
   function evaluate(q, amount, o) {
-    var rate = Number(q.rate);
+    var tier = q && q.tiers ? tierAt(q.tiers, amount) : null;
+    var base = tier && !q.promoApplied ? tier.rate : Number(q.rate); // a first-transfer rate keeps its own rate
+    var rate = base;
     if (o && o.customer === "new" && q.promo && Number(q.promo.rate) > 0) {
       var cap = Number(q.promo.cap) || 0;
       if (!cap || amount <= cap) rate = Number(q.promo.rate);
     }
     if (!(rate > 0) || !(amount > 0)) return null;
-    var f = feeParts(q);
+    var f = tier ? { fixed: tier.fee, pct: 0 } : feeParts(q);
     var sent = (amount - f.fixed) / (1 + f.pct / 100);
     if (!(sent > 0)) return null;
-    return { sent: sent, fee: amount - sent, gets: sent * rate, rate: rate, feeFixed: f.fixed, feePct: f.pct, promo: rate !== Number(q.rate) };
+    return { sent: sent, fee: amount - sent, gets: sent * rate, rate: rate, feeFixed: f.fixed, feePct: f.pct, promo: rate !== base, tier: tier };
   }
   function feeStr(q, cur) {
     var f = feeParts(q);
@@ -95,7 +137,18 @@
     var rate = Number(q.rate);
     if (!(rate > 0) || !(target > 0)) return null;
     var f = feeParts(q);
-    return (target / rate) * (1 + f.pct / 100) + f.fixed;
+    var pay = (target / rate) * (1 + f.pct / 100) + f.fixed;
+    if (q.tiers && cleanTiers(q.tiers)) {
+      // The fee and rate depend on the amount paid: settle on it in a few steps.
+      for (var i = 0; i < 6; i++) {
+        var t = tierAt(q.tiers, pay);
+        if (!t) break;
+        var next = target / t.rate + t.fee;
+        if (Math.abs(next - pay) < 0.005) { pay = next; break; }
+        pay = next;
+      }
+    }
+    return pay;
   }
   // Ranks by what arrives for `amount`, or, with `target`, by the least you pay for `target` to arrive.
   function rank(o) {
@@ -103,6 +156,7 @@
     var score = function (x) { return target ? -Math.round(x.pay * 100) : shown(x.gets); };
     var shown = function (v) { return Math.round(v * (Math.abs(v) >= 1000 ? 1 : 100)); };
     var list = mergeFeed(o.list, o.feed, o);
+    var suspect = midSuspect(list, o);
     list.forEach(function (q) {
       if (o.promo) q = withPromo(q);
       var p = o.providers[q.provider];
@@ -114,8 +168,10 @@
       var pay = target ? payFor(q, target) : o.amount;
       var ev = pay ? evaluate(q, pay, o) : null;
       if (!ev) return;
-      if (o.mid && isAuto(q) && ev.rate > o.mid * 1.015) return;
-      var row = { q: q, p: p, ev: ev, gets: ev.gets, pay: pay, age: age, stale: age > o.staleH, cost: o.mid ? 1 - ev.gets / (pay * o.mid) : null };
+      // An automatic rate well above mid-market is usually a parsing error, unless the mid-market
+      // reference itself looks out of date (most automatic quotes are above it): then keep every row.
+      if (o.mid && !suspect && isAuto(q) && ev.rate > o.mid * 1.015) return;
+      var row = { q: q, p: p, ev: ev, gets: ev.gets, pay: pay, age: age, stale: age > o.staleH, cost: o.mid && !suspect ? 1 - ev.gets / (pay * o.mid) : null };
       var cur = best[q.provider];
       if (!cur || (cur.stale && !row.stale) || (cur.stale === row.stale && score(row) > score(cur))) best[q.provider] = row;
     });
@@ -134,7 +190,24 @@
     rows.forEach(function (x) {
       x.tied = rows.filter(function (y) { return y.stale === x.stale && y.pos === x.pos; }).length > 1;
     });
+    if (suspect) rows.midSuspect = true;
     return rows;
+  }
+  // True when the mid-market reference looks wrong for this route: more than half of the fresh automatic
+  // quotes (at least two) are above mid × 1.015. Their own rates cannot all be parsing errors; the reference
+  // (e.g. a free feed that lags a devaluation) is the likelier culprit.
+  function midSuspect(list, o) {
+    if (!o.mid) return false;
+    var amount = o.amount > 0 ? o.amount : (o.refAmount || 0);
+    var n = 0, above = 0;
+    list.forEach(function (q) {
+      if (!isAuto(q) || ageHours(q.checkedAt, o.now) > o.staleH) return;
+      var ev = amount > 0 ? evaluate(q, amount) : (Number(q.rate) > 0 ? { rate: Number(q.rate) } : null);
+      if (!ev) return;
+      n++;
+      if (ev.rate > o.mid * 1.015) above++;
+    });
+    return n >= 2 && above / n > 0.5;
   }
   // Services that share the top spot today (fresh quotes only).
   function leaders(rows) {
@@ -146,8 +219,14 @@
     return n.length > 1 ? n.slice(0, -1).join(", ") + " and " + n[n.length - 1] : n.join("");
   }
 
+  // Warns only about rows whose price was not read near this amount: rows with tiers covering the
+  // amount are left out; an uncovered tiered row counts with its nearest checked amount.
   function refWarning(rows, amount, cur) {
-    var refs = rows.map(function (x) { return Number(x.q.refAmount) || 0; }).filter(Boolean);
+    var refs = rows.map(function (x) {
+      var t = x.ev && x.ev.tier;
+      if (t) return t.covered ? 0 : (amount > t.max ? t.max : t.min);
+      return Number(x.q.refAmount) || 0;
+    }).filter(Boolean);
     if (!refs.length) return "";
     refs.sort(function (a, b) { return a - b; });
     var ref = refs[Math.floor(refs.length / 2)];
@@ -206,13 +285,27 @@
     return list.some(function (m) { return re.test(m); });
   }
   // After a few hours, a newer automatic quote replaces the hand check for that provider.
+  // o.country (receiver ISO2) and o.sharedCurrency (the receive currency is used by more than one receiving
+  // country): a feed row for a shared currency counts only when it is marked with this country, because a
+  // currency-only quote may be priced for a different country (USD to Zimbabwe vs USD to DR Congo).
+  // o.feedTiers: { provider: [{amount, rate, fee}] } for this route (wise-feed.json "tiers").
+  function feedCountryOk(f, o) {
+    if (!o || !o.country) return true;
+    if (f.country && f.country !== o.country) return false;
+    if (o.sharedCurrency && f.country !== o.country) return false;
+    return true;
+  }
   function mergeFeed(list, feed, o) {
     var now = o.now, lockH = o.handLockH == null ? 6 : o.handLockH, hideH = o.hideH, amount = o.refAmount || o.amount;
-    list = (list || []).slice();
+    list = (list || []).filter(function (q) {
+      // A published Wise-feed quote on a shared-currency route must carry this country too.
+      return !(q && q.source === "wise-feed" && !feedCountryOk({ country: q.country }, o));
+    });
     if (!feed) return list;
     Object.keys(feed).forEach(function (id) {
       var f = feed[id];
       if (!(f && Number(f.rate) > 0 && f.collected)) return;
+      if (!feedCountryOk(f, o)) return;
       var feedAge = ageHours(f.collected, now);
       if (feedAge > hideH) return;
       var mine = list.filter(function (q) { return q.provider === id; });
@@ -222,12 +315,17 @@
       var payout = [];
       mine.forEach(function (q) { (q.payout || []).forEach(function (m) { if (payout.indexOf(m) < 0) payout.push(m); }); });
       var speed = f.speed || (hands.filter(function (q) { return q.speed; })[0] || {}).speed || "";
+      // Tiers: passed in, on the feed row, or kept from the published quote of the same collection.
+      var same = mine.filter(function (q) { return isAuto(q) && q.checkedAt === f.collected && q.tiers; })[0];
+      var tiers = (o.feedTiers && o.feedTiers[id]) || f.tiers || (same && same.tiers) || null;
       var nq = {
         provider: id, variant: "", rate: Number(f.rate), feeFixed: Number(f.fee) || 0, feePct: 0,
         payout: payout.length ? payout : ["bank"], speed: speed,
         note: "Updated automatically from " + sourceLabel({ source: "wise-feed" }) + "; confirm on the provider's site",
         refAmount: amount, checkedAt: f.collected, source: "wise-feed"
       };
+      if (cleanTiers(tiers)) nq.tiers = tiers;
+      if (f.country) nq.country = f.country;
       list = list.filter(function (q) { return q.provider !== id; });
       list.push(nq);
     });
@@ -258,14 +356,16 @@
     var how = (x.q.payout || []).map(function (m) { return SHORT[m]; }).join(", ");
     var checked = x.q.checkedAt ? "checked " + (c.timeStyle === "absolute" ? absTime(x.q.checkedAt) : ago(x.q.checkedAt, c.now)) : "";
     var rep = c.reports && c.reports[x.p.id];
-    var bits = (x.q.variant ? ['<span class="variant-sub">' + esc(x.q.variant) + "</span>"] : []).concat(["Rate " + rateStr(x.ev.rate), feeStr(x.q, c.s.currency)]);
+    var tier = x.ev.tier;
+    var bits = (x.q.variant ? ['<span class="variant-sub">' + esc(x.q.variant) + "</span>"] : []).concat(["Rate " + rateStr(x.ev.rate), feeStr(tier ? { feeFixed: x.ev.feeFixed, feePct: 0 } : x.q, c.s.currency)]);
     var extra = [];
     if (x.q.speed) extra.push(esc(x.q.speed));
     if (how) extra.push(how);
     if (rep && rep.n >= 3) extra.push("usually arrives " + esc(rep.typical));
     if (checked) extra.push(checked + (isAuto(x.q) ? " (auto)" : " (hand-checked)"));
     var ref = Number(x.q.refAmount) || 0, shownAmt = x.pay || c.amount;
-    if (ref && shownAmt > 0 && Math.abs(shownAmt - ref) / ref > 0.15) bits.push('<span class="ref-txt" title="The rate and fee were read for this amount; they can differ for yours">checked for ' + esc(money(ref, c.s.currency, 0)) + "</span>");
+    if (tier) { if (!tier.covered) bits.push('<span class="ref-txt" title="The rate and fee were read for other amounts; they can differ for yours">checked for ' + esc(money(tier.min, c.s.currency, 0)) + "–" + esc(money(tier.max, c.s.currency, 0)) + "</span>"); }
+    else if (ref && shownAmt > 0 && Math.abs(shownAmt - ref) / ref > 0.15) bits.push('<span class="ref-txt" title="The rate and fee were read for this amount; they can differ for yours">checked for ' + esc(money(ref, c.s.currency, 0)) + "</span>");
     if (extra.length) bits.push('<span class="xtra">' + extra.join(DOT) + "</span>");
     if (x.stale) bits.push('<span class="stale-txt">not rechecked today</span>');
     var mark = fn ? ' <a class="fn" href="#sf-fn-' + fn + '" aria-label="Footnote ' + fn + ' about ' + esc(x.p.name) + '">' + fn + "</a>" : "";
@@ -298,7 +398,7 @@
       ["Delivery time", esc(x.q.speed || "Not shown by the provider for this route")],
       ["Ways to pay", esc((x.p.payIn || []).join(", ") || "See the provider's site") + ((x.p.payIn || []).some(function (m) { return /credit/i.test(m); }) ? ". Card payments can cost more; the rate above assumes the provider's standard method." : "")],
       ["Rating", x.p.rating ? '<a href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener">Trustpilot ' + x.p.rating.score + "/5</a> (" + esc(x.p.rating.label) + ", " + fixed(x.p.rating.reviews, 0) + " reviews)" : (x.p.ratingUrl ? '<a href="' + esc(x.p.ratingUrl) + '" target="_blank" rel="noopener">Trustpilot</a> (open to read current reviews)' : "Not rated yet")],
-      ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + esc(money(Number(x.q.refAmount) || c.amount, cur, 0)) + (isAuto(x.q) ? ", automatically from " + sourceLabel(x.q) : ", by hand on the provider's site") : ""]
+      ["Checked", x.q.checkedAt ? esc(absTime(x.q.checkedAt)) + " for " + (x.ev.tier ? esc(money(x.ev.tier.min, cur, 0)) + " to " + esc(money(x.ev.tier.max, cur, 0)) + " (fee for your amount worked out between those)" : esc(money(Number(x.q.refAmount) || c.amount, cur, 0))) + (isAuto(x.q) ? ", automatically from " + sourceLabel(x.q) : ", by hand on the provider's site") : ""]
     ];
     if (x.q.variant) items.splice(1, 0, ["Option", esc(x.q.variant) + (variantHint(x.q.variant) ? ": " + esc(variantHint(x.q.variant).charAt(0).toLowerCase() + variantHint(x.q.variant).slice(1)) : "")]);
     if (x.q.note) items.push(["Note", esc(String(x.q.note).replace(/\s*;\s*;/g, ". ").replace(/\.\s*;/g, ". "))]);
@@ -336,7 +436,7 @@
     var amts = [base];
     [base * 2, base * 4].forEach(function (a) { if (amts.indexOf(a) < 0) amts.push(a); });
     var namesAt = amts.map(function (a) {
-      var rows = rank({ list: c.list, feed: c.feed, providers: c.providers, amount: a, payout: c.payout, payIn: c.payIn, promo: c.promo, mid: c.mid, now: c.now, staleH: c.staleH || 36, hideH: c.hideH || 72, handLockH: c.handLockH || 6 });
+      var rows = rank({ list: c.list, feed: c.feed, feedTiers: c.feedTiers, country: c.country, sharedCurrency: c.sharedCurrency, refAmount: c.refAmount, providers: c.providers, amount: a, payout: c.payout, payIn: c.payIn, promo: c.promo, mid: c.mid, now: c.now, staleH: c.staleH || 36, hideH: c.hideH || 72, handLockH: c.handLockH || 6 });
       var top = rows.filter(function (x) { return !x.stale; })[0];
       return top ? { a: a, name: top.p.name } : null;
     }).filter(Boolean);
@@ -369,7 +469,7 @@
       if (c.rows.some(function (x) { return x.tied; })) html += '<p class="note tie-note">"=" means tied: the same amount arrives. Tied services are listed with the lower fee first.</p>';
       var reg = REGISTER[c.s.id];
       html += '<div class="below"><p class="disclose">' + (c.target ? "Ranked by the least you pay for " + esc(money(c.target, c.r.currency)) + " to arrive" : "Ranked by the amount that arrives") +
-        (c.promo ? ", using first-transfer rates where the provider publishes one" : ", using standard rates (turn on first-transfer offers above if you are new)") +
+        (c.promo ? ", using first-transfer rates where the provider publishes one" : ", using standard rates" + (c.hasPromo === false ? "" : " (turn on first-transfer offers above if you are new)")) +
         '. Some providers pay us a commission when you sign up; it never changes the order. <a href="' + esc(c.disclosureHref) + '">How we make money</a></p>' +
         (reg ? '<p class="disclose">Before you send, check the service is licensed ' + (reg[2] || "on") + ' <a href="' + reg[1] + '" target="_blank" rel="noopener">' + reg[0] + "</a>.</p>" : "") +
         (notes.length ? '<ol class="notes">' + notes.map(function (n, k) { return '<li id="sf-fn-' + (k + 1) + '"><strong>' + esc(n.who) + ":</strong> " + esc(n.text) + "</li>"; }).join("") + "</ol>" : "") + "</div>";
@@ -379,11 +479,12 @@
       var list = (c.checkList || []).map(function (p) {
         return '<a href="' + esc(c.hrefFor(p, c.key)) + '" target="_blank" rel="sponsored nofollow noopener">' + esc(p.name) + "</a>";
       }).join(DOT);
-      html += '<div class="empty"><strong>' + (c.anyQuotes ? "Quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are too old to rank." : "No service publishes online prices for " + esc(c.s.short) + " to " + esc(c.r.name) + " yet.") + "</strong>" +
-        "<span>" + (c.anyQuotes ? "The last check is older than three days, so it is hidden until we recheck it." : "The services on this route show their rates only in their apps or at their branches. There is no ranking to use until an online quote is published. Compare them there, using the fair-deal figures below as a guide.") + "</span>" +
+      html += '<div class="empty"><strong>' + (c.anyQuotes ? "Quotes for " + esc(c.s.short) + " to " + esc(c.r.name) + " are too old to rank." : "No online price for " + esc(c.s.short) + " to " + esc(c.r.name) + " has been checked yet.") + "</strong>" +
+        "<span>" + (c.anyQuotes ? "The last check is older than three days, so it is hidden until we recheck it." : "We have no current online quote priced for this route, so there is no ranking to use yet. Compare the services on their own sites or apps, using the fair-deal figures below as a guide.") + "</span>" +
         (list ? '<span class="checklist">Services to check on this route: ' + list + "</span>" : "") + "</div>";
     }
-    if (c.mid && c.target) {
+    var midOk = c.mid && !(c.rows && c.rows.midSuspect);
+    if (midOk && c.target) {
       var ideal = c.target / c.mid, avgPay = ideal / (1 - c.avgPct / 100);
       var cheapest = c.rows.filter(function (x) { return !x.stale; })[0];
       var saved = cheapest ? avgPay - cheapest.pay : 0;
@@ -392,7 +493,7 @@
         (c.ssa ? '<div class="bench"><span class="k">At the regional average cost (' + c.avgPct + '%)</span><span class="v num">' + moneyHtml(avgPay, c.s.currency) + '</span><span class="s">' + esc(c.avgLabel) + "</span></div>" : "") +
         (c.ssa && saved > 0 ? '<div class="bench"><span class="k">Cheapest option vs the average</span><span class="v num gain">' + moneyHtml(saved, c.s.currency) + '</span><span class="s">Kept in your pocket on this transfer.</span></div>' : "") +
         "</div>";
-    } else if (c.mid) {
+    } else if (midOk) {
       var perfect = c.amount * c.mid;
       var pct = c.avgPct;
       var avg = perfect * (1 - pct / 100);
@@ -422,7 +523,8 @@
         trend = Math.abs(ch) < 0.0005 ? ' <span class="trend">no change' + since + "</span>"
           : ' <span class="trend ' + (ch > 0 ? "up" : "down") + '" title="' + (ch > 0 ? "More " + c.r.currency + " per " + c.s.currency : "Fewer " + c.r.currency + " per " + c.s.currency) + '">' + (ch > 0 ? "▲ " : "▼ ") + fixed(Math.abs(ch) * 100, 1) + "%" + since + "</span>";
       }
-      bits.push('Mid-market: <strong class="num">1 ' + c.s.currency + " = " + rateStr(c.mid) + " " + c.r.currency + "</strong>" + trend + spark(c.hist));
+      var susp = (c.allRows || c.rows || {}).midSuspect;
+      bits.push('Mid-market: <strong class="num">1 ' + c.s.currency + " = " + rateStr(c.mid) + " " + c.r.currency + "</strong>" + (susp ? ' <span class="trend">may be out of date: most services quote above it, so the cost vs mid-market is not shown</span>' : trend + spark(c.hist)));
     }
     var t = function (iso) { return c.timeStyle === "absolute" ? absTime(iso) : ago(iso, c.now); };
     if (c.midUpdated && c.s.currency !== c.r.currency) bits.push("Market rate from " + t(c.midUpdated));
@@ -501,6 +603,6 @@
   }
 
   var api = { LABEL: LABEL, esc: esc, money: money, rateStr: rateStr, midRate: midRate, ageHours: ageHours, ago: ago, absTime: absTime,
-    evaluate: evaluate, payFor: payFor, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText, notice: notice, moneyHtml: moneyHtml, homeTime: homeTime, leaders: leaders, names: names, picks: picks, spark: spark, badge: badge, mergeFeed: mergeFeed, promoRate: promoRate, SSA: SSA };
+    evaluate: evaluate, payFor: payFor, tierAt: tierAt, midAt: midAt, midSuspect: midSuspect, feeStr: feeStr, rank: rank, renderResults: renderResults, metaLine: metaLine, shareText: shareText, notice: notice, moneyHtml: moneyHtml, homeTime: homeTime, leaders: leaders, names: names, picks: picks, spark: spark, badge: badge, mergeFeed: mergeFeed, promoRate: promoRate, SSA: SSA };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.SFRank = api;
 })(typeof window !== "undefined" ? window : this);

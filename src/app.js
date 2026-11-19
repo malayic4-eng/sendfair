@@ -203,12 +203,19 @@
   function routeLabel(route) { return route.split("-").map(function (x) { return x.charAt(0).toUpperCase() + x.slice(1); }).join(" to "); }
   function receiverOf(route) { var id = route.split("-").slice(1).join("-"); return ((S.corridors && S.corridors.receivers) || []).find(function (r) { return r.id === id; }) || null; }
   function moneyShort(v, cur) { if (!cur) return ""; return cur + " " + (Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en") : v.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })); }
+  // Feed options for a route: tiers (prices at several amounts) and the receiving country, so a quote for a
+  // currency shared by several countries (USD, XOF) is only used when it was priced for this country.
+  function feedOpts(route, r) {
+    var n = 0;
+    ((S.corridors && S.corridors.receivers) || []).forEach(function (x) { if (x.currency === r.currency) n++; });
+    return { feedTiers: (S.feedTiers || {})[route] || null, country: r.iso2, sharedCurrency: n > 1 };
+  }
   function bestFor(route, amount) {
     var parts = route.split("-"), from = parts[0], to = parts.slice(1).join("-");
     var s = ((S.corridors && S.corridors.senders) || []).find(function (x) { return x.id === from; });
     var r = ((S.corridors && S.corridors.receivers) || []).find(function (x) { return x.id === to; });
     if (!s || !r) return null;
-    var rows = R.rank({ list: S.quotes[route] || [], feed: S.feed[route] || null, providers: S.providers, amount: amount, payout: "all", payIn: "all", promo: false, mid: R.midRate(S.mid, s.currency, r.currency), now: Date.now(), staleH: (cfg.staleAfterHours || 36), hideH: (cfg.hideAfterHours || 72), handLockH: (cfg.preferAutoAfterHours || cfg.handLockHours || 6), refAmount: (cfg.defaultAmounts || {})[s.currency] });
+    var rows = R.rank(Object.assign({ list: S.quotes[route] || [], feed: S.feed[route] || null, providers: S.providers, amount: amount, payout: "all", payIn: "all", promo: false, mid: R.midRate(S.mid, s.currency, r.currency), now: Date.now(), staleH: (cfg.staleAfterHours || 36), hideH: (cfg.hideAfterHours || 72), handLockH: (cfg.preferAutoAfterHours || cfg.handLockHours || 6), refAmount: (cfg.defaultAmounts || {})[s.currency] }, feedOpts(route, r)));
     var fresh = rows.filter(function (x) { return !x.stale; });
     return fresh.length ? { gets: fresh[0].gets, name: fresh[0].p.name } : null;
   }
@@ -672,7 +679,11 @@
     var amount = target === undefined ? entered : NaN;
     var mid = R.midRate(S.mid, s.currency, r.currency);
     var list = S.quotes[k] || [];
-    var opts = { list: list, feed: S.feed[k] || null, providers: S.providers, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: S.promo, customer: S.promo ? "new" : "", mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72, handLockH: cfg.preferAutoAfterHours || cfg.handLockHours || 6, refAmount: (cfg.defaultAmounts || {})[s.currency] };
+    // First-transfer offers only count on a route where a checked quote publishes one.
+    var hasPromo = routeHasPromo(list, S.feed[k]);
+    var promo = S.promo && hasPromo;
+    var opts = { list: list, feed: S.feed[k] || null, providers: S.providers, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: promo, customer: promo ? "new" : "", mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72, handLockH: cfg.preferAutoAfterHours || cfg.handLockHours || 6, refAmount: (cfg.defaultAmounts || {})[s.currency] };
+    Object.assign(opts, feedOpts(k, r));
     var rows = R.rank(opts);
     var allRows = (S.payout === "all" && S.payIn === "all") ? rows : R.rank(Object.assign({}, opts, { payout: "all", payIn: "all" }));
     var hist = Object.keys((S.history || {}).days || {}).sort().map(function (d) { var e = S.history.days[d][k] || {}; return { d: d, mid: e.mid, best: e.best }; }).filter(function (e) { return e.mid || e.best; });
@@ -680,24 +691,27 @@
     var from = $("sf-from").value, coverage = S.coverage[k] && S.coverage[k].length ? S.coverage[k] : Object.keys(S.providers).filter(function (id) { var p = S.providers[id]; return !p.sendsFrom || p.sendsFrom.indexOf(from) > -1; });
     var ranked = {};
     rows.forEach(function (x) { ranked[x.p.id] = 1; });
-    var gulfExtras = { uae: ["luluexchange", "alansari", "alfardan", "moneygram", "wise", "remitly"], oman: ["worldremit", "westernunion", "moneygram", "luluexchange", "omanexchange", "ria"] };
-    var extra = gulfExtras[from] || [];
-    extra.forEach(function (id) { if (coverage.indexOf(id) < 0) coverage = coverage.concat([id]); });
     ["lemfi", "nala", "mukuru"].forEach(function (id) {
       var p = S.providers[id];
       if (p && (!p.sendsFrom || p.sendsFrom.indexOf(from) > -1) && coverage.indexOf(id) < 0) coverage = coverage.concat([id]);
     });
     return {
-      s: s, r: r, key: k, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: S.promo, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
-      list: list, feed: opts.feed, staleH: opts.staleH, hideH: opts.hideH, handLockH: opts.handLockH, providers: S.providers,
+      s: s, r: r, key: k, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: promo, hasPromo: hasPromo, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
+      list: list, feed: opts.feed, feedTiers: opts.feedTiers, country: opts.country, sharedCurrency: opts.sharedCurrency, refAmount: opts.refAmount, staleH: opts.staleH, hideH: opts.hideH, handLockH: opts.handLockH, providers: S.providers,
       anyQuotes: list.length > 0, reports: S.reports, hrefFor: hrefFor, disclosureHref: SF.disclosureHref || "#",
       checkList: coverage.map(function (id) { return S.providers[id]; }).filter(Boolean),
       pending: coverage.map(function (id) { return S.providers[id]; }).filter(function (p) { return p && !ranked[p.id]; }),
       ssa: !!(R.SSA && R.SSA[r.id]),
       avgPct: (cfg.regionalAverageCost || {}).percent || 8.46, avgLabel: (cfg.regionalAverageCost || {}).label || "",
-      midUpdated: S.mid && S.mid.updatedAt, quotesUpdated: S.quotesUpdated,
+      midUpdated: R.midAt ? R.midAt(S.mid, s.currency, r.currency) : S.mid && S.mid.updatedAt, quotesUpdated: S.quotesUpdated,
       midPrev: S.mid && S.mid.previous ? R.midRate(S.mid.previous, s.currency, r.currency) : null, midPrevAt: S.mid && S.mid.previous && S.mid.previous.updatedAt
     };
+  }
+
+  function routeHasPromo(list, feed) {
+    var all = (list || []).slice();
+    if (feed) Object.keys(feed).forEach(function (id) { all.push(feed[id]); });
+    return all.some(function (q) { return q && ((q.promo && Number(q.promo.rate) > 0) || (R.promoRate && R.promoRate(q) > 0)); });
   }
 
   // One-tap common amounts next to the amount box, in the sending currency.
@@ -727,6 +741,7 @@
     $("sf-note").textContent = c.r.note || "";
     $("sf-note").hidden = !c.r.note;
     $("sf-results").innerHTML = R.renderResults(c);
+    if (!c.hasPromo) dropPromoHint($("sf-results"));
     if ($("sf-picks")) $("sf-picks").innerHTML = R.picks(c);
     var wa = $("sf-wa");
     if (wa) {
@@ -736,7 +751,8 @@
     }
     fillReportProviders(c);
     renderPhone(c);
-    ensureFilters();
+    ensureFilters(c);
+    if (SF.alertSync) SF.alertSync(c);
     fixCopy(c);
   }
 
@@ -745,22 +761,31 @@
     document.querySelectorAll("[data-payin]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-payin") === v)); });
   }
 
-  function ensureFilters() {
+  // The ranking note mentions the first-transfer button; leave that out where the button isn't shown.
+  function dropPromoHint(el) {
+    if (!el) return;
+    el.querySelectorAll(".disclose").forEach(function (p) {
+      p.innerHTML = p.innerHTML.replace(" (turn on first-transfer offers above if you are new)", "");
+    });
+  }
+
+  function ensureFilters(c) {
+    var show = !!(c && c.hasPromo);
     if ($("sf-payin")) {
       document.querySelectorAll("[data-payin]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-payin") === S.payIn)); });
-      var pr = $("sf-promo"); if (pr) pr.setAttribute("aria-pressed", String(S.promo));
+      var pr = $("sf-promo"); if (pr) { pr.hidden = !show; pr.setAttribute("aria-pressed", String(S.promo && show)); }
       return;
     }
-    var tabs = document.querySelector(".payout-tabs");
-    if (!tabs) return;
+    var field = document.querySelector(".controls .payout-field");
+    if (!field) return;
     var box = document.createElement("div");
     box.className = "extra-filters";
     box.innerHTML = '<div class="payout-field payin-field"><span class="label" id="sf-payin-label">You pay by</span><div class="payout-tabs" id="sf-payin" role="group" aria-labelledby="sf-payin-label">' +
       '<button type="button" data-payin="all" aria-pressed="' + (S.payIn === "all") + '">Any</button>' +
       '<button type="button" data-payin="bank" aria-pressed="' + (S.payIn === "bank") + '">Bank</button>' +
       '<button type="button" data-payin="card" aria-pressed="' + (S.payIn === "card") + '">Card</button></div></div>' +
-      '<button type="button" class="promo-btn" id="sf-promo" aria-pressed="' + S.promo + '">First-transfer offers</button>';
-    tabs.parentNode.appendChild(box);
+      '<button type="button" class="promo-btn" id="sf-promo" aria-pressed="' + (S.promo && show) + '"' + (show ? "" : " hidden") + '>First-transfer offers</button>';
+    field.parentNode.insertBefore(box, field.nextSibling);
   }
 
   function fixCopy(c) {
@@ -772,7 +797,7 @@
       if (!s || !p) return;
       var q = s.textContent;
       if (/cheapest way/i.test(q) && !c.rows.length) {
-        p.textContent = "No service publishes an online price for this route yet. Compare the services listed above in their apps or at a branch, using the mid-market figure as a guide. There is no ranking on this page until an online quote is checked.";
+        p.textContent = "We have no online price checked for this route yet. Compare the services listed above in their apps or at a branch, using the mid-market figure as a guide. There is no ranking on this page until an online quote is checked.";
       } else if (/cheapest way/i.test(q) && top) {
         p.textContent = "For " + amt + ", " + top.p.name + " delivers the most after fees and the exchange-rate margin. The order can change with the amount: check the table of common amounts on this page. The ranking updates when you change the figure above.";
       }
@@ -871,7 +896,6 @@
     document.querySelectorAll("[data-payout]").forEach(function (b) {
       b.addEventListener("click", function () { setPayout(b.getAttribute("data-payout")); render(); });
     });
-    setupAlerts();
 
     var copy = $("sf-copy");
     if (copy) copy.addEventListener("click", function () {
@@ -881,59 +905,6 @@
         navigator.clipboard.writeText(url).then(done, function () { $("sf-share-msg").textContent = url; });
       } catch (e) { $("sf-share-msg").textContent = url; }
     });
-
-    // Rate alert on route pages: saved through /api/alert; a confirmation email follows.
-    var af = $("sf-alert-route");
-    if (af) af.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var msg = $("sf-alert-msg"), btn = af.querySelector("button");
-      var via = (af.querySelector('input[name="sf-alert-via"]:checked') || {}).value || "email";
-      var body = { route: af.getAttribute("data-route"), email: af.email.value.trim(), amount: parseFloat(af.amount.value), target: parseFloat(af.target.value), via: via, whatsapp: (af.whatsapp && af.whatsapp.value || "").trim() };
-      if (window.turnstile) { var tk = window.turnstile.getResponse(); if (!tk) { msg.textContent = "Please complete the captcha."; return; } body.turnstile = tk; }
-      if (via === "whatsapp") {
-        if (!/^\+?[0-9\s-]{8,}$/.test(body.whatsapp)) { msg.textContent = "Enter a WhatsApp number with country code."; $("sf-alert-wa").focus(); return; }
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.email)) { msg.textContent = "Enter a valid email address."; af.email.focus(); return; }
-      if (!(body.amount > 0) || !(body.target > 0)) { msg.textContent = "Enter both amounts."; return; }
-      btn.disabled = true; msg.textContent = "Saving…";
-      fetch(root + "api/alert", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-        .then(function (x) {
-          btn.disabled = false;
-          if (!x.ok) { msg.textContent = x.d.error || "Could not save your alert. Try again."; return; }
-          msg.textContent = via === "whatsapp"
-            ? (x.d.pending ? "Saved. We'll send a WhatsApp confirmation to " + body.whatsapp + " when the target is hit." : "Alert saved for WhatsApp " + body.whatsapp + ".")
-            : (x.d.pending ? "Saved. We'll send a confirmation email to " + body.email + " within a day; click it to switch the alert on." : "Check your email: click the link we sent to " + body.email + " to switch the alert on.");
-          af.email.value = "";
-        })
-        .catch(function () { btn.disabled = false; msg.textContent = "Could not save your alert. Check your connection and try again."; });
-    });
-
-    var alertForm = $("sf-alert-form");
-    if (alertForm && alertForm.getAttribute("data-demo") === "1") {
-      alertForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        $("sf-alert-msg").textContent = "Alerts are switched off in this preview. On the live site this adds the email to your mailing list.";
-      });
-    }
-
-    function setupAlerts() {
-      var af = $("sf-alert-route");
-      if (!af || $("sf-alert-via")) return;
-      var email = af.querySelector('input[type=email]');
-      if (!email) return;
-      var via = document.createElement("div");
-      via.className = "alert-via";
-      via.innerHTML = '<label><input type="radio" name="sf-alert-via" value="email" checked> Email</label>' +
-        '<label><input type="radio" name="sf-alert-via" id="sf-alert-via" value="whatsapp"> WhatsApp</label>';
-      email.parentNode.insertBefore(via, email);
-      var wa = document.createElement("input");
-      wa.type = "tel"; wa.name = "whatsapp"; wa.id = "sf-alert-wa"; wa.placeholder = "+254 7xx xxx xxx"; wa.hidden = true;
-      email.parentNode.insertBefore(wa, email.nextSibling);
-      via.addEventListener("change", function () {
-        var w = via.querySelector('input[value=whatsapp]').checked;
-        wa.hidden = !w; email.hidden = w; email.required = !w; wa.required = w;
-      });
-    }
 
     var rep = $("sf-report");
     if (rep) rep.addEventListener("submit", function (e) {
@@ -967,6 +938,7 @@
       S.mid = res[3];
       S.history = res[4];
       S.feed = (res[5] && res[5].routes) || {};
+      S.feedTiers = (res[5] && res[5].tiers) || {};
       fillSelects();
       bind();
       return loadReports();
@@ -981,6 +953,98 @@
         $("sf-results").innerHTML = '<div class="empty"><strong>Rates could not load.</strong><span>Check your connection and refresh the page.</span></div>';
       }
     });
+
+  // Rate alerts box (one per page): email + route, optional target. With a target the alert is saved
+  // through /api/alert; without one, or while target alerts are unavailable (503), the address is
+  // subscribed to the morning rate email instead, and the visitor is told which one they got.
+  (function () {
+    var f = $("sf-alert-form");
+    if (!f) return;
+    var msg = $("sf-alert-msg"), btn = f.querySelector('button[type="submit"]');
+    var from = $("sf-ab-from"), to = $("sf-ab-to"), amt = $("sf-ab-amount"), tgt = $("sf-ab-target");
+    var demo = f.getAttribute("data-demo") === "1";
+    var nl = f.getAttribute("action") || "";
+    var siteKey = f.getAttribute("data-turnstile") || "";
+    var touched = false, tsId = null, tsLoading = false;
+    f.querySelectorAll(".ab-js").forEach(function (el) { el.hidden = false; });
+    var defaults = cfg.defaultAmounts || {};
+    function cur(sel) { var o = sel && sel.options[sel.selectedIndex]; return o ? o.getAttribute("data-cur") : ""; }
+    function labels() {
+      if ($("sf-ab-scur")) $("sf-ab-scur").textContent = cur(from);
+      if ($("sf-ab-rcur")) $("sf-ab-rcur").textContent = cur(to);
+    }
+    if (from) from.addEventListener("change", function () { touched = true; var d = defaults[cur(from)]; if (d && amt) amt.value = d; if (tgt) { tgt.value = ""; tgt.placeholder = ""; } labels(); });
+    if (to) to.addEventListener("change", function () { touched = true; if (tgt) { tgt.value = ""; tgt.placeholder = ""; } labels(); });
+    // Follow the calculator's route until the visitor picks one in the box.
+    SF.alertSync = function (c) {
+      if (touched || !from || !to || !c || !c.s || !c.r) return;
+      var changed = from.value !== c.s.id || to.value !== c.r.id;
+      from.value = c.s.id; to.value = c.r.id; labels();
+      if (changed && amt) amt.value = defaults[c.s.currency] || amt.value;
+      var a = parseFloat(amt && amt.value), top = (c.amount === a) ? c.rows.filter(function (x) { return !x.stale; })[0] : null;
+      if (tgt && !tgt.value) tgt.placeholder = top ? "e.g. " + Math.ceil(top.gets * 1.01 / (top.gets >= 1000 ? 100 : 1)) * (top.gets >= 1000 ? 100 : 1) : "";
+    };
+    function loadTurnstile() {
+      if (!siteKey || tsLoading || tsId !== null) return;
+      tsLoading = true;
+      window.sfTsReady = function () {
+        try { tsId = window.turnstile.render("#sf-ab-ts", { sitekey: siteKey }); } catch (e) {}
+      };
+      var sc = document.createElement("script");
+      sc.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=sfTsReady";
+      sc.async = true; sc.defer = true;
+      document.head.appendChild(sc);
+    }
+    if (tgt) tgt.addEventListener("input", function () { if (tgt.value) loadTurnstile(); });
+    function newsletter(email) {
+      if (!nl) return Promise.reject(new Error("no newsletter"));
+      var fd = new URLSearchParams();
+      fd.append("email", email);
+      if (/embed-subscribe/.test(nl)) fd.append("embed", "1");
+      // The provider doesn't allow reading its reply from here, so a sent request counts as done.
+      return fetch(nl, { method: "POST", mode: "no-cors", body: fd });
+    }
+    function postForm() { HTMLFormElement.prototype.submit.call(f); }
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var email = ($("sf-email").value || "").trim();
+      var target = parseFloat(tgt && tgt.value), amount = parseFloat(amt && amt.value);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.textContent = "Enter a valid email address."; $("sf-email").focus(); return; }
+      if (demo) { msg.textContent = "Alerts are switched off in this preview."; return; }
+      var morning = "you'll get our morning rate email once you click the confirmation link we're sending to " + email + ".";
+      function viaNewsletter(lead) {
+        if (!nl) { btn.disabled = false; msg.textContent = lead ? lead + " Please try again later." : "Add a target amount to set an alert."; return; }
+        msg.textContent = "Signing you up…";
+        newsletter(email).then(function () {
+          btn.disabled = false;
+          msg.textContent = (lead ? lead + " Instead, " : "Almost done: ") + morning;
+        }).catch(function () { postForm(); });
+      }
+      btn.disabled = true;
+      if (!(target > 0)) { viaNewsletter(""); return; }
+      if (!(amount > 0)) { btn.disabled = false; msg.textContent = "Enter the amount you plan to send."; amt.focus(); return; }
+      var body = { route: from.value + "-" + to.value, email: email, amount: amount, target: target };
+      if (siteKey) {
+        var tk = window.turnstile && tsId !== null ? window.turnstile.getResponse(tsId) : "";
+        if (!tk) { btn.disabled = false; loadTurnstile(); msg.textContent = "Please complete the check below the target, then press the button again."; return; }
+        body.turnstile = tk;
+      }
+      msg.textContent = "Saving…";
+      fetch(f.getAttribute("data-api") || root + "api/alert", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, status: r.status, d: d }; }); })
+        .then(function (x) {
+          if (window.turnstile && tsId !== null) try { window.turnstile.reset(tsId); } catch (e) {}
+          if (x.status === 503) { viaNewsletter("Target alerts aren't switched on yet, so your target wasn't saved."); return; }
+          btn.disabled = false;
+          if (!x.ok) { msg.textContent = x.d.error || "Could not save your alert. Try again."; return; }
+          msg.textContent = x.d.pending
+            ? "Saved. We'll send a confirmation email to " + email + " within a day; click it to switch the alert on."
+            : "Check your email: click the link we sent to " + email + " to switch the alert on. We'll email you once when the target is reached.";
+          tgt.value = "";
+        })
+        .catch(function () { btn.disabled = false; msg.textContent = "Could not save your alert. Check your connection and try again."; });
+    });
+  })();
 
   // Services dropdown in the top menu: click to open, Escape or a click elsewhere closes it.
   (function () {
