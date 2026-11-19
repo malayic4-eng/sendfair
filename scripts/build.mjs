@@ -417,14 +417,14 @@ function header(prefix, lang, alternates = []) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><div class="nav-svc"><button type="button" class="nav-svc-btn" id="sf-svc-btn" aria-expanded="false" aria-controls="sf-svc-menu">${fr ? "Services" : "Services"}<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="nav-drop" id="sf-svc-menu">${serviceGroups(prefix).map((g) => `<div class="nav-drop-group"><span class="nav-drop-h">${esc(g.title)}</span>${g.items.map((it) => `<a href="${it.href}" data-svc="nav-${it.id}">${esc(it.name)}${it.tag ? ` <span class="svc-tag">${esc(it.tag)}</span>` : ""}</a>`).join("")}</div>`).join("")}</div></div><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
+<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "send-money-to/")}">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><div class="nav-svc"><button type="button" class="nav-svc-btn" id="sf-svc-btn" aria-expanded="false" aria-controls="sf-svc-menu">${fr ? "Services" : "Services"}<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="nav-drop" id="sf-svc-menu">${serviceGroups(prefix).map((g) => `<div class="nav-drop-group"><span class="nav-drop-h">${esc(g.title)}</span>${g.items.map((it) => `<a href="${it.href}" data-svc="nav-${it.id}">${esc(it.name)}${it.tag ? ` <span class="svc-tag">${esc(it.tag)}</span>` : ""}</a>`).join("")}</div>`).join("")}</div></div><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
 </div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">${L.translateNote} <a href="${link(prefix, "privacy/")}">${L.privacy}</a></p></div></div></header>`;
 }
 
 function footer(prefix, lang) {
   const fr = lang === "fr";
   const L = fr ? {
-    sendTo: t("footer.sendTo"), popularRoutes: t("footer.popularRoutes"), services: t("footer.services"), exchangeRates: t("footer.exchangeRates"),
+    sendTo: t("footer.sendTo"), popularRoutes: t("footer.popularRoutes"), allCountries: t("footer.allCountries"), allRoutes: t("footer.allRoutes"), rateAlerts: t("footer.rateAlerts"), services: t("footer.services"), exchangeRates: t("footer.exchangeRates"),
     buildHouse: t("footer.buildHouse"), sameHouse: t("footer.sameHouse"), materialPrices: t("footer.materialPrices"), whatReceipt: t("footer.whatReceipt"),
     search: t("footer.search"), allPages: t("footer.allPages"), costIndex: t("footer.costIndex"), guides: t("footer.guides"),
     costToBuild: t("footer.costToBuild"), fromGulf: t("footer.fromGulf"), about: t("footer.about"), contact: t("footer.contact"),
@@ -433,7 +433,7 @@ function footer(prefix, lang) {
     disclaimer: t("footer.disclaimer"), ratesBy: t("footer.ratesBy"),
     copyright: t("footer.copyright", { legal: config.legalName || config.businessName || config.siteName, email: config.contactEmail })
   } : {
-    sendTo: "Send money to", popularRoutes: "Popular routes", services: "Services", exchangeRates: "Exchange rates",
+    sendTo: "Send money", popularRoutes: "Popular routes", allCountries: "All countries", allRoutes: "All routes", rateAlerts: "Rate alerts", services: "Services", exchangeRates: "Exchange rates",
     buildHouse: "Build a house", sameHouse: "Same house, every country", materialPrices: "Material prices", whatReceipt: "What the receipt prices",
     search: "Search", allPages: "All pages", costIndex: "Remittance Cost Index", guides: "Guides",
     costToBuild: "Cost to build a house", fromGulf: "Sending from the Gulf", about: "About", contact: "Contact",
@@ -444,21 +444,14 @@ function footer(prefix, lang) {
     copyright: `\u00a9 ${new Date(NOW).getUTCFullYear()} ${config.siteName}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span>`
   };
   const FR_COST = new Set(["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"]);
-  const hub = (r) => hubPath(r);
-  const routeP = (s, r) => corridorPath(s, r);
-  const rateP = (a, b) => `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`;
-  const countryCost = (id) => fr && FR_COST.has(id) ? `fr/cost-to-build/${id}/` : `cost-to-build/${id}/`;
   return `<footer class="site-footer"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
 <div class="foot-cols">
-<div><h2>${L.sendTo}</h2><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, hub(r))}">${esc(r.name)}</a></li>`).join("")}</ul></div>
-<div><h2>${L.popularRoutes}</h2><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, routeP(S, Rr))}">${esc(S.label)} ${fr ? "vers" : "to"} ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
-<div><h2>${L.services}</h2><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
-<div><h2>${L.exchangeRates}</h2><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, rateP(a, b))}">${a} ${fr ? "vers" : "to"} ${b}</a></li>`; }).join("")}</ul></div>
-<div><h2>${L.buildHouse}</h2><ul>${QC_ON ? `<li><a href="${link(prefix, "quote-check/")}">Quote Check</a></li>` : ""}<li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, countryCost(id))}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
+<div><h2>${L.sendTo}</h2><ul>${fr ? corridors.receivers.filter((r) => FR_RECEIVERS.has(r.id)).map((r) => `<li><a href="${link(prefix, frHubRel(r))}">${esc(capFirst(frReceiver(r)))}</a></li>`).join("") : ""}<li><a href="${link(prefix, "send-money-to/")}#countries">${L.allCountries}</a></li><li><a href="${link(prefix, "send-money-to/")}">${L.allRoutes}</a></li><li><a href="${link(prefix, "rates/")}">${L.exchangeRates}</a></li><li><a href="${link(prefix, "")}#alerts">${L.rateAlerts}</a></li></ul></div>
+<div><h2>${L.buildHouse}</h2><ul>${QC_ON ? `<li><a href="${link(prefix, "quote-check/")}">Quote Check</a></li>` : ""}<li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${fr ? Object.keys(buildCosts.countries || {}).filter((id) => FR_COST.has(id)).map((id) => `<li><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">${esc(capFirst(frReceiver(receiverById[id] || { id, name: buildCosts.countries[id].name })))}</a></li>`).join("") : ""}<li><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a></li></ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
-<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a>${questions.some((q) => q.status === "live") ? `<a href="${link(prefix, "questions/")}">Questions</a>` : ""}<a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a><a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
+<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a>${questions.some((q) => q.status === "live") ? `<a href="${link(prefix, "questions/")}">Questions</a>` : ""}<a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
 <p>${L.disclaimer}</p>
 <p>${L.ratesBy} <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>${L.copyright}</p>
@@ -936,8 +929,7 @@ function buildTeaser(prefix) {
   return `<section class="block" id="build-home"><div class="wrap">
 <div class="section-head"><h2>Build a house back home</h2><p class="lede">Building is one of the main reasons people send money — and a round sum is where quotes get inflated. Price the walls, roof, finishes, trade days and the building permit before you send a lump sum. Pick the country, then switch the roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not in the figure. Prices checked ${esc(buildCosts.updated)}.</p></div>
 <div class="build-tease">${cards}</div>
-<p><a class="btn" href="${link(prefix, "cost-to-build/")}">Open the building calculator</a></p>
-<ul class="route-links">${Object.keys(buildCosts.countries).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">Cost to build in ${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul>
+<p><a class="btn" href="${link(prefix, "cost-to-build/")}">Open the building calculator</a> <a class="btn btn-ghost" href="${link(prefix, "cost-to-build/")}#countries">All ${Object.keys(buildCosts.countries).length} countries</a></p>
 </div></section>`;
 }
 
@@ -1540,7 +1532,7 @@ ${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(
 ${id ? `<h2>By size</h2><ul class="route-links">${[2, 3, 4].map((n) => `<li><a href="${link(prefix, `cost-to-build/${id}/${n}-bedroom/`)}">${n}-bedroom house</a></li>`).join("")}</ul>` : ""}
 ${id ? (() => { const rc = regionalFactors.countries[id]; const filled = rc ? Object.entries(rc.cities || {}).filter(([, city]) => city.factor > 0) : []; return filled.length ? `<h2>By city</h2><ul class="route-links">${filled.map(([slug, city]) => `<li><a href="${link(prefix, `cost-to-build/${id}/${slug}/`)}">${esc(city.name)}</a></li>`).join("")}</ul>` : ""; })() : ""}
 ${id ? peopleAlsoAsk({ prefix, country: id, topic: "build" }) : ""}
-<h2>Other countries</h2>
+<h2 id="countries">${id ? "Other countries" : "All countries"}</h2>
 <ul class="route-links">${Object.keys(buildCosts.countries).map((cid) => `<li><a href="${link(prefix, `cost-to-build/${cid}/`)}">${esc(buildCosts.countries[cid].name)}</a></li>`).join("")}</ul>
 <h2>Questions</h2>
 ${faqBlock(faqs)}
@@ -1740,6 +1732,19 @@ function writeSameHouse() {
 </article></div></section>`
   }));
   urls.push(rel);
+}
+
+// Homepage: one compact "Where are you sending?" block in place of the long route lists. Every route
+// stays one click away through the country hubs and the all-routes page (send-money-to/).
+function whereSending(prefix) {
+  const prio = (config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); return [senderById[a], receiverById[b]]; }).filter(([a, b]) => a && b).slice(0, 8);
+  const n = corridors.senders.length * corridors.receivers.length;
+  return `<section class="block where" id="corridors"><div class="wrap">
+<div class="section-head"><h2>Where are you sending?</h2><p class="lede">Pick the country to compare every service from ${esc(allSendersText)}, or jump to a busy route.</p></div>
+<ul class="route-links big">${corridors.receivers.map((r) => `<li><a href="${link(prefix, hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul>
+${prio.length ? `<h3 class="route-from">Most-used routes</h3><ul class="route-links">${prio.map(([a, b]) => `<li><a href="${link(prefix, corridorPath(a, b))}">${esc(a.label)} to ${esc(b.name)}</a></li>`).join("")}</ul>` : ""}
+<p><a class="btn btn-ghost" href="${link(prefix, "send-money-to/")}">All ${n} routes, with today's best</a></p>
+</div></section>`;
 }
 
 function corridorGrid(prefix) {
@@ -2130,7 +2135,7 @@ write("index.html", page({
     ctx: homeCtx,
     heading: "Send money home. Build a house back home.",
     sub: `Free tools for the diaspora: compare money transfers to Africa by what your family actually receives, price a house back home, check a builder's quote${QC_ON ? "," : " (opening soon)"} and get a morning rate alert for your route. ${homeProof}`
-  }) + servicesHub("") + buildTeaser("") + quoteCheckCard("", null) + guideTeaser("") + corridorGrid("") + `
+  }) + whereSending("") + servicesHub("") + buildTeaser("") + quoteCheckCard("", null) + guideTeaser("") + `
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
 <ol class="steps">
@@ -2138,18 +2143,7 @@ write("index.html", page({
 <li><h3>We do the maths for your amount</h3><p>Fees come off what you pay and the rest converts at the provider's rate. That gives the amount that actually arrives.</p></li>
 <li><h3>Most money home ranks first</h3><p>Commissions never change the order. A service that pays us nothing can rank first.</p></li>
 </ol></div></section>
-<section class="block"><div class="wrap"><div class="section-head"><h2>Send money to</h2></div>
-<ul class="route-links big">${corridors.receivers.map((r) => `<li><a href="${link("", hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul>
-<div class="section-head" style="margin-top:32px"><h2>Compare by route</h2></div>
-${corridors.senders.map((s) => { const rs = corridors.receivers.filter((r) => routeContext(s, r, "", config.defaultAmounts[s.currency]).rows.some((x) => !x.stale)); return rs.length ? `<h3 class="route-from">From ${esc(s.short)}</h3><ul class="route-links">${rs.map((r) => `<li><a href="${link("", corridorPath(s, r))}">${esc(s.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>` : ""; }).join("")}
-<div class="section-head" style="margin-top:32px"><h2>Services we compare</h2></div>
-<ul class="route-links big">${providersWithQuotes().map((p) => `<li><a class="with-badge" href="${link("", provPath(p))}">${R.badge(p)}${esc(p.name)} review</a></li>`).join("")}</ul>
-<div class="section-head" style="margin-top:32px"><h2>Head to head</h2></div>
-<ul class="route-links">${vsPairs().map(([a, b]) => `<li><a href="${link("", vsPath(a, b))}">${esc(a.name)} vs ${esc(b.name)}</a></li>`).join("")}</ul>
-<div class="section-head" style="margin-top:32px" id="rates-today"><h2>Exchange rates today</h2></div>
-<ul class="route-links">${ratePairs.map(({ s, r }) => `<li><a href="${link("", ratePath(s, r))}">${s.currency} to ${r.currency}</a></li>`).join("")}</ul>
-<p><a class="btn btn-ghost" href="${link("", "rates/")}">All exchange rates</a></p>
-<div class="section-head" style="margin-top:32px"><h2>Questions</h2></div>
+<section class="block"><div class="wrap"><div class="section-head"><h2>Questions</h2></div>
 ${faqBlock(homeFaqs)}
 </div></section>` + alerts(homeCtx, "")
 }));
@@ -2316,6 +2310,37 @@ ${crumbNav(prefix, trail)}
       write(rel + "index.html", page({ prefix, canonical: rel, title, description, noindex, jsonld, init: { from: s.id, to: r.id, amount, pageUrl: `${site}/${rel}` }, body }));
     }
   }
+}
+
+// All routes: every country hub and route (with today's best), the service reviews, head-to-heads and
+// exchange rates. The header's "All routes" link and the homepage point here.
+{
+  const rel = "send-money-to/", prefix = "../";
+  const trail = [[config.siteName, ""], ["All routes", rel]];
+  const n = corridors.senders.length * corridors.receivers.length;
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>Send money to Africa: all routes</h1>
+<p class="lede">${n} routes from ${esc(allSendersText)} to ${corridors.receivers.length} African countries. Pick a country for every sending country side by side, or a route for the full ranking.</p>
+<h2 id="countries">Countries</h2>
+<ul class="route-links big">${corridors.receivers.map((r) => `<li><a href="${link(prefix, hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul>
+</div></div></section>
+${corridorGrid(prefix)}
+<section class="block"><div class="wrap"><div class="prose wide">
+<h2>Services we compare</h2>
+<ul class="route-links big">${providersWithQuotes().map((p) => `<li><a class="with-badge" href="${link(prefix, provPath(p))}">${R.badge(p)}${esc(p.name)} review</a></li>`).join("")}</ul>
+<h2>Head to head</h2>
+<ul class="route-links">${vsPairs().map(([a, b]) => `<li><a href="${link(prefix, vsPath(a, b))}">${esc(a.name)} vs ${esc(b.name)}</a></li>`).join("")}</ul>
+<h2 id="rates-today">Exchange rates today</h2>
+<ul class="route-links">${ratePairs.map(({ s, r }) => `<li><a href="${link(prefix, ratePath(s, r))}">${s.currency} to ${r.currency}</a></li>`).join("")}</ul>
+<p><a class="btn btn-ghost" href="${link(prefix, "rates/")}">All exchange rates</a></p>
+</div></div></section>`;
+  write(rel + "index.html", page({
+    prefix, canonical: rel, title: `All money transfer routes to Africa · ${config.siteName}`,
+    description: `Compare money transfers on ${n} routes from ${allSendersText} to ${corridors.receivers.length} African countries, with today's best service on each.`,
+    jsonld: [crumbs(trail)], body
+  }));
+  urls.push(rel);
 }
 
 // Country pages: "Send money to Kenya"
