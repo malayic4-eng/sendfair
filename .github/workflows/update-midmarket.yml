@@ -1,9 +1,16 @@
 name: Update rates
 
+# One hourly run fetches every automatic source (WorldRemit scrape, mid-market rates, the Wise
+# comparison feed, partner feeds), records history and makes ONE commit. Each commit to main starts
+# a Cloudflare Workers build, so this replaces the old 30-minute rates workflow, the hourly
+# WorldRemit workflow and the hourly partner-feeds schedule (up to ~72 data commits a day) with at
+# most 24. A failing source never blocks the others: each source step has continue-on-error, and
+# the last step marks the run red if any source failed.
+
 on:
   schedule:
-    # Every 30 minutes. GitHub may start scheduled runs a few minutes late.
-    - cron: "*/30 * * * *"
+    # Hourly, off the top of the hour (GitHub delays :00 runs the most). Runs may start a few minutes late.
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -17,6 +24,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     env:
       WISE_API_TOKEN: ${{ secrets.WISE_API_TOKEN }}
     steps:
@@ -24,31 +32,121 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      # ---- WorldRemit (headless browser scrape; writes data/worldremit-quotes.json) ----
+      - name: Install Playwright
+        id: playwright
+        continue-on-error: true
+        run: npm install playwright --no-save
+      - name: Install Chromium
+        id: chromium
+        if: ${{ steps.playwright.outcome == 'success' }}
+        continue-on-error: true
+        run: npx playwright install --with-deps chromium
+      - name: Scrape WorldRemit
+        id: worldremit
+        if: ${{ steps.chromium.outcome == 'success' }}
+        continue-on-error: true
+        timeout-minutes: 20
+        run: node scripts/fetch-worldremit.mjs
+
+      # ---- Rates and the Wise feed (order matters) ----
       - name: Fetch mid-market rates
+        id: midmarket
+        continue-on-error: true
         run: node scripts/fetch-midmarket.mjs
       - name: Fetch Wise comparison feed (only if WISE_API_TOKEN secret is set)
+        id: wisefeed
         if: ${{ env.WISE_API_TOKEN != '' }}
+        continue-on-error: true
         run: node scripts/fetch-wise-feed.mjs
       - name: Correct the mid-market reference with Wise's own rates
+        id: midfromwise
         if: ${{ env.WISE_API_TOKEN != '' }}
+        continue-on-error: true
         run: node scripts/mid-from-wise.mjs
       - name: Publish the Wise feed into today's quotes (with safety checks)
+        id: applywise
         if: ${{ env.WISE_API_TOKEN != '' }}
+        continue-on-error: true
         run: node scripts/apply-wise-feed.mjs
       - name: Record history
+        id: history
+        continue-on-error: true
         run: node scripts/record-history.mjs
+
+      # ---- Official partner feeds (each adapter runs only when its secrets are set) ----
+      - name: Test the adapter interface
+        id: adaptertest
+        continue-on-error: true
+        run: node scripts/test-adapters.mjs
+      - name: Run partner feeds
+        id: partners
+        if: ${{ steps.adaptertest.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          LEMFI_FEED_URL: ${{ secrets.LEMFI_FEED_URL }}
+          LEMFI_FEED_KEY: ${{ secrets.LEMFI_FEED_KEY }}
+          SENDWAVE_FEED_URL: ${{ secrets.SENDWAVE_FEED_URL }}
+          SENDWAVE_FEED_KEY: ${{ secrets.SENDWAVE_FEED_KEY }}
+          TAPTAPSEND_FEED_URL: ${{ secrets.TAPTAPSEND_FEED_URL }}
+          TAPTAPSEND_FEED_KEY: ${{ secrets.TAPTAPSEND_FEED_KEY }}
+          NALA_FEED_URL: ${{ secrets.NALA_FEED_URL }}
+          NALA_FEED_KEY: ${{ secrets.NALA_FEED_KEY }}
+          AFRIEX_FEED_URL: ${{ secrets.AFRIEX_FEED_URL }}
+          AFRIEX_FEED_KEY: ${{ secrets.AFRIEX_FEED_KEY }}
+          MUKURU_FEED_URL: ${{ secrets.MUKURU_FEED_URL }}
+          MUKURU_FEED_KEY: ${{ secrets.MUKURU_FEED_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          OWNER_ALERT_EMAIL: ${{ secrets.OWNER_ALERT_EMAIL }}
+          OWNER_ALERT_FROM: ${{ secrets.OWNER_ALERT_FROM }}
+          OWNER_ALERT_WEBHOOK: ${{ secrets.OWNER_ALERT_WEBHOOK }}
+        run: node scripts/fetch-provider-quotes.mjs --only=partner
+
+      # ---- One commit for everything that changed ----
       - name: Commit if changed
+        id: commit
+        if: ${{ !cancelled() }}
         run: |
-          git add data/midmarket.json
-          if [ -f data/mid-overrides.json ]; then git add data/mid-overrides.json; fi
-          if [ -f data/wise-feed.json ]; then git add data/wise-feed.json; fi
-          git add data/quotes.json data/history.json
+          git config user.name "sendfair-bot"
+          git config user.email "actions@users.noreply.github.com"
+          for f in data/midmarket.json data/mid-overrides.json data/wise-feed.json data/quotes.json data/history.json \
+                   data/worldremit-quotes.json data/adapters/state.json data/adapters/log.jsonl data/adapters/alerts.jsonl; do
+            [ -f "$f" ] && git add "$f"
+          done
           if git diff --cached --quiet; then
             echo "No change"
-          else
-            git config user.name "sendfair-bot"
-            git config user.email "actions@users.noreply.github.com"
-            git commit -m "Update rates (automatic)"
-            git pull --rebase
-            git push
+            exit 0
           fi
+          git commit -m "Update rates and quotes (automatic)"
+          for i in 1 2 3; do
+            if git pull --rebase && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((i * 10))
+          done
+          echo "Push failed after 3 attempts"
+          exit 1
+
+      - name: Report sources that failed
+        if: ${{ always() }}
+        run: |
+          failed=""
+          [ "${{ steps.playwright.outcome }}" = "failure" ] && failed="$failed playwright-install"
+          [ "${{ steps.chromium.outcome }}" = "failure" ] && failed="$failed chromium-install"
+          [ "${{ steps.worldremit.outcome }}" = "failure" ] && failed="$failed worldremit"
+          [ "${{ steps.midmarket.outcome }}" = "failure" ] && failed="$failed fetch-midmarket"
+          [ "${{ steps.wisefeed.outcome }}" = "failure" ] && failed="$failed fetch-wise-feed"
+          [ "${{ steps.midfromwise.outcome }}" = "failure" ] && failed="$failed mid-from-wise"
+          [ "${{ steps.applywise.outcome }}" = "failure" ] && failed="$failed apply-wise-feed"
+          [ "${{ steps.history.outcome }}" = "failure" ] && failed="$failed record-history"
+          [ "${{ steps.adaptertest.outcome }}" = "failure" ] && failed="$failed test-adapters"
+          [ "${{ steps.partners.outcome }}" = "failure" ] && failed="$failed partner-feeds"
+          if [ -n "$failed" ]; then
+            echo "::error::Sources that failed this run:$failed (the others were still committed)"
+            exit 1
+          fi
+          echo "All sources ran."
+
+      - name: Check data freshness
+        if: ${{ always() }}
+        run: if [ -f scripts/check-data-fresh.mjs ]; then node scripts/check-data-fresh.mjs; fi
