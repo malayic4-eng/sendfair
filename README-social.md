@@ -133,6 +133,33 @@ ranking. Without ffmpeg it validates the stills and the manifest and says so.
 
 ## Weekly summary
 
-`.github/workflows/social-weekly.yml` (Mondays 07:00 UTC) reads the log, fetches plays/reach where
-the Graph API allows, flags templates under half the average for two weeks, lists the last 14 days'
-artifacts and emails it through Buttondown (or prints it if the key is absent).
+`.github/workflows/social-weekly.yml` (Mondays 07:00 UTC) runs `scripts/social-weekly.mjs`:
+
+- Fetches per-post metrics for posts from the last 28 days (Instagram: views, reach, likes, comments,
+  saves, shares; Facebook Reels: plays, reach, reactions, comments, shares; Facebook photos: views,
+  reach, reactions, comments, shares) and stores them in `data/social/performance.json`. Every call is
+  non-fatal; refused metrics or permissions are listed in the report.
+- Ranks by content type (transfers / building / other), template, route and platform, lists the top 3
+  posts with links and one "what to do more of" line. If `data/social/trends.json` exists, a
+  "Trending in your niche" section is added.
+- Writes `data/social/weights.json` (28 days, bounded 0.5–2.0, 1.0 until a bucket has 3 posts).
+  `scripts/social-weights.mjs` exports `pickTemplate(date, templates, weights)`: the plain rotation
+  when there are no weights, otherwise a date-seeded weighted pick that never repeats yesterday's
+  template and keeps building content at 25% or more of picks (15% only when 28 days of data clearly
+  show it underperforming).
+- Sends a Buttondown draft with a preview to `SOCIAL_REPORT_EMAIL` as before; if Buttondown is not set
+  up or fails, the text goes to the owner through Resend/webhook (`scripts/providers/notify.mjs`).
+
+Token permissions for metrics: `read_insights` (Facebook post/video insights), `pages_read_engagement`
+(reactions, comments, permalinks), `instagram_manage_insights` (Instagram insights). Without them the
+report still runs and lists what was missing.
+
+## Comment replies
+
+`.github/workflows/social-comments.yml` (daily 05:00 UTC) runs `scripts/social-comments.mjs`, which
+reads the last 3 days of comments on our Facebook and Instagram posts and uploads
+`social/comments.json` (only public fields: name/username, text, time, permalink) to the public R2
+bucket. `/admin/comments` (behind the Rate Desk sign-in) lists unanswered comments with an AI reply
+draft (Workers AI, cached 7 days in KV) and Copy, Open comment, Regenerate and Mark done buttons.
+Replies are never posted automatically. Needs `pages_read_engagement` / `pages_read_user_content`
+(Facebook) and `instagram_manage_comments` (Instagram) on the token.
