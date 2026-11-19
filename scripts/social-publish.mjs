@@ -279,6 +279,9 @@ async function main() {
     }
   } else { record({ platform: "instagram", type: "reel", status: "skipped", idem: kIg, error: "no Instagram Business account" }); }
 
+  // FORCE_REEL=1 is a manual Instagram-only test: no Facebook, image or TikTok posts.
+  if (process.env.FORCE_REEL === "1") { console.log("FORCE_REEL: Instagram Reel only; skipping Facebook, image and TikTok."); return; }
+
   // Facebook Page Reel (not on carousel days)
   if (plan.carousel) await postCarouselFb(pt);
   else if (doneFb) console.log("[facebook] reel already posted today; skipping.");
