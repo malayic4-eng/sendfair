@@ -10,6 +10,10 @@ on:
         description: Render and log, do not publish
         type: boolean
         default: true
+      force_reel:
+        description: Test only - post the Reel to Instagram even on a carousel day (no Facebook, TikTok or image)
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -34,6 +38,8 @@ jobs:
       - name: Test the Reel pipeline
         run: node scripts/test-reel.mjs
       - name: Build today's plan
+        env:
+          FORCE_REEL: ${{ github.event_name == 'workflow_dispatch' && inputs.force_reel && '1' || '0' }}
         run: node scripts/social-content.mjs
       - name: Download background photos (Unsplash)
         run: node scripts/fetch-reel-photos.mjs
@@ -80,6 +86,7 @@ jobs:
           COVER_URL: ${{ vars.R2_PUBLIC_BASE }}/social/${{ steps.date.outputs.date }}/cover.png
           IMAGE_URL: ${{ vars.R2_PUBLIC_BASE }}/social/${{ steps.date.outputs.date }}/image.png
           DRY_RUN: "0"
+          FORCE_REEL: ${{ github.event_name == 'workflow_dispatch' && inputs.force_reel && '1' || '0' }}
         run: node scripts/social-publish.mjs
       - name: Keep the Reel for hand-posting (30 days)
         uses: actions/upload-artifact@v4

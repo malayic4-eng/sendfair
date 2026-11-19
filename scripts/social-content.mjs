@@ -282,7 +282,8 @@ export function buildPlan(now = new Date(), forceTemplate = null) {
     const at = c.lastIndexOf("\n\n#");
     reel.captions[k] = at >= 0 ? `${c.slice(0, at)}\n\n${ask[k]}${c.slice(at)}` : `${c}\n\n${ask[k]}`;
   }
-  const carousel = (schedule.carouselDays || []).includes(wd) ? buildCarousel(reel) : null;
+  // FORCE_REEL=1 (manual test runs only): build the Reel even on a carousel day.
+  const carousel = (schedule.carouselDays || []).includes(wd) && process.env.FORCE_REEL !== "1" ? buildCarousel(reel) : null;
   return { date, weekday: wd, template, route: reel.route, reel, image, carousel, generatedAt: now.toISOString(), schedule };
 }
 
