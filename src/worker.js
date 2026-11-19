@@ -33,10 +33,6 @@ const LOGO_DOMAINS = {
   wise: "wise.com", remitly: "remitly.com", worldremit: "worldremit.com", sendwave: "sendwave.com",
   taptapsend: "taptapsend.com", westernunion: "westernunion.com", lemfi: "lemfi.com", afriex: "afriex.com",
   nala: "nala.money", africhange: "africhange.com", mukuru: "mukuru.com", moneygram: "moneygram.com",
-  // Gulf services
-  alansari: "alansariexchange.com", luluexchange: "luluexchange.com", alfardan: "alfardanexchange.com", almulla: "almullaexchange.com",
-  bfc: "bfc.com.bh", omanexchange: "omanexchange.com.om", tahweel: "alrajhibank.com.sa", enjaz: "enjaz.com", urpay: "urpay.com.sa",
-  stcbank: "stcpay.com.sa", ooredoomoney: "ooredoo.qa", botim: "botim.me",
   ria: "riamoneytransfer.com", instarem: "instarem.com", xe: "xe.com", skrill: "skrill.com", bossmoney: "bossmoney.com", xoom: "xoom.com",
   transfergo: "transfergo.com", paysend: "paysend.com", smallworld: "smallworldfs.com", moneytrans: "moneytrans.eu", mamamoney: "mamamoney.co.za"
 };
