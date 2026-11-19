@@ -358,7 +358,7 @@ function head({ title, description, canonical, prefix, jsonld = [], noindex = fa
   return `<title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 ${PREVIEW ? '<meta name="claude:viewport-fit-sides" content="cover">' : ""}
-${noindex || DEMO ? '<meta name="robots" content="noindex">' : '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">'}
+${noindex === "follow" && !DEMO ? '<meta name="robots" content="noindex, follow">' : noindex || DEMO ? '<meta name="robots" content="noindex">' : '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">'}
 ${canonical != null ? `<link rel="canonical" href="${site}/${canonical}">` : ""}
 ${alternates.map((a) => `<link rel="alternate" hreflang="${esc(a.lang)}" href="${esc(a.href)}">`).join("\n")}
 <meta property="og:site_name" content="${esc(config.siteName)}">
@@ -2175,7 +2175,7 @@ ${peopleAlsoAsk({ prefix, country: r.id, sender: s.id, topic: "send" })}
 }
 
 // Amount-specific landing pages: /send-money/<route>/<amount>/. Same data and ranking as the route
-// page, pre-filled with the amount; a page with no live quotes is written but kept out of search.
+// page, pre-filled with the amount. Every amount page is noindex (see below) and left out of the sitemap.
 for (const s of corridors.senders) {
   const pageAmounts = AMOUNT_PAGES[s.currency];
   if (!pageAmounts) continue;
@@ -2190,7 +2190,9 @@ for (const s of corridors.senders) {
       const top = fresh[0], low = fresh.length > 1 ? fresh[fresh.length - 1] : null, lead = R.leaders(ctx.rows);
       const amtSym = amountLabel(amount, s.currency);
       const trail = [[config.siteName, ""], [`Send money to ${r.name}`, hubPath(r)], [`${s.label} to ${r.name}`, routeRel], [amtSym, rel]];
-      const noindex = !top;
+      // Near-duplicates of the route page: live and linked for visitors, kept out of search
+      // ("noindex, follow", self canonical) and out of the sitemap.
+      const noindex = "follow";
       let title, description, body, jsonld = [crumbs(trail)];
       if (top) {
         const feeNum = top.ev.fee > 0.004 ? plain(R.money(top.ev.fee, s.currency, 2)) : "";
@@ -2230,7 +2232,6 @@ ${faqBlock(faqs)}
 <ul class="route-links">${pageAmounts.filter((a) => a !== amount).map((a) => `<li><a href="${link(prefix, amountPath(s, r, a))}">Send ${esc(amountLabel(a, s.currency))} to ${esc(r.name)}</a></li>`).join("")}</ul>
 <p><a href="${link(prefix, routeRel)}">Compare all services from ${esc(s.short)} to ${esc(r.name)}</a></p>
 </div></div></section>` + alerts();
-        urls.push(rel);
       } else {
         title = `Send ${amtSym} to ${r.name}: ${s.currency} to ${r.currency} transfer services`;
         description = `Compare ${s.currency} to ${r.currency} transfer services from ${s.short} to ${r.name} by what actually arrives. No online price for ${amtSym} is published yet.`;
@@ -2541,8 +2542,9 @@ ${crumbNav(prefix, trail)}
 <h2>Questions</h2>
 ${faqBlock(faqs)}
 </div></div></section>`;
-        write(rel + "index.html", page({ prefix, canonical: rel, og: "home", title, description, jsonld: [faqLd(faqs), crumbs(trail)], body }));
-        urls.push(rel);
+        // Near-duplicates of the route and head-to-head pages: live and linked for visitors, kept out of
+        // search ("noindex, follow", self canonical) and out of the sitemap.
+        write(rel + "index.html", page({ prefix, canonical: rel, noindex: "follow", og: "home", title, description, jsonld: [faqLd(faqs), crumbs(trail)], body }));
       }
     }
   }
