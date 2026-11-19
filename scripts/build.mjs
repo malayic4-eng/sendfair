@@ -360,7 +360,7 @@ function head({ title, description, canonical, prefix, jsonld = [], noindex = fa
   return `<title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 ${PREVIEW ? '<meta name="claude:viewport-fit-sides" content="cover">' : ""}
-${noindex || DEMO ? '<meta name="robots" content="noindex">' : '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">'}
+${noindex === "follow" && !DEMO ? '<meta name="robots" content="noindex, follow">' : noindex || DEMO ? '<meta name="robots" content="noindex">' : '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">'}
 ${canonical != null ? `<link rel="canonical" href="${site}/${canonical}">` : ""}
 ${alternates.map((a) => `<link rel="alternate" hreflang="${esc(a.lang)}" href="${esc(a.href)}">`).join("\n")}
 <meta property="og:site_name" content="${esc(config.siteName)}">
@@ -419,14 +419,14 @@ function header(prefix, lang, alternates = []) {
   return `${DEMO ? `<div class="demo-banner"><div class="wrap"><strong>Preview with example figures.</strong> These rates are made up to show how the site works. The live site shows only quotes checked by hand.</div></div>` : ""}
 <header class="site-header"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
-<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "")}#corridors">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><div class="nav-svc"><button type="button" class="nav-svc-btn" id="sf-svc-btn" aria-expanded="false" aria-controls="sf-svc-menu">${fr ? "Services" : "Services"}<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="nav-drop" id="sf-svc-menu">${serviceGroups(prefix).map((g) => `<div class="nav-drop-group"><span class="nav-drop-h">${esc(g.title)}</span>${g.items.map((it) => `<a href="${it.href}" data-svc="nav-${it.id}">${esc(it.name)}${it.tag ? ` <span class="svc-tag">${esc(it.tag)}</span>` : ""}</a>`).join("")}</div>`).join("")}</div></div><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
+<nav class="site-nav" aria-label="${fr ? "Navigation principale" : "Main"}"><a href="${link(prefix, "send-money-to/")}">${L.allRoutes}</a><a href="${link(prefix, fr ? "cost-to-build/" : "cost-to-build/")}">${L.buildHouse}</a><div class="nav-svc"><button type="button" class="nav-svc-btn" id="sf-svc-btn" aria-expanded="false" aria-controls="sf-svc-menu">${fr ? "Services" : "Services"}<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="nav-drop" id="sf-svc-menu">${serviceGroups(prefix).map((g) => `<div class="nav-drop-group"><span class="nav-drop-h">${esc(g.title)}</span>${g.items.map((it) => `<a href="${it.href}" data-svc="nav-${it.id}">${esc(it.name)}${it.tag ? ` <span class="svc-tag">${esc(it.tag)}</span>` : ""}</a>`).join("")}</div>`).join("")}</div></div><a href="${link(prefix, "guides/")}">${L.guides}</a><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "methodology/")}">${L.howWeRank}</a><a href="${link(prefix, "about/")}">${L.about}</a>${altLink}<button type="button" class="lang-btn" id="sf-lang" aria-expanded="false" aria-controls="sf-lang-box" title="${fr ? "Traduire cette page" : "Translate this page"}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lang-txt">${L.language}</span></button></nav>
 </div><div class="lang-box" id="sf-lang-box" hidden><div class="wrap"><div id="google_translate_element"></div><p class="lang-note">${L.translateNote} <a href="${link(prefix, "privacy/")}">${L.privacy}</a></p></div></div></header>`;
 }
 
 function footer(prefix, lang) {
   const fr = lang === "fr";
   const L = fr ? {
-    sendTo: t("footer.sendTo"), popularRoutes: t("footer.popularRoutes"), services: t("footer.services"), exchangeRates: t("footer.exchangeRates"),
+    sendTo: t("footer.sendTo"), popularRoutes: t("footer.popularRoutes"), allCountries: t("footer.allCountries"), allRoutes: t("footer.allRoutes"), rateAlerts: t("footer.rateAlerts"), services: t("footer.services"), exchangeRates: t("footer.exchangeRates"),
     buildHouse: t("footer.buildHouse"), sameHouse: t("footer.sameHouse"), materialPrices: t("footer.materialPrices"), whatReceipt: t("footer.whatReceipt"),
     search: t("footer.search"), allPages: t("footer.allPages"), costIndex: t("footer.costIndex"), guides: t("footer.guides"),
     costToBuild: t("footer.costToBuild"), fromGulf: t("footer.fromGulf"), about: t("footer.about"), contact: t("footer.contact"),
@@ -435,7 +435,7 @@ function footer(prefix, lang) {
     disclaimer: t("footer.disclaimer"), ratesBy: t("footer.ratesBy"),
     copyright: t("footer.copyright", { legal: config.legalName || config.businessName || config.siteName, email: config.contactEmail })
   } : {
-    sendTo: "Send money to", popularRoutes: "Popular routes", services: "Services", exchangeRates: "Exchange rates",
+    sendTo: "Send money", popularRoutes: "Popular routes", allCountries: "All countries", allRoutes: "All routes", rateAlerts: "Rate alerts", services: "Services", exchangeRates: "Exchange rates",
     buildHouse: "Build a house", sameHouse: "Same house, every country", materialPrices: "Material prices", whatReceipt: "What the receipt prices",
     search: "Search", allPages: "All pages", costIndex: "Remittance Cost Index", guides: "Guides",
     costToBuild: "Cost to build a house", fromGulf: "Sending from the Gulf", about: "About", contact: "Contact",
@@ -446,21 +446,14 @@ function footer(prefix, lang) {
     copyright: `\u00a9 ${new Date(NOW).getUTCFullYear()} ${config.siteName}${(config.legalName || config.businessName) ? `, a ${esc(config.legalName || config.businessName)} service` : ""}. Run independently from Nairobi. Contact: <span class="email">${esc(config.contactEmail)}</span>`
   };
   const FR_COST = new Set(["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"]);
-  const hub = (r) => hubPath(r);
-  const routeP = (s, r) => corridorPath(s, r);
-  const rateP = (a, b) => `rates/${a.toLowerCase()}-to-${b.toLowerCase()}/`;
-  const countryCost = (id) => fr && FR_COST.has(id) ? `fr/cost-to-build/${id}/` : `cost-to-build/${id}/`;
   return `<footer class="site-footer"><div class="wrap">
 <a class="brand" href="${link(prefix, "")}">${logo}<span>SendFair</span></a>
 <div class="foot-cols">
-<div><h2>${L.sendTo}</h2><ul>${corridors.receivers.map((r) => `<li><a href="${link(prefix, hub(r))}">${esc(r.name)}</a></li>`).join("")}</ul></div>
-<div><h2>${L.popularRoutes}</h2><ul>${(config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const S = corridors.senders.find((x) => x.id === a), Rr = corridors.receivers.find((x) => x.id === b); return S && Rr ? `<li><a href="${link(prefix, routeP(S, Rr))}">${esc(S.label)} ${fr ? "vers" : "to"} ${esc(Rr.name)}</a></li>` : ""; }).join("")}</ul></div>
-<div><h2>${L.services}</h2><ul>${providersWithQuotes().map((p) => `<li><a href="${link(prefix, provPath(p))}">${esc(p.name)} review</a></li>`).join("")}</ul></div>
-<div><h2>${L.exchangeRates}</h2><ul>${["GBP-NGN", "USD-NGN", "GBP-KES", "USD-KES", "GBP-GHS", "USD-GHS"].map((x) => { const [a, b] = x.split("-"); return `<li><a href="${link(prefix, rateP(a, b))}">${a} ${fr ? "vers" : "to"} ${b}</a></li>`; }).join("")}</ul></div>
-<div><h2>${L.buildHouse}</h2><ul>${QC_ON ? `<li><a href="${link(prefix, "quote-check/")}">Quote Check</a></li>` : ""}<li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${Object.keys(buildCosts.countries || {}).map((id) => `<li><a href="${link(prefix, countryCost(id))}">${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul></div>
+<div><h2>${L.sendTo}</h2><ul>${fr ? corridors.receivers.filter((r) => FR_RECEIVERS.has(r.id)).map((r) => `<li><a href="${link(prefix, frHubRel(r))}">${esc(capFirst(frReceiver(r)))}</a></li>`).join("") : ""}<li><a href="${link(prefix, "send-money-to/")}#countries">${L.allCountries}</a></li><li><a href="${link(prefix, "send-money-to/")}">${L.allRoutes}</a></li><li><a href="${link(prefix, "rates/")}">${L.exchangeRates}</a></li><li><a href="${link(prefix, "")}#alerts">${L.rateAlerts}</a></li></ul></div>
+<div><h2>${L.buildHouse}</h2><ul>${QC_ON ? `<li><a href="${link(prefix, "quote-check/")}">Quote Check</a></li>` : ""}<li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${fr ? Object.keys(buildCosts.countries || {}).filter((id) => FR_COST.has(id)).map((id) => `<li><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">${esc(capFirst(frReceiver(receiverById[id] || { id, name: buildCosts.countries[id].name })))}</a></li>`).join("") : ""}<li><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a></li></ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
-<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a>${questions.some((q) => q.status === "live") ? `<a href="${link(prefix, "questions/")}">Questions</a>` : ""}<a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a><a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
+<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a>${questions.some((q) => q.status === "live") ? `<a href="${link(prefix, "questions/")}">Questions</a>` : ""}<a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
 <p>${L.disclaimer}</p>
 <p>${L.ratesBy} <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>${L.copyright}</p>
@@ -472,9 +465,20 @@ function phone(ctx) {
   const n = R.notice(ctx);
   const home = R.homeTime(ctx.r.id, NOW);
   return `<figure class="phone" id="sf-phone">
-<div class="notif" id="sf-notif"><span class="notif-icon">${wallet}</span><div class="notif-main"><div class="notif-head"><strong id="sf-ph-title">${n.title}</strong><span><span id="sf-ph-city">${esc(home.city)}</span> <span id="sf-ph-time">${home.time}</span></span></div><p id="sf-ph-text">${n.text}</p></div></div>
-<figcaption id="sf-ph-cap">${n.cap}</figcaption>
+<div class="notif" id="sf-notif"><span class="notif-icon">${wallet}</span><div class="notif-main"><div class="notif-head"><span class="notif-what"><span class="notif-tag">Example</span> <strong id="sf-ph-title">${n.title}</strong></span><span><span id="sf-ph-city">${esc(home.city)}</span> <span id="sf-ph-time">${home.time}</span></span></div><p id="sf-ph-text">${n.text}</p></div></div>
+<figcaption>Example notification, not a real payment. It shows what today's best option would deliver: <span id="sf-ph-cap">${n.cap}</span></figcaption>
 </figure>`;
+}
+
+// First-transfer offers: the button (added by src/app.js) and the hint in the ranking note only
+// appear on a route where at least one checked quote publishes a first-transfer rate.
+function routeHasPromo(key) {
+  const feed = (wiseFeedData.routes || {})[key] || {};
+  return [...(quotes[key] || []), ...Object.values(feed)].some((q) => q && ((q.promo && Number(q.promo.rate) > 0) || R.promoRate(q) > 0));
+}
+function resultsHtml(ctx) {
+  const html = R.renderResults(ctx);
+  return routeHasPromo(ctx.key) ? html : html.replace(" (turn on first-transfer offers above if you are new)", "");
 }
 
 function tool({ heading, sub, ctx, after = "" }) {
@@ -490,17 +494,17 @@ function tool({ heading, sub, ctx, after = "" }) {
     <div class="field"><label for="sf-from">Sending from</label><select id="sf-from">${corridors.senders.map((s) => `<option value="${s.id}"${s.id === ctx.s.id ? " selected" : ""}>${esc(s.label)} (${s.currency})</option>`).join("")}</select></div>
     <div class="field"><label for="sf-to">Sending to</label><select id="sf-to">${corridors.receivers.map((r) => `<option value="${r.id}"${r.id === ctx.r.id ? " selected" : ""}>${esc(r.name)} (${r.currency})</option>`).join("")}</select></div>
     <div class="field amount-field"><label for="sf-amount" id="sf-amount-label">You pay in total</label><div class="amount-wrap"><button type="button" id="sf-mode" class="mode-btn" title="Switch between the amount you pay and the amount they need">Pay <span class="mode-cur">${ctx.s.currency}</span><span class="mode-ic" aria-hidden="true">⇄</span></button><span id="sf-cur" hidden>${ctx.s.currency}</span><input id="sf-amount" type="number" inputmode="decimal" min="1" step="any" value="${ctx.amount}"><span class="quick" id="sf-quick" role="group" aria-label="Common amounts">${quickList.map((a) => `<button type="button" data-amt="${a}" aria-pressed="${a === ctx.amount}">${a >= 1000 ? a / 1000 + "k" : a}</button>`).join("")}</span></div></div>
-    <div class="field payout-field"><span class="label" id="sf-payout-label">They receive by</span><div class="payout-tabs" role="group" aria-labelledby="sf-payout-label">
+    <div class="filters-row"><div class="field payout-field"><span class="label" id="sf-payout-label">They receive by</span><div class="payout-tabs" role="group" aria-labelledby="sf-payout-label">
       <button type="button" data-payout="all" aria-pressed="true">Any</button><button type="button" data-payout="mobile" aria-pressed="false">Mobile<span class="lg"> money</span></button><button type="button" data-payout="bank" aria-pressed="false">Bank</button><button type="button" data-payout="cash" aria-pressed="false">Cash</button>
-    </div></div>
+    </div></div></div>
   </div>
-  <div id="sf-results">${R.renderResults(ctx)}</div>
+  <div id="sf-results">${resultsHtml(ctx)}</div>
   <div class="tool-meta" id="sf-meta">${R.metaLine(ctx)}</div>
   <p class="note" id="sf-note"${ctx.r.note ? "" : " hidden"}>${esc(ctx.r.note)}</p>
 </div>
 <ul class="trustbar" aria-label="Why you can trust these rankings">
   <li><strong>Independent.</strong> Run from Nairobi; no provider owns us.</li>
-  <li><strong>${handCheckedRoutes === 0 ? "Updated automatically" : "Updated every 30 minutes"}</strong>${handCheckedRoutes === 0 ? " every 30 minutes, mostly from Wise's comparison data" : ` for the big providers, and ${handCheckedRoutes} routes checked by hand`}; each row shows when.</li>
+  <li><strong>Checked automatically</strong> through the day, mostly from Wise's comparison data${handCheckedRoutes === 0 ? "" : `, and ${handCheckedRoutes} routes checked by hand`}; each row shows how old it is.</li>
   <li><strong>Standard rates only.</strong> No paid placements; commissions never change the order.</li>
   <li><strong>Ratings shown</strong> from Trustpilot, so you see what customers say.</li>
 </ul>
@@ -548,19 +552,43 @@ function reportSection(ctx) {
 </div></section>`;
 }
 
-function alerts() {
-  let body;
-  if (DEMO) {
-    body = `<form id="sf-alert-form" data-demo="1"><label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form><p id="sf-alert-msg" aria-live="polite"></p>`;
-  } else if (config.newsletterFormAction) {
-    const embed = String(config.newsletterFormAction).includes("embed-subscribe") ? `<input type="hidden" name="embed" value="1"><p><a href="https://buttondown.com/${esc(String(config.newsletterFormAction).split("/").pop())}">SendFair on Buttondown</a></p>` : "";
-    const wa = config.whatsappChannelUrl ? `<div style="margin-top:14px"><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>` : "";
-    body = `<form id="sf-alert-form" action="${esc(config.newsletterFormAction)}" method="post">${embed}<label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form>${wa}`;
-  } else if (config.whatsappChannelUrl) {
-    body = `<div><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>`;
-  } else return "";
-  const confirm = config.newsletterFormAction ? " We ask you to confirm the address before the first message." : "";
-  return `<section class="alerts" id="alerts"><div class="wrap"><h2>Know when your rate moves</h2><p>One short message each morning: which service pays the most for your route today. Unsubscribe anytime.${confirm}</p>${body}</div></section>`;
+// One "Rate alerts" box for every page that has the comparison tool. Email + route, and an optional
+// target. With a target it posts to /api/alert (a one-off email when the route reaches it); without one,
+// or while /api/alert answers 503, it subscribes the address to the morning rate email
+// (config.newsletterFormAction). Without JavaScript the form posts the email to the newsletter only.
+function alerts(ctx, prefix = "") {
+  const nl = config.newsletterFormAction || "";
+  if (!nl && !config.whatsappChannelUrl && !DEMO) return "";
+  const s = ctx ? ctx.s : S0, r = ctx ? ctx.r : R0;
+  const amount = config.defaultAmounts[s.currency] || 300;
+  const top = ctx && ctx.amount === amount ? ctx.rows.find((x) => !x.stale) : null;
+  const hint = top ? Math.ceil((top.gets * 1.01) / (top.gets >= 1000 ? 100 : 1)) * (top.gets >= 1000 ? 100 : 1) : "";
+  const wa = config.whatsappChannelUrl ? `<p class="ab-wa"><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></p>` : "";
+  if (!nl && !DEMO) return `<section class="alerts" id="alerts"><div class="wrap"><h2>Rate alerts</h2>${wa}</div></section>`;
+  const embed = String(nl).includes("embed-subscribe") ? `<input type="hidden" name="embed" value="1">` : "";
+  const ts = config.turnstileSiteKey && !DEMO ? ` data-turnstile="${esc(config.turnstileSiteKey)}"` : "";
+  const opt = (list, sel, lab) => list.map((x) => `<option value="${x.id}" data-cur="${x.currency}"${x.id === sel ? " selected" : ""}>${esc(lab(x))}</option>`).join("");
+  return `<section class="alerts" id="alerts"><div class="wrap">
+<h2>Rate alerts</h2>
+<p>Get our short morning rate email, or set a target and we email you once when the best service on your route reaches it. Unsubscribe anytime.</p>
+<form class="alert-box" id="sf-alert-form"${nl ? ` action="${esc(nl)}" method="post"` : ""} data-api="${prefix}api/alert"${ts}${DEMO ? ' data-demo="1"' : ""} novalidate>${embed}
+<div class="ab-row">
+<label class="ab-field ab-email"><span>Email</span><input id="sf-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+<label class="ab-field ab-js" hidden><span>Sending from</span><select id="sf-ab-from">${opt(corridors.senders, s.id, (x) => `${x.label} (${x.currency})`)}</select></label>
+<label class="ab-field ab-js" hidden><span>Sending to</span><select id="sf-ab-to">${opt(corridors.receivers, r.id, (x) => `${x.name} (${x.currency})`)}</select></label>
+</div>
+<fieldset class="ab-target ab-js" hidden><legend>Optional: email me once when they'd receive at least this much</legend>
+<div class="ab-row">
+<label class="ab-field"><span>When I send <b id="sf-ab-scur">${s.currency}</b></span><input id="sf-ab-amount" type="number" min="1" step="any" inputmode="decimal" value="${amount}"></label>
+<label class="ab-field"><span>they'd receive at least <b id="sf-ab-rcur">${r.currency}</b></span><input id="sf-ab-target" type="number" min="1" step="any" inputmode="decimal" placeholder="${hint ? `e.g. ${hint}` : "Leave empty for the morning email"}"></label>
+</div>
+<div class="ab-ts" id="sf-ab-ts"></div>
+</fieldset>
+<div class="ab-row"><button type="submit">Get rate alerts</button></div>
+<p class="ab-note">No target: the morning rate email${config.emailProvider ? ` from ${esc(config.emailProvider)}` : ""}; you confirm your address first. With a target: one email when it is reached, after a confirmation email. <a href="${link(prefix, "privacy/")}">Privacy</a></p>
+<p class="af-msg" id="sf-alert-msg" role="status" aria-live="polite"></p>
+</form>${wa}
+</div></section>`;
 }
 
 function houseNote(r, prefix) {
@@ -720,7 +748,7 @@ ${QC_TEST && QC_ON ? '<div class="qc-alert qc-test"><strong>Test mode.</strong> 
 <div class="qc-drop" id="qc-drop" role="button" tabindex="0" aria-labelledby="qc-files-label">
 <strong>Drop the quote here, or click to choose</strong>
 <span>PDF, JPG/PNG photo, XLSX or CSV · up to ${QC.limits.maxFiles} files · ${QC.limits.maxFileMb} MB each</span>
-<input id="qc-files" name="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.csv" required${disabled}>
+<label class="sr-only" for="qc-files">Choose the quote files (PDF, JPG, PNG, XLSX or CSV)</label><input id="qc-files" name="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.csv" required${disabled}>
 </div>
 <ul class="qc-files" id="qc-file-list" aria-live="polite"></ul>
 </div>
@@ -903,8 +931,7 @@ function buildTeaser(prefix) {
   return `<section class="block" id="build-home"><div class="wrap">
 <div class="section-head"><h2>Build a house back home</h2><p class="lede">Building is one of the main reasons people send money — and a round sum is where quotes get inflated. Price the walls, roof, finishes, trade days and the building permit before you send a lump sum. Pick the country, then switch the roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not in the figure. Prices checked ${esc(buildCosts.updated)}.</p></div>
 <div class="build-tease">${cards}</div>
-<p><a class="btn" href="${link(prefix, "cost-to-build/")}">Open the building calculator</a></p>
-<ul class="route-links">${Object.keys(buildCosts.countries).map((id) => `<li><a href="${link(prefix, `cost-to-build/${id}/`)}">Cost to build in ${esc(buildCosts.countries[id].name)}</a></li>`).join("")}</ul>
+<p><a class="btn" href="${link(prefix, "cost-to-build/")}">Open the building calculator</a> <a class="btn btn-ghost" href="${link(prefix, "cost-to-build/")}#countries">All ${Object.keys(buildCosts.countries).length} countries</a></p>
 </div></section>`;
 }
 
@@ -1032,9 +1059,9 @@ ${crumbNav(prefix, [[config.siteName, ""], ["Rate widget", rel]])}
   </div>
   <h2>Preview</h2>
   <div id="em-preview" style="max-width:360px"></div>
-  <h2>Your code</h2>
-  <p>Paste this where you want the widget to appear.</p>
-  <textarea id="em-code" rows="7" readonly style="width:100%;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace"></textarea>
+  <h2 id="em-code-h">Your code</h2>
+  <p id="em-code-help"><label for="em-code">Paste this code where you want the widget to appear.</label></p>
+  <textarea id="em-code" aria-describedby="em-code-help" rows="7" readonly style="width:100%;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace"></textarea>
   <p><button type="button" class="btn" id="em-copy">Copy the code</button> <span id="em-msg" aria-live="polite"></span></p>
 </div>
 <h2>Questions</h2>
@@ -1105,13 +1132,14 @@ ${crumbNav("../", [[config.siteName, ""], ["Remittance Cost Index", "reports/"]]
 <h1>SendFair Remittance Cost Index</h1>
 <p class="lede">A monthly, citable measure of what a typical transfer to Africa actually costs after the fee and the exchange-rate margin, built from the rates we check every day. Published under CC BY 4.0; please cite “Source: SendFair (sendfair.africa)”.</p>
 ${latest ? `<h2>Latest: ${esc(latest.label)}</h2><p>${esc(reportSummary(latest))}</p><p><a class="btn" href="${link("../", `reports/${latest.month}/`)}">Open the ${esc(latest.label)} report</a></p>` : "<p>No complete month of data yet. The first report appears on the 1st of the next month.</p>"}
-<h2>All months</h2>
-<ul class="route-links">${reports.slice().reverse().map((r) => `<li><a href="${link("../", `reports/${r.month}/`)}">${esc(r.label)} — ${pct(r.index)}</a></li>`).join("")}</ul>
+${reports.length ? `<h2>All months</h2>
+<ul class="route-links">${reports.slice().reverse().map((r) => `<li><a href="${link("../", `reports/${r.month}/`)}">${esc(r.label)} — ${pct(r.index)}</a></li>`).join("")}</ul>` : ""}
 ${reports.length > 1 ? `<h2>The index over time</h2>${reportLineSvg(series)}` : ""}
-<p class="note">The World Bank comparison uses ${esc(latest ? latest.wbLabel : "")}: <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener">remittanceprices.worldbank.org</a>.</p>
+${(() => { const wb = latest ? latest.wbLabel : ((config.regionalAverageCost || {}).label || ""); return `<p class="note">${latest ? `The World Bank comparison uses ${esc(wb)}` : `Each monthly report will be compared with ${wb ? "the " + esc(wb) : "the World Bank's Remittance Prices Worldwide data"}`}: <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener">remittanceprices.worldbank.org</a>.</p>`; })()}
 </div></div></section>`;
-  write("reports/index.html", page({ prefix: "../", canonical: "reports/", rank: false, og: "home", title: `Remittance Cost Index · ${config.siteName}`, description: "A monthly measure of the cost of sending money to Africa, built from SendFair's checked rates. CC BY 4.0.", jsonld: [crumbs([[config.siteName, ""], ["Remittance Cost Index", "reports/"]])], body: indexBody }));
-  urls.push("reports/");
+  // Until the first monthly report exists the index page has nothing to cite, so it stays out of search and the sitemap.
+  write("reports/index.html", page({ prefix: "../", canonical: "reports/", noindex: !latest, rank: false, og: "home", title: `Remittance Cost Index · ${config.siteName}`, description: "A monthly measure of the cost of sending money to Africa, built from SendFair's checked rates. CC BY 4.0.", jsonld: [crumbs([[config.siteName, ""], ["Remittance Cost Index", "reports/"]])], body: indexBody }));
+  if (latest) urls.push("reports/");
   for (const r of reports) {
     const rel = `reports/${r.month}/`;
     const body = `<section class="block page"><div class="wrap"><div class="prose wide">
@@ -1155,6 +1183,10 @@ const FR_RECEIVERS = new Set(["senegal", "ivorycoast", "mali", "cameroon", "drc"
 const frRouteRel = (s, r) => `fr/send-money/${s.id}-to-${r.id}/`;
 const frHubRel = (r) => `fr/send-money-to/${r.id}/`;
 const frRateRel = (s, r) => `fr/rates/${s.currency.toLowerCase()}-to-${r.currency.toLowerCase()}/`;
+// French rate pages exist only for these senders' currencies. Page generation and the English
+// pages' hreflang alternates both use this, so an alternate never points at a page that isn't built.
+const FR_RATE_SENDER_CURRENCIES = new Set(["EUR", "CAD", "USD"]);
+const hasFrRatePage = (s, r) => FR_RECEIVERS.has(r.id) && FR_RATE_SENDER_CURRENCIES.has(s.currency);
 const rateFr = (v) => Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 4 });
 const frLd = (items) => items.filter(Boolean).map((x) => ({ ...x, inLanguage: "fr" }));
 const frPayout = (key) => t("route." + ({ bank: "payoutBank", mobile: "payoutMobile", cash: "payoutCash" }[key] || "payoutBank"));
@@ -1324,9 +1356,7 @@ function writeFrenchPages() {
     frHubPage(r);
   }
   for (const { s, r } of ratePairs) {
-    if (!FR_RECEIVERS.has(r.id)) continue;
-    if (!["EUR", "CAD", "USD"].includes(s.currency)) continue;
-    frRatePage(s, r);
+    if (hasFrRatePage(s, r)) frRatePage(s, r);
   }
 }
 // ---- Partners: house-calculator sponsors, flights home, eSIMs (data/partners.json) ----
@@ -1504,7 +1534,7 @@ ${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(
 ${id ? `<h2>By size</h2><ul class="route-links">${[2, 3, 4].map((n) => `<li><a href="${link(prefix, `cost-to-build/${id}/${n}-bedroom/`)}">${n}-bedroom house</a></li>`).join("")}</ul>` : ""}
 ${id ? (() => { const rc = regionalFactors.countries[id]; const filled = rc ? Object.entries(rc.cities || {}).filter(([, city]) => city.factor > 0) : []; return filled.length ? `<h2>By city</h2><ul class="route-links">${filled.map(([slug, city]) => `<li><a href="${link(prefix, `cost-to-build/${id}/${slug}/`)}">${esc(city.name)}</a></li>`).join("")}</ul>` : ""; })() : ""}
 ${id ? peopleAlsoAsk({ prefix, country: id, topic: "build" }) : ""}
-<h2>Other countries</h2>
+<h2 id="countries">${id ? "Other countries" : "All countries"}</h2>
 <ul class="route-links">${Object.keys(buildCosts.countries).map((cid) => `<li><a href="${link(prefix, `cost-to-build/${cid}/`)}">${esc(buildCosts.countries[cid].name)}</a></li>`).join("")}</ul>
 <h2>Questions</h2>
 ${faqBlock(faqs)}
@@ -1704,6 +1734,19 @@ function writeSameHouse() {
 </article></div></section>`
   }));
   urls.push(rel);
+}
+
+// Homepage: one compact "Where are you sending?" block in place of the long route lists. Every route
+// stays one click away through the country hubs and the all-routes page (send-money-to/).
+function whereSending(prefix) {
+  const prio = (config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); return [senderById[a], receiverById[b]]; }).filter(([a, b]) => a && b).slice(0, 8);
+  const n = corridors.senders.length * corridors.receivers.length;
+  return `<section class="block where" id="corridors"><div class="wrap">
+<div class="section-head"><h2>Where are you sending?</h2><p class="lede">Pick the country to compare every service from ${esc(allSendersText)}, or jump to a busy route.</p></div>
+<ul class="route-links big">${corridors.receivers.map((r) => `<li><a href="${link(prefix, hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul>
+${prio.length ? `<h3 class="route-from">Most-used routes</h3><ul class="route-links">${prio.map(([a, b]) => `<li><a href="${link(prefix, corridorPath(a, b))}">${esc(a.label)} to ${esc(b.name)}</a></li>`).join("")}</ul>` : ""}
+<p><a class="btn btn-ghost" href="${link(prefix, "send-money-to/")}">All ${n} routes, with today's best</a></p>
+</div></section>`;
 }
 
 function corridorGrid(prefix) {
@@ -1931,16 +1974,64 @@ ${panels}
 }
 
 // Rate alert sign-up for one route.
-function alertForm(ctx) {
-  const top = ctx.rows.find((x) => !x.stale);
-  const target = top ? Math.ceil((top.gets * 1.01) / (top.gets >= 1000 ? 100 : 1)) * (top.gets >= 1000 ? 100 : 1) : "";
-  return `<form class="alert-form" id="sf-alert-route" data-route="${ctx.key}" novalidate>
-<div class="af-row"><label>When <span class="af-cur">${ctx.s.currency}</span> <input name="amount" type="number" min="1" step="any" inputmode="decimal" value="${ctx.amount}" required aria-label="Amount you send"></label>
-<label>delivers at least <span class="af-cur">${ctx.r.currency}</span> <input name="target" type="number" min="1" step="any" inputmode="decimal" value="${target}" required aria-label="Amount you want them to receive"></label></div>
-<div class="af-row"><label class="af-email">email me at <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label><button type="submit" class="btn">Set alert</button></div>
-${config.turnstileSiteKey ? `<div class="cf-turnstile" data-sitekey="${esc(config.turnstileSiteKey)}"></div><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>` : ""}
-<p class="note">We check once after each daily rate check and email you once when the best service reaches your target. One email to confirm, an unsubscribe link in every email, and nothing else. <a href="../../privacy/">Privacy</a></p>
-<p class="af-msg" id="sf-alert-msg" role="status"></p></form>`;
+// A short paragraph about one route, written only from data: the receiving country's payout options
+// (data/corridors.json), the services checked and which of them pay to mobile money or cash, the
+// cheapest fresh quote and its cost against the mid-market rate, and the sending country's regulator.
+// Sentence shapes rotate by route so the 85 pages don't read alike.
+function routeAbout(ctx) {
+  const { s, r } = ctx;
+  const pick = (list, salt) => { let h = 0; for (const ch of ctx.key + salt) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return list[h % list.length]; };
+  const fresh = ctx.rows.filter((x) => !x.stale);
+  const top = fresh[0];
+  const lead = R.leaders(ctx.rows);
+  const n = new Set(ctx.rows.map((x) => x.p.id)).size, nf = new Set(fresh.map((x) => x.p.id)).size;
+  const by = (m) => [...new Set(fresh.filter((x) => (x.q.payout || []).includes(m)).map((x) => x.p.name))];
+  const mob = by("mobile"), cash = by("cash");
+  const sCur = CURNAME[s.currency] || s.currency, rCur = CURNAME[r.currency] || r.currency;
+  const amt = plain(R.money(ctx.amount, s.currency, 0));
+  // Payout options, with the corridor's own detail only where it says more than the generic wording.
+  const cashTxt = r.payout.cash && !/^Collect at agent locations$/i.test(r.payout.cash) ? ` (${r.payout.cash.replace(/^Collect at /, "at ")})` : "";
+  const ways = [
+    r.payout.mobile ? `mobile money (${r.payout.mobile.replace(/^Wallets such as /, "")})` : "",
+    r.payout.bank ? "bank deposit" : "",
+    r.payout.cash ? `cash pickup${cashTxt}` : ""
+  ].filter(Boolean);
+  const out = [];
+  out.push(s.currency === r.currency
+    ? pick([`From ${s.short} you pay in ${sCur} and ${r.name} receives ${rCur} too, so nothing is converted.`,
+      `There is no currency conversion here: you pay ${sCur} in ${s.short} and ${r.name} receives ${rCur}.`], "cur")
+    : pick([`From ${s.short} you pay in ${sCur} and your family in ${r.name} receives ${rCur}.`,
+      `Senders in ${s.short} pay in ${sCur}; the money lands in ${r.name} as ${rCur}.`,
+      `On this route ${sCur} from ${s.short} become ${rCur} in ${r.name}.`], "cur"));
+  if (r.note) out.push(r.note);
+  out.push(pick([`Ways to receive: ${joinList(ways)}.`, `${r.name} can receive by ${joinList(ways)}.`], "ways"));
+  if (!n) out.push(`No service publishes an online price for this route yet, so nothing is ranked.`);
+  else if (!nf) out.push(`We track ${n} service${n === 1 ? "" : "s"} here, but none has a quote from the last ${staleH} hours, so nothing ranks first until they are rechecked.`);
+  else {
+    const count = nf === n
+      ? (n === 1 ? `${top.p.name} is the one service we track here` : pick([`All ${n} services we track here have a quote under ${staleH} hours old`, `We track ${n} services here, all with a fresh quote`], "count"))
+      : pick([`${nf} of the ${n} services we track here have a quote under ${staleH} hours old`, `We track ${n} services here and ${nf} have a fresh quote`], "count");
+    const bits = [];
+    const one = n === 1 && nf === 1;
+    const mobOn = r.payout.mobile && mob.length, cashOn = r.payout.cash && cash.length;
+    if (mobOn && cashOn && mob.join() === cash.join()) bits.push(`${one ? "it" : joinList(mob)} ${mob.length === 1 ? "pays to mobile money and offers" : "pay to mobile money and offer"} cash pickup`);
+    else {
+      if (mobOn) bits.push(`${one ? "it" : joinList(mob)} ${mob.length === 1 ? "pays" : "pay"} to mobile money`);
+      if (cashOn) bits.push(`${one ? "it" : joinList(cash)} ${cash.length === 1 ? "offers" : "offer"} cash pickup`);
+    }
+    const missing = [r.payout.mobile && !mob.length ? "mobile money" : "", r.payout.cash && !cash.length ? "cash pickup" : ""].filter(Boolean);
+    if (missing.length) bits.push(`${one ? "its quote doesn't list" : "none of the fresh quotes lists"} ${missing.join(" or ")}`);
+    out.push(`${count}${bits.length ? "; " + joinList(bits) : ""}.`);
+    const mid = s.currency === r.currency ? 1 : ctx.mid || 0;
+    const cost = mid ? 1 - top.gets / (ctx.amount * mid) : null;
+    const costTxt = cost == null ? "" : cost < 0 ? ", slightly more than the mid-market rate gives, usually a sign of a promotional rate" : `, ${(cost * 100).toFixed(1)}% less than ${s.currency === r.currency ? "you pay" : "the mid-market rate gives"}`;
+    const who = lead.length > 1 ? `${R.names(lead)} tie for the most` : `${top.p.name} delivers the most`;
+    out.push(pick([`For ${amt}, ${who}: ${plain(R.money(top.gets, r.currency))}${costTxt}.`,
+      `On the latest check ${who} for ${amt}, with ${plain(R.money(top.gets, r.currency))} arriving${costTxt}.`], "top"));
+  }
+  const reg = s.region === "gulf" || s.id !== "europe" ? REGULATOR[s.id] : "your country's financial regulator";
+  if (reg) out.push(pick([`Before a first transfer, look the service up with ${reg}.`, `Check a service with ${reg} before a first transfer.`], "reg"));
+  return `<p class="route-about">${esc(out.join(" "))}</p>`;
 }
 
 // Head-to-head pairs and exchange-rate pairs (used by the home page, footer and their own pages).
@@ -2046,7 +2137,7 @@ write("index.html", page({
     ctx: homeCtx,
     heading: "Send money home. Build a house back home.",
     sub: `Free tools for the diaspora: compare money transfers to Africa by what your family actually receives, price a house back home, check a builder's quote${QC_ON ? "," : " (opening soon)"} and get a morning rate alert for your route. ${homeProof}`
-  }) + servicesHub("") + buildTeaser("") + quoteCheckCard("", null) + guideTeaser("") + corridorGrid("") + `
+  }) + whereSending("") + servicesHub("") + buildTeaser("") + quoteCheckCard("", null) + guideTeaser("") + `
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
 <ol class="steps">
@@ -2054,20 +2145,9 @@ write("index.html", page({
 <li><h3>We do the maths for your amount</h3><p>Fees come off what you pay and the rest converts at the provider's rate. That gives the amount that actually arrives.</p></li>
 <li><h3>Most money home ranks first</h3><p>Commissions never change the order. A service that pays us nothing can rank first.</p></li>
 </ol></div></section>
-<section class="block"><div class="wrap"><div class="section-head"><h2>Send money to</h2></div>
-<ul class="route-links big">${corridors.receivers.map((r) => `<li><a href="${link("", hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul>
-<div class="section-head" style="margin-top:32px"><h2>Compare by route</h2></div>
-${corridors.senders.map((s) => { const rs = corridors.receivers.filter((r) => routeContext(s, r, "", config.defaultAmounts[s.currency]).rows.some((x) => !x.stale)); return rs.length ? `<h3 class="route-from">From ${esc(s.short)}</h3><ul class="route-links">${rs.map((r) => `<li><a href="${link("", corridorPath(s, r))}">${esc(s.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>` : ""; }).join("")}
-<div class="section-head" style="margin-top:32px"><h2>Services we compare</h2></div>
-<ul class="route-links big">${providersWithQuotes().map((p) => `<li><a class="with-badge" href="${link("", provPath(p))}">${R.badge(p)}${esc(p.name)} review</a></li>`).join("")}</ul>
-<div class="section-head" style="margin-top:32px"><h2>Head to head</h2></div>
-<ul class="route-links">${vsPairs().map(([a, b]) => `<li><a href="${link("", vsPath(a, b))}">${esc(a.name)} vs ${esc(b.name)}</a></li>`).join("")}</ul>
-<div class="section-head" style="margin-top:32px" id="rates-today"><h2>Exchange rates today</h2></div>
-<ul class="route-links">${ratePairs.map(({ s, r }) => `<li><a href="${link("", ratePath(s, r))}">${s.currency} to ${r.currency}</a></li>`).join("")}</ul>
-<p><a class="btn btn-ghost" href="${link("", "rates/")}">All exchange rates</a></p>
-<div class="section-head" style="margin-top:32px"><h2>Questions</h2></div>
+<section class="block"><div class="wrap"><div class="section-head"><h2>Questions</h2></div>
 ${faqBlock(homeFaqs)}
-</div></section>` + alerts()
+</div></section>` + alerts(homeCtx, "")
 }));
 urls.push("");
 
@@ -2115,19 +2195,18 @@ for (const s of corridors.senders) {
       heading: `Send money from ${esc(s.short)} to ${esc(r.name)}`,
       sub: lede
     }) + `
-<nav class="secnav" aria-label="On this page"><div class="wrap"><a href="#rates">Rates by amount</a><a href="#history">Rate history</a><a href="#alert">Rate alert</a><a href="#tips">Good to know</a><a href="#faq">Questions</a></div></nav>
+<nav class="secnav" aria-label="On this page"><div class="wrap"><a href="#rates">Rates by amount</a><a href="#history">Rate history</a><a href="#alerts">Rate alerts</a><a href="#tips">Good to know</a><a href="#faq">Questions</a></div></nav>
 <section class="block"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h2 id="rates">${s.currency === r.currency ? esc(s.currency) + " transfer services compared" : esc(s.currency) + " to " + esc(r.currency) + ": today's rates by service"}</h2>
 ${summary}
+${routeAbout(ctx)}
 ${amountsTable(ctx)}
 ${AMOUNT_PAGES[s.currency] ? `<h2 id="popular-amounts">Popular amounts</h2><ul class="route-links">${AMOUNT_PAGES[s.currency].map((a) => `<li><a href="${link(prefix, rel + a + "/")}">Send ${esc(amountLabel(a, s.currency))} to ${esc(r.name)}</a></li>`).join("")}</ul>` : ""}
 <h2 id="history">${esc(s.currency)} to ${esc(r.currency)} rate history</h2>
 ${histChart(ctx)}
 ${(() => { const w = winsFor(ctx.key); if (w.days < 3) return ""; return `<h3>Who delivered the most, day by day</h3><p>Over the last ${w.days} days we checked this route, ${esc(joinList(w.wins.slice(0, 4).map(([id, c]) => `${(providers[id] || { name: id }).name} on ${c}`)))}. Ties count for each service.</p>`; })()}
 ${s.currency !== r.currency ? `<p class="note"><a href="${link(prefix, `rates/${s.currency.toLowerCase()}-to-${r.currency.toLowerCase()}/`)}">${esc(s.currency)} to ${esc(r.currency)} converter and today's rate</a></p>` : ""}
-<h2 id="alert">Get a rate alert</h2>
-${alertForm(ctx)}
 <h2>How to send money from ${esc(s.short)} to ${esc(r.name)}</h2>
 <ol class="howto">
 <li><strong>Compare today's options.</strong> Enter the amount you will pay above. The service at the top delivers the most ${esc(rCur)} after its fee and exchange-rate margin.</li>
@@ -2150,7 +2229,7 @@ ${config.whatsappNumber ? `<p class="wa"><a class="btn" href="https://wa.me/${es
 ${peopleAlsoAsk({ prefix, country: r.id, sender: s.id, topic: "send" })}
 <h2>Other routes</h2>
 <ul class="route-links">${corridors.receivers.filter((x) => x.id !== r.id).map((x) => `<li><a href="${link(prefix, corridorPath(s, x))}">${esc(s.label)} to ${esc(x.name)}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
-</div></div></section>` + reportSection(ctx) + alerts();
+</div></div></section>` + reportSection(ctx) + alerts(ctx, prefix);
     // A route with no fresh quotes stays reachable but is kept out of search results and the sitemap until it is filled.
     write(rel + "index.html", page({
       prefix, canonical: rel, title, description, og: slug(s, r), noindex: !top,
@@ -2163,7 +2242,7 @@ ${peopleAlsoAsk({ prefix, country: r.id, sender: s.id, topic: "send" })}
 }
 
 // Amount-specific landing pages: /send-money/<route>/<amount>/. Same data and ranking as the route
-// page, pre-filled with the amount; a page with no live quotes is written but kept out of search.
+// page, pre-filled with the amount. Every amount page is noindex (see below) and left out of the sitemap.
 for (const s of corridors.senders) {
   const pageAmounts = AMOUNT_PAGES[s.currency];
   if (!pageAmounts) continue;
@@ -2178,7 +2257,9 @@ for (const s of corridors.senders) {
       const top = fresh[0], low = fresh.length > 1 ? fresh[fresh.length - 1] : null, lead = R.leaders(ctx.rows);
       const amtSym = amountLabel(amount, s.currency);
       const trail = [[config.siteName, ""], [`Send money to ${r.name}`, hubPath(r)], [`${s.label} to ${r.name}`, routeRel], [amtSym, rel]];
-      const noindex = !top;
+      // Near-duplicates of the route page: live and linked for visitors, kept out of search
+      // ("noindex, follow", self canonical) and out of the sitemap.
+      const noindex = "follow";
       let title, description, body, jsonld = [crumbs(trail)];
       if (top) {
         const feeNum = top.ev.fee > 0.004 ? plain(R.money(top.ev.fee, s.currency, 2)) : "";
@@ -2217,8 +2298,7 @@ ${faqBlock(faqs)}
 <h2 id="amounts">Other amounts from ${esc(s.short)} to ${esc(r.name)}</h2>
 <ul class="route-links">${pageAmounts.filter((a) => a !== amount).map((a) => `<li><a href="${link(prefix, amountPath(s, r, a))}">Send ${esc(amountLabel(a, s.currency))} to ${esc(r.name)}</a></li>`).join("")}</ul>
 <p><a href="${link(prefix, routeRel)}">Compare all services from ${esc(s.short)} to ${esc(r.name)}</a></p>
-</div></div></section>` + alerts();
-        urls.push(rel);
+</div></div></section>` + alerts(ctx, prefix);
       } else {
         title = `Send ${amtSym} to ${r.name}: ${s.currency} to ${r.currency} transfer services`;
         description = `Compare ${s.currency} to ${r.currency} transfer services from ${s.short} to ${r.name} by what actually arrives. No online price for ${amtSym} is published yet.`;
@@ -2232,6 +2312,37 @@ ${crumbNav(prefix, trail)}
       write(rel + "index.html", page({ prefix, canonical: rel, title, description, noindex, jsonld, init: { from: s.id, to: r.id, amount, pageUrl: `${site}/${rel}` }, body }));
     }
   }
+}
+
+// All routes: every country hub and route (with today's best), the service reviews, head-to-heads and
+// exchange rates. The header's "All routes" link and the homepage point here.
+{
+  const rel = "send-money-to/", prefix = "../";
+  const trail = [[config.siteName, ""], ["All routes", rel]];
+  const n = corridors.senders.length * corridors.receivers.length;
+  const body = `<section class="block page"><div class="wrap"><div class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>Send money to Africa: all routes</h1>
+<p class="lede">${n} routes from ${esc(allSendersText)} to ${corridors.receivers.length} African countries. Pick a country for every sending country side by side, or a route for the full ranking.</p>
+<h2 id="countries">Countries</h2>
+<ul class="route-links big">${corridors.receivers.map((r) => `<li><a href="${link(prefix, hubPath(r))}">${esc(r.name)}</a></li>`).join("")}</ul>
+</div></div></section>
+${corridorGrid(prefix)}
+<section class="block"><div class="wrap"><div class="prose wide">
+<h2>Services we compare</h2>
+<ul class="route-links big">${providersWithQuotes().map((p) => `<li><a class="with-badge" href="${link(prefix, provPath(p))}">${R.badge(p)}${esc(p.name)} review</a></li>`).join("")}</ul>
+<h2>Head to head</h2>
+<ul class="route-links">${vsPairs().map(([a, b]) => `<li><a href="${link(prefix, vsPath(a, b))}">${esc(a.name)} vs ${esc(b.name)}</a></li>`).join("")}</ul>
+<h2 id="rates-today">Exchange rates today</h2>
+<ul class="route-links">${ratePairs.map(({ s, r }) => `<li><a href="${link(prefix, ratePath(s, r))}">${s.currency} to ${r.currency}</a></li>`).join("")}</ul>
+<p><a class="btn btn-ghost" href="${link(prefix, "rates/")}">All exchange rates</a></p>
+</div></div></section>`;
+  write(rel + "index.html", page({
+    prefix, canonical: rel, title: `All money transfer routes to Africa · ${config.siteName}`,
+    description: `Compare money transfers on ${n} routes from ${allSendersText} to ${corridors.receivers.length} African countries, with today's best service on each.`,
+    jsonld: [crumbs(trail)], body
+  }));
+  urls.push(rel);
 }
 
 // Country pages: "Send money to Kenya"
@@ -2529,8 +2640,9 @@ ${crumbNav(prefix, trail)}
 <h2>Questions</h2>
 ${faqBlock(faqs)}
 </div></div></section>`;
-        write(rel + "index.html", page({ prefix, canonical: rel, og: "home", title, description, jsonld: [faqLd(faqs), crumbs(trail)], body }));
-        urls.push(rel);
+        // Near-duplicates of the route and head-to-head pages: live and linked for visitors, kept out of
+        // search ("noindex, follow", self canonical) and out of the sitemap.
+        write(rel + "index.html", page({ prefix, canonical: rel, noindex: "follow", og: "home", title, description, jsonld: [faqLd(faqs), crumbs(trail)], body }));
       }
     }
   }
@@ -2617,7 +2729,7 @@ ${faqBlock(faqs)}
     title: `${s.currency} to ${r.currency} today: rate, 30-day history and best service | ${config.siteName}`,
     description: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}, the 30-day range and the best service for your amount. Checked ${dateLong}.`,
     jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd],
-    alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRateRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
+    alternates: hasFrRatePage(s, r) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRateRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
     body }));
   if (pairHasData) urls.push(rel);
 }
@@ -2717,8 +2829,8 @@ const hasAds = !!config.adsenseClient;
 const today = new Date(NOW).toISOString().slice(0, 10);
 const privacyItems = [
   `<li><strong>Your comparison choices.</strong> Your route, amount and payout choice are saved only in your own browser so the tool remembers them. They are not sent to us.</li>`,
-  config.newsletterFormAction ? `<li><strong>Email for rate alerts.</strong> If you sign up, your email address is stored by ${esc(config.emailProvider || "our email service")} to send the alerts. Every message has an unsubscribe link.</li>` : "",
-  `<li><strong>Rate alerts.</strong> If you set a rate alert, we store your email address, the route, the amount and your target, so we can email you when it is reached. We send one confirmation email first and nothing else. Each alert is deleted once it fires, when you click the remove link in any of our emails, or after 12 months. Emails are sent by our email provider. To limit misuse we keep a one-way scrambled code made from your connection for two days.</li>`,
+  config.newsletterFormAction ? `<li><strong>Morning rate email.</strong> If you use the Rate alerts box without a target (or while target alerts are not available), your email address is sent to ${esc(config.emailProvider || "our email service")}, which stores it to send the morning rate email. You confirm the address first, and every message has an unsubscribe link.</li>` : "",
+  `<li><strong>Target rate alerts.</strong> If you set a target in the Rate alerts box, we store your email address, the route, the amount and your target, so we can email you when it is reached. We send one confirmation email first and nothing else. Each alert is deleted once it fires, when you click the remove link in any of our emails, or after 12 months. Emails are sent by our email provider. To limit misuse we keep a one-way scrambled code made from your connection for two days${config.turnstileSiteKey ? ", and the form uses Cloudflare Turnstile to check that a person, not a bot, is signing up" : ""}.</li>`,
   `<li><strong>WhatsApp rate bot.</strong> If you message our WhatsApp number, we keep a one-way hash of your number and the alerts you ask for (route, amount and target). While an alert is active we also keep the number itself, because Meta needs it to deliver that message; sending "stop" deletes the number and the alerts. We reply only to messages you send, inside WhatsApp's 24-hour service window, and never send marketing broadcasts.</li>`,
   config.reportsEnabled ? `<li><strong>Delivery-time reports.</strong> When you report how long a transfer took, we store the route, the service and the time range only. To stop repeated reports we keep a one-way hash made from your connection for two days; it cannot be turned back into your IP address.</li>` : "",
   config.trackClicks ? `<li><strong>Link clicks.</strong> We count how many times each "Go to" button is clicked on each route. The count is not linked to you.</li>` : "",
@@ -2745,7 +2857,7 @@ const trust = {
 <h2>Who's behind SendFair</h2>
 <p>${config.founderName ? `SendFair was founded by ${esc(config.founderName)} to make the true cost of sending money home easy to compare. ` : ""}${esc(config.legalName || config.businessName || config.siteName)} runs the site, checks the rates and handles corrections.</p>
 <h2>How the numbers are made</h2>
-<p>Quotes for the big providers are updated automatically every 30 minutes from Wise's comparison data; ${handCheckedRoutes === 0 ? "every price is collected automatically" : `the rest are read by hand from each provider's own calculator or app, for a typical amount on each route`}. Every quote is saved with the time it was checked. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
+<p>Quotes for the big providers are checked automatically through the day from Wise's comparison data; ${handCheckedRoutes === 0 ? "every price is collected automatically" : `the rest are read by hand from each provider's own calculator or app, for a typical amount on each route`}. Every quote is saved with the time it was checked. Each row on a route page shows when it was checked, and quotes that are too old are marked or removed. The full method is on <a href="${link("../", "methodology/")}">How we rank</a>.</p>
 <h2>Editorial independence</h2>
 <p>Services are ranked only by how much your family receives. Some providers pay us a referral commission, but no provider can pay to appear, to rank higher or to have a quote removed, and services that pay us nothing are listed on the same terms. See <a href="${link("../", "disclosure/")}">how we make money</a>.</p>
 <h2>Corrections</h2>
@@ -2755,7 +2867,7 @@ const trust = {
 <h1>How we rank</h1>
 <h2>What we collect</h2>
 <ul><li>The exchange rate each provider quotes on each route, and the amount we checked it for.</li><li>The transfer fee: a fixed amount, a percentage, or both.</li><li>The ways the money can be received (mobile money, bank, cash pickup). Where a provider's rate differs by payout method, we record each one separately.</li><li>The typical delivery time and when we checked.</li></ul>
-<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are updated automatically every 30 minutes from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. Those rows are marked "(auto)". ${handCheckedRoutes === 0 ? "No routes are checked by hand at the moment: every price comes from Wise's comparison data or from WorldRemit's own website." : `Other services are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data.`} Automatic rates far from the mid-market rate are held back as likely errors.</p>
+<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are checked automatically through the day from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. We look for new data every 30 minutes, but a provider's figure only changes when Wise has collected a new one, so some rows are a few hours old. Those rows are marked "(auto)" and each one shows how old it is. ${handCheckedRoutes === 0 ? "No routes are checked by hand at the moment: every price comes from Wise's comparison data or from WorldRemit's own website." : `Other services are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data.`} Automatic rates far from the mid-market rate are held back as likely errors.</p>
 <h2>How the amount received is calculated</h2>
 <p>You enter the total you plan to pay. We take off the provider's fee and convert the rest at the provider's rate. Where the fee is a percentage, it is worked out on the amount sent.</p>
 <p>Total cost is the gap between that and converting your full amount at the mid-market rate with no fee.</p>
@@ -3097,7 +3209,7 @@ write("_headers", `/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://utt.impactcdn.com https://emrldco.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://translate.googleapis.com https://utt.impactcdn.com https://*.impact.com https://emrldco.com; frame-src https://*.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com https://challenges.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self' https://buttondown.com; object-src 'none'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://utt.impactcdn.com https://emrldco.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://buttondown.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://translate.googleapis.com https://utt.impactcdn.com https://*.impact.com https://emrldco.com; frame-src https://*.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com https://challenges.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self' https://buttondown.com; object-src 'none'
 /data/*
   Cache-Control: public, max-age=300
 /assets/fonts/*
