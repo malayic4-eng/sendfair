@@ -142,12 +142,69 @@ async function igImage(igId, pt, caption) {
   if (!pub.id) throw new Error(JSON.stringify(pub.error || pub));
   return pub.id;
 }
-async function fbImage(pt, message) {
-  const res = await fetch(`https://graph.facebook.com/${version}/${pageId}/photos`, { method: "POST", body: new URLSearchParams({ url: imageUrl, message, access_token: pt }) });
+async function fbImage(pt, message, url = imageUrl) {
+  const res = await fetch(`https://graph.facebook.com/${version}/${pageId}/photos`, { method: "POST", body: new URLSearchParams({ url, message, access_token: pt }) });
   const data = await res.json();
   if (!res.ok || data.error) throw new Error(JSON.stringify(data.error || data));
   return data.id || data.post_id;
 }
+
+// Instagram carousel (feed post, 2–10 slides): one child container per slide with is_carousel_item,
+// then a CAROUSEL parent that lists the children, then publish. Counts as one post toward the 50/day limit.
+async function waitFinished(id, pt) {
+  for (let i = 0; i < 36; i++) {
+    const st = await fetch(`https://graph.facebook.com/${version}/${id}?fields=status_code,status&access_token=${pt}`).then((r) => r.json());
+    if (st.status_code === "FINISHED") return;
+    if (st.status_code === "ERROR" || st.status_code === "EXPIRED") throw new Error(JSON.stringify(st));
+    await sleep(5000);
+  }
+  throw new Error("container not finished: " + id);
+}
+async function igCarousel(igId, pt, caption, urls) {
+  if (urls.length < 2 || urls.length > 10) throw new Error(`carousel needs 2–10 slides, got ${urls.length}`);
+  const children = [];
+  for (const url of urls) {
+    const c = await fetch(`https://graph.facebook.com/${version}/${igId}/media`, { method: "POST", body: new URLSearchParams({ image_url: url, is_carousel_item: "true", access_token: pt }) }).then((r) => r.json());
+    if (!c.id) throw new Error(JSON.stringify(c.error || c));
+    children.push(c.id);
+  }
+  for (const id of children) await waitFinished(id, pt);
+  const parent = await fetch(`https://graph.facebook.com/${version}/${igId}/media`, { method: "POST", body: new URLSearchParams({ media_type: "CAROUSEL", children: children.join(","), caption, access_token: pt }) }).then((r) => r.json());
+  if (!parent.id) throw new Error(JSON.stringify(parent.error || parent));
+  await waitFinished(parent.id, pt);
+  const pub = await fetch(`https://graph.facebook.com/${version}/${igId}/media_publish`, { method: "POST", body: new URLSearchParams({ creation_id: parent.id, access_token: pt }) }).then((r) => r.json());
+  if (!pub.id) throw new Error(JSON.stringify(pub.error || pub));
+  return pub.id;
+}
+// Carousel days: slides go to Instagram as a carousel and to Facebook as the cover photo. The Reel is
+// not posted to Instagram or Facebook on those days (the mix is set in schedule.json).
+const carouselUrls = () => (plan.carousel && plan.carousel.slides ? plan.carousel.slides.map((_, i) => `${process.env.R2_PUBLIC_BASE}/social/${plan.date}/carousel-${i + 1}.png`) : []);
+async function postCarouselDay(igId, pt) {
+  const kIg = idem("instagram-carousel");
+  const urls = carouselUrls();
+  if (posted(kIg)) console.log("[instagram] carousel already posted today; skipping.");
+  else if (igId) {
+    try {
+      if (!process.env.R2_PUBLIC_BASE) throw new Error("no public R2_PUBLIC_BASE");
+      const id = await igCarousel(igId, pt, plan.carousel.captions.instagram, urls);
+      record({ platform: "instagram", type: "carousel", status: "posted", postId: id, idem: kIg, slides: urls.length, link: plan.carousel.captions.instagram.match(/https?:\S+/)?.[0] || "" });
+    } catch (e) {
+      record({ platform: "instagram", type: "carousel", status: "failed", idem: kIg, error: String(e.message || e).slice(0, 300) });
+      // Fallback: the cover slide as a single image, recorded as such.
+      if (urls[0]) { try { const id = await igImage(igId, pt, plan.carousel.captions.instagram); record({ platform: "instagram", type: "image", status: "posted", postId: id, idem: idem("instagram-carousel-cover"), fallback: true }); } catch (e2) { record({ platform: "instagram", type: "image", status: "failed", idem: idem("instagram-carousel-cover"), fallback: true, error: String(e2.message || e2).slice(0, 300) }); } }
+    }
+  } else record({ platform: "instagram", type: "carousel", status: "skipped", idem: kIg, error: "no Instagram Business account" });
+}
+async function postCarouselFb(pt) {
+  const kFb = idem("facebook-carousel");
+  if (posted(kFb)) { console.log("[facebook] carousel cover already posted today; skipping."); return; }
+  try {
+    if (!urls0()) throw new Error("no public R2_PUBLIC_BASE");
+    const id = await fbImage(pt, plan.carousel.captions.facebook, urls0());
+    record({ platform: "facebook", type: "carousel", status: "posted", postId: id, idem: kFb, note: "cover slide as a photo" });
+  } catch (e) { record({ platform: "facebook", type: "carousel", status: "failed", idem: kFb, error: String(e.message || e).slice(0, 300) }); }
+}
+const urls0 = () => carouselUrls()[0] || "";
 
 async function tiktok() {
   const file = `${dir}/reel.mp4`;
@@ -170,8 +227,13 @@ async function main() {
   const reelCaption = manifest.captions;
 
   if (DRY) {
-    record({ platform: "instagram", type: "reel", status: "dry-run", idem: kIg, link: manifest.captions.instagram.match(/https?:\S+/)?.[0] || "" });
-    record({ platform: "facebook", type: "reel", status: "dry-run", idem: kFb, link: manifest.captions.facebook.match(/https?:\S+/)?.[0] || "" });
+    if (plan.carousel) {
+      record({ platform: "instagram", type: "carousel", status: "dry-run", idem: idem("instagram-carousel"), slides: (plan.carousel.slides || []).length });
+      record({ platform: "facebook", type: "carousel", status: "dry-run", idem: idem("facebook-carousel"), note: "cover slide as a photo" });
+    } else {
+      record({ platform: "instagram", type: "reel", status: "dry-run", idem: kIg, link: manifest.captions.instagram.match(/https?:\S+/)?.[0] || "" });
+      record({ platform: "facebook", type: "reel", status: "dry-run", idem: kFb, link: manifest.captions.facebook.match(/https?:\S+/)?.[0] || "" });
+    }
     record({ platform: "tiktok", type: "reel", status: "dry-run", idem: idem("tiktok") });
     if (plan.image) record({ platform: "instagram", type: "image", status: "dry-run", idem: idem("instagram-image") });
     return;
@@ -185,8 +247,9 @@ async function main() {
   if (doneIg && doneFb) { console.log("Already posted today on Instagram and Facebook (idempotency); skipping."); }
   if (!reelUrl || !coverUrl) { console.error("REEL_URL / COVER_URL are not set; the APIs need a public URL. Falling back."); }
 
-  // Instagram Reel
-  if (doneIg) console.log("[instagram] reel already posted today; skipping.");
+  // Instagram Reel (not on carousel days, which post the carousel instead)
+  if (plan.carousel) await postCarouselDay(igId, pt);
+  else if (doneIg) console.log("[instagram] reel already posted today; skipping.");
   else if (igId) {
     try {
       if (!reelUrl) throw new Error("no public REEL_URL");
@@ -198,8 +261,9 @@ async function main() {
     }
   } else { record({ platform: "instagram", type: "reel", status: "skipped", idem: kIg, error: "no Instagram Business account" }); }
 
-  // Facebook Page Reel
-  if (doneFb) console.log("[facebook] reel already posted today; skipping.");
+  // Facebook Page Reel (not on carousel days)
+  if (plan.carousel) await postCarouselFb(pt);
+  else if (doneFb) console.log("[facebook] reel already posted today; skipping.");
   else try {
     if (!reelUrl) throw new Error("no public REEL_URL");
     const id = await fbReel(pt, reelCaption.facebook);

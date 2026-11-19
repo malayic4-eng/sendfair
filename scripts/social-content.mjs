@@ -282,7 +282,36 @@ export function buildPlan(now = new Date(), forceTemplate = null) {
     const at = c.lastIndexOf("\n\n#");
     reel.captions[k] = at >= 0 ? `${c.slice(0, at)}\n\n${ask[k]}${c.slice(at)}` : `${c}\n\n${ask[k]}`;
   }
-  return { date, weekday: wd, template, route: reel.route, reel, image, generatedAt: now.toISOString(), schedule };
+  const carousel = (schedule.carouselDays || []).includes(wd) ? buildCarousel(reel) : null;
+  if (carousel) {
+    // Swipe prompt goes just above the hashtags, like the ask line.
+    for (const k of ["instagram", "facebook"]) {
+      const c = carousel.captions[k] || "";
+      const at = c.lastIndexOf("\n\n#");
+      carousel.captions[k] = at >= 0 ? `${c.slice(0, at)}\n\nSwipe through for the full numbers 👉${c.slice(at)}` : `${c}\n\nSwipe through for the full numbers 👉`;
+    }
+  }
+  return { date, weekday: wd, template, route: reel.route, reel, image, carousel, generatedAt: now.toISOString(), schedule };
+}
+
+function slide3Headline(reel) {
+  if (reel.template === "tip") return reel.hook;
+  if (reel.template === "house") return "Every line is itemised. Read the receipt before you build.";
+  return "The fee is not the whole story. Check the amount you actually receive.";
+}
+// Carousel: 4 slides (2–10 allowed), all from the same ranked numbers as the Reel.
+// Slide 1 cover, slide 2 the figures, slide 3 the tip or context, slide 4 the call to action.
+function buildCarousel(reel) {
+  if (!reel || !reel.numbers || !reel.numbers.length) return null;
+  const rows = reel.numbers.slice(0, 4).map((n) => ({ label: n.label, value: n.value }));
+  const footnote = `Source: SendFair (sendfair.africa) · checked ${new Date(reel.checkDate + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}`;
+  const slides = [
+    { headline: reel.hook, rows: [], footnote, cta: "sendfair.africa" },
+    { headline: "The figures today", rows, footnote, cta: "sendfair.africa" },
+    { headline: slide3Headline(reel), rows: [], footnote, cta: "sendfair.africa" },
+    { headline: "Compare your own amount at sendfair.africa", rows: [], footnote, cta: "sendfair.africa" }
+  ];
+  return { slides, captions: { ...reel.captions, instagram: reel.captions.instagram, facebook: reel.captions.facebook } };
 }
 
 const isCli = process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("social-content.mjs");

@@ -1,15 +1,16 @@
-# SendFair social: Reels first
+# SendFair social: Reels and carousels
 
-The daily social post is now **one short vertical Reel**, with image posts only when there is
-something worth a still. This replaces the old queue (`scripts/social-posts.mjs` → `post-facebook` /
+The daily social post is **one short vertical Reel on four days and an Instagram carousel on three**
+(Reels for reach to new people, carousels for saves and depth with people who already follow). This replaces the old queue (`scripts/social-posts.mjs` → `post-facebook` /
 `post-instagram`), whose two daily cron jobs are now manual-only so they cannot double-post.
 
 ## Schedule (`data/social/schedule.json`)
 
 | Key | Default | Meaning |
 |---|---|---|
-| `reelsPerDay` | 1 | One Reel every day |
-| `imagePostDays` | `["tue","fri"]` | Days an image post is allowed |
+| `reelsPerDay` | 1 | One Reel on every day that is not a carousel day |
+| `carouselDays` | `["tue","thu","sat"]` | Days that post a 4-slide carousel instead of a Reel on Instagram and Facebook |
+| `imagePostDays` | `[]` | Days a single image is posted. Empty now; a single image is still the fallback if a Reel or carousel fails |
 | `maxPerDay` | 2 | Never more than two automated posts per platform per day |
 | `postTimeNairobi` | `17:00` | UK lunchtime, US East Coast morning |
 | `templates` | route, best-vs-average, house, tip, rate-move | Rotated, no two days in a row the same |
@@ -18,6 +19,23 @@ something worth a still. This replaces the old queue (`scripts/social-posts.mjs`
 
 Routes rotate through `config.priorityRoutes`. Hashtags are per country in
 `data/social/hashtags.json`.
+
+## Carousel days
+
+On a `carouselDays` weekday the plan gets a `carousel` of four 1080×1350 slides built from the same
+ranked numbers as the Reel: cover, the figures, a tip or context line, and a call to action. The
+slides upload to R2 as `social/<date>/carousel-N.png`.
+
+- **Instagram**: native carousel. One child container per slide (`is_carousel_item=true`), a parent
+  with `media_type=CAROUSEL` and `children`, then `media_publish`. A carousel is a feed post, not a
+  Reel, and counts as one post toward the 50-a-day limit. Allowed: 2–10 slides.
+- **Facebook Page**: the cover slide as a single photo. Multi-photo posts are not wired up yet.
+- **TikTok**: unchanged, still gets the Reel every day (flag is off).
+- The Reel is still rendered and archived on carousel days for hand-posting.
+- Idempotency keys are `instagram-carousel` and `facebook-carousel`; log `type` is `carousel`. If the
+  carousel fails, Instagram posts the cover as an image and records `fallback: true`.
+
+To change the mix, edit `carouselDays` only. Compare the formats in the weekly summary and the log.
 
 ## Daily flow
 

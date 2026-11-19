@@ -128,6 +128,20 @@ async function main() {
   const imagePng = await renderPng(D.imagePost(ctx, image));
   fs.writeFileSync(path.join(OUT, "image.png"), imagePng);
   if (plan.image) fs.writeFileSync(path.join(OUT, `image-${plan.date}.png`), imagePng);
+  // Carousel slides (carousel days only): 1080x1350 each, uploaded as carousel-1.png … carousel-N.png.
+  let carouselFiles = null;
+  if (plan.carousel && plan.carousel.slides) {
+    carouselFiles = [];
+    for (let i = 0; i < plan.carousel.slides.length; i++) {
+      const name = `carousel-${i + 1}.png`;
+      fs.writeFileSync(path.join(OUT, name), await renderPng(D.imagePost(ctx, plan.carousel.slides[i])));
+      carouselFiles.push(name);
+    }
+    for (const platform of ["instagram", "facebook"]) {
+      fs.writeFileSync(path.join(OUT, `caption-carousel-${platform}.txt`), plan.carousel.captions[platform] + "\n");
+    }
+    console.log(`Carousel: ${carouselFiles.length} slides`);
+  }
   for (const platform of ["instagram", "facebook", "tiktok"]) {
     fs.writeFileSync(path.join(OUT, `caption-${platform}.txt`), reel.captions[platform] + "\n");
   }
@@ -136,7 +150,8 @@ async function main() {
     checkedAt: reel.checkedAt, checkDate: reel.checkDate, numbers: reel.numbers,
     files: { reel: mp4, cover: "cover.png", image: "image.png", captions: ["instagram", "facebook", "tiktok"] },
     captions: reel.captions,
-    image
+    image,
+    carousel: carouselFiles ? { slides: carouselFiles, captions: plan.carousel.captions } : null
   };
   fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 1) + "\n");
 
