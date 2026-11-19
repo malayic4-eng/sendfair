@@ -10,7 +10,7 @@ import {
 
 const NO_STORE = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
 const HTML_HEADERS = {
-  ...NO_STORE, "Content-Type": "text/html; charset=utf-8", "Referrer-Policy": "no-referrer",
+  ...NO_STORE, "Content-Type": "text/html; charset=utf-8", "Referrer-Policy": "same-origin",
   "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'self' https://www.tiktok.com https://accounts.google.com; frame-ancestors 'none'; base-uri 'none'"
 };
 
@@ -26,7 +26,7 @@ export function callbackBounce(url) {
   next.searchParams.set("sf", "1");
   const href = next.pathname + next.search;
   return new Response(`<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${esc(href)}"><title>Connecting…</title><p>Connecting… <a href="${esc(href)}">Continue</a></p>`, {
-    headers: { ...NO_STORE, "Content-Type": "text/html; charset=utf-8", "Referrer-Policy": "no-referrer" }
+    headers: { ...NO_STORE, "Content-Type": "text/html; charset=utf-8", "Referrer-Policy": "same-origin" }
   });
 }
 
