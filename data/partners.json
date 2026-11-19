@@ -8,10 +8,10 @@
     "origins: departure cities per sending region. airports: arrival airports per receiving country. Codes are IATA city or airport codes."
   ],
   "travel": {
-    "flightsUrl": "https://www.google.com/travel/flights?q=Flights%20from%20{fromCity}%20to%20{toCity}",
-    "flightsWrap": "",
+    "flightsUrl": "https://www.aviasales.com/?params={from}{to}1",
+    "flightsWrap": "https://tp.media/r?campaign_id=100&marker=807652&p=4114&trs=602820&u={url}",
     "esimUrl": "https://www.airalo.com/",
-    "esimWrap": ""
+    "esimWrap": "https://tp.media/r?campaign_id=541&marker=807652&p=8310&trs=602820&u={url}"
   },
   "origins": {
     "uk": [["LON", "London"], ["MAN", "Manchester"], ["BHX", "Birmingham"]],

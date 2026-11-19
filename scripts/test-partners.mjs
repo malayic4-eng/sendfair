@@ -42,10 +42,11 @@ function ctx(url) {
 const go = async (url) => (await onRequestGet(ctx(url))).headers.get("location");
 
 const base = "https://sendfair.africa/go/";
-check(/google\.com\/travel\/flights\?q=Flights%20from%20London%20to%20Nairobi/.test(await go(base + "flights?o=LON&d=NBO&r=fly-kenya")), "flight link London to Nairobi");
+// Travelpayouts tracked links (Aviasales program 100, Airalo program 541, marker 807652).
+check(await go(base + "flights?o=LON&d=NBO&r=fly-kenya") === "https://tp.media/r?campaign_id=100&marker=807652&p=4114&trs=602820&u=" + encodeURIComponent("https://www.aviasales.com/?params=LONNBO1"), "flight link London to Nairobi (tracked Aviasales)");
 check(await go(base + "flights?o=LON&d=LOS&r=fly-kenya") === "https://sendfair.africa/", "flight to an airport outside the country must go home");
 check(await go(base + "flights?o=XXX&d=NBO&r=fly-kenya") === "https://sendfair.africa/", "unknown origin must go home");
-check(await go(base + "esim?r=fly-kenya") === partners.travel.esimUrl, "esim link");
+check(await go(base + "esim?r=fly-kenya") === "https://tp.media/r?campaign_id=541&marker=807652&p=8310&trs=602820&u=" + encodeURIComponent(partners.travel.esimUrl), "esim link (tracked Airalo)");
 check(await go(base + "live-builder?r=build-kenya") === "https://example.com/live", "live sponsor forwards");
 check(await go(base + "old-builder?r=build-kenya") === "https://sendfair.africa/cost-to-build/kenya/", "expired sponsor goes back to the calculator");
 check(await go(base + "nobody?r=build-kenya") === "https://sendfair.africa/", "unknown id goes home");
@@ -53,7 +54,7 @@ check(/wise\.com/.test(await go(base + "wise?r=uk-kenya") || ""), "transfer prov
 
 // Wrapped (affiliate) links encode the destination into {url}.
 const wrapped = flightTarget({ ...partners, travel: { ...partners.travel, flightsWrap: "https://tp.media/r?marker=1&u={url}" } }, { origin: "LON", dest: "NBO", receiver: "kenya" });
-check(wrapped.startsWith("https://tp.media/r?marker=1&u=https%3A%2F%2Fwww.google.com"), "flightsWrap encodes the destination");
+check(wrapped === "https://tp.media/r?marker=1&u=" + encodeURIComponent("https://www.aviasales.com/?params=LONNBO1"), "flightsWrap encodes the destination");
 
 check(sponsorsFor(testPartners, "kenya").map((s) => s.id).join() === "live-builder", "only live sponsors show");
 check(!sponsorLive(testPartners.sponsors[1]), "expired sponsor is not live");
@@ -64,6 +65,7 @@ check(/sponsor-box/.test(read("cost-to-build/kenya/index.html")), "sponsor box o
 check(/sponsor-box/.test(read("cost-to-build/kenya/3-bedroom/index.html")), "sponsor box on a size page");
 check(/flying-home\/kenya\//.test(read("send-money/uk-to-kenya/index.html")), "route page links to flying home");
 check(/go\/flights\?o=LON&amp;d=NBO&amp;r=fly-kenya/.test(read("flying-home/kenya/index.html")), "flying-home page has flight links");
+check(/Some flight and eSIM links on the flying-home pages are affiliate links/.test(read("disclosure/index.html")), "disclosure says travel links are affiliate links");
 check(/advertise\//.test(read("sitemap.xml")) && /flying-home\/kenya\//.test(read("sitemap.xml")), "new pages in the sitemap");
 
 if (issues.length) { console.error("partner test failed:\n  " + issues.join("\n  ")); process.exit(1); }
