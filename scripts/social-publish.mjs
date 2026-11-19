@@ -2,6 +2,10 @@
 // Idempotent by (platform, route, date, template): a committed log is the source of truth, so a rerun
 // never posts twice. Dry-run renders and logs but calls no publishing API. If the Reel fails, it posts
 // the 4:5 image instead and says so in the log.
+// Links: the Facebook and Instagram text carries no URL (Facebook shows link posts to fewer people;
+// Instagram captions can't link). After each post a first comment goes up: on Facebook the tagged
+// link and a question, on Instagram a question. A comment that fails is logged and never stops the
+// run; a rerun retries only the comment. The Graph API cannot pin a comment.
 import fs from "node:fs";
 import { createHash } from "node:crypto";
 
@@ -21,6 +25,14 @@ const reelUrl = process.env.REEL_URL || "";
 const coverUrl = process.env.COVER_URL || "";
 const imageUrl = process.env.IMAGE_URL || "";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const links = manifest.links || (plan.reel && plan.reel.links) || {};
+const comments = manifest.comments || (plan.reel && plan.reel.comments) || {};
+const COMMENT_RETRY_MS = process.env.COMMENT_RETRY_MS != null ? Number(process.env.COMMENT_RETRY_MS) : 20000;
+// Safety net for an old manifest: never send a URL in Facebook or Instagram post text.
+const URL_RE = /https?:\/\/\S+/g;
+const noLinks = (text, platform) => String(text || "").replace(URL_RE, platform === "facebook" ? "link in the first comment 👇" : "link in bio 🔗");
+const fbText = (t) => noLinks(t, "facebook");
+const igText = (t) => noLinks(t, "instagram");
 
 const idem = (platform) => createHash("sha256").update(`${platform}|${plan.route}|${plan.date}|${plan.template}`).digest("hex").slice(0, 16);
 const posted = (k) => (log.attempts || []).some((a) => a.idem === k && a.status === "posted");
@@ -204,12 +216,12 @@ async function postCarouselDay(igId, pt) {
   else if (igId) {
     try {
       if (!process.env.R2_PUBLIC_BASE) throw new Error("no public R2_PUBLIC_BASE");
-      const id = await igCarousel(igId, pt, plan.carousel.captions.instagram, urls);
-      record({ platform: "instagram", type: "carousel", status: "posted", postId: id, idem: kIg, slides: urls.length, link: plan.carousel.captions.instagram.match(/https?:\S+/)?.[0] || "" });
+      const id = await igCarousel(igId, pt, igText(plan.carousel.captions.instagram), urls);
+      record({ platform: "instagram", type: "carousel", status: "posted", postId: id, idem: kIg, slides: urls.length, link: links.instagram || "" });
     } catch (e) {
       record({ platform: "instagram", type: "carousel", status: "failed", idem: kIg, error: String(e.message || e).slice(0, 300) });
       // Fallback: the cover slide as a single image, recorded as such.
-      if (urls[0]) { try { const id = await igImage(igId, pt, plan.carousel.captions.instagram, urls[0]); record({ platform: "instagram", type: "image", status: "posted", postId: id, idem: idem("instagram-carousel-cover"), fallback: true }); } catch (e2) { record({ platform: "instagram", type: "image", status: "failed", idem: idem("instagram-carousel-cover"), fallback: true, error: String(e2.message || e2).slice(0, 300) }); } }
+      if (urls[0]) { try { const id = await igImage(igId, pt, igText(plan.carousel.captions.instagram), urls[0]); record({ platform: "instagram", type: "image", status: "posted", postId: id, idem: idem("instagram-carousel-cover"), fallback: true }); } catch (e2) { record({ platform: "instagram", type: "image", status: "failed", idem: idem("instagram-carousel-cover"), fallback: true, error: String(e2.message || e2).slice(0, 300) }); } }
     }
   } else record({ platform: "instagram", type: "carousel", status: "skipped", idem: kIg, error: "no Instagram Business account" });
 }
@@ -218,11 +230,43 @@ async function postCarouselFb(pt) {
   if (posted(kFb)) { console.log("[facebook] carousel cover already posted today; skipping."); return; }
   try {
     if (!urls0()) throw new Error("no public R2_PUBLIC_BASE");
-    const id = await fbImage(pt, plan.carousel.captions.facebook, urls0());
+    const id = await fbImage(pt, fbText(plan.carousel.captions.facebook), urls0());
     record({ platform: "facebook", type: "carousel", status: "posted", postId: id, idem: kFb, note: "cover slide as a photo" });
   } catch (e) { record({ platform: "facebook", type: "carousel", status: "failed", idem: kFb, error: String(e.message || e).slice(0, 300) }); }
 }
 const urls0 = () => carouselUrls()[0] || "";
+
+// First comment under each of today's posts on a platform (Reel, carousel, or an image, including
+// a fallback). Keyed by the post, so a rerun comments only where today's comment is still missing.
+// Facebook: POST /{video-or-photo-id}/comments with the Page token (needs pages_manage_engagement).
+// Instagram: POST /{ig-media-id}/comments (needs instagram_manage_comments).
+async function graphComment(objectId, pt, message) {
+  const res = await fetch(`https://graph.facebook.com/${version}/${objectId}/comments`, { method: "POST", body: new URLSearchParams({ message, access_token: pt }) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.error || !data.id) throw new Error(JSON.stringify(data.error || data).slice(0, 300));
+  return data.id;
+}
+const commentIdem = (a) => createHash("sha256").update(`comment|${a.platform}|${a.idem}|${a.postId}`).digest("hex").slice(0, 16);
+async function firstComments(platform, pt) {
+  const message = comments[platform];
+  if (!message) return;
+  const targets = (log.attempts || []).filter((a) => a.date === plan.date && a.platform === platform && a.status === "posted" && ["reel", "carousel", "image"].includes(a.type) && a.postId);
+  for (const a of targets) {
+    const k = commentIdem(a);
+    if (posted(k)) continue;
+    let lastErr = null;
+    // A Reel can still be processing just after it publishes; try a few times before giving up.
+    for (let i = 0; i < 3; i++) {
+      try {
+        const id = await graphComment(a.postId, pt, message);
+        record({ platform, type: "comment", status: "posted", postId: id, on: a.postId, onType: a.type, idem: k, link: platform === "facebook" ? links.facebook || "" : "" });
+        lastErr = null;
+        break;
+      } catch (e) { lastErr = e; if (i < 2) await sleep(COMMENT_RETRY_MS); }
+    }
+    if (lastErr) record({ platform, type: "comment", status: "failed", on: a.postId, onType: a.type, idem: k, error: String(lastErr.message || lastErr).slice(0, 300) });
+  }
+}
 
 async function tiktok() {
   const file = `${dir}/reel.mp4`;
@@ -242,17 +286,19 @@ async function tiktok() {
 
 async function main() {
   const kIg = idem("instagram"), kFb = idem("facebook");
-  const reelCaption = manifest.captions;
+  const reelCaption = { ...manifest.captions, instagram: igText(manifest.captions.instagram), facebook: fbText(manifest.captions.facebook) };
 
   if (DRY) {
     if (plan.carousel) {
       record({ platform: "instagram", type: "carousel", status: "dry-run", idem: idem("instagram-carousel"), slides: ((manifest.carousel || {}).slides || []).length });
-      if (schedule.fbReelOnCarouselDays !== false) record({ platform: "facebook", type: "reel", status: "dry-run", idem: kFb, link: manifest.captions.facebook.match(/https?:\S+/)?.[0] || "" });
+      if (schedule.fbReelOnCarouselDays !== false) record({ platform: "facebook", type: "reel", status: "dry-run", idem: kFb, link: links.facebook || "" });
       else record({ platform: "facebook", type: "carousel", status: "dry-run", idem: idem("facebook-carousel"), note: "cover slide as a photo" });
     } else {
-      record({ platform: "instagram", type: "reel", status: "dry-run", idem: kIg, trial: !!trialParams(), link: manifest.captions.instagram.match(/https?:\S+/)?.[0] || "" });
-      record({ platform: "facebook", type: "reel", status: "dry-run", idem: kFb, link: manifest.captions.facebook.match(/https?:\S+/)?.[0] || "" });
+      record({ platform: "instagram", type: "reel", status: "dry-run", idem: kIg, trial: !!trialParams(), link: links.instagram || "" });
+      record({ platform: "facebook", type: "reel", status: "dry-run", idem: kFb, link: links.facebook || "" });
     }
+    if (comments.instagram) record({ platform: "instagram", type: "comment", status: "dry-run", idem: idem("instagram-comment"), message: comments.instagram });
+    if (comments.facebook) record({ platform: "facebook", type: "comment", status: "dry-run", idem: idem("facebook-comment"), message: comments.facebook });
     record({ platform: "tiktok", type: "reel", status: "dry-run", idem: idem("tiktok") });
     if (plan.image) record({ platform: "instagram", type: "image", status: "dry-run", idem: idem("instagram-image") });
     return;
@@ -273,12 +319,13 @@ async function main() {
     try {
       if (!reelUrl) throw new Error("no public REEL_URL");
       const id = await igReel(igId, pt, reelCaption.instagram);
-      record({ platform: "instagram", type: "reel", status: "posted", postId: id, idem: kIg, trial: igTrialUsed, link: reelCaption.instagram.match(/https?:\S+/)?.[0] || "", ...(igAudioUsed ? { audioId: igAudioUsed.id, audio: `${igAudioUsed.title} — ${igAudioUsed.artist}` } : {}) });
+      record({ platform: "instagram", type: "reel", status: "posted", postId: id, idem: kIg, trial: igTrialUsed, link: links.instagram || "", ...(igAudioUsed ? { audioId: igAudioUsed.id, audio: `${igAudioUsed.title} — ${igAudioUsed.artist}` } : {}) });
     } catch (e) {
       record({ platform: "instagram", type: "reel", status: "failed", idem: kIg, error: String(e.message || e).slice(0, 300) });
       if (imageUrl) { try { const id = await igImage(igId, pt, reelCaption.instagram); record({ platform: "instagram", type: "image", status: "posted", postId: id, idem: idem("instagram-image"), fallback: true }); } catch (e2) { record({ platform: "instagram", type: "image", status: "failed", idem: idem("instagram-image"), fallback: true, error: String(e2.message || e2).slice(0, 300) }); } }
     }
   } else { record({ platform: "instagram", type: "reel", status: "skipped", idem: kIg, error: "no Instagram Business account" }); }
+  await firstComments("instagram", pt).catch((e) => console.log("[instagram] comments:", e.message));
 
   // FORCE_REEL=1 is a manual Instagram-only test: no Facebook, image or TikTok posts.
   if (process.env.FORCE_REEL === "1") { console.log("FORCE_REEL: Instagram Reel only; skipping Facebook, image and TikTok."); return; }
@@ -292,7 +339,7 @@ async function main() {
   else try {
     if (!reelUrl) throw new Error("no public REEL_URL");
     const id = await fbReel(pt, reelCaption.facebook);
-    record({ platform: "facebook", type: "reel", status: "posted", postId: id, idem: kFb, link: reelCaption.facebook.match(/https?:\S+/)?.[0] || "" });
+    record({ platform: "facebook", type: "reel", status: "posted", postId: id, idem: kFb, link: links.facebook || "" });
   } catch (e) {
     record({ platform: "facebook", type: "reel", status: "failed", idem: kFb, error: String(e.message || e).slice(0, 300) });
     if (imageUrl) { try { const id = await fbImage(pt, reelCaption.facebook); record({ platform: "facebook", type: "image", status: "posted", postId: id, idem: idem("facebook-image"), fallback: true }); } catch (e2) { record({ platform: "facebook", type: "image", status: "failed", idem: idem("facebook-image"), fallback: true, error: String(e2.message || e2).slice(0, 300) }); } }
@@ -306,6 +353,8 @@ async function main() {
   if (plan.image && imageUrl && !posted(idem("facebook-image"))) {
     try { const id = await fbImage(pt, reelCaption.facebook); record({ platform: "facebook", type: "image", status: "posted", postId: id, idem: idem("facebook-image") }); } catch (e) { record({ platform: "facebook", type: "image", status: "failed", idem: idem("facebook-image"), error: String(e.message || e).slice(0, 300) }); }
   }
+
+  await firstComments("facebook", pt).catch((e) => console.log("[facebook] comments:", e.message));
 
   // TikTok
   if (posted(idem("tiktok"))) console.log("[tiktok] already posted today; skipping.");
