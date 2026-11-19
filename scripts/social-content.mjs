@@ -190,7 +190,7 @@ function buildReel(template, dateStr, index) {
       template, route: `${lead}-material-${mat.key}`, from: mat.name, to: cheap.country, amount: 0, currency: "USD", receiveCurrency: "USD",
       material: mat.name, countries: rows.map((x) => x.cid),
       hook: `What does ${mat.what} cost?`,
-      ytHook: `The price of ${mat.name} in ${rows.slice(0, -1).map((x) => x.country).join(", ")} and ${dear.country}`,
+      ytHook: `${mat.name[0].toUpperCase() + mat.name.slice(1)}: ${rows.map((x) => x.country).join(" vs ")}`,
       numbers: rows.map((x) => ({ label: x.currency === "USD" ? x.country : `${x.country} · about ${usdStr(x.usd)}`, value: priceStr(x.price, x.currency), final: x.price, usd: x.usd, cid: x.cid })),
       checkedAt: buildCosts.updated + "T00:00:00Z", checkDate: buildCosts.updated,
       links: linksFor(url),
