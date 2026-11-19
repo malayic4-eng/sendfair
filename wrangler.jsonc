@@ -36,7 +36,8 @@
   "ai": { "binding": "AI" },
   // Rate alerts run after the morning (11:30) and evening (21:30) Nairobi rate checks.
   // The 03:00 run also deletes Quote Check uploads, extracted data and reports after the retention period.
-  "triggers": { "crons": ["30 8 * * *", "30 18 * * *", "0 3 * * *"] },
+  // Every 20 minutes 17:00–21:59 UTC: post the day's Reel to TikTok / YouTube Shorts once it exists (/admin/social).
+  "triggers": { "crons": ["30 8 * * *", "30 18 * * *", "0 3 * * *", "*/20 17-21 * * *"] },
   "observability": { "enabled": true },
   // Keep settings added in the Cloudflare dashboard (such as ADMIN_PASSWORD) when a new version deploys.
   "keep_vars": true

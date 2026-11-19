@@ -3,6 +3,7 @@
 // Every number here is the exact figure the route page shows.
 import fs from "node:fs";
 import { createRequire } from "node:module";
+import { pickTemplate } from "./social-weights.mjs";
 const require = createRequire(import.meta.url);
 const R = require("../src/rank.js");
 const BC = require("../src/build-cost.js");
@@ -16,6 +17,9 @@ const providers = read("data/providers.json").providers;
 const buildCosts = read("data/build-costs.json");
 const regional = read("data/regional-factors.json");
 const schedule = read("data/social/schedule.json");
+// Weekly performance weights (scripts/social-weekly.mjs); absent = the plain rotation.
+let weights = null;
+try { weights = read("data/social/weights.json"); } catch {}
 const tags = read("data/social/hashtags.json");
 const midmarket = read("data/midmarket.json");
 try { const ov = read("data/mid-overrides.json"); if (ov && ov.rates && Date.now() - new Date(ov.updatedAt).getTime() < 36 * 3600000) Object.assign(midmarket.rates, ov.rates); } catch {}
@@ -95,10 +99,24 @@ const REEL_SENDERS = {
   ethiopia: ["us", "canada"], cameroon: ["europe", "us"], tanzania: ["uk", "us"], ivorycoast: ["europe", "us"],
   zambia: ["uk", "us"], egypt: ["us", "europe"], rwanda: ["europe", "uk"], mali: ["europe", "us"], drc: ["europe", "canada"]
 };
+// Daily country rotation, weighted towards the biggest diaspora audiences (Kenya, Nigeria, Ghana first,
+// then Uganda and Zimbabwe); every other country still comes round once per cycle. Smooth weighted
+// round-robin, so the same country never runs two days in a row.
+const AUDIENCE_WEIGHT = { kenya: 3, nigeria: 3, ghana: 3, uganda: 2, zimbabwe: 2 };
+export const REEL_ROTATION = (() => {
+  const w = Object.fromEntries(REEL_ORDER.map((c) => [c, AUDIENCE_WEIGHT[c] || 1]));
+  const total = Object.values(w).reduce((a, b) => a + b, 0), cur = Object.fromEntries(REEL_ORDER.map((c) => [c, 0])), out = [];
+  for (let i = 0; i < total; i++) {
+    for (const c of REEL_ORDER) cur[c] += w[c];
+    const best = REEL_ORDER.reduce((a, b) => (cur[b] > cur[a] ? b : a));
+    cur[best] -= total; out.push(best);
+  }
+  return out;
+})();
 function reelRoute(index, needRows = 3) {
-  const n = REEL_ORDER.length, cycle = Math.floor(index / n);
+  const n = REEL_ROTATION.length, cycle = Math.floor(index / n);
   for (let k = 0; k < n; k++) {
-    const cid = REEL_ORDER[(index + k) % n];
+    const cid = REEL_ROTATION[(index + k) % n];
     const prefs = REEL_SENDERS[cid] || ["uk"];
     const turn = cycle % prefs.length;
     const order = [...new Set([...prefs.slice(turn), ...prefs.slice(0, turn), ...corridors.senders.map((x) => x.id)])];
@@ -115,7 +133,7 @@ function reelRoute(index, needRows = 3) {
 // House reels follow the same country order: the main city where we have city factors, else the country.
 const HOUSE_MAIN_CITY = { kenya: ["nairobi", "Nairobi"], nigeria: ["lagos", "Lagos"], ghana: ["accra", "Accra"], uganda: ["kampala", "Kampala"] };
 function houseCity(index) {
-  const cid = REEL_ORDER[index % REEL_ORDER.length];
+  const cid = REEL_ROTATION[index % REEL_ROTATION.length];
   const r = corridors.receivers.find((x) => x.id === cid);
   const c = HOUSE_MAIN_CITY[cid];
   return c ? { cid, city: c[0], label: c[1], country: r.name } : { cid, city: "country", label: r.name, country: r.name };
@@ -153,10 +171,15 @@ export function materialPrices(visit) {
     return { cid, country: c.name, currency: c.currency, price: pr.price, usd: pr.price * fx, source: pr.source || "" };
   }).filter(Boolean);
   if (listed.length < 4) return null;
-  // Each time the template comes round for this material it moves on four countries.
+  // Each time the template comes round for this material it moves on: two of the biggest-audience
+  // countries that list their own price (Kenya, Nigeria, Ghana, Uganda, Zimbabwe) plus two others.
   const round = Math.floor(visit / MATERIALS.length);
-  const start = (round * 4) % listed.length;
-  const pick = Array.from({ length: 4 }, (_, i) => listed[(start + i) % listed.length]).sort((a, b) => a.usd - b.usd);
+  const core = listed.filter((x) => AUDIENCE_WEIGHT[x.cid]), rest = listed.filter((x) => !AUDIENCE_WEIGHT[x.cid]);
+  const take = (arr, n, start) => Array.from({ length: Math.min(n, arr.length) }, (_, i) => arr[(start + i) % arr.length]);
+  const nCore = Math.min(2, core.length);
+  let pick = [...take(core, nCore, round * 2), ...take(rest, 4 - nCore, round * 2)];
+  if (pick.length < 4) pick = [...pick, ...take(listed.filter((x) => !pick.includes(x)), 4 - pick.length, 0)];
+  pick = pick.slice(0, 4).sort((a, b) => a.usd - b.usd);
   return { mat, rows: pick };
 }
 
@@ -395,7 +418,7 @@ export function buildPlan(now = new Date(), forceTemplate = null) {
   const date = nairobiDate(now);
   const index = dayIndex(date);
   const templates = schedule.templates || ["route"];
-  let template = forceTemplate || templates[index % templates.length];
+  let template = forceTemplate || pickTemplate(date, templates, weights);
   if (template === "rate-move" && !buildReel("rate-move", date, index)) { if (forceTemplate) return null; template = "route"; }
   const reel = buildReel(template, date, index);
   if (!reel) return null;
