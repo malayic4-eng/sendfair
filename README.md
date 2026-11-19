@@ -83,11 +83,11 @@ How the site treats age: older than 36 hours shows "Not rechecked today", ranks 
 When a program approves you, open `data/providers.json` on GitHub (pencil icon), paste the link into that provider's `affiliateUrl`, commit. If the network supports a tracking or sub-ID parameter, put `{route}` there (for example `...&subid={route}`) and each route's earnings show separately in the network's reports.
 
 ### Flying-home pages and travel links (`data/partners.json` → `travel`)
-`/flying-home/` and one page per country compare flights home, recommend a travel eSIM, and link back to the transfer routes. Today the buttons open Google Flights and Airalo directly and earn nothing. Once Travelpayouts (no traffic minimum) approves you:
-1. In Travelpayouts, connect the flight brand and Airalo, and make a tracked link for each.
-2. Paste the flight brand's search URL into `flightsUrl`, using `{from}` and `{to}` for the codes (e.g. LON, NBO) or `{fromCity}` and `{toCity}` for the names.
-3. Paste Travelpayouts' tracked link into `flightsWrap` with the destination part replaced by `{url}`. Do the same for `esimUrl` and `esimWrap`.
-The links then show as affiliate links and the disclosure page updates itself. Clicks are counted under routes named `fly-<country>`.
+`/flying-home/` and one page per country compare flights home, recommend a travel eSIM, and link back to the transfer routes. The buttons are Travelpayouts tracked links (partner ID 807652, project "Sendfair" 602820), approved 19 Nov 2026:
+- **Flights:** Aviasales (program 100). `flightsUrl` opens the route pre-filled (`?params=LONNBO1`), and `flightsWrap` is the Travelpayouts link with the destination as `{url}`.
+- **eSIM:** Airalo (program 541), same pattern in `esimUrl` and `esimWrap`.
+- Travelpayouts Drive (`travelpayoutsDriveSrc` in `config.json`) runs on the flying-home pages only.
+Clicks are counted under routes named `fly-<country>`, and bookings show in the Travelpayouts dashboard. To switch brands, generate a full link in Travelpayouts (Create link → Show full link) and replace the part after `u=` with `{url}`.
 
 ### Sponsored listings on the house calculator (`data/partners.json` → `sponsors`)
 Sell up to three listings per country to builders, suppliers, SACCOs and banks. The pitch page is `/advertise/`. To publish one, add it to `sponsors`:
