@@ -1154,6 +1154,10 @@ const FR_RECEIVERS = new Set(["senegal", "ivorycoast", "mali", "cameroon", "drc"
 const frRouteRel = (s, r) => `fr/send-money/${s.id}-to-${r.id}/`;
 const frHubRel = (r) => `fr/send-money-to/${r.id}/`;
 const frRateRel = (s, r) => `fr/rates/${s.currency.toLowerCase()}-to-${r.currency.toLowerCase()}/`;
+// French rate pages exist only for these senders' currencies. Page generation and the English
+// pages' hreflang alternates both use this, so an alternate never points at a page that isn't built.
+const FR_RATE_SENDER_CURRENCIES = new Set(["EUR", "CAD", "USD"]);
+const hasFrRatePage = (s, r) => FR_RECEIVERS.has(r.id) && FR_RATE_SENDER_CURRENCIES.has(s.currency);
 const rateFr = (v) => Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 4 });
 const frLd = (items) => items.filter(Boolean).map((x) => ({ ...x, inLanguage: "fr" }));
 const frPayout = (key) => t("route." + ({ bank: "payoutBank", mobile: "payoutMobile", cash: "payoutCash" }[key] || "payoutBank"));
@@ -1323,9 +1327,7 @@ function writeFrenchPages() {
     frHubPage(r);
   }
   for (const { s, r } of ratePairs) {
-    if (!FR_RECEIVERS.has(r.id)) continue;
-    if (!["EUR", "CAD", "USD"].includes(s.currency)) continue;
-    frRatePage(s, r);
+    if (hasFrRatePage(s, r)) frRatePage(s, r);
   }
 }
 // ---- Partners: house-calculator sponsors, flights home, eSIMs (data/partners.json) ----
@@ -2616,7 +2618,7 @@ ${faqBlock(faqs)}
     title: `${s.currency} to ${r.currency} today: rate, 30-day history and best service | ${config.siteName}`,
     description: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}, the 30-day range and the best service for your amount. Checked ${dateLong}.`,
     jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd],
-    alternates: FR_RECEIVERS.has(r.id) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRateRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
+    alternates: hasFrRatePage(s, r) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRateRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
     body }));
   if (pairHasData) urls.push(rel);
 }
