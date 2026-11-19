@@ -91,7 +91,7 @@ async function render(request, env, ctx) {
   const res = new Response(png, {
     headers: {
       "Content-Type": "image/png",
-      // Rate data is refreshed roughly every 30 minutes; the key already changes with the data.
+      // Rate data is refreshed roughly every hour; the key already changes with the data.
       "Cache-Control": "public, max-age=1800, s-maxage=1800",
       "Access-Control-Allow-Origin": "*"
     }
