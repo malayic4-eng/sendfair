@@ -747,6 +747,7 @@
     fillReportProviders(c);
     renderPhone(c);
     ensureFilters(c);
+    if (SF.alertSync) SF.alertSync(c);
     fixCopy(c);
   }
 
@@ -890,7 +891,6 @@
     document.querySelectorAll("[data-payout]").forEach(function (b) {
       b.addEventListener("click", function () { setPayout(b.getAttribute("data-payout")); render(); });
     });
-    setupAlerts();
 
     var copy = $("sf-copy");
     if (copy) copy.addEventListener("click", function () {
@@ -900,59 +900,6 @@
         navigator.clipboard.writeText(url).then(done, function () { $("sf-share-msg").textContent = url; });
       } catch (e) { $("sf-share-msg").textContent = url; }
     });
-
-    // Rate alert on route pages: saved through /api/alert; a confirmation email follows.
-    var af = $("sf-alert-route");
-    if (af) af.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var msg = $("sf-alert-msg"), btn = af.querySelector("button");
-      var via = (af.querySelector('input[name="sf-alert-via"]:checked') || {}).value || "email";
-      var body = { route: af.getAttribute("data-route"), email: af.email.value.trim(), amount: parseFloat(af.amount.value), target: parseFloat(af.target.value), via: via, whatsapp: (af.whatsapp && af.whatsapp.value || "").trim() };
-      if (window.turnstile) { var tk = window.turnstile.getResponse(); if (!tk) { msg.textContent = "Please complete the captcha."; return; } body.turnstile = tk; }
-      if (via === "whatsapp") {
-        if (!/^\+?[0-9\s-]{8,}$/.test(body.whatsapp)) { msg.textContent = "Enter a WhatsApp number with country code."; $("sf-alert-wa").focus(); return; }
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.email)) { msg.textContent = "Enter a valid email address."; af.email.focus(); return; }
-      if (!(body.amount > 0) || !(body.target > 0)) { msg.textContent = "Enter both amounts."; return; }
-      btn.disabled = true; msg.textContent = "Saving…";
-      fetch(root + "api/alert", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-        .then(function (x) {
-          btn.disabled = false;
-          if (!x.ok) { msg.textContent = x.d.error || "Could not save your alert. Try again."; return; }
-          msg.textContent = via === "whatsapp"
-            ? (x.d.pending ? "Saved. We'll send a WhatsApp confirmation to " + body.whatsapp + " when the target is hit." : "Alert saved for WhatsApp " + body.whatsapp + ".")
-            : (x.d.pending ? "Saved. We'll send a confirmation email to " + body.email + " within a day; click it to switch the alert on." : "Check your email: click the link we sent to " + body.email + " to switch the alert on.");
-          af.email.value = "";
-        })
-        .catch(function () { btn.disabled = false; msg.textContent = "Could not save your alert. Check your connection and try again."; });
-    });
-
-    var alertForm = $("sf-alert-form");
-    if (alertForm && alertForm.getAttribute("data-demo") === "1") {
-      alertForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        $("sf-alert-msg").textContent = "Alerts are switched off in this preview. On the live site this adds the email to your mailing list.";
-      });
-    }
-
-    function setupAlerts() {
-      var af = $("sf-alert-route");
-      if (!af || $("sf-alert-via")) return;
-      var email = af.querySelector('input[type=email]');
-      if (!email) return;
-      var via = document.createElement("div");
-      via.className = "alert-via";
-      via.innerHTML = '<label><input type="radio" name="sf-alert-via" value="email" checked> Email</label>' +
-        '<label><input type="radio" name="sf-alert-via" id="sf-alert-via" value="whatsapp"> WhatsApp</label>';
-      email.parentNode.insertBefore(via, email);
-      var wa = document.createElement("input");
-      wa.type = "tel"; wa.name = "whatsapp"; wa.id = "sf-alert-wa"; wa.placeholder = "+254 7xx xxx xxx"; wa.hidden = true;
-      email.parentNode.insertBefore(wa, email.nextSibling);
-      via.addEventListener("change", function () {
-        var w = via.querySelector('input[value=whatsapp]').checked;
-        wa.hidden = !w; email.hidden = w; email.required = !w; wa.required = w;
-      });
-    }
 
     var rep = $("sf-report");
     if (rep) rep.addEventListener("submit", function (e) {
@@ -1000,6 +947,98 @@
         $("sf-results").innerHTML = '<div class="empty"><strong>Rates could not load.</strong><span>Check your connection and refresh the page.</span></div>';
       }
     });
+
+  // Rate alerts box (one per page): email + route, optional target. With a target the alert is saved
+  // through /api/alert; without one, or while target alerts are unavailable (503), the address is
+  // subscribed to the morning rate email instead, and the visitor is told which one they got.
+  (function () {
+    var f = $("sf-alert-form");
+    if (!f) return;
+    var msg = $("sf-alert-msg"), btn = f.querySelector('button[type="submit"]');
+    var from = $("sf-ab-from"), to = $("sf-ab-to"), amt = $("sf-ab-amount"), tgt = $("sf-ab-target");
+    var demo = f.getAttribute("data-demo") === "1";
+    var nl = f.getAttribute("action") || "";
+    var siteKey = f.getAttribute("data-turnstile") || "";
+    var touched = false, tsId = null, tsLoading = false;
+    f.querySelectorAll(".ab-js").forEach(function (el) { el.hidden = false; });
+    var defaults = cfg.defaultAmounts || {};
+    function cur(sel) { var o = sel && sel.options[sel.selectedIndex]; return o ? o.getAttribute("data-cur") : ""; }
+    function labels() {
+      if ($("sf-ab-scur")) $("sf-ab-scur").textContent = cur(from);
+      if ($("sf-ab-rcur")) $("sf-ab-rcur").textContent = cur(to);
+    }
+    if (from) from.addEventListener("change", function () { touched = true; var d = defaults[cur(from)]; if (d && amt) amt.value = d; if (tgt) { tgt.value = ""; tgt.placeholder = ""; } labels(); });
+    if (to) to.addEventListener("change", function () { touched = true; if (tgt) { tgt.value = ""; tgt.placeholder = ""; } labels(); });
+    // Follow the calculator's route until the visitor picks one in the box.
+    SF.alertSync = function (c) {
+      if (touched || !from || !to || !c || !c.s || !c.r) return;
+      var changed = from.value !== c.s.id || to.value !== c.r.id;
+      from.value = c.s.id; to.value = c.r.id; labels();
+      if (changed && amt) amt.value = defaults[c.s.currency] || amt.value;
+      var a = parseFloat(amt && amt.value), top = (c.amount === a) ? c.rows.filter(function (x) { return !x.stale; })[0] : null;
+      if (tgt && !tgt.value) tgt.placeholder = top ? "e.g. " + Math.ceil(top.gets * 1.01 / (top.gets >= 1000 ? 100 : 1)) * (top.gets >= 1000 ? 100 : 1) : "";
+    };
+    function loadTurnstile() {
+      if (!siteKey || tsLoading || tsId !== null) return;
+      tsLoading = true;
+      window.sfTsReady = function () {
+        try { tsId = window.turnstile.render("#sf-ab-ts", { sitekey: siteKey }); } catch (e) {}
+      };
+      var sc = document.createElement("script");
+      sc.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=sfTsReady";
+      sc.async = true; sc.defer = true;
+      document.head.appendChild(sc);
+    }
+    if (tgt) tgt.addEventListener("input", function () { if (tgt.value) loadTurnstile(); });
+    function newsletter(email) {
+      if (!nl) return Promise.reject(new Error("no newsletter"));
+      var fd = new URLSearchParams();
+      fd.append("email", email);
+      if (/embed-subscribe/.test(nl)) fd.append("embed", "1");
+      // The provider doesn't allow reading its reply from here, so a sent request counts as done.
+      return fetch(nl, { method: "POST", mode: "no-cors", body: fd });
+    }
+    function postForm() { HTMLFormElement.prototype.submit.call(f); }
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var email = ($("sf-email").value || "").trim();
+      var target = parseFloat(tgt && tgt.value), amount = parseFloat(amt && amt.value);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.textContent = "Enter a valid email address."; $("sf-email").focus(); return; }
+      if (demo) { msg.textContent = "Alerts are switched off in this preview."; return; }
+      var morning = "you'll get our morning rate email once you click the confirmation link we're sending to " + email + ".";
+      function viaNewsletter(lead) {
+        if (!nl) { btn.disabled = false; msg.textContent = lead ? lead + " Please try again later." : "Add a target amount to set an alert."; return; }
+        msg.textContent = "Signing you up…";
+        newsletter(email).then(function () {
+          btn.disabled = false;
+          msg.textContent = (lead ? lead + " Instead, " : "Almost done: ") + morning;
+        }).catch(function () { postForm(); });
+      }
+      btn.disabled = true;
+      if (!(target > 0)) { viaNewsletter(""); return; }
+      if (!(amount > 0)) { btn.disabled = false; msg.textContent = "Enter the amount you plan to send."; amt.focus(); return; }
+      var body = { route: from.value + "-" + to.value, email: email, amount: amount, target: target };
+      if (siteKey) {
+        var tk = window.turnstile && tsId !== null ? window.turnstile.getResponse(tsId) : "";
+        if (!tk) { btn.disabled = false; loadTurnstile(); msg.textContent = "Please complete the check below the target, then press the button again."; return; }
+        body.turnstile = tk;
+      }
+      msg.textContent = "Saving…";
+      fetch(f.getAttribute("data-api") || root + "api/alert", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, status: r.status, d: d }; }); })
+        .then(function (x) {
+          if (window.turnstile && tsId !== null) try { window.turnstile.reset(tsId); } catch (e) {}
+          if (x.status === 503) { viaNewsletter("Target alerts aren't switched on yet, so your target wasn't saved."); return; }
+          btn.disabled = false;
+          if (!x.ok) { msg.textContent = x.d.error || "Could not save your alert. Try again."; return; }
+          msg.textContent = x.d.pending
+            ? "Saved. We'll send a confirmation email to " + email + " within a day; click it to switch the alert on."
+            : "Check your email: click the link we sent to " + email + " to switch the alert on. We'll email you once when the target is reached.";
+          tgt.value = "";
+        })
+        .catch(function () { btn.disabled = false; msg.textContent = "Could not save your alert. Check your connection and try again."; });
+    });
+  })();
 
   // Services dropdown in the top menu: click to open, Escape or a click elsewhere closes it.
   (function () {

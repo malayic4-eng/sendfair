@@ -557,19 +557,43 @@ function reportSection(ctx) {
 </div></section>`;
 }
 
-function alerts() {
-  let body;
-  if (DEMO) {
-    body = `<form id="sf-alert-form" data-demo="1"><label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form><p id="sf-alert-msg" aria-live="polite"></p>`;
-  } else if (config.newsletterFormAction) {
-    const embed = String(config.newsletterFormAction).includes("embed-subscribe") ? `<input type="hidden" name="embed" value="1"><p><a href="https://buttondown.com/${esc(String(config.newsletterFormAction).split("/").pop())}">SendFair on Buttondown</a></p>` : "";
-    const wa = config.whatsappChannelUrl ? `<div style="margin-top:14px"><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>` : "";
-    body = `<form id="sf-alert-form" action="${esc(config.newsletterFormAction)}" method="post">${embed}<label for="sf-email" class="label" style="flex-basis:100%;color:inherit">Email for daily alerts</label><input id="sf-email" name="email" type="email" required placeholder="you@example.com"><button type="submit">Get rate alerts</button></form>${wa}`;
-  } else if (config.whatsappChannelUrl) {
-    body = `<div><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></div>`;
-  } else return "";
-  const confirm = config.newsletterFormAction ? " We ask you to confirm the address before the first message." : "";
-  return `<section class="alerts" id="alerts"><div class="wrap"><h2>Know when your rate moves</h2><p>One short message each morning: which service pays the most for your route today. Unsubscribe anytime.${confirm}</p>${body}</div></section>`;
+// One "Rate alerts" box for every page that has the comparison tool. Email + route, and an optional
+// target. With a target it posts to /api/alert (a one-off email when the route reaches it); without one,
+// or while /api/alert answers 503, it subscribes the address to the morning rate email
+// (config.newsletterFormAction). Without JavaScript the form posts the email to the newsletter only.
+function alerts(ctx, prefix = "") {
+  const nl = config.newsletterFormAction || "";
+  if (!nl && !config.whatsappChannelUrl && !DEMO) return "";
+  const s = ctx ? ctx.s : S0, r = ctx ? ctx.r : R0;
+  const amount = config.defaultAmounts[s.currency] || 300;
+  const top = ctx && ctx.amount === amount ? ctx.rows.find((x) => !x.stale) : null;
+  const hint = top ? Math.ceil((top.gets * 1.01) / (top.gets >= 1000 ? 100 : 1)) * (top.gets >= 1000 ? 100 : 1) : "";
+  const wa = config.whatsappChannelUrl ? `<p class="ab-wa"><a class="btn-light" href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow on WhatsApp</a></p>` : "";
+  if (!nl && !DEMO) return `<section class="alerts" id="alerts"><div class="wrap"><h2>Rate alerts</h2>${wa}</div></section>`;
+  const embed = String(nl).includes("embed-subscribe") ? `<input type="hidden" name="embed" value="1">` : "";
+  const ts = config.turnstileSiteKey && !DEMO ? ` data-turnstile="${esc(config.turnstileSiteKey)}"` : "";
+  const opt = (list, sel, lab) => list.map((x) => `<option value="${x.id}" data-cur="${x.currency}"${x.id === sel ? " selected" : ""}>${esc(lab(x))}</option>`).join("");
+  return `<section class="alerts" id="alerts"><div class="wrap">
+<h2>Rate alerts</h2>
+<p>Get our short morning rate email, or set a target and we email you once when the best service on your route reaches it. Unsubscribe anytime.</p>
+<form class="alert-box" id="sf-alert-form"${nl ? ` action="${esc(nl)}" method="post"` : ""} data-api="${prefix}api/alert"${ts}${DEMO ? ' data-demo="1"' : ""} novalidate>${embed}
+<div class="ab-row">
+<label class="ab-field ab-email"><span>Email</span><input id="sf-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+<label class="ab-field ab-js" hidden><span>Sending from</span><select id="sf-ab-from">${opt(corridors.senders, s.id, (x) => `${x.label} (${x.currency})`)}</select></label>
+<label class="ab-field ab-js" hidden><span>Sending to</span><select id="sf-ab-to">${opt(corridors.receivers, r.id, (x) => `${x.name} (${x.currency})`)}</select></label>
+</div>
+<fieldset class="ab-target ab-js" hidden><legend>Optional: email me once when they'd receive at least this much</legend>
+<div class="ab-row">
+<label class="ab-field"><span>When I send <b id="sf-ab-scur">${s.currency}</b></span><input id="sf-ab-amount" type="number" min="1" step="any" inputmode="decimal" value="${amount}"></label>
+<label class="ab-field"><span>they'd receive at least <b id="sf-ab-rcur">${r.currency}</b></span><input id="sf-ab-target" type="number" min="1" step="any" inputmode="decimal" placeholder="${hint ? `e.g. ${hint}` : "Leave empty for the morning email"}"></label>
+</div>
+<div class="ab-ts" id="sf-ab-ts"></div>
+</fieldset>
+<div class="ab-row"><button type="submit">Get rate alerts</button></div>
+<p class="ab-note">No target: the morning rate email${config.emailProvider ? ` from ${esc(config.emailProvider)}` : ""}; you confirm your address first. With a target: one email when it is reached, after a confirmation email. <a href="${link(prefix, "privacy/")}">Privacy</a></p>
+<p class="af-msg" id="sf-alert-msg" role="status" aria-live="polite"></p>
+</form>${wa}
+</div></section>`;
 }
 
 function houseNote(r, prefix) {
@@ -1943,18 +1967,6 @@ ${panels}
 }
 
 // Rate alert sign-up for one route.
-function alertForm(ctx) {
-  const top = ctx.rows.find((x) => !x.stale);
-  const target = top ? Math.ceil((top.gets * 1.01) / (top.gets >= 1000 ? 100 : 1)) * (top.gets >= 1000 ? 100 : 1) : "";
-  return `<form class="alert-form" id="sf-alert-route" data-route="${ctx.key}" novalidate>
-<div class="af-row"><label>When <span class="af-cur">${ctx.s.currency}</span> <input name="amount" type="number" min="1" step="any" inputmode="decimal" value="${ctx.amount}" required aria-label="Amount you send"></label>
-<label>delivers at least <span class="af-cur">${ctx.r.currency}</span> <input name="target" type="number" min="1" step="any" inputmode="decimal" value="${target}" required aria-label="Amount you want them to receive"></label></div>
-<div class="af-row"><label class="af-email">email me at <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label><button type="submit" class="btn">Set alert</button></div>
-${config.turnstileSiteKey ? `<div class="cf-turnstile" data-sitekey="${esc(config.turnstileSiteKey)}"></div><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>` : ""}
-<p class="note">We check once after each daily rate check and email you once when the best service reaches your target. One email to confirm, an unsubscribe link in every email, and nothing else. <a href="../../privacy/">Privacy</a></p>
-<p class="af-msg" id="sf-alert-msg" role="status"></p></form>`;
-}
-
 // A short paragraph about one route, written only from data: the receiving country's payout options
 // (data/corridors.json), the services checked and which of them pay to mobile money or cash, the
 // cheapest fresh quote and its cost against the mid-market rate, and the sending country's regulator.
@@ -2139,7 +2151,7 @@ ${corridors.senders.map((s) => { const rs = corridors.receivers.filter((r) => ro
 <p><a class="btn btn-ghost" href="${link("", "rates/")}">All exchange rates</a></p>
 <div class="section-head" style="margin-top:32px"><h2>Questions</h2></div>
 ${faqBlock(homeFaqs)}
-</div></section>` + alerts()
+</div></section>` + alerts(homeCtx, "")
 }));
 urls.push("");
 
@@ -2187,7 +2199,7 @@ for (const s of corridors.senders) {
       heading: `Send money from ${esc(s.short)} to ${esc(r.name)}`,
       sub: lede
     }) + `
-<nav class="secnav" aria-label="On this page"><div class="wrap"><a href="#rates">Rates by amount</a><a href="#history">Rate history</a><a href="#alert">Rate alert</a><a href="#tips">Good to know</a><a href="#faq">Questions</a></div></nav>
+<nav class="secnav" aria-label="On this page"><div class="wrap"><a href="#rates">Rates by amount</a><a href="#history">Rate history</a><a href="#alerts">Rate alerts</a><a href="#tips">Good to know</a><a href="#faq">Questions</a></div></nav>
 <section class="block"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h2 id="rates">${s.currency === r.currency ? esc(s.currency) + " transfer services compared" : esc(s.currency) + " to " + esc(r.currency) + ": today's rates by service"}</h2>
@@ -2199,8 +2211,6 @@ ${AMOUNT_PAGES[s.currency] ? `<h2 id="popular-amounts">Popular amounts</h2><ul c
 ${histChart(ctx)}
 ${(() => { const w = winsFor(ctx.key); if (w.days < 3) return ""; return `<h3>Who delivered the most, day by day</h3><p>Over the last ${w.days} days we checked this route, ${esc(joinList(w.wins.slice(0, 4).map(([id, c]) => `${(providers[id] || { name: id }).name} on ${c}`)))}. Ties count for each service.</p>`; })()}
 ${s.currency !== r.currency ? `<p class="note"><a href="${link(prefix, `rates/${s.currency.toLowerCase()}-to-${r.currency.toLowerCase()}/`)}">${esc(s.currency)} to ${esc(r.currency)} converter and today's rate</a></p>` : ""}
-<h2 id="alert">Get a rate alert</h2>
-${alertForm(ctx)}
 <h2>How to send money from ${esc(s.short)} to ${esc(r.name)}</h2>
 <ol class="howto">
 <li><strong>Compare today's options.</strong> Enter the amount you will pay above. The service at the top delivers the most ${esc(rCur)} after its fee and exchange-rate margin.</li>
@@ -2223,7 +2233,7 @@ ${config.whatsappNumber ? `<p class="wa"><a class="btn" href="https://wa.me/${es
 ${peopleAlsoAsk({ prefix, country: r.id, sender: s.id, topic: "send" })}
 <h2>Other routes</h2>
 <ul class="route-links">${corridors.receivers.filter((x) => x.id !== r.id).map((x) => `<li><a href="${link(prefix, corridorPath(s, x))}">${esc(s.label)} to ${esc(x.name)}</a></li>`).join("")}${corridors.senders.filter((x) => x.id !== s.id).map((x) => `<li><a href="${link(prefix, corridorPath(x, r))}">${esc(x.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
-</div></div></section>` + reportSection(ctx) + alerts();
+</div></div></section>` + reportSection(ctx) + alerts(ctx, prefix);
     // A route with no fresh quotes stays reachable but is kept out of search results and the sitemap until it is filled.
     write(rel + "index.html", page({
       prefix, canonical: rel, title, description, og: slug(s, r), noindex: !top,
@@ -2292,7 +2302,7 @@ ${faqBlock(faqs)}
 <h2 id="amounts">Other amounts from ${esc(s.short)} to ${esc(r.name)}</h2>
 <ul class="route-links">${pageAmounts.filter((a) => a !== amount).map((a) => `<li><a href="${link(prefix, amountPath(s, r, a))}">Send ${esc(amountLabel(a, s.currency))} to ${esc(r.name)}</a></li>`).join("")}</ul>
 <p><a href="${link(prefix, routeRel)}">Compare all services from ${esc(s.short)} to ${esc(r.name)}</a></p>
-</div></div></section>` + alerts();
+</div></div></section>` + alerts(ctx, prefix);
       } else {
         title = `Send ${amtSym} to ${r.name}: ${s.currency} to ${r.currency} transfer services`;
         description = `Compare ${s.currency} to ${r.currency} transfer services from ${s.short} to ${r.name} by what actually arrives. No online price for ${amtSym} is published yet.`;
@@ -2792,8 +2802,8 @@ const hasAds = !!config.adsenseClient;
 const today = new Date(NOW).toISOString().slice(0, 10);
 const privacyItems = [
   `<li><strong>Your comparison choices.</strong> Your route, amount and payout choice are saved only in your own browser so the tool remembers them. They are not sent to us.</li>`,
-  config.newsletterFormAction ? `<li><strong>Email for rate alerts.</strong> If you sign up, your email address is stored by ${esc(config.emailProvider || "our email service")} to send the alerts. Every message has an unsubscribe link.</li>` : "",
-  `<li><strong>Rate alerts.</strong> If you set a rate alert, we store your email address, the route, the amount and your target, so we can email you when it is reached. We send one confirmation email first and nothing else. Each alert is deleted once it fires, when you click the remove link in any of our emails, or after 12 months. Emails are sent by our email provider. To limit misuse we keep a one-way scrambled code made from your connection for two days.</li>`,
+  config.newsletterFormAction ? `<li><strong>Morning rate email.</strong> If you use the Rate alerts box without a target (or while target alerts are not available), your email address is sent to ${esc(config.emailProvider || "our email service")}, which stores it to send the morning rate email. You confirm the address first, and every message has an unsubscribe link.</li>` : "",
+  `<li><strong>Target rate alerts.</strong> If you set a target in the Rate alerts box, we store your email address, the route, the amount and your target, so we can email you when it is reached. We send one confirmation email first and nothing else. Each alert is deleted once it fires, when you click the remove link in any of our emails, or after 12 months. Emails are sent by our email provider. To limit misuse we keep a one-way scrambled code made from your connection for two days${config.turnstileSiteKey ? ", and the form uses Cloudflare Turnstile to check that a person, not a bot, is signing up" : ""}.</li>`,
   `<li><strong>WhatsApp rate bot.</strong> If you message our WhatsApp number, we keep a one-way hash of your number and the alerts you ask for (route, amount and target). While an alert is active we also keep the number itself, because Meta needs it to deliver that message; sending "stop" deletes the number and the alerts. We reply only to messages you send, inside WhatsApp's 24-hour service window, and never send marketing broadcasts.</li>`,
   config.reportsEnabled ? `<li><strong>Delivery-time reports.</strong> When you report how long a transfer took, we store the route, the service and the time range only. To stop repeated reports we keep a one-way hash made from your connection for two days; it cannot be turned back into your IP address.</li>` : "",
   config.trackClicks ? `<li><strong>Link clicks.</strong> We count how many times each "Go to" button is clicked on each route. The count is not linked to you.</li>` : "",
@@ -3172,7 +3182,7 @@ write("_headers", `/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://utt.impactcdn.com https://emrldco.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://translate.googleapis.com https://utt.impactcdn.com https://*.impact.com https://emrldco.com; frame-src https://*.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com https://challenges.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self' https://buttondown.com; object-src 'none'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://utt.impactcdn.com https://emrldco.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://buttondown.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://translate.googleapis.com https://utt.impactcdn.com https://*.impact.com https://emrldco.com; frame-src https://*.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com https://challenges.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self' https://buttondown.com; object-src 'none'
 /data/*
   Cache-Control: public, max-age=300
 /assets/fonts/*

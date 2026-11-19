@@ -492,14 +492,19 @@ details p { margin-top: 10px; color: var(--muted); }
 .key.mid::before { background: var(--link); }
 .key.best::before { background: var(--marigold); }
 .key-note { flex-basis: 100%; }
-/* Rate alert form */
-.alert-form { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: grid; gap: 10px; }
-.af-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
-.alert-form label { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: .92rem; flex-wrap: wrap; }
-.alert-form input { font: 650 1rem var(--font-body); color: var(--ink); background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px; padding: 7px 10px; width: 8.5em; min-height: 42px; }
-.alert-form .af-email { flex: 1 1 260px; }
-.alert-form .af-email input { width: auto; flex: 1 1 200px; min-width: 0; }
-.af-cur { font-size: .78rem; color: var(--muted); font-weight: 700; }
+/* Rate alerts box (on the indigo band) */
+.alerts .alert-box { display: grid; gap: 12px; max-width: 780px; }
+.alert-box [hidden] { display: none !important; }
+.alert-box .ab-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.ab-field { display: grid; gap: 4px; flex: 1 1 170px; min-width: 0; font-size: .8rem; font-weight: 650; color: var(--on-band-muted); }
+.ab-field b { color: var(--on-band); }
+.ab-email { flex: 2 1 260px; }
+.alerts .ab-field input, .alerts .ab-field select { width: 100%; flex: none; font: 600 1rem var(--font-body); color: var(--ink); background: var(--paper); padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--line-strong); min-height: 46px; }
+.ab-target { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 8px; }
+.ab-target legend { padding: 0; margin-bottom: 8px; font-size: .9rem; font-weight: 650; color: var(--on-band); }
+.alerts .ab-note { font-size: .8rem; margin: 0; }
+.alerts .ab-note a { color: inherit; }
+.alerts .af-msg { color: var(--on-band); }
 .af-msg { font-weight: 650; color: var(--leaf); min-height: 1em; }
 .tips { margin: 0; padding-left: 20px !important; display: grid; gap: 8px; }
 
