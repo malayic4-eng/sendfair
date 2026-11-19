@@ -276,7 +276,8 @@ export function buildPlan(now = new Date(), forceTemplate = null) {
   const worthImage = imageDay && ["house", "rate-move", "best-vs-average", "tip"].includes(template);
   const image = worthImage ? buildImage(reel) : null;
   // Ask for shares and follows (Facebook's suggestions), just above the hashtags.
-  const ask = { instagram: "Share this with someone who sends money home 🔁 Follow @sendfair for a new rate check every day.", facebook: "Share this with someone who sends money home 🔁 Follow SendFair for a new rate check every day.", tiktok: "Share with someone who sends money home 🔁 Follow for daily rate checks." };
+  const follow = "Follow us everywhere: sendfair.africa/follow";
+  const ask = { instagram: `Share this with someone who sends money home 🔁\n${follow}`, facebook: `Share this with someone who sends money home 🔁\n${follow}`, tiktok: `Share with someone who sends money home 🔁\n${follow}` };
   for (const k of Object.keys(ask)) {
     const c = reel.captions[k] || "";
     const at = c.lastIndexOf("\n\n#");
