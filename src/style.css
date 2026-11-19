@@ -764,3 +764,4 @@ details p { margin-top: 10px; color: var(--muted); }
   .site-nav .nav-drop a { padding: 8px 0; color: var(--on-band-muted); border-radius: 0; }
   .site-nav .nav-drop a:hover { background: none; color: var(--on-band); }
 }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

@@ -718,7 +718,7 @@ ${QC_TEST && QC_ON ? '<div class="qc-alert qc-test"><strong>Test mode.</strong> 
 <div class="qc-drop" id="qc-drop" role="button" tabindex="0" aria-labelledby="qc-files-label">
 <strong>Drop the quote here, or click to choose</strong>
 <span>PDF, JPG/PNG photo, XLSX or CSV · up to ${QC.limits.maxFiles} files · ${QC.limits.maxFileMb} MB each</span>
-<input id="qc-files" name="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.csv" required${disabled}>
+<label class="sr-only" for="qc-files">Choose the quote files (PDF, JPG, PNG, XLSX or CSV)</label><input id="qc-files" name="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.csv" required${disabled}>
 </div>
 <ul class="qc-files" id="qc-file-list" aria-live="polite"></ul>
 </div>
@@ -1030,9 +1030,9 @@ ${crumbNav(prefix, [[config.siteName, ""], ["Rate widget", rel]])}
   </div>
   <h2>Preview</h2>
   <div id="em-preview" style="max-width:360px"></div>
-  <h2>Your code</h2>
-  <p>Paste this where you want the widget to appear.</p>
-  <textarea id="em-code" rows="7" readonly style="width:100%;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace"></textarea>
+  <h2 id="em-code-h">Your code</h2>
+  <p id="em-code-help"><label for="em-code">Paste this code where you want the widget to appear.</label></p>
+  <textarea id="em-code" aria-describedby="em-code-help" rows="7" readonly style="width:100%;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace"></textarea>
   <p><button type="button" class="btn" id="em-copy">Copy the code</button> <span id="em-msg" aria-live="polite"></span></p>
 </div>
 <h2>Questions</h2>
