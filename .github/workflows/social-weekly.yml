@@ -16,6 +16,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Test the report and weights logic
+        run: node scripts/test-social-weekly.mjs
       - name: Send the weekly summary
         env:
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
@@ -23,15 +25,20 @@ jobs:
           BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
           # Owner's address for the internal report (a preview copy of a draft; never sent to subscribers).
           SOCIAL_REPORT_EMAIL: ${{ vars.SOCIAL_REPORT_EMAIL }}
+          # Fallback channel when Buttondown is not set up or fails (scripts/providers/notify.mjs).
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          OWNER_ALERT_EMAIL: ${{ secrets.OWNER_ALERT_EMAIL }}
+          OWNER_ALERT_FROM: ${{ secrets.OWNER_ALERT_FROM }}
+          OWNER_ALERT_WEBHOOK: ${{ secrets.OWNER_ALERT_WEBHOOK }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/social-weekly.mjs
-      - name: Commit the enriched log
+      - name: Commit the enriched log, per-post metrics and weights
         if: always()
         run: |
           git config user.name "sendfair-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/social/log.json
+          git add data/social/log.json data/social/performance.json data/social/weights.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Update social log with weekly views [skip ci]"
+          git commit -m "Update social metrics and weights (weekly) [skip ci]"
           git pull --rebase
           git push

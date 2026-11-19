@@ -26,6 +26,8 @@ import { resultImage } from "./og-worker.js";
 import { planResponse } from "./plan-worker.js";
 import { embedWidget, embedStats } from "./embed-worker.js";
 import { json } from "../functions/_lib.js";
+// Social comment reply drafts (admin only; see functions/social/comments-admin.js).
+import * as socialComments from "../functions/social/comments-admin.js";
 
 // Each service's own icon, as published on its website, fetched once by this Worker (via Google's
 // favicon service) and cached at Cloudflare. Visitors' browsers only ever talk to sendfair.africa.
@@ -178,6 +180,9 @@ export default {
         headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" }
       });
     }
+    // ---- Social comment replies (admin; the admin gate above has already run) ----
+    if (path === "/admin/comments" || path.startsWith("/admin/comments/")) return socialComments.handle(context);
+
     const qa = path.match(/^\/admin\/quote-checks\/api\/([a-z]+)$/);
     if (qa) {
       if (request.method === "GET") return quoteAdmin.onRequestGet(context, qa[1]);
