@@ -82,16 +82,28 @@ function grounding(corridors, quotes, mid, buildCosts, config, det, providers, f
   return lines.join("\n");
 }
 
+// Only the site's own pages may ask: the request must carry an Origin (or, failing that, a Referer) from
+// https://sendfair.africa or from the address the request came to (so workers.dev previews work).
+// Requests with neither header are refused. This stops casual scripted use; the IP limit below still applies.
+const SITE_ORIGIN = "https://sendfair.africa";
+export function sameSite(request, ownOrigin) {
+  const allowed = (o) => o === SITE_ORIGIN || o === ownOrigin;
+  const o = request.headers.get("Origin");
+  if (o) return allowed(o);
+  const ref = request.headers.get("Referer");
+  if (!ref) return false;
+  try { return allowed(new URL(ref).origin); } catch { return false; }
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = new URL(request.url).origin;
+  if (!sameSite(request, origin)) return json({ error: "Not allowed." }, 403);
   let body = {};
   try { body = await request.json(); } catch {}
   const question = String(body.question || body.q || "").trim().slice(0, 500);
   if (!question) return json({ error: "Ask a question." }, 400);
 
-  const reqOrigin = request.headers.get("Origin") || "";
-  if (reqOrigin && reqOrigin !== "https://sendfair.africa") return json({ error: "Not allowed." }, 403);
   if (env.SENDFAIR_KV) {
     const ip = request.headers.get("CF-Connecting-IP") || "unknown";
     const ipKey = "rl:ask:" + (await sha256(ip)).slice(0, 16) + ":" + Math.floor(Date.now() / 3600000);
