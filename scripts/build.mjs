@@ -1103,13 +1103,14 @@ ${crumbNav("../", [[config.siteName, ""], ["Remittance Cost Index", "reports/"]]
 <h1>SendFair Remittance Cost Index</h1>
 <p class="lede">A monthly, citable measure of what a typical transfer to Africa actually costs after the fee and the exchange-rate margin, built from the rates we check every day. Published under CC BY 4.0; please cite “Source: SendFair (sendfair.africa)”.</p>
 ${latest ? `<h2>Latest: ${esc(latest.label)}</h2><p>${esc(reportSummary(latest))}</p><p><a class="btn" href="${link("../", `reports/${latest.month}/`)}">Open the ${esc(latest.label)} report</a></p>` : "<p>No complete month of data yet. The first report appears on the 1st of the next month.</p>"}
-<h2>All months</h2>
-<ul class="route-links">${reports.slice().reverse().map((r) => `<li><a href="${link("../", `reports/${r.month}/`)}">${esc(r.label)} — ${pct(r.index)}</a></li>`).join("")}</ul>
+${reports.length ? `<h2>All months</h2>
+<ul class="route-links">${reports.slice().reverse().map((r) => `<li><a href="${link("../", `reports/${r.month}/`)}">${esc(r.label)} — ${pct(r.index)}</a></li>`).join("")}</ul>` : ""}
 ${reports.length > 1 ? `<h2>The index over time</h2>${reportLineSvg(series)}` : ""}
-<p class="note">The World Bank comparison uses ${esc(latest ? latest.wbLabel : "")}: <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener">remittanceprices.worldbank.org</a>.</p>
+${(() => { const wb = latest ? latest.wbLabel : ((config.regionalAverageCost || {}).label || ""); return `<p class="note">${latest ? `The World Bank comparison uses ${esc(wb)}` : `Each monthly report will be compared with ${wb ? "the " + esc(wb) : "the World Bank's Remittance Prices Worldwide data"}`}: <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener">remittanceprices.worldbank.org</a>.</p>`; })()}
 </div></div></section>`;
-  write("reports/index.html", page({ prefix: "../", canonical: "reports/", rank: false, og: "home", title: `Remittance Cost Index · ${config.siteName}`, description: "A monthly measure of the cost of sending money to Africa, built from SendFair's checked rates. CC BY 4.0.", jsonld: [crumbs([[config.siteName, ""], ["Remittance Cost Index", "reports/"]])], body: indexBody }));
-  urls.push("reports/");
+  // Until the first monthly report exists the index page has nothing to cite, so it stays out of search and the sitemap.
+  write("reports/index.html", page({ prefix: "../", canonical: "reports/", noindex: !latest, rank: false, og: "home", title: `Remittance Cost Index · ${config.siteName}`, description: "A monthly measure of the cost of sending money to Africa, built from SendFair's checked rates. CC BY 4.0.", jsonld: [crumbs([[config.siteName, ""], ["Remittance Cost Index", "reports/"]])], body: indexBody }));
+  if (latest) urls.push("reports/");
   for (const r of reports) {
     const rel = `reports/${r.month}/`;
     const body = `<section class="block page"><div class="wrap"><div class="prose wide">
