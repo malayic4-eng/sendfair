@@ -66,7 +66,7 @@ const dataUri = (file, mime) => `data:${mime};base64,${fs.readFileSync(file).toS
 const cache = new Map();
 export function asset(file, mime) { if (!file || !fs.existsSync(file)) return null; if (!cache.has(file)) cache.set(file, dataUri(file, mime)); return cache.get(file); }
 
-function background(pal, photo, zoom = 1, shade = "bottom") {
+function background(pal, photo, zoom = 1, shade = "bottom", W = 1080, H = 1920) {
   const defs = `<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${pal.top}"/><stop offset="1" stop-color="${pal.bottom}"/></linearGradient>
 <radialGradient id="glowA" cx="0.85" cy="0.12" r="0.55"><stop offset="0" stop-color="${pal.accent}" stop-opacity="0.45"/><stop offset="1" stop-color="${pal.accent}" stop-opacity="0"/></radialGradient>
 <radialGradient id="glowB" cx="0.1" cy="0.92" r="0.6"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
@@ -176,4 +176,71 @@ function darken(hex) {
 function providerLogo(ctx, label) {
   const hit = (ctx.providers || []).find((p) => String(label).includes(p.name));
   return hit ? asset(`src/logos/${hit.id}.png`, "image/png") : null;
+}
+
+// ---- Carousel slides (1080x1350, 4:5) in the same design as the Reel: the day's country photos
+// (the same 4K files and the same per-country rotation), header with logo and flag, white number
+// cards with provider logos, country palette and accent. Instagram crops every slide to the first
+// one's ratio, so all slides are 4:5.
+const CW = 1080, CH = 1350;
+const svg45 = (defs, body) => `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${CW}" height="${CH}" viewBox="0 0 ${CW} ${CH}"><defs>${defs}</defs>${body}</svg>`;
+function footer45(ctx) {
+  return `${t(M, CH - 104, 26, "#fff", `Checked ${esc(ctx.date)} · rates and fees from sendfair.africa`, { opacity: 0.75 })}<rect x="${M}" y="${CH - 82}" width="140" height="8" rx="4" fill="${ctx.pal.accent}"/>`;
+}
+function progress45(ctx, n, total) {
+  const dots = Array.from({ length: total }, (_, i) => `<rect x="${CW - M - (total - i) * 34 + 10}" y="${CH - 90}" width="${i === n - 1 ? 24 : 12}" height="12" rx="6" fill="${i === n - 1 ? ctx.pal.accent : "#ffffff"}" fill-opacity="${i === n - 1 ? 1 : 0.4}"/>`).join("");
+  return dots;
+}
+
+// Slide 1: the hook over the day's first photo, with a swipe cue.
+export function carouselCover(ctx, hook, tag, total) {
+  const bg = background(ctx.pal, ctx.photoA, 1, "bottom", CW, CH);
+  const f = fit(hook, [{ chars: 18, max: 3, size: 96, lh: 106 }, { chars: 22, max: 4, size: 80, lh: 90 }, { chars: 26, max: 5, size: 68, lh: 78 }]);
+  const y0 = 1060 - (f.lines.length - 1) * f.lh;
+  const lines = f.lines.map((l, i) => `<text x="${M}" y="${y0 + i * f.lh}" font-family="${FONT}" font-size="${f.size}" font-weight="700">${lineSpans(l, ctx.pal.accent)}</text>`).join("");
+  const pill = `<g transform="translate(${M},${y0 - f.size - 64})"><rect width="360" height="62" rx="31" fill="${ctx.pal.accent}"/>${t(180, 42, 28, "#111", "TODAY'S CHECK", { bold: true, anchor: "middle", ls: 2 })}</g>`;
+  // Arrow drawn as a shape: the brand font has no arrow glyph.
+  const swipe = `<g transform="translate(${CW - M - 230},${CH - 200})"><rect width="230" height="70" rx="35" fill="#ffffff"/>${t(92, 47, 32, darken(ctx.pal.top), "Swipe", { bold: true, anchor: "middle" })}<path d="M160 35 H196 M182 21 L196 35 L182 49" fill="none" stroke="${darken(ctx.pal.top)}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  return svg45(bg.defs, bg.body + header(ctx, tag) + pill + lines + `<rect x="${M}" y="${y0 + (f.lines.length - 1) * f.lh + 44}" width="200" height="10" rx="5" fill="${ctx.pal.accent}"/>` + swipe + footer45(ctx) + progress45(ctx, 1, total));
+}
+
+// One number per slide: the same white card as the Reel's number frames, with the provider logo.
+export function carouselRow(ctx, hook, rows, idx, n, total) {
+  const bg = background(ctx.pal, null, 1, "bottom", CW, CH);
+  const row = rows[idx];
+  const f = fit(hook, [{ chars: 32, max: 2, size: 46, lh: 56 }, { chars: 40, max: 3, size: 38, lh: 48 }]);
+  const head = f.lines.map((l, i) => `<text x="${M}" y="${300 + i * f.lh}" font-family="${FONT}" font-size="${f.size}" font-weight="700">${lineSpans(l, ctx.pal.accent)}</text>`).join("");
+  const cardY = 330 + f.lines.length * f.lh + 40;
+  const logo = providerLogo(ctx, row.label);
+  // Fit the figure inside the card (inner width 796 px; bold Figtree digits are about 0.7 em wide).
+  const valueSize = Math.max(64, Math.min(140, Math.floor(796 / (String(row.value).length * 0.7))));
+  const card = `<rect x="${M - 6}" y="${cardY + 18}" width="${CW - 2 * M + 12}" height="500" rx="56" fill="#000" opacity="0.28"/>
+<rect x="${M}" y="${cardY}" width="${CW - 2 * M}" height="500" rx="52" fill="#ffffff"/>
+<rect x="${M}" y="${cardY}" width="18" height="500" rx="9" fill="${ctx.pal.accent}"/>
+${t(M + 70, cardY + 120, 48, "#3a3f55", esc(row.label), { bold: true })}
+${logo ? `<g transform="translate(${CW - M - 70 - 112},${cardY + 44})"><rect width="112" height="112" rx="28" fill="#f3f4f8"/><image href="${logo}" x="12" y="12" width="88" height="88"/></g>` : ""}
+${t(M + 70, cardY + 320, valueSize, darken(ctx.pal.top), esc(row.value), { bold: true })}
+<rect x="${M + 70}" y="${cardY + 376}" width="${CW - 2 * M - 140}" height="14" rx="7" fill="${ctx.pal.accent}"/>
+${t(M + 70, cardY + 450, 30, "#6b7088", esc(idx === rows.length - 1 ? "the number that matters" : `${idx + 1} of ${rows.length}`))}`;
+  return svg45(bg.defs, bg.body + header(ctx, "") + head + card + footer45(ctx) + progress45(ctx, n, total));
+}
+
+// What the numbers mean, in one or two plain sentences, figures in the accent colour.
+export function carouselInsight(ctx, text, n, total) {
+  const bg = background(ctx.pal, null, 1, "bottom", CW, CH);
+  const f = fit(text, [{ chars: 22, max: 5, size: 74, lh: 88 }, { chars: 26, max: 6, size: 64, lh: 78 }, { chars: 30, max: 8, size: 54, lh: 66 }]);
+  const lines = f.lines.map((l, i) => `<text x="${M}" y="${470 + i * f.lh}" font-family="${FONT}" font-size="${f.size}" font-weight="700">${lineSpans(l, ctx.pal.accent)}</text>`).join("");
+  const label = `<g transform="translate(${M},300)"><rect width="380" height="62" rx="31" fill="${ctx.pal.accent}"/>${t(190, 42, 28, "#111", "WHAT THIS MEANS", { bold: true, anchor: "middle", ls: 2 })}</g>`;
+  return svg45(bg.defs, bg.body + header(ctx, "") + label + lines + footer45(ctx) + progress45(ctx, n, total));
+}
+
+// Last slide: save and share over the day's second photo.
+export function carouselCta(ctx, n, total) {
+  const bg = background(ctx.pal, ctx.photoB || ctx.photoA, 1, "bottom", CW, CH);
+  const pw = CW - 2 * M;
+  return svg45(bg.defs, bg.body + header(ctx, "") +
+    t(M, 720, 84, "#fff", "Save this for your", { bold: true }) + t(M, 820, 84, ctx.pal.accent, "next transfer", { bold: true }) +
+    t(M, 900, 38, "#fff", "Compare your own amount in seconds.", { opacity: 0.92 }) +
+    `<g transform="translate(${M},950)"><rect width="${pw}" height="116" rx="58" fill="#ffffff"/>${t(pw / 2, 77, 52, darken(ctx.pal.top), "sendfair.africa", { bold: true, anchor: "middle" })}</g>` +
+    t(M, 1130, 30, "#fff", "Share with someone who sends money home", { opacity: 0.85 }) + footer45(ctx) + progress45(ctx, n, total));
 }

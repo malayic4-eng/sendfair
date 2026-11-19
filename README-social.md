@@ -22,20 +22,41 @@ Routes rotate through `config.priorityRoutes`. Hashtags are per country in
 
 ## Carousel days
 
-On a `carouselDays` weekday the plan gets a `carousel` of four 1080×1350 slides built from the same
-ranked numbers as the Reel: cover, the figures, a tip or context line, and a call to action. The
-slides upload to R2 as `social/<date>/carousel-N.png`.
+On a `carouselDays` weekday the plan gets a carousel of 5–7 slides at 1080×1350 (4:5), rendered with
+the same renderer, Figtree fonts, country palette, header, flag, provider logos and the **same two
+4K country photos** the Reel would use that day (same per-country rotation in `data/social/photos.json`):
 
-- **Instagram**: native carousel. One child container per slide (`is_carousel_item=true`), a parent
-  with `media_type=CAROUSEL` and `children`, then `media_publish`. A carousel is a feed post, not a
-  Reel, and counts as one post toward the 50-a-day limit. Allowed: 2–10 slides.
+1. Hook over the day's first photo, with a swipe cue
+2. One figure per slide (the same ranked numbers as the Reel), with the provider logo
+3. "What this means": one plain sentence whose every figure comes from those numbers
+4. Save and share over the day's second photo
+
+Slides are encoded to JPEG (Instagram accepts JPEG only) at `-q:v 2` with 4:4:4 chroma, uploaded to
+R2 as `social/<date>/carousel-N.jpg`.
+
+- **Instagram**: native carousel (child containers with `is_carousel_item=true`, a `CAROUSEL` parent,
+  then `media_publish`). Counts as one post toward the 50-a-day limit. Music cannot be attached to
+  carousels through the API (Reels only).
 - **Facebook Page**: the cover slide as a single photo. Multi-photo posts are not wired up yet.
 - **TikTok**: unchanged, still gets the Reel every day (flag is off).
 - The Reel is still rendered and archived on carousel days for hand-posting.
-- Idempotency keys are `instagram-carousel` and `facebook-carousel`; log `type` is `carousel`. If the
-  carousel fails, Instagram posts the cover as an image and records `fallback: true`.
+- Idempotency keys `instagram-carousel` and `facebook-carousel`; log `type` is `carousel`. If the
+  carousel fails, Instagram posts the cover slide as an image and records `fallback: true`.
 
-To change the mix, edit `carouselDays` only. Compare the formats in the weekly summary and the log.
+To change the mix, edit `carouselDays` only.
+
+## Trial Reels and trending audio (Instagram)
+
+| Key | Default | Meaning |
+|---|---|---|
+| `igTrialReels` | true | Post Instagram Reels as Trial Reels (`trial_params`). Reels only |
+| `igTrialGraduation` | `SS_PERFORMANCE` | Share with followers automatically if the Reel performs well; `MANUAL` waits for you in the app |
+| `igAudioTrendingFirst` | true | Try Instagram's trending audio first, then the `igAudioQueries` genres |
+
+Trial Reels are shown to non-followers first and stay off the grid and followers' feeds unless they
+graduate. If Instagram refuses `trial_params` (for example an account that is not eligible yet), the
+Reel is posted as a normal Reel and the log shows `trial: false`. Set `igTrialReels` to false to
+stop trial posting.
 
 ## Daily flow
 

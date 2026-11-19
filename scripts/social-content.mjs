@@ -283,35 +283,45 @@ export function buildPlan(now = new Date(), forceTemplate = null) {
     reel.captions[k] = at >= 0 ? `${c.slice(0, at)}\n\n${ask[k]}${c.slice(at)}` : `${c}\n\n${ask[k]}`;
   }
   const carousel = (schedule.carouselDays || []).includes(wd) ? buildCarousel(reel) : null;
-  if (carousel) {
-    // Swipe prompt goes just above the hashtags, like the ask line.
-    for (const k of ["instagram", "facebook"]) {
-      const c = carousel.captions[k] || "";
-      const at = c.lastIndexOf("\n\n#");
-      carousel.captions[k] = at >= 0 ? `${c.slice(0, at)}\n\nSwipe through for the full numbers 👉${c.slice(at)}` : `${c}\n\nSwipe through for the full numbers 👉`;
-    }
-  }
   return { date, weekday: wd, template, route: reel.route, reel, image, carousel, generatedAt: now.toISOString(), schedule };
 }
 
-function slide3Headline(reel) {
-  if (reel.template === "tip") return reel.hook;
-  if (reel.template === "house") return "Every line is itemised. Read the receipt before you build.";
-  return "The fee is not the whole story. Check the amount you actually receive.";
+// Carousel script: slide 1 the hook over the day's photo, then one figure per slide (the same ranked
+// numbers as the Reel), then what the numbers mean in one plain sentence, then save/share over the
+// second photo. 5–7 slides. Every figure in the insight comes from reel.numbers.
+const nameOf = (label) => String(label || "").replace(/^[^:]*:\s*/, "");
+function insightFor(reel) {
+  const n = reel.numbers;
+  const byLabel = (re) => n.find((x) => re.test(x.label));
+  if (reel.template === "route") {
+    const best = byLabel(/^Best:/), low = byLabel(/^Lowest:/), extra = byLabel(/^Extra with/);
+    if (best && low && extra) return `On the same ${sendMoney(reel.amount, reel.currency)}, ${nameOf(best.label)} pays ${extra.value} more than ${nameOf(low.label)}. Same money sent, more at home.`;
+  }
+  if (reel.template === "best-vs-average") {
+    const avg = n[0], best = n[1], extra = n[2];
+    if (avg && best && extra) return `An average service keeps ${avg.value} of what you send. ${nameOf(best.label)} pays ${extra.value} more than the average today.`;
+  }
+  if (reel.template === "house") {
+    const [eco, std, lux] = n;
+    if (eco && std && lux) return `Standard finish adds ${money(std.final - eco.final, reel.receiveCurrency)} over economy. Luxury adds ${money(lux.final - std.final, reel.receiveCurrency)} more. Every line is on the receipt.`;
+  }
+  if (reel.template === "tip") {
+    const gap = n[n.length - 1];
+    if (gap) return `On ${reel.from} to ${reel.to} today, the gap between the best and the lowest service is ${gap.value}. Check before you send.`;
+  }
+  const best = byLabel(/^Best:/);
+  return best ? `${nameOf(best.label)} pays the most today: ${best.value}. Rates move, so check before every transfer.` : "Rates move every day. Check before every transfer.";
 }
-// Carousel: 4 slides (2–10 allowed), all from the same ranked numbers as the Reel.
-// Slide 1 cover, slide 2 the figures, slide 3 the tip or context, slide 4 the call to action.
 function buildCarousel(reel) {
   if (!reel || !reel.numbers || !reel.numbers.length) return null;
-  const rows = reel.numbers.slice(0, 4).map((n) => ({ label: n.label, value: n.value }));
-  const footnote = `Source: SendFair (sendfair.africa) · checked ${new Date(reel.checkDate + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}`;
-  const slides = [
-    { headline: reel.hook, rows: [], footnote, cta: "sendfair.africa" },
-    { headline: "The figures today", rows, footnote, cta: "sendfair.africa" },
-    { headline: slide3Headline(reel), rows: [], footnote, cta: "sendfair.africa" },
-    { headline: "Compare your own amount at sendfair.africa", rows: [], footnote, cta: "sendfair.africa" }
-  ];
-  return { slides, captions: { ...reel.captions, instagram: reel.captions.instagram, facebook: reel.captions.facebook } };
+  const captions = {};
+  for (const k of ["instagram", "facebook"]) {
+    const c = reel.captions[k] || "";
+    const at = c.lastIndexOf("\n\n#");
+    const add = "Swipe for the full numbers 👉 Save this for your next transfer 📌";
+    captions[k] = at >= 0 ? `${c.slice(0, at)}\n\n${add}${c.slice(at)}` : `${c}\n\n${add}`;
+  }
+  return { insight: insightFor(reel), captions };
 }
 
 const isCli = process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("social-content.mjs");

@@ -80,18 +80,20 @@ async function fbCaptions(videoId, pt) {
 // per day deterministically. Any failure returns null and the reel posts without music.
 async function pickIgAudio(igId, pt) {
   if (schedule.igMusic === false) return null;
-  const queries = (schedule.igAudioQueries && schedule.igAudioQueries.length ? schedule.igAudioQueries : ["afrobeats", "amapiano", "afropop", "highlife"]).concat([""]);
+  const genres = schedule.igAudioQueries && schedule.igAudioQueries.length ? schedule.igAudioQueries : ["afrobeats", "amapiano", "afropop", "highlife"];
   const recent = new Set((log.attempts || []).filter((a) => a.audioId).slice(-14).map((a) => a.audioId));
   const day = parseInt(createHash("sha256").update(plan.date).digest("hex").slice(0, 8), 16);
-  for (let i = 0; i < queries.length; i++) {
-    const q = queries[(day + i) % (queries.length - 1)] ;
-    const query = i === queries.length - 1 ? "" : q;
+  const rotated = genres.map((_, i) => genres[(day + i) % genres.length]);
+  // An empty query returns Instagram's trending audio (Audio API docs). Trending goes first unless
+  // igAudioTrendingFirst is false; the genre searches are the fallback.
+  const queries = schedule.igAudioTrendingFirst === false ? [...rotated, ""] : ["", ...rotated];
+  for (const query of queries) {
     for (const tk of [token, pt]) {
       try {
         const u = `https://graph.facebook.com/${version}/ig_audio?audio_type=music&user_id=${igId}${query ? "&search_query=" + encodeURIComponent(query) : ""}&access_token=${encodeURIComponent(tk)}`;
         const data = await fetch(u).then((r) => r.json());
-        const list = (data.audio || data.data || []).filter((a) => a.audio_id && (a.duration_in_ms || 30000) >= 15000 && !recent.has(String(a.audio_id)));
         if (data.error) { console.log(`[instagram] audio search "${query || "trending"}": ${data.error.message}`); continue; }
+        const list = (data.audio || data.data || []).filter((a) => a.audio_id && (a.duration_in_ms || 30000) >= 15000 && !recent.has(String(a.audio_id)));
         if (list.length) { const a = list[day % Math.min(list.length, 5)]; return { id: String(a.audio_id), title: a.title || "", artist: a.display_artist || "", query: query || "trending" }; }
         break;
       } catch (e) { console.log("[instagram] audio search failed:", e.message); }
@@ -99,10 +101,26 @@ async function pickIgAudio(igId, pt) {
   }
   return null;
 }
+// Trial Reels (trial_params, Reels only): shown to non-followers first. SS_PERFORMANCE shares the Reel
+// with followers automatically if it performs well; MANUAL waits for you in the app. If Instagram
+// refuses trial_params (for example an account not eligible yet), the Reel posts as a normal Reel.
+const trialParams = () => schedule.igTrialReels ? JSON.stringify({ graduation_strategy: schedule.igTrialGraduation || "SS_PERFORMANCE" }) : null;
+let igTrialUsed = false;
 async function igContainer(igId, pt, caption, audio) {
-  const body = { media_type: "REELS", video_url: reelUrl, caption, cover_url: coverUrl, share_to_feed: "true", access_token: pt };
-  if (audio) body.audio_configuration = JSON.stringify({ audio_id: audio.id, audio_volume: 80, video_volume: 100 });
-  return fetch(`https://graph.facebook.com/${version}/${igId}/media`, { method: "POST", body: new URLSearchParams(body) }).then((r) => r.json());
+  const make = (trial) => {
+    const body = { media_type: "REELS", video_url: reelUrl, caption, cover_url: coverUrl, share_to_feed: "true", access_token: pt };
+    if (audio) body.audio_configuration = JSON.stringify({ audio_id: audio.id, audio_volume: 80, video_volume: 100 });
+    if (trial) body.trial_params = trial;
+    return fetch(`https://graph.facebook.com/${version}/${igId}/media`, { method: "POST", body: new URLSearchParams(body) }).then((r) => r.json());
+  };
+  const trial = trialParams();
+  if (trial) {
+    const c = await make(trial);
+    if (c.id) { igTrialUsed = true; return c; }
+    console.log("[instagram] trial Reel refused, posting as a normal Reel:", JSON.stringify(c.error || c).slice(0, 200));
+  }
+  igTrialUsed = false;
+  return make(null);
 }
 let igAudioUsed = null;
 async function igReel(igId, pt, caption) {
@@ -134,8 +152,8 @@ async function igReel(igId, pt, caption) {
   if (!pub.id) throw new Error(JSON.stringify(pub.error || pub));
   return pub.id;
 }
-async function igImage(igId, pt, caption) {
-  const c = await fetch(`https://graph.facebook.com/${version}/${igId}/media`, { method: "POST", body: new URLSearchParams({ image_url: imageUrl, caption, access_token: pt }) }).then((r) => r.json());
+async function igImage(igId, pt, caption, url = imageUrl) {
+  const c = await fetch(`https://graph.facebook.com/${version}/${igId}/media`, { method: "POST", body: new URLSearchParams({ image_url: url, caption, access_token: pt }) }).then((r) => r.json());
   if (!c.id) throw new Error(JSON.stringify(c.error || c));
   await sleep(5000);
   const pub = await fetch(`https://graph.facebook.com/${version}/${igId}/media_publish`, { method: "POST", body: new URLSearchParams({ creation_id: c.id, access_token: pt }) }).then((r) => r.json());
@@ -178,7 +196,7 @@ async function igCarousel(igId, pt, caption, urls) {
 }
 // Carousel days: slides go to Instagram as a carousel and to Facebook as the cover photo. The Reel is
 // not posted to Instagram or Facebook on those days (the mix is set in schedule.json).
-const carouselUrls = () => (plan.carousel && plan.carousel.slides ? plan.carousel.slides.map((_, i) => `${process.env.R2_PUBLIC_BASE}/social/${plan.date}/carousel-${i + 1}.png`) : []);
+const carouselUrls = () => (manifest.carousel && manifest.carousel.slides ? manifest.carousel.slides.map((f) => `${process.env.R2_PUBLIC_BASE}/social/${plan.date}/${f}`) : []);
 async function postCarouselDay(igId, pt) {
   const kIg = idem("instagram-carousel");
   const urls = carouselUrls();
@@ -191,7 +209,7 @@ async function postCarouselDay(igId, pt) {
     } catch (e) {
       record({ platform: "instagram", type: "carousel", status: "failed", idem: kIg, error: String(e.message || e).slice(0, 300) });
       // Fallback: the cover slide as a single image, recorded as such.
-      if (urls[0]) { try { const id = await igImage(igId, pt, plan.carousel.captions.instagram); record({ platform: "instagram", type: "image", status: "posted", postId: id, idem: idem("instagram-carousel-cover"), fallback: true }); } catch (e2) { record({ platform: "instagram", type: "image", status: "failed", idem: idem("instagram-carousel-cover"), fallback: true, error: String(e2.message || e2).slice(0, 300) }); } }
+      if (urls[0]) { try { const id = await igImage(igId, pt, plan.carousel.captions.instagram, urls[0]); record({ platform: "instagram", type: "image", status: "posted", postId: id, idem: idem("instagram-carousel-cover"), fallback: true }); } catch (e2) { record({ platform: "instagram", type: "image", status: "failed", idem: idem("instagram-carousel-cover"), fallback: true, error: String(e2.message || e2).slice(0, 300) }); } }
     }
   } else record({ platform: "instagram", type: "carousel", status: "skipped", idem: kIg, error: "no Instagram Business account" });
 }
@@ -228,10 +246,10 @@ async function main() {
 
   if (DRY) {
     if (plan.carousel) {
-      record({ platform: "instagram", type: "carousel", status: "dry-run", idem: idem("instagram-carousel"), slides: (plan.carousel.slides || []).length });
+      record({ platform: "instagram", type: "carousel", status: "dry-run", idem: idem("instagram-carousel"), slides: ((manifest.carousel || {}).slides || []).length });
       record({ platform: "facebook", type: "carousel", status: "dry-run", idem: idem("facebook-carousel"), note: "cover slide as a photo" });
     } else {
-      record({ platform: "instagram", type: "reel", status: "dry-run", idem: kIg, link: manifest.captions.instagram.match(/https?:\S+/)?.[0] || "" });
+      record({ platform: "instagram", type: "reel", status: "dry-run", idem: kIg, trial: !!trialParams(), link: manifest.captions.instagram.match(/https?:\S+/)?.[0] || "" });
       record({ platform: "facebook", type: "reel", status: "dry-run", idem: kFb, link: manifest.captions.facebook.match(/https?:\S+/)?.[0] || "" });
     }
     record({ platform: "tiktok", type: "reel", status: "dry-run", idem: idem("tiktok") });
@@ -254,7 +272,7 @@ async function main() {
     try {
       if (!reelUrl) throw new Error("no public REEL_URL");
       const id = await igReel(igId, pt, reelCaption.instagram);
-      record({ platform: "instagram", type: "reel", status: "posted", postId: id, idem: kIg, link: reelCaption.instagram.match(/https?:\S+/)?.[0] || "", ...(igAudioUsed ? { audioId: igAudioUsed.id, audio: `${igAudioUsed.title} — ${igAudioUsed.artist}` } : {}) });
+      record({ platform: "instagram", type: "reel", status: "posted", postId: id, idem: kIg, trial: igTrialUsed, link: reelCaption.instagram.match(/https?:\S+/)?.[0] || "", ...(igAudioUsed ? { audioId: igAudioUsed.id, audio: `${igAudioUsed.title} — ${igAudioUsed.artist}` } : {}) });
     } catch (e) {
       record({ platform: "instagram", type: "reel", status: "failed", idem: kIg, error: String(e.message || e).slice(0, 300) });
       if (imageUrl) { try { const id = await igImage(igId, pt, reelCaption.instagram); record({ platform: "instagram", type: "image", status: "posted", postId: id, idem: idem("instagram-image"), fallback: true }); } catch (e2) { record({ platform: "instagram", type: "image", status: "failed", idem: idem("instagram-image"), fallback: true, error: String(e2.message || e2).slice(0, 300) }); } }

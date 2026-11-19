@@ -117,7 +117,44 @@ for (const template of templates) {
       if (!(secs >= schedule.reel.minSeconds - 0.2 && secs <= schedule.reel.maxSeconds + 0.2)) add(`${template} mp4 duration ${secs}`);
       if (bytes >= 15000000) add(`${template} mp4 ${Math.round(bytes / 1048576)} MB`);
     }
-    console.log(`ok ${template}: ${manifest.durationSeconds}s${ffmpeg ? `, ${(fs.statSync(`data/social/reels/${plan.date}/reel.mp4`).size / 1048576).toFixed(1)} MB` : " (stills only, no ffmpeg)"}`);
+    // Carousel (carousel days): 2–10 slides, all 4:5 1080x1350, JPEG under 8 MB (Instagram accepts
+    // JPEG only), and every figure in the insight slide traced back to the ranked numbers.
+    if (plan.carousel) {
+      const c = manifest.carousel;
+      if (!c || !c.slides) add(`${template} carousel missing from manifest`);
+      else {
+        if (c.slides.length < 2 || c.slides.length > 10) add(`${template} carousel has ${c.slides.length} slides`);
+        if (c.slides.length !== plan.reel.numbers.length + 3) add(`${template} carousel slide count ${c.slides.length}`);
+        for (const f of c.slides) {
+          const file = `data/social/reels/${plan.date}/${f}`;
+          if (ffmpeg) {
+            if (!f.endsWith(".jpg")) add(`${template} ${f} is not JPEG`);
+            const b = fs.readFileSync(file);
+            if (b[0] !== 0xff || b[1] !== 0xd8) add(`${template} ${f} is not a real JPEG`);
+            if (b.length >= 8 * 1024 * 1024) add(`${template} ${f} over 8 MB`);
+            const pr = JSON.parse(execFileSync("ffprobe", ["-v", "error", "-show_entries", "stream=width,height", "-of", "json", file]).toString()).streams[0];
+            if (pr.width !== 1080 || pr.height !== 1350) add(`${template} ${f} ${pr.width}x${pr.height}`);
+          } else {
+            const s = pngSize(file);
+            if (s.w !== 1080 || s.h !== 1350) add(`${template} ${f} ${s.w}x${s.h}`);
+          }
+        }
+        const values = plan.reel.numbers.map((n) => n.value);
+        const figs = String(plan.carousel.insight).match(/\b[A-Z]{3} [\d,]+(\.\d+)?|[+-]?\d+(\.\d+)?%/g) || [];
+        for (const fig of figs) {
+          if (values.includes(fig)) continue;
+          if (template === "house") {
+            const [eco, std, lux] = plan.reel.numbers.map((n) => n.final);
+            const cur = plan.reel.receiveCurrency;
+            const ok = [std - eco, lux - std].some((v) => fig === `${cur} ${Number(v).toLocaleString("en", { maximumFractionDigits: v >= 1000 ? 0 : 2, minimumFractionDigits: v >= 1000 ? 0 : 2 })}`);
+            if (ok) continue;
+          }
+          add(`${template} insight figure "${fig}" not from the ranked numbers`);
+        }
+        if (!/Swipe/.test(plan.carousel.captions.instagram) || !plan.carousel.captions.instagram.includes("?ref=ig")) add(`${template} carousel caption missing swipe line or ?ref=ig`);
+      }
+    }
+    console.log(`ok ${template}: ${manifest.durationSeconds}s${plan.carousel && manifest.carousel ? `, carousel ${manifest.carousel.slides.length} slides` : ""}${ffmpeg ? `, ${(fs.statSync(`data/social/reels/${plan.date}/reel.mp4`).size / 1048576).toFixed(1)} MB` : " (stills only, no ffmpeg)"}`);
   } catch (e) {
     add(`${template} render: ${e.message || e}`);
   }
