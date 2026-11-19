@@ -136,3 +136,18 @@ ranking. Without ffmpeg it validates the stills and the manifest and says so.
 `.github/workflows/social-weekly.yml` (Mondays 07:00 UTC) reads the log, fetches plays/reach where
 the Graph API allows, flags templates under half the average for two weeks, lists the last 14 days'
 artifacts and emails it through Buttondown (or prints it if the key is absent).
+
+## TikTok and YouTube Shorts from the Worker (`/admin/social`)
+
+The Worker posts the day's Reel itself, so no GitHub or Worker secrets are needed. The owner opens
+`https://sendfair.africa/admin/social/` (Rate Desk sign-in), saves the TikTok and Google app
+credentials, presses **Connect**, and the page holds step-by-step setup instructions.
+
+- Cron `*/20 17-21 * * *` (UTC) reads `<socialMediaBase>/social/<Nairobi date>/manifest.json`; when it
+  exists, it streams `reel.mp4` straight into TikTok (Direct Post, `FILE_UPLOAD`, one chunk) and
+  YouTube (resumable upload, `#Shorts` title from `manifest.captions.youtube`).
+- Credentials, tokens, OAuth state and results live in `SENDFAIR_KV` (`social:*`, `posted:<platform>:<date>`).
+  A day is claimed (`in-progress`) before uploading; failed runs retry up to 3 times a day; an
+  interrupted upload is not retried automatically (use **Post today's Reel now**).
+- Keep `schedule.tiktok` false for the GitHub TikTok path while the Worker posts to TikTok, or TikTok gets the Reel twice.
+- Code: `functions/social/`; test: `node scripts/test-social-connect.mjs`.
