@@ -475,6 +475,17 @@ function phone(ctx) {
 </figure>`;
 }
 
+// First-transfer offers: the button (added by src/app.js) and the hint in the ranking note only
+// appear on a route where at least one checked quote publishes a first-transfer rate.
+function routeHasPromo(key) {
+  const feed = (wiseFeedData.routes || {})[key] || {};
+  return [...(quotes[key] || []), ...Object.values(feed)].some((q) => q && ((q.promo && Number(q.promo.rate) > 0) || R.promoRate(q) > 0));
+}
+function resultsHtml(ctx) {
+  const html = R.renderResults(ctx);
+  return routeHasPromo(ctx.key) ? html : html.replace(" (turn on first-transfer offers above if you are new)", "");
+}
+
 function tool({ heading, sub, ctx, after = "" }) {
   const baseQuick = STEP_AMOUNTS[ctx.s.currency] || [];
   const quickList = baseQuick.indexOf(ctx.amount) > -1 ? baseQuick : [...baseQuick, ctx.amount].sort((a, b) => a - b);
@@ -488,11 +499,11 @@ function tool({ heading, sub, ctx, after = "" }) {
     <div class="field"><label for="sf-from">Sending from</label><select id="sf-from">${corridors.senders.map((s) => `<option value="${s.id}"${s.id === ctx.s.id ? " selected" : ""}>${esc(s.label)} (${s.currency})</option>`).join("")}</select></div>
     <div class="field"><label for="sf-to">Sending to</label><select id="sf-to">${corridors.receivers.map((r) => `<option value="${r.id}"${r.id === ctx.r.id ? " selected" : ""}>${esc(r.name)} (${r.currency})</option>`).join("")}</select></div>
     <div class="field amount-field"><label for="sf-amount" id="sf-amount-label">You pay in total</label><div class="amount-wrap"><button type="button" id="sf-mode" class="mode-btn" title="Switch between the amount you pay and the amount they need">Pay <span class="mode-cur">${ctx.s.currency}</span><span class="mode-ic" aria-hidden="true">⇄</span></button><span id="sf-cur" hidden>${ctx.s.currency}</span><input id="sf-amount" type="number" inputmode="decimal" min="1" step="any" value="${ctx.amount}"><span class="quick" id="sf-quick" role="group" aria-label="Common amounts">${quickList.map((a) => `<button type="button" data-amt="${a}" aria-pressed="${a === ctx.amount}">${a >= 1000 ? a / 1000 + "k" : a}</button>`).join("")}</span></div></div>
-    <div class="field payout-field"><span class="label" id="sf-payout-label">They receive by</span><div class="payout-tabs" role="group" aria-labelledby="sf-payout-label">
+    <div class="filters-row"><div class="field payout-field"><span class="label" id="sf-payout-label">They receive by</span><div class="payout-tabs" role="group" aria-labelledby="sf-payout-label">
       <button type="button" data-payout="all" aria-pressed="true">Any</button><button type="button" data-payout="mobile" aria-pressed="false">Mobile<span class="lg"> money</span></button><button type="button" data-payout="bank" aria-pressed="false">Bank</button><button type="button" data-payout="cash" aria-pressed="false">Cash</button>
-    </div></div>
+    </div></div></div>
   </div>
-  <div id="sf-results">${R.renderResults(ctx)}</div>
+  <div id="sf-results">${resultsHtml(ctx)}</div>
   <div class="tool-meta" id="sf-meta">${R.metaLine(ctx)}</div>
   <p class="note" id="sf-note"${ctx.r.note ? "" : " hidden"}>${esc(ctx.r.note)}</p>
 </div>

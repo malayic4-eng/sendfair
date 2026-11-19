@@ -672,7 +672,10 @@
     var amount = target === undefined ? entered : NaN;
     var mid = R.midRate(S.mid, s.currency, r.currency);
     var list = S.quotes[k] || [];
-    var opts = { list: list, feed: S.feed[k] || null, providers: S.providers, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: S.promo, customer: S.promo ? "new" : "", mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72, handLockH: cfg.preferAutoAfterHours || cfg.handLockHours || 6, refAmount: (cfg.defaultAmounts || {})[s.currency] };
+    // First-transfer offers only count on a route where a checked quote publishes one.
+    var hasPromo = routeHasPromo(list, S.feed[k]);
+    var promo = S.promo && hasPromo;
+    var opts = { list: list, feed: S.feed[k] || null, providers: S.providers, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: promo, customer: promo ? "new" : "", mid: mid, now: Date.now(), staleH: cfg.staleAfterHours || 36, hideH: cfg.hideAfterHours || 72, handLockH: cfg.preferAutoAfterHours || cfg.handLockHours || 6, refAmount: (cfg.defaultAmounts || {})[s.currency] };
     var rows = R.rank(opts);
     var allRows = (S.payout === "all" && S.payIn === "all") ? rows : R.rank(Object.assign({}, opts, { payout: "all", payIn: "all" }));
     var hist = Object.keys((S.history || {}).days || {}).sort().map(function (d) { var e = S.history.days[d][k] || {}; return { d: d, mid: e.mid, best: e.best }; }).filter(function (e) { return e.mid || e.best; });
@@ -688,7 +691,7 @@
       if (p && (!p.sendsFrom || p.sendsFrom.indexOf(from) > -1) && coverage.indexOf(id) < 0) coverage = coverage.concat([id]);
     });
     return {
-      s: s, r: r, key: k, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: S.promo, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
+      s: s, r: r, key: k, amount: amount, target: target, payout: S.payout, payIn: S.payIn, promo: promo, hasPromo: hasPromo, mid: mid, rows: rows, allRows: allRows, hist: hist, open: S.open, now: Date.now(), timeStyle: "relative",
       list: list, feed: opts.feed, staleH: opts.staleH, hideH: opts.hideH, handLockH: opts.handLockH, providers: S.providers,
       anyQuotes: list.length > 0, reports: S.reports, hrefFor: hrefFor, disclosureHref: SF.disclosureHref || "#",
       checkList: coverage.map(function (id) { return S.providers[id]; }).filter(Boolean),
@@ -698,6 +701,12 @@
       midUpdated: S.mid && S.mid.updatedAt, quotesUpdated: S.quotesUpdated,
       midPrev: S.mid && S.mid.previous ? R.midRate(S.mid.previous, s.currency, r.currency) : null, midPrevAt: S.mid && S.mid.previous && S.mid.previous.updatedAt
     };
+  }
+
+  function routeHasPromo(list, feed) {
+    var all = (list || []).slice();
+    if (feed) Object.keys(feed).forEach(function (id) { all.push(feed[id]); });
+    return all.some(function (q) { return q && ((q.promo && Number(q.promo.rate) > 0) || (R.promoRate && R.promoRate(q) > 0)); });
   }
 
   // One-tap common amounts next to the amount box, in the sending currency.
@@ -727,6 +736,7 @@
     $("sf-note").textContent = c.r.note || "";
     $("sf-note").hidden = !c.r.note;
     $("sf-results").innerHTML = R.renderResults(c);
+    if (!c.hasPromo) dropPromoHint($("sf-results"));
     if ($("sf-picks")) $("sf-picks").innerHTML = R.picks(c);
     var wa = $("sf-wa");
     if (wa) {
@@ -736,7 +746,7 @@
     }
     fillReportProviders(c);
     renderPhone(c);
-    ensureFilters();
+    ensureFilters(c);
     fixCopy(c);
   }
 
@@ -745,22 +755,31 @@
     document.querySelectorAll("[data-payin]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-payin") === v)); });
   }
 
-  function ensureFilters() {
+  // The ranking note mentions the first-transfer button; leave that out where the button isn't shown.
+  function dropPromoHint(el) {
+    if (!el) return;
+    el.querySelectorAll(".disclose").forEach(function (p) {
+      p.innerHTML = p.innerHTML.replace(" (turn on first-transfer offers above if you are new)", "");
+    });
+  }
+
+  function ensureFilters(c) {
+    var show = !!(c && c.hasPromo);
     if ($("sf-payin")) {
       document.querySelectorAll("[data-payin]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-payin") === S.payIn)); });
-      var pr = $("sf-promo"); if (pr) pr.setAttribute("aria-pressed", String(S.promo));
+      var pr = $("sf-promo"); if (pr) { pr.hidden = !show; pr.setAttribute("aria-pressed", String(S.promo && show)); }
       return;
     }
-    var tabs = document.querySelector(".payout-tabs");
-    if (!tabs) return;
+    var field = document.querySelector(".controls .payout-field");
+    if (!field) return;
     var box = document.createElement("div");
     box.className = "extra-filters";
     box.innerHTML = '<div class="payout-field payin-field"><span class="label" id="sf-payin-label">You pay by</span><div class="payout-tabs" id="sf-payin" role="group" aria-labelledby="sf-payin-label">' +
       '<button type="button" data-payin="all" aria-pressed="' + (S.payIn === "all") + '">Any</button>' +
       '<button type="button" data-payin="bank" aria-pressed="' + (S.payIn === "bank") + '">Bank</button>' +
       '<button type="button" data-payin="card" aria-pressed="' + (S.payIn === "card") + '">Card</button></div></div>' +
-      '<button type="button" class="promo-btn" id="sf-promo" aria-pressed="' + S.promo + '">First-transfer offers</button>';
-    tabs.parentNode.appendChild(box);
+      '<button type="button" class="promo-btn" id="sf-promo" aria-pressed="' + (S.promo && show) + '"' + (show ? "" : " hidden") + '>First-transfer offers</button>';
+    field.parentNode.insertBefore(box, field.nextSibling);
   }
 
   function fixCopy(c) {
