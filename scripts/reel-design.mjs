@@ -87,7 +87,14 @@ function header(ctx, tag) {
     ? `<g transform="translate(${W - M - 120},96)"><clipPath id="fc"><rect width="120" height="80" rx="14"/></clipPath><g clip-path="url(#fc)">${flag(120, 80)}</g><rect width="120" height="80" rx="14" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="3"/></g>`
     : ctx.country ? `<g transform="translate(${W - M},96)"><rect x="${-(ctx.country.length * 21 + 56)}" width="${ctx.country.length * 21 + 56}" height="80" rx="40" fill="#ffffff" fill-opacity="0.16" stroke="#fff" stroke-opacity="0.5" stroke-width="2"/>${t(-(ctx.country.length * 21 + 56) / 2, 52, 34, "#fff", esc(ctx.country), { bold: true, anchor: "middle" })}</g>` : "";
   return `<g transform="translate(${M},96)"><rect width="80" height="80" rx="22" fill="#ffffff"/>${t(40, 54, 40, ctx.pal.bottom, "SF", { bold: true, anchor: "middle" })}${t(100, 54, 38, "#fff", "SendFair", { bold: true })}</g>${badge}
-${tag ? `<g transform="translate(${M},${196})">${t(0, 34, 26, ctx.pal.accent, esc(tag.toUpperCase()), { bold: true, ls: 3 })}</g>` : ""}`;
+${tag ? seriesLabel(ctx, tag) : ""}`;
+}
+// The series name ("Rate of the day", "Sender's tip"…) under the logo on the first frame and the
+// carousel cover: a small dark pill with an accent dot, so it stays readable over any photo.
+function seriesLabel(ctx, tag) {
+  const label = String(tag).toUpperCase();
+  const w = Math.round(label.length * 21 + 84);
+  return `<g transform="translate(${M},200)"><rect width="${w}" height="58" rx="29" fill="#000" fill-opacity="0.38" stroke="#fff" stroke-opacity="0.22" stroke-width="2"/><circle cx="30" cy="29" r="8" fill="${ctx.pal.accent}"/>${t(52, 39, 26, ctx.pal.accent, esc(label), { bold: true, ls: 3 })}</g>`;
 }
 function footer(ctx) {
   return `${t(M, H - 120, 28, "#fff", `Checked ${esc(ctx.date)} · rates and fees from sendfair.africa`, { opacity: 0.75 })}<rect x="${M}" y="${H - 96}" width="140" height="8" rx="4" fill="${ctx.pal.accent}"/>`;
