@@ -150,7 +150,8 @@ export function endFrame(ctx) {
   const bg = background(ctx.pal, null);
   return svg(bg.defs, bg.body + `<g transform="translate(${W / 2 - 110},660)"><rect width="220" height="220" rx="60" fill="#fff"/>${t(110, 146, 110, ctx.pal.bottom, "SF", { bold: true, anchor: "middle" })}</g>` +
     t(W / 2, 1020, 76, "#fff", "SendFair", { bold: true, anchor: "middle" }) + t(W / 2, 1100, 44, ctx.pal.accent, "sendfair.africa", { bold: true, anchor: "middle" }) +
-    t(W / 2, 1180, 34, "#fff", "Follow for a new rate check every day", { anchor: "middle", opacity: 0.85 }) + footer(ctx));
+    t(W / 2, 1200, 38, "#fff", "Follow us everywhere", { anchor: "middle", opacity: 0.9 }) +
+    `<g transform="translate(${W / 2 - 330},1240)"><rect width="660" height="104" rx="52" fill="#ffffff"/>${t(330, 70, 46, darken(ctx.pal.top), "sendfair.africa/follow", { bold: true, anchor: "middle" })}</g>` + footer(ctx));
 }
 
 // 1080x1350 image post in the same style.
