@@ -386,6 +386,8 @@
         else if (msg) msg.textContent = url;
         sfEvent("share", { method: "copy" });
       }
+      var fol = e.target.closest && e.target.closest("[data-follow]");
+      if (fol) sfEvent("follow_click", { platform: fol.getAttribute("data-follow") });
       var shareA = e.target.closest && e.target.closest(".share a");
       if (shareA) sfEvent("share", { method: (shareA.textContent || "").trim() });
       var go = e.target.closest && e.target.closest('a[href*="/go/"]');

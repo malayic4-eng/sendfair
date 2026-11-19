@@ -787,3 +787,30 @@ details p { margin-top: 10px; color: var(--muted); }
   .site-nav .nav-drop a:hover { background: none; color: var(--on-band); }
 }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Follow page: one link to every SendFair account */
+.follow-page .wrap { display: flex; justify-content: center; }
+.follow-card { width: 100%; max-width: 480px; text-align: center; padding: 8px 0 32px; }
+.follow-logo { display: flex; justify-content: center; margin-bottom: 12px; }
+.follow-card h1 { margin: 0 0 8px; }
+.follow-card .lede { margin: 0 auto 20px; }
+.follow-list { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 12px; }
+.follow-btn { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; border-radius: 16px; background: var(--surface); border: 1.5px solid var(--line-strong); color: var(--ink); text-decoration: none; text-align: left; transition: transform .12s ease, box-shadow .12s ease; }
+.follow-btn:hover, .follow-btn:focus-visible { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(17, 24, 83, .12); }
+.follow-ic { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; }
+.follow-ic svg { width: 22px; height: 22px; }
+.follow-whatsapp .follow-ic { background: #1f8f4e; }
+.follow-tiktok .follow-ic { background: #111; }
+.follow-instagram .follow-ic { background: #b4237b; }
+.follow-facebook .follow-ic { background: #1559c7; }
+.follow-tx { flex: 1; display: flex; flex-direction: column; line-height: 1.25; }
+.follow-tx small { color: var(--muted); font-size: .85rem; }
+.follow-go { flex: none; font-weight: 700; font-size: .9rem; padding: 8px 14px; border-radius: 999px; background: var(--btn); color: var(--btn-ink); }
+.follow-more { display: grid; gap: 10px; margin: 0 0 24px; }
+.follow-cta { display: block; padding: 13px 16px; border-radius: 999px; background: #f6b52b; color: #111853; font-weight: 700; text-decoration: none; }
+.follow-cta.ghost { background: transparent; border: 1.5px solid var(--line-strong); color: var(--ink); }
+.follow-share { justify-content: center; margin-bottom: 24px; }
+.follow-share p { width: 100%; margin: 0 0 6px; }
+.follow-qr { margin: 0; display: grid; justify-items: center; gap: 8px; }
+.follow-qr img { width: 180px; height: 180px; border-radius: 12px; border: 1px solid var(--line-strong); }
+.follow-qr figcaption { font-size: .9rem; color: var(--muted); }

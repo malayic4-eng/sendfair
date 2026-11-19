@@ -454,7 +454,7 @@ function footer(prefix, lang) {
 <div><h2>${L.buildHouse}</h2><ul>${QC_ON ? `<li><a href="${link(prefix, "quote-check/")}">Quote Check</a></li>` : ""}<li><a href="${link(prefix, "cost-to-build/same-house/")}">${L.sameHouse}</a></li><li><a href="${link(prefix, "cost-to-build/material-prices/")}">${L.materialPrices}</a></li><li><a href="${link(prefix, fr ? "fr/cost-to-build/what-this-receipt-is/" : "cost-to-build/what-this-receipt-is/")}">${L.whatReceipt}</a></li>${fr ? Object.keys(buildCosts.countries || {}).filter((id) => FR_COST.has(id)).map((id) => `<li><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">${esc(capFirst(frReceiver(receiverById[id] || { id, name: buildCosts.countries[id].name })))}</a></li>`).join("") : ""}<li><a href="${link(prefix, "cost-to-build/")}">${L.costToBuild}</a></li></ul></div>
 </div>
 ${footerSocials.length ? `<nav class="social" aria-label="Social media">${footerSocials.map((s) => `<a href="${esc(s.url)}" rel="noopener" target="_blank">${s.icon}<span>${s.name}</span></a>`).join("")}</nav>` : ""}
-<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a>${questions.some((q) => q.status === "live") ? `<a href="${link(prefix, "questions/")}">Questions</a>` : ""}<a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
+<nav aria-label="${fr ? "Liens de pied de page" : "Footer"}"><a href="${link(prefix, "search/")}">${L.search}</a><a href="${link(prefix, "sitemap/")}">${L.allPages}</a><a href="${link(prefix, "reports/")}">${L.costIndex}</a><a href="${link(prefix, "guides/")}">${L.guides}</a>${questions.some((q) => q.status === "live") ? `<a href="${link(prefix, "questions/")}">Questions</a>` : ""}<a href="${link(prefix, "flying-home/")}">${fr ? "Rentrer au pays" : "Flying home"}</a>${gulfSenders.length ? `<a href="${link(prefix, GULF_GUIDE)}">${L.fromGulf}</a>` : ""}${fr ? "" : `<a href="${link(prefix, "follow/")}">Follow us</a>`}<a href="${link(prefix, "about/")}">${L.about}</a><a href="${link(prefix, "contact/")}">${L.contact}</a><a href="${link(prefix, "methodology/")}">${L.howRank}</a><a href="${link(prefix, "disclosure/")}">${L.howMakeMoney}</a><a href="${link(prefix, "advertise/")}">${fr ? "Publicité" : "Advertise"}</a><a href="${link(prefix, "embed/")}">${L.embed}</a><a href="${link(prefix, "privacy/")}">${L.privacy}</a><a href="${link(prefix, "terms/")}">${L.terms}</a><a href="${link(prefix, "cookies/")}">${L.cookies}</a><a href="${link(prefix, "accessibility/")}">${L.accessibility}</a><button type="button" class="cookie-settings" id="sf-cookie-settings" hidden>${L.cookieSettings}</button><button type="button" class="install-btn" id="sf-install" hidden>${L.install}</button></nav>
 <p>${L.disclaimer}</p>
 <p>${L.ratesBy} <a href="https://www.exchangerate-api.com" rel="noopener" target="_blank">ExchangeRate-API</a>.</p>
 <p>${L.copyright}</p>
@@ -1510,6 +1510,56 @@ ${crumbNav("../", trail)}
     description: `Featured listings for builders, suppliers, SACCOs and banks on SendFair's house calculator, seen by Africans abroad pricing a house in ${countries.length} countries.`,
     jsonld: [crumbs(trail)], body }));
   urls.push("advertise/");
+}
+
+// One shareable link for every SendFair social account: /follow/.
+function qrSvg(text) {
+  let QR;
+  try { QR = createRequire(import.meta.url)("qrcode"); } catch { return ""; }
+  const q = QR.create(text, { errorCorrectionLevel: "M" });
+  const n = q.modules.size, d = q.modules.data, m = 4;
+  let p = "";
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (d[y * n + x]) p += `M${x + m} ${y + m}h1v1h-1z`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n + 2 * m} ${n + 2 * m}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path fill="#111853" d="${p}"/></svg>`;
+}
+function writeFollowPage() {
+  const accounts = [
+    config.whatsappChannelUrl ? { id: "whatsapp", name: "WhatsApp Channel", note: "Today's best rates, every day", url: config.whatsappChannelUrl, icon: waIcon } : null,
+    config.tiktokUrl ? { id: "tiktok", name: "TikTok", note: "@sendfair", url: config.tiktokUrl, icon: ttIcon } : null,
+    config.instagramUrl ? { id: "instagram", name: "Instagram", note: "@sendfair", url: config.instagramUrl, icon: igIcon } : null,
+    config.facebookUrl ? { id: "facebook", name: "Facebook", note: "SendFair page", url: config.facebookUrl, icon: fbIcon } : null
+  ].filter(Boolean);
+  if (!accounts.length) return;
+  const followUrl = `${site}/follow/`;
+  const qr = qrSvg(followUrl);
+  if (qr) write("follow/sendfair-follow-qr.svg", qr);
+  const shareText = encodeURIComponent(`Follow SendFair for the best rates to send money home: ${followUrl}`);
+  const body = `<section class="block page follow-page"><div class="wrap"><div class="follow-card">
+<div class="follow-logo">${tile("#111853", 1.1, 64)}</div>
+<h1>Follow SendFair</h1>
+<p class="lede">Daily rates to send money home, tips to make every transfer count, and the cost to build back home. Tap a button to follow.</p>
+<ul class="follow-list">
+${accounts.map((a) => `<li><a class="follow-btn follow-${a.id}" href="${esc(a.url)}" target="_blank" rel="noopener me" data-follow="${a.id}"><span class="follow-ic">${a.icon}</span><span class="follow-tx"><strong>${esc(a.name)}</strong><small>${esc(a.note)}</small></span><span class="follow-go" aria-hidden="true">Follow</span></a></li>`).join("\n")}
+</ul>
+<div class="follow-more">
+<a class="follow-cta" href="${link("../", "")}" data-follow="compare">Compare today's rates</a>
+<a class="follow-cta ghost" href="${link("../", "")}#alerts" data-follow="alerts">Get rate alerts by email</a>
+</div>
+<div class="share follow-share">
+<p><strong>Share SendFair</strong></p>
+<a href="https://wa.me/?text=${shareText}" target="_blank" rel="noopener">Share on WhatsApp</a>
+<button type="button" data-copy="${esc(followUrl)}">Copy link</button>
+<span class="share-msg" aria-live="polite"></span>
+</div>
+${qr ? `<figure class="follow-qr"><img src="sendfair-follow-qr.svg" width="180" height="180" alt="QR code that opens sendfair.africa/follow"><figcaption>Scan to follow. <a href="sendfair-follow-qr.svg" download="sendfair-follow-qr.svg">Download the QR code</a> for posters and flyers.</figcaption></figure>` : ""}
+</div></div></section>`;
+  const trail = [[config.siteName, ""], ["Follow us", "follow/"]];
+  write("follow/index.html", page({ prefix: "../", canonical: "follow/", rank: false,
+    title: "Follow SendFair on WhatsApp, TikTok, Instagram and Facebook",
+    description: "One link to every SendFair account: daily rates to send money home to Africa on WhatsApp, TikTok, Instagram and Facebook.",
+    jsonld: [crumbs(trail), { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site, sameAs: accounts.map((a) => a.url) }],
+    body }));
+  urls.push("follow/");
 }
 
 function writeBuildPages() {
@@ -2957,6 +3007,7 @@ fs.writeFileSync(path.join(OUT, "admin/quote-checks/index.html"), fs.readFileSyn
 writeBuildPages();
 writeFlyingHome();
 writeAdvertisePage();
+writeFollowPage();
 writeEmbedPage();
 writeReports();
 writeFrenchPages();
