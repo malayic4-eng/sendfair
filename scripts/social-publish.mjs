@@ -247,7 +247,8 @@ async function main() {
   if (DRY) {
     if (plan.carousel) {
       record({ platform: "instagram", type: "carousel", status: "dry-run", idem: idem("instagram-carousel"), slides: ((manifest.carousel || {}).slides || []).length });
-      record({ platform: "facebook", type: "carousel", status: "dry-run", idem: idem("facebook-carousel"), note: "cover slide as a photo" });
+      if (schedule.fbReelOnCarouselDays !== false) record({ platform: "facebook", type: "reel", status: "dry-run", idem: kFb, link: manifest.captions.facebook.match(/https?:\S+/)?.[0] || "" });
+      else record({ platform: "facebook", type: "carousel", status: "dry-run", idem: idem("facebook-carousel"), note: "cover slide as a photo" });
     } else {
       record({ platform: "instagram", type: "reel", status: "dry-run", idem: kIg, trial: !!trialParams(), link: manifest.captions.instagram.match(/https?:\S+/)?.[0] || "" });
       record({ platform: "facebook", type: "reel", status: "dry-run", idem: kFb, link: manifest.captions.facebook.match(/https?:\S+/)?.[0] || "" });
@@ -282,8 +283,11 @@ async function main() {
   // FORCE_REEL=1 is a manual Instagram-only test: no Facebook, image or TikTok posts.
   if (process.env.FORCE_REEL === "1") { console.log("FORCE_REEL: Instagram Reel only; skipping Facebook, image and TikTok."); return; }
 
-  // Facebook Page Reel (not on carousel days)
-  if (plan.carousel) await postCarouselFb(pt);
+  // Facebook Page Reel, every day. Reels reach far beyond followers on Facebook; a still photo does not.
+  // On carousel days Instagram gets the carousel and Facebook still gets the Reel, unless
+  // schedule.fbReelOnCarouselDays is false (then Facebook gets the cover slide as before).
+  const fbReelToday = !plan.carousel || schedule.fbReelOnCarouselDays !== false;
+  if (!fbReelToday) await postCarouselFb(pt);
   else if (doneFb) console.log("[facebook] reel already posted today; skipping.");
   else try {
     if (!reelUrl) throw new Error("no public REEL_URL");
