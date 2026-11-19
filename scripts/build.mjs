@@ -1955,6 +1955,66 @@ ${config.turnstileSiteKey ? `<div class="cf-turnstile" data-sitekey="${esc(confi
 <p class="af-msg" id="sf-alert-msg" role="status"></p></form>`;
 }
 
+// A short paragraph about one route, written only from data: the receiving country's payout options
+// (data/corridors.json), the services checked and which of them pay to mobile money or cash, the
+// cheapest fresh quote and its cost against the mid-market rate, and the sending country's regulator.
+// Sentence shapes rotate by route so the 85 pages don't read alike.
+function routeAbout(ctx) {
+  const { s, r } = ctx;
+  const pick = (list, salt) => { let h = 0; for (const ch of ctx.key + salt) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return list[h % list.length]; };
+  const fresh = ctx.rows.filter((x) => !x.stale);
+  const top = fresh[0];
+  const lead = R.leaders(ctx.rows);
+  const n = new Set(ctx.rows.map((x) => x.p.id)).size, nf = new Set(fresh.map((x) => x.p.id)).size;
+  const by = (m) => [...new Set(fresh.filter((x) => (x.q.payout || []).includes(m)).map((x) => x.p.name))];
+  const mob = by("mobile"), cash = by("cash");
+  const sCur = CURNAME[s.currency] || s.currency, rCur = CURNAME[r.currency] || r.currency;
+  const amt = plain(R.money(ctx.amount, s.currency, 0));
+  // Payout options, with the corridor's own detail only where it says more than the generic wording.
+  const cashTxt = r.payout.cash && !/^Collect at agent locations$/i.test(r.payout.cash) ? ` (${r.payout.cash.replace(/^Collect at /, "at ")})` : "";
+  const ways = [
+    r.payout.mobile ? `mobile money (${r.payout.mobile.replace(/^Wallets such as /, "")})` : "",
+    r.payout.bank ? "bank deposit" : "",
+    r.payout.cash ? `cash pickup${cashTxt}` : ""
+  ].filter(Boolean);
+  const out = [];
+  out.push(s.currency === r.currency
+    ? pick([`From ${s.short} you pay in ${sCur} and ${r.name} receives ${rCur} too, so nothing is converted.`,
+      `There is no currency conversion here: you pay ${sCur} in ${s.short} and ${r.name} receives ${rCur}.`], "cur")
+    : pick([`From ${s.short} you pay in ${sCur} and your family in ${r.name} receives ${rCur}.`,
+      `Senders in ${s.short} pay in ${sCur}; the money lands in ${r.name} as ${rCur}.`,
+      `On this route ${sCur} from ${s.short} become ${rCur} in ${r.name}.`], "cur"));
+  if (r.note) out.push(r.note);
+  out.push(pick([`Ways to receive: ${joinList(ways)}.`, `${r.name} can receive by ${joinList(ways)}.`], "ways"));
+  if (!n) out.push(`No service publishes an online price for this route yet, so nothing is ranked.`);
+  else if (!nf) out.push(`We track ${n} service${n === 1 ? "" : "s"} here, but none has a quote from the last ${staleH} hours, so nothing ranks first until they are rechecked.`);
+  else {
+    const count = nf === n
+      ? (n === 1 ? `${top.p.name} is the one service we track here` : pick([`All ${n} services we track here have a quote under ${staleH} hours old`, `We track ${n} services here, all with a fresh quote`], "count"))
+      : pick([`${nf} of the ${n} services we track here have a quote under ${staleH} hours old`, `We track ${n} services here and ${nf} have a fresh quote`], "count");
+    const bits = [];
+    const one = n === 1 && nf === 1;
+    const mobOn = r.payout.mobile && mob.length, cashOn = r.payout.cash && cash.length;
+    if (mobOn && cashOn && mob.join() === cash.join()) bits.push(`${one ? "it" : joinList(mob)} ${mob.length === 1 ? "pays to mobile money and offers" : "pay to mobile money and offer"} cash pickup`);
+    else {
+      if (mobOn) bits.push(`${one ? "it" : joinList(mob)} ${mob.length === 1 ? "pays" : "pay"} to mobile money`);
+      if (cashOn) bits.push(`${one ? "it" : joinList(cash)} ${cash.length === 1 ? "offers" : "offer"} cash pickup`);
+    }
+    const missing = [r.payout.mobile && !mob.length ? "mobile money" : "", r.payout.cash && !cash.length ? "cash pickup" : ""].filter(Boolean);
+    if (missing.length) bits.push(`${one ? "its quote doesn't list" : "none of the fresh quotes lists"} ${missing.join(" or ")}`);
+    out.push(`${count}${bits.length ? "; " + joinList(bits) : ""}.`);
+    const mid = s.currency === r.currency ? 1 : ctx.mid || 0;
+    const cost = mid ? 1 - top.gets / (ctx.amount * mid) : null;
+    const costTxt = cost == null ? "" : cost < 0 ? ", slightly more than the mid-market rate gives, usually a sign of a promotional rate" : `, ${(cost * 100).toFixed(1)}% less than ${s.currency === r.currency ? "you pay" : "the mid-market rate gives"}`;
+    const who = lead.length > 1 ? `${R.names(lead)} tie for the most` : `${top.p.name} delivers the most`;
+    out.push(pick([`For ${amt}, ${who}: ${plain(R.money(top.gets, r.currency))}${costTxt}.`,
+      `On the latest check ${who} for ${amt}, with ${plain(R.money(top.gets, r.currency))} arriving${costTxt}.`], "top"));
+  }
+  const reg = s.region === "gulf" || s.id !== "europe" ? REGULATOR[s.id] : "your country's financial regulator";
+  if (reg) out.push(pick([`Before a first transfer, look the service up with ${reg}.`, `Check a service with ${reg} before a first transfer.`], "reg"));
+  return `<p class="route-about">${esc(out.join(" "))}</p>`;
+}
+
 // Head-to-head pairs and exchange-rate pairs (used by the home page, footer and their own pages).
 const vsPath = (a, b) => `compare/${a.id}-vs-${b.id}/`;
 const vsPairs = () => {
@@ -2132,6 +2192,7 @@ for (const s of corridors.senders) {
 ${crumbNav(prefix, trail)}
 <h2 id="rates">${s.currency === r.currency ? esc(s.currency) + " transfer services compared" : esc(s.currency) + " to " + esc(r.currency) + ": today's rates by service"}</h2>
 ${summary}
+${routeAbout(ctx)}
 ${amountsTable(ctx)}
 ${AMOUNT_PAGES[s.currency] ? `<h2 id="popular-amounts">Popular amounts</h2><ul class="route-links">${AMOUNT_PAGES[s.currency].map((a) => `<li><a href="${link(prefix, rel + a + "/")}">Send ${esc(amountLabel(a, s.currency))} to ${esc(r.name)}</a></li>`).join("")}</ul>` : ""}
 <h2 id="history">${esc(s.currency)} to ${esc(r.currency)} rate history</h2>
