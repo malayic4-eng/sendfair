@@ -48,6 +48,20 @@ function hasFfmpeg() { try { execFileSync("ffmpeg", ["-version"], { stdio: "igno
 
 function checkNumbers(plan) {
   const reel = plan.reel;
+  if (reel.template === "material") {
+    // Each row is the country's own listed price (BC.priceOf, quoted, not a guide), in its currency.
+    const key = reel.route.split("-material-")[1];
+    reel.numbers.forEach((n, i) => {
+      const cid = reel.countries[i];
+      const pr = BC.priceOf(buildCosts, cid, key, midmarket.rates || {});
+      if (!pr || !pr.quoted) add(`material ${cid} ${key} is not a listed price`);
+      else if (Math.abs(n.final - pr.price) > 1e-9) add(`material ${cid} ${key} ${n.final} != ${pr.price}`);
+      const fx = R.midRate(midmarket, buildCosts.countries[cid].currency, "USD");
+      if (Math.abs(n.usd - pr.price * fx) > 1e-6) add(`material ${cid} usd ${n.usd} != ${pr.price * fx}`);
+    });
+    for (let i = 1; i < reel.numbers.length; i++) if (reel.numbers[i].usd < reel.numbers[i - 1].usd) add("material rows not sorted by dollar price");
+    return;
+  }
   if (reel.template === "house") {
     const [cid, city] = reel.route.split("-");
     const house = (buildCosts.houses || []).find((h) => h.id === "3") || { m2: 110 };
@@ -84,7 +98,7 @@ function checkNumbers(plan) {
   }
 }
 
-const templates = ["route", "best-vs-average", "house", "tip", "rate-move"];
+const templates = ["route", "best-vs-average", "house", "material", "tip", "rate-move"];
 const ffmpeg = hasFfmpeg();
 let rendered = 0;
 for (const template of templates) {
@@ -97,7 +111,24 @@ for (const template of templates) {
     rendered++;
     if (!(manifest.durationSeconds >= schedule.reel.minSeconds && manifest.durationSeconds <= schedule.reel.maxSeconds)) add(`${template} duration ${manifest.durationSeconds}s`);
     checkNumbers(plan);
-    for (const ref of ["ig", "fb", "tt"]) if (!manifest.captions[{ ig: "instagram", fb: "facebook", tt: "tiktok" }[ref]].includes(`?ref=${ref}`)) add(`${template} caption missing ?ref=${ref}`);
+    // Links: Facebook and Instagram text carries none (Facebook's first comment and the Instagram
+    // bio carry it); the tagged links are in manifest.links. TikTok and YouTube keep the link.
+    for (const [k, ref] of [["instagram", "ig"], ["facebook", "fb"], ["tiktok", "tt"], ["youtube", "yt"]]) if (!(manifest.links || {})[k] || !manifest.links[k].endsWith(`?ref=${ref}`)) add(`${template} links.${k} missing ?ref=${ref}`);
+    for (const k of ["instagram", "facebook"]) if (/https?:\/\//.test(manifest.captions[k])) add(`${template} ${k} caption has a URL`);
+    if (!manifest.captions.tiktok.includes("?ref=tt")) add(`${template} tiktok caption missing ?ref=tt`);
+    if (manifest.captions.tiktok.length > 2200) add(`${template} tiktok caption over 2200`);
+    const yt = manifest.captions.youtube || {};
+    if (!yt.title || yt.title.length > 90 || !yt.title.endsWith(" #Shorts")) add(`${template} youtube title "${yt.title}"`);
+    if (!String(yt.description).includes("?ref=yt") || !String(yt.description).includes("https://sendfair.africa/follow/?ref=yt")) add(`${template} youtube description links`);
+    if (!manifest.comments || !manifest.comments.facebook.includes(manifest.links.facebook) || !manifest.comments.instagram) add(`${template} first comments missing`);
+    const series = manifest.series && manifest.series.name;
+    if (!series) add(`${template} no series`);
+    for (const k of ["instagram", "facebook", "tiktok"]) {
+      const c = manifest.captions[k];
+      if (!c.startsWith(`${manifest.series.emoji} ${series} | `)) add(`${template} ${k} caption doesn't open with the series`);
+      if (!manifest.question || !c.includes(manifest.question)) add(`${template} ${k} caption missing the question`);
+      if (c.indexOf(manifest.question) > c.indexOf("Follow us everywhere")) add(`${template} ${k} question not above the follow line`);
+    }
     const cover = pngSize(`data/social/reels/${plan.date}/cover.png`);
     if (cover.w !== 1080 || cover.h !== 1920) add(`${template} cover ${cover.w}x${cover.h}`);
     const image = pngSize(`data/social/reels/${plan.date}/image.png`);
@@ -151,7 +182,7 @@ for (const template of templates) {
           }
           add(`${template} insight figure "${fig}" not from the ranked numbers`);
         }
-        if (!/Swipe/.test(plan.carousel.captions.instagram) || !plan.carousel.captions.instagram.includes("?ref=ig")) add(`${template} carousel caption missing swipe line or ?ref=ig`);
+        if (!/Swipe/.test(plan.carousel.captions.instagram) || /https?:\/\//.test(plan.carousel.captions.instagram) || /https?:\/\//.test(plan.carousel.captions.facebook)) add(`${template} carousel caption missing swipe line or has a URL`);
       }
     }
     console.log(`ok ${template}: ${manifest.durationSeconds}s${plan.carousel && manifest.carousel ? `, carousel ${manifest.carousel.slides.length} slides` : ""}${ffmpeg ? `, ${(fs.statSync(`data/social/reels/${plan.date}/reel.mp4`).size / 1048576).toFixed(1)} MB` : " (stills only, no ffmpeg)"}`);

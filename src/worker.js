@@ -26,6 +26,14 @@ import { resultImage } from "./og-worker.js";
 import { planResponse } from "./plan-worker.js";
 import { embedWidget, embedStats } from "./embed-worker.js";
 import { json } from "../functions/_lib.js";
+// Social comment reply drafts (admin only; see functions/social/comments-admin.js).
+import * as socialComments from "../functions/social/comments-admin.js";
+import config from "../config.json";
+import { handleSocialAdmin, callbackBounce } from "../functions/social/admin.js";
+import { runSocialCron, SOCIAL_CRON } from "../functions/social/post.js";
+
+// Automatic Reel posting to TikTok and YouTube Shorts (see /admin/social).
+const SOCIAL_OPTS = { base: (config.socialMediaBase || "").replace(/\/+$/, ""), site: config.siteUrl };
 
 // Each service's own icon, as published on its website, fetched once by this Worker (via Google's
 // favicon service) and cached at Cloudflare. Visitors' browsers only ever talk to sendfair.africa.
@@ -143,11 +151,15 @@ export default {
     // The Rate Desk is private: it asks for a password set in Cloudflare as the secret ADMIN_PASSWORD.
     // Sign-in is a normal page with a password box; a signed cookie then keeps the browser signed in for 7 days. Cloudflare Access also sits in front of /admin.
     if (/^\/admin(\/|$)/.test(url.pathname)) {
+      const bounce = callbackBounce(url);
+      if (bounce) return bounce;
       const gate = await adminGate(request, env, url);
       if (gate) return gate;
     }
     const context = { request, env, params: {}, waitUntil: (p) => ctx.waitUntil(p) };
     const path = url.pathname.replace(/\/+$/, "");
+    const social = await handleSocialAdmin(request, env, url, SOCIAL_OPTS);
+    if (social) return social;
     const lm = path.match(/^\/logos\/([a-z]+)\.png$/);
     if (lm) return logo(lm[1], request, ctx);
 
@@ -178,6 +190,9 @@ export default {
         headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" }
       });
     }
+    // ---- Social comment replies (admin; the admin gate above has already run) ----
+    if (path === "/admin/comments" || path.startsWith("/admin/comments/")) return socialComments.handle(context);
+
     const qa = path.match(/^\/admin\/quote-checks\/api\/([a-z]+)$/);
     if (qa) {
       if (request.method === "GET") return quoteAdmin.onRequestGet(context, qa[1]);
@@ -210,6 +225,11 @@ export default {
   // Daily, after the morning and evening rate checks: confirmation emails and rate alerts.
   // Quote Check also purges uploads, extracted data and reports after the retention period.
   async scheduled(event, env, ctx) {
+    // Every 20 minutes in the evening: post today's Reel to TikTok / YouTube once it exists.
+    if (event.cron === SOCIAL_CRON) {
+      ctx.waitUntil(runSocialCron(env, SOCIAL_OPTS).then((r) => console.log("social", JSON.stringify(r))).catch((e) => console.log("social failed", e && e.message)));
+      return;
+    }
     // The 03:00 UTC run is only the Quote Check purge; rate alerts keep their two daily runs.
     if (event.cron === "0 3 * * *") {
       ctx.waitUntil(runPurge(env).then((r) => console.log("quote-check purge", JSON.stringify(r))).catch((e) => console.log("quote-check purge failed", e && e.message)));

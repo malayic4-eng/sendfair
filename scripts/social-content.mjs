@@ -3,6 +3,7 @@
 // Every number here is the exact figure the route page shows.
 import fs from "node:fs";
 import { createRequire } from "node:module";
+import { pickTemplate } from "./social-weights.mjs";
 const require = createRequire(import.meta.url);
 const R = require("../src/rank.js");
 const BC = require("../src/build-cost.js");
@@ -16,6 +17,9 @@ const providers = read("data/providers.json").providers;
 const buildCosts = read("data/build-costs.json");
 const regional = read("data/regional-factors.json");
 const schedule = read("data/social/schedule.json");
+// Weekly performance weights (scripts/social-weekly.mjs); absent = the plain rotation.
+let weights = null;
+try { weights = read("data/social/weights.json"); } catch {}
 const tags = read("data/social/hashtags.json");
 const midmarket = read("data/midmarket.json");
 try { const ov = read("data/mid-overrides.json"); if (ov && ov.rates && Date.now() - new Date(ov.updatedAt).getTime() < 36 * 3600000) Object.assign(midmarket.rates, ov.rates); } catch {}
@@ -47,6 +51,14 @@ const routeParts = (route) => {
 };
 const routePage = (route) => { const [sid, rid] = route.split("-"); return `${site}/send-money/${sid}-to-${rid}/`; };
 const linkFor = (route, ref) => `${routePage(route)}?ref=${ref}`;
+// Links stay out of the Facebook and Instagram post text: Facebook shows posts with an outside link
+// to fewer people, and Instagram captions can't hold a clickable link. Facebook gets the link in the
+// first comment (social-publish.mjs), Instagram points to the link in the bio. TikTok keeps the plain
+// link, and YouTube (descriptions can hold links) gets the full one.
+export const IG_LINK_TEXT = "link in bio 🔗";
+export const FB_LINK_TEXT = "link in the first comment 👇";
+const withRef = (url, ref) => `${url}?ref=${ref}`;
+const linksFor = (url) => ({ instagram: withRef(url, "ig"), facebook: withRef(url, "fb"), tiktok: withRef(url, "tt"), youtube: withRef(url, "yt") });
 
 function rowsFor(route, amount) {
   const p = routeParts(route);
@@ -87,10 +99,24 @@ const REEL_SENDERS = {
   ethiopia: ["us", "canada"], cameroon: ["europe", "us"], tanzania: ["uk", "us"], ivorycoast: ["europe", "us"],
   zambia: ["uk", "us"], egypt: ["us", "europe"], rwanda: ["europe", "uk"], mali: ["europe", "us"], drc: ["europe", "canada"]
 };
+// Daily country rotation, weighted towards the biggest diaspora audiences (Kenya, Nigeria, Ghana first,
+// then Uganda and Zimbabwe); every other country still comes round once per cycle. Smooth weighted
+// round-robin, so the same country never runs two days in a row.
+const AUDIENCE_WEIGHT = { kenya: 3, nigeria: 3, ghana: 3, uganda: 2, zimbabwe: 2 };
+export const REEL_ROTATION = (() => {
+  const w = Object.fromEntries(REEL_ORDER.map((c) => [c, AUDIENCE_WEIGHT[c] || 1]));
+  const total = Object.values(w).reduce((a, b) => a + b, 0), cur = Object.fromEntries(REEL_ORDER.map((c) => [c, 0])), out = [];
+  for (let i = 0; i < total; i++) {
+    for (const c of REEL_ORDER) cur[c] += w[c];
+    const best = REEL_ORDER.reduce((a, b) => (cur[b] > cur[a] ? b : a));
+    cur[best] -= total; out.push(best);
+  }
+  return out;
+})();
 function reelRoute(index, needRows = 3) {
-  const n = REEL_ORDER.length, cycle = Math.floor(index / n);
+  const n = REEL_ROTATION.length, cycle = Math.floor(index / n);
   for (let k = 0; k < n; k++) {
-    const cid = REEL_ORDER[(index + k) % n];
+    const cid = REEL_ROTATION[(index + k) % n];
     const prefs = REEL_SENDERS[cid] || ["uk"];
     const turn = cycle % prefs.length;
     const order = [...new Set([...prefs.slice(turn), ...prefs.slice(0, turn), ...corridors.senders.map((x) => x.id)])];
@@ -107,7 +133,7 @@ function reelRoute(index, needRows = 3) {
 // House reels follow the same country order: the main city where we have city factors, else the country.
 const HOUSE_MAIN_CITY = { kenya: ["nairobi", "Nairobi"], nigeria: ["lagos", "Lagos"], ghana: ["accra", "Accra"], uganda: ["kampala", "Kampala"] };
 function houseCity(index) {
-  const cid = REEL_ORDER[index % REEL_ORDER.length];
+  const cid = REEL_ROTATION[index % REEL_ROTATION.length];
   const r = corridors.receivers.find((x) => x.id === cid);
   const c = HOUSE_MAIN_CITY[cid];
   return c ? { cid, city: c[0], label: c[1], country: r.name } : { cid, city: "country", label: r.name, country: r.name };
@@ -122,14 +148,84 @@ function houses(city) {
   return { city, house, eco, std, lux, factor, checked: buildCosts.updated };
 }
 
+// Material price of the week: one building material across four countries, from the same listed
+// prices as the house calculator and the material-prices page (BC.priceOf). Only prices the country
+// lists itself ("quoted"); guides scaled from another country are left out. Dollar figures use the
+// same mid-market rates as the site and are labelled "about".
+const MATERIALS = [
+  { key: "cement", name: "cement", what: "a 50kg bag of cement", unit: "a bag" },
+  { key: "steel", name: "steel bar", what: "a kilo of steel bar (rebar)", unit: "a kg" },
+  { key: "blocks", name: "concrete blocks", what: "one concrete block", unit: "a block", note: "Block sizes differ a little by country." }
+];
+const priceStr = (v, cur) => `${cur} ${Number(v).toLocaleString("en", Number.isInteger(v) ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const usdStr = (v) => `$${Number(v).toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export function materialPrices(visit) {
+  const mat = MATERIALS[visit % MATERIALS.length];
+  const rates = midmarket.rates || {};
+  const listed = REEL_ORDER.map((cid) => {
+    const c = (buildCosts.countries || {})[cid];
+    if (!c) return null;
+    const pr = BC.priceOf(buildCosts, cid, mat.key, rates);
+    const fx = R.midRate(midmarket, c.currency, "USD");
+    if (!pr || !pr.quoted || !(pr.price > 0) || !fx) return null;
+    return { cid, country: c.name, currency: c.currency, price: pr.price, usd: pr.price * fx, source: pr.source || "" };
+  }).filter(Boolean);
+  if (listed.length < 4) return null;
+  // Each time the template comes round for this material it moves on: two of the biggest-audience
+  // countries that list their own price (Kenya, Nigeria, Ghana, Uganda, Zimbabwe) plus two others.
+  const round = Math.floor(visit / MATERIALS.length);
+  const core = listed.filter((x) => AUDIENCE_WEIGHT[x.cid]), rest = listed.filter((x) => !AUDIENCE_WEIGHT[x.cid]);
+  const take = (arr, n, start) => Array.from({ length: Math.min(n, arr.length) }, (_, i) => arr[(start + i) % arr.length]);
+  const nCore = Math.min(2, core.length);
+  let pick = [...take(core, nCore, round * 2), ...take(rest, 4 - nCore, round * 2)];
+  if (pick.length < 4) pick = [...pick, ...take(listed.filter((x) => !pick.includes(x)), 4 - pick.length, 0)];
+  pick = pick.slice(0, 4).sort((a, b) => a.usd - b.usd);
+  return { mat, rows: pick };
+}
+
 const TIPS = [
-  { key: "hidden-fee", text: "A 'no fee' service can still cost more, because the fee is hidden in the rate." },
-  { key: "speed", text: "Mobile money often lands in minutes; a bank deposit can take a day. Compare both." },
-  { key: "cash", text: "Cash pickup can be right for someone without a bank account, but check the fee before you send." },
-  { key: "compare", text: "The service at the top of a comparison is not always the cheapest for every amount. Check yours." }
+  { key: "hidden-fee", text: "A 'no fee' service can still cost more, because the fee is hidden in the rate.", title: "'No fee' can still cost more" },
+  { key: "speed", text: "Mobile money often lands in minutes; a bank deposit can take a day. Compare both.", title: "Mobile money or bank deposit?" },
+  { key: "cash", text: "Cash pickup can be right for someone without a bank account, but check the fee before you send.", title: "Cash pickup? Check the fee first" },
+  { key: "compare", text: "The service at the top of a comparison is not always the cheapest for every amount. Check yours.", title: "The top service isn't always cheapest" }
 ];
 
 function buildReel(template, dateStr, index) {
+  // How many times this template has come round: rotates tips and materials through their whole lists.
+  const visit = Math.floor(index / Math.max(1, (schedule.templates || []).length));
+  if (template === "material") {
+    const mp = materialPrices(visit);
+    if (!mp) return null;
+    const { mat, rows } = mp;
+    const url = `${site}/cost-to-build/material-prices/`;
+    const lead = rows[0].cid;
+    const about = (x) => x.currency === "USD" ? "" : ` (about ${usdStr(x.usd)})`;
+    const list = rows.map((x) => `${x.country} ${priceStr(x.price, x.currency)}${about(x)}`).join(", ");
+    const cheap = rows[0], dear = rows[rows.length - 1];
+    // Equal to the cent counts as a tie, so the caption never names one winner between equal prices.
+    const names = (arr) => arr.length > 1 ? `${arr.slice(0, -1).join(", ")} and ${arr[arr.length - 1]}` : arr[0];
+    const low = rows.filter((x) => usdStr(x.usd) === usdStr(cheap.usd)).map((x) => x.country);
+    const high = rows.filter((x) => usdStr(x.usd) === usdStr(dear.usd)).map((x) => x.country);
+    const sum = low.length === rows.length ? "In dollars, all four cost about the same." : `In dollars, ${names(low)} ${low.length > 1 ? "are" : "is"} the cheapest of these four and ${names(high)} the dearest.`;
+    const tagsM = hashtagsFor({ id: "house" });
+    const fb = (link) => `What ${mat.what} costs today: ${list}. ${sum}${mat.note ? " " + mat.note : ""} Every price with its source: ${link}\n\n${tagsM}`;
+    return {
+      template, route: `${lead}-material-${mat.key}`, from: mat.name, to: cheap.country, amount: 0, currency: "USD", receiveCurrency: "USD",
+      material: mat.name, countries: rows.map((x) => x.cid),
+      hook: `What does ${mat.what} cost?`,
+      ytHook: `${mat.name[0].toUpperCase() + mat.name.slice(1)}: ${rows.map((x) => x.country).join(" vs ")}`,
+      numbers: rows.map((x) => ({ label: x.currency === "USD" ? x.country : `${x.country} · about ${usdStr(x.usd)}`, value: priceStr(x.price, x.currency), final: x.price, usd: x.usd, cid: x.cid })),
+      checkedAt: buildCosts.updated + "T00:00:00Z", checkDate: buildCosts.updated,
+      links: linksFor(url),
+      captions: {
+        instagram: `What ${mat.what} costs today: ${list}. ${sum}${mat.note ? " " + mat.note : ""} Every price with its source: ${IG_LINK_TEXT}\n\n${tagsM}`,
+        facebook: fb(FB_LINK_TEXT),
+        tiktok: `${mat.what[0].toUpperCase() + mat.what.slice(1)}: ${rows.map((x) => `${x.country} ${priceStr(x.price, x.currency)}`).join(", ")}. Sources: ${url}?ref=tt\n\n${tagsM}`,
+        youtube: fb(`${url}?ref=yt`)
+      },
+      hashtags: tagsM
+    };
+  }
   const route = reelRoute(index);
   const p = routeParts(route);
   if (!p) return null;
@@ -144,6 +240,7 @@ function buildReel(template, dateStr, index) {
 
   if (template === "route") {
     const gap = top.gets - lowest.gets;
+    const fb = (link) => `Sending ${sendMoney(amount, p.s.currency)} to ${p.r.name}? ${top.p.name} pays the most today: ${money(top.gets, p.r.currency)}, against ${money(lowest.gets, p.r.currency)} at the lowest. Compare your own amount: ${link}\n\n${commonTags}`;
     return {
       template, route, from: p.s.short, to: p.r.name, amount, currency: p.s.currency, receiveCurrency: p.r.currency,
       hook: `Sending ${sendMoney(amount, p.s.currency)} to ${p.r.name}?`,
@@ -154,10 +251,12 @@ function buildReel(template, dateStr, index) {
         { label: `Extra with ${top.p.name}`, value: money(gap, p.r.currency), final: gap }
       ],
       checkedAt, checkDate,
+      links: linksFor(routePage(route)),
       captions: {
-        instagram: `Sending ${sendMoney(amount, p.s.currency)} to ${p.r.name}? ${top.p.name} pays the most today: ${money(top.gets, p.r.currency)}. The lowest of the services we checked pays ${money(lowest.gets, p.r.currency)} — a ${money(gap, p.r.currency)} gap. Compare yours: ${linkFor(route, "ig")}\n\n${commonTags}`,
-        facebook: `Sending ${sendMoney(amount, p.s.currency)} to ${p.r.name}? ${top.p.name} pays the most today: ${money(top.gets, p.r.currency)}, against ${money(lowest.gets, p.r.currency)} at the lowest. Compare your own amount: ${linkFor(route, "fb")}\n\n${commonTags}`,
-        tiktok: `Sending ${sendMoney(amount, p.s.currency)} to ${p.r.name}? The best pays ${money(top.gets, p.r.currency)} today. Compare yours: ${linkFor(route, "tt")}\n\n${commonTags}`
+        instagram: `Sending ${sendMoney(amount, p.s.currency)} to ${p.r.name}? ${top.p.name} pays the most today: ${money(top.gets, p.r.currency)}. The lowest of the services we checked pays ${money(lowest.gets, p.r.currency)} — a ${money(gap, p.r.currency)} gap. Compare yours: ${IG_LINK_TEXT}\n\n${commonTags}`,
+        facebook: fb(FB_LINK_TEXT),
+        tiktok: `Sending ${sendMoney(amount, p.s.currency)} to ${p.r.name}? The best pays ${money(top.gets, p.r.currency)} today. Compare yours: ${linkFor(route, "tt")}\n\n${commonTags}`,
+        youtube: fb(linkFor(route, "yt"))
       },
       hashtags: commonTags
     };
@@ -167,6 +266,7 @@ function buildReel(template, dateStr, index) {
     const avgGets = rows.reduce((a, x) => a + x.gets, 0) / rows.length;
     const avgCost = rows.reduce((a, x) => a + Math.max(0, 1 - x.gets / (amount * (data.mid || 1))), 0) / rows.length;
     const extra = top.gets - avgGets;
+    const fb = (link) => `The average total cost on ${p.s.label} to ${p.r.name} today is ${(avgCost * 100).toFixed(1)}%. ${top.p.name} pays the most: ${money(top.gets, p.r.currency)}, about ${money(extra, p.r.currency)} more than the average. Compare your own amount: ${link}\n\n${commonTags}`;
     return {
       template, route, from: p.s.short, to: p.r.name, amount, currency: p.s.currency, receiveCurrency: p.r.currency,
       hook: `What does ${sendMoney(amount, p.s.currency)} to ${p.r.name} really cost?`,
@@ -176,10 +276,12 @@ function buildReel(template, dateStr, index) {
         { label: "Extra vs average", value: money(extra, p.r.currency), final: extra }
       ],
       checkedAt, checkDate,
+      links: linksFor(routePage(route)),
       captions: {
-        instagram: `The average total cost on ${p.s.label} to ${p.r.name} today is ${(avgCost * 100).toFixed(1)}%. ${top.p.name} is the best: ${money(top.gets, p.r.currency)}, about ${money(extra, p.r.currency)} more than the average. Compare yours: ${linkFor(route, "ig")}\n\n${commonTags}`,
-        facebook: `The average total cost on ${p.s.label} to ${p.r.name} today is ${(avgCost * 100).toFixed(1)}%. ${top.p.name} pays the most: ${money(top.gets, p.r.currency)}, about ${money(extra, p.r.currency)} more than the average. Compare your own amount: ${linkFor(route, "fb")}\n\n${commonTags}`,
-        tiktok: `Average cost: ${(avgCost * 100).toFixed(1)}%. Best: ${top.p.name} at ${money(top.gets, p.r.currency)}. Compare yours: ${linkFor(route, "tt")}\n\n${commonTags}`
+        instagram: `The average total cost on ${p.s.label} to ${p.r.name} today is ${(avgCost * 100).toFixed(1)}%. ${top.p.name} is the best: ${money(top.gets, p.r.currency)}, about ${money(extra, p.r.currency)} more than the average. Compare yours: ${IG_LINK_TEXT}\n\n${commonTags}`,
+        facebook: fb(FB_LINK_TEXT),
+        tiktok: `Average cost: ${(avgCost * 100).toFixed(1)}%. Best: ${top.p.name} at ${money(top.gets, p.r.currency)}. Compare yours: ${linkFor(route, "tt")}\n\n${commonTags}`,
+        youtube: fb(linkFor(route, "yt"))
       },
       hashtags: commonTags
     };
@@ -190,40 +292,48 @@ function buildReel(template, dateStr, index) {
     const h = houses(city);
     if (!h) return null;
     const url = city.city === "country" ? `${site}/cost-to-build/${city.cid}/3-bedroom/` : `${site}/cost-to-build/${city.cid}/${city.city}/3-bedroom/`;
+    const fb = (link) => `A 3-bedroom house in ${city.label}: economy ${money(h.eco.total, h.eco.currency)}, standard ${money(h.std.total, h.std.currency)}, luxury ${money(h.lux.total, h.lux.currency)}. See every line: ${link}\n\n${hashtagsFor({ id: "house" })}`;
     return {
       template, route: `${city.cid}-${city.city}`, from: city.label, to: city.country, amount: 0, currency: "XOF", receiveCurrency: h.std.currency,
       hook: `What does a 3-bedroom house cost in ${city.label}?`,
+      ytHook: `A 3-bedroom house in ${city.label}`,
       numbers: [
         { label: "Economy", value: money(h.eco.total, h.eco.currency), final: h.eco.total },
         { label: "Standard", value: money(h.std.total, h.std.currency), final: h.std.total },
         { label: "Luxury", value: money(h.lux.total, h.lux.currency), final: h.lux.total }
       ],
       checkedAt: h.checked + "T00:00:00Z", checkDate: h.checked,
+      links: linksFor(url),
       captions: {
-        instagram: `A 3-bedroom house in ${city.label}: economy ${money(h.eco.total, h.eco.currency)}, standard ${money(h.std.total, h.std.currency)}, luxury ${money(h.lux.total, h.lux.currency)}. Itemised receipt, no land or contractor fee: ${url}?ref=ig\n\n${hashtagsFor({ id: "house" })}`,
-        facebook: `A 3-bedroom house in ${city.label}: economy ${money(h.eco.total, h.eco.currency)}, standard ${money(h.std.total, h.std.currency)}, luxury ${money(h.lux.total, h.lux.currency)}. See every line: ${url}?ref=fb\n\n${hashtagsFor({ id: "house" })}`,
-        tiktok: `3-bedroom in ${city.label}: ${money(h.std.total, h.std.currency)} standard. Full receipt: ${url}?ref=tt\n\n${hashtagsFor({ id: "house" })}`
+        instagram: `A 3-bedroom house in ${city.label}: economy ${money(h.eco.total, h.eco.currency)}, standard ${money(h.std.total, h.std.currency)}, luxury ${money(h.lux.total, h.lux.currency)}. Itemised receipt, no land or contractor fee: ${IG_LINK_TEXT}\n\n${hashtagsFor({ id: "house" })}`,
+        facebook: fb(FB_LINK_TEXT),
+        tiktok: `3-bedroom in ${city.label}: ${money(h.std.total, h.std.currency)} standard. Full receipt: ${url}?ref=tt\n\n${hashtagsFor({ id: "house" })}`,
+        youtube: fb(`${url}?ref=yt`)
       },
       hashtags: hashtagsFor({ id: "house" })
     };
   }
 
   if (template === "tip") {
-    const tip = TIPS[index % TIPS.length];
+    const tip = TIPS[visit % TIPS.length];
     const gap = top.gets - lowest.gets;
+    const fb = (link) => `${tip.text} On ${p.s.label} to ${p.r.name} today the gap is ${money(gap, p.r.currency)}. Compare your own amount: ${link}\n\n${hashtagsFor(p.r, tags.tip || [])}`;
     return {
       template, route, from: p.s.short, to: p.r.name, amount, currency: p.s.currency, receiveCurrency: p.r.currency,
       hook: tip.text,
+      ytHook: `${tip.title} (${p.s.label} to ${p.r.name})`,
       numbers: [
         { label: "Best", value: money(top.gets, p.r.currency), final: top.gets },
         { label: "Lowest", value: money(lowest.gets, p.r.currency), final: lowest.gets },
         { label: "Difference", value: money(gap, p.r.currency), final: gap }
       ],
       checkedAt, checkDate,
+      links: linksFor(routePage(route)),
       captions: {
-        instagram: `${tip.text} On ${p.s.label} to ${p.r.name} today the gap between the best and lowest is ${money(gap, p.r.currency)}. Compare yours: ${linkFor(route, "ig")}\n\n${hashtagsFor(p.r, tags.tip || [])}`,
-        facebook: `${tip.text} On ${p.s.label} to ${p.r.name} today the gap is ${money(gap, p.r.currency)}. Compare your own amount: ${linkFor(route, "fb")}\n\n${hashtagsFor(p.r, tags.tip || [])}`,
-        tiktok: `${tip.text} Gap today: ${money(gap, p.r.currency)}. Compare yours: ${linkFor(route, "tt")}\n\n${hashtagsFor(p.r, tags.tip || [])}`
+        instagram: `${tip.text} On ${p.s.label} to ${p.r.name} today the gap between the best and lowest is ${money(gap, p.r.currency)}. Compare yours: ${IG_LINK_TEXT}\n\n${hashtagsFor(p.r, tags.tip || [])}`,
+        facebook: fb(FB_LINK_TEXT),
+        tiktok: `${tip.text} Gap today: ${money(gap, p.r.currency)}. Compare yours: ${linkFor(route, "tt")}\n\n${hashtagsFor(p.r, tags.tip || [])}`,
+        youtube: fb(linkFor(route, "yt"))
       },
       hashtags: hashtagsFor(p.r, tags.tip || [])
     };
@@ -234,6 +344,8 @@ function buildReel(template, dateStr, index) {
   const changed = bestChanged(route);
   const eligible = (t && Math.abs(t.pct) >= (schedule.rateMoveThresholdPct || 1)) || changed;
   if (!eligible) return null;
+  const moved = changed ? "The best service changed" : `The ${p.s.currency} to ${p.r.currency} rate moved ${pct(t.pct)}`;
+  const fb = (link) => `${moved} this week. ${top.p.name} pays the most today: ${money(top.gets, p.r.currency)}. Compare your own amount: ${link}\n\n${commonTags}`;
   return {
     template, route, from: p.s.short, to: p.r.name, amount, currency: p.s.currency, receiveCurrency: p.r.currency,
     hook: changed ? "The best service changed this week" : `The rate moved ${pct(t.pct)} this week`,
@@ -242,9 +354,11 @@ function buildReel(template, dateStr, index) {
       { label: `Best: ${top.p.name}`, value: money(top.gets, p.r.currency), final: top.gets }
     ],
     checkedAt, checkDate,
+    links: linksFor(routePage(route)),
     captions: {
-      instagram: `${changed ? "The best service changed" : `The ${p.s.currency} to ${p.r.currency} rate moved ${pct(t.pct)}`} this week. ${top.p.name} pays the most today: ${money(top.gets, p.r.currency)}. Compare yours: ${linkFor(route, "ig")}\n\n${commonTags}`,
-      facebook: `${changed ? "The best service changed" : `The ${p.s.currency} to ${p.r.currency} rate moved ${pct(t.pct)}`} this week. ${top.p.name} pays the most today: ${money(top.gets, p.r.currency)}. Compare your own amount: ${linkFor(route, "fb")}\n\n${commonTags}`,
+      instagram: `${moved} this week. ${top.p.name} pays the most today: ${money(top.gets, p.r.currency)}. Compare yours: ${IG_LINK_TEXT}\n\n${commonTags}`,
+      facebook: fb(FB_LINK_TEXT),
+      youtube: fb(linkFor(route, "yt")),
       tiktok: `${changed ? "Best service changed" : `Rate moved ${pct(t.pct)}`}. ${top.p.name}: ${money(top.gets, p.r.currency)}. ${linkFor(route, "tt")}\n\n${commonTags}`
     },
     hashtags: commonTags
@@ -259,32 +373,85 @@ function buildImage(reel) {
     rows,
     footnote: `Source: SendFair (sendfair.africa) · checked ${new Date(reel.checkDate + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}`,
     cta: "sendfair.africa",
-    link: reel.template === "house" ? `${site}/cost-to-build/` : routePage(reel.route)
+    link: reel.links ? reel.links.facebook.replace(/\?ref=fb$/, "") : routePage(reel.route)
   };
+}
+
+// A named series per template, so people recognise the format and come back for it. The name opens
+// every caption and labels the Reel's first frame (and the carousel cover).
+export const SERIES = {
+  route: { name: "Rate of the day", emoji: "📊" },
+  "best-vs-average": { name: "Best vs average", emoji: "⚖️" },
+  house: { name: "What it costs to build", emoji: "🏠" },
+  material: { name: "Build back home", emoji: "🧱" },
+  tip: { name: "Sender's tip", emoji: "💡" },
+  "rate-move": { name: "Rate alert", emoji: "📈" }
+};
+// Building content (house costs, material prices) has its own wording on the Reel's last frame and
+// the carousel's save line.
+export const BUILDING = new Set(["house", "material"]);
+let QUESTIONS = {};
+try { QUESTIONS = read("data/social/questions.json"); } catch {}
+// One comment prompt per caption, rotating by date (the day of the year, so it moves through the whole
+// list: each time a template comes round it moves on). The first comment uses the next one, so it
+// never repeats the caption.
+function questionsFor(template, reel, visit) {
+  const list = (QUESTIONS[template] || QUESTIONS.route || []).filter(Boolean);
+  if (!list.length) return { caption: "", comment: "" };
+  const fill = (q) => q.replace(/\{to\}/g, reel.to || "home").replace(/\{from\}/g, reel.from || "").replace(/\{city\}/g, reel.from || reel.to || "").replace(/\{material\}/g, reel.material || "cement");
+  // Two prompts per visit (caption and first comment), so each visit moves on by two.
+  const i = (visit * 2) % list.length;
+  return { caption: fill(list[i]), comment: fill(list[(i + 1) % list.length]) };
+}
+const TIKTOK_MAX = 2200; // TikTok caption limit (characters)
+const YT_TITLE_MAX = 90; // our cap; YouTube allows 100
+function ytTitle(series, hook) {
+  const tail = " #Shorts";
+  const clean = (x) => String(x).replace(/[<>]/g, "").replace(/\s+/g, " ").trim();
+  let head = `${series.name}: ${clean(hook)}`;
+  const room = YT_TITLE_MAX - tail.length;
+  if (head.length > room) { head = head.slice(0, room - 1); head = head.slice(0, Math.max(head.lastIndexOf(" "), series.name.length + 2)).replace(/[\s,.:;—-]+$/, "") + "…"; }
+  return head + tail;
 }
 
 export function buildPlan(now = new Date(), forceTemplate = null) {
   const date = nairobiDate(now);
   const index = dayIndex(date);
   const templates = schedule.templates || ["route"];
-  let template = forceTemplate || templates[index % templates.length];
+  let template = forceTemplate || pickTemplate(date, templates, weights);
   if (template === "rate-move" && !buildReel("rate-move", date, index)) { if (forceTemplate) return null; template = "route"; }
   const reel = buildReel(template, date, index);
   if (!reel) return null;
   const wd = weekdayKey(date);
   const imageDay = (schedule.imagePostDays || []).includes(wd);
-  const worthImage = imageDay && ["house", "rate-move", "best-vs-average", "tip"].includes(template);
+  const worthImage = imageDay && ["house", "material", "rate-move", "best-vs-average", "tip"].includes(template);
   const image = worthImage ? buildImage(reel) : null;
-  // Ask for shares and follows (Facebook's suggestions), just above the hashtags.
+  const series = SERIES[template] || { name: "", emoji: "" };
+  const q = questionsFor(template, reel, Math.floor(index / Math.max(1, templates.length)));
+  reel.series = series;
+  reel.question = q.caption;
+  // Caption layout: "<emoji> <series> | <text>", a comment prompt, the share and follow ask
+  // (Facebook's suggestions), then the hashtags.
   const follow = "Follow us everywhere: sendfair.africa/follow";
-  const ask = { instagram: `Share this with someone who sends money home 🔁\n${follow}`, facebook: `Share this with someone who sends money home 🔁\n${follow}`, tiktok: `Share with someone who sends money home 🔁\n${follow}` };
-  for (const k of Object.keys(ask)) {
-    const c = reel.captions[k] || "";
-    const at = c.lastIndexOf("\n\n#");
-    reel.captions[k] = at >= 0 ? `${c.slice(0, at)}\n\n${ask[k]}${c.slice(at)}` : `${c}\n\n${ask[k]}`;
-  }
+  const ask = { instagram: `Share this with someone who sends money home 🔁\n${follow}`, facebook: `Share this with someone who sends money home 🔁\n${follow}`, tiktok: `Share with someone who sends money home 🔁\n${follow}`, youtube: `Share this with someone who sends money home 🔁\nFollow us everywhere: ${site}/follow/?ref=yt` };
+  const split = (c) => { const at = c.lastIndexOf("\n\n#"); return at >= 0 ? { body: c.slice(0, at), tags: c.slice(at + 2) } : { body: c, tags: "" }; };
+  const parts = { ...reel.captions }; // the plain text per platform, before the layout below
+  const compose = (k, extra = []) => {
+    const { body, tags: ht } = split(parts[k] || "");
+    const head = series.name ? `${series.emoji} ${series.name} | ${body}` : body;
+    return [head, ...extra, q.caption, ask[k], ht].filter(Boolean).join("\n\n");
+  };
+  const captions = {};
+  for (const k of ["instagram", "facebook", "tiktok"]) captions[k] = compose(k);
+  if (captions.tiktok.length > TIKTOK_MAX) captions.tiktok = captions.tiktok.slice(0, TIKTOK_MAX);
+  captions.youtube = { title: ytTitle(series, reel.ytHook || reel.hook), description: compose("youtube").slice(0, 5000).replace(/[<>]/g, "") };
+  reel.captions = captions;
+  // First comments, posted by social-publish.mjs right after each post: the link on Facebook, a
+  // question on Instagram (comments there can't hold a clickable link either).
+  const lead = template === "house" ? "See every line of the receipt 👉" : template === "material" ? "Every price with its source 👉" : "Compare your own amount 👉";
+  reel.comments = { facebook: `${lead} ${reel.links.facebook}\n\n${q.comment}`.trim(), instagram: q.comment };
   // FORCE_REEL=1 (manual test runs only): build the Reel even on a carousel day.
-  const carousel = (schedule.carouselDays || []).includes(wd) && process.env.FORCE_REEL !== "1" ? buildCarousel(reel) : null;
+  const carousel = (schedule.carouselDays || []).includes(wd) && process.env.FORCE_REEL !== "1" ? buildCarousel(reel, (k) => compose(k, [`Swipe for the full numbers 👉 Save this for your ${BUILDING.has(template) ? "build" : "next transfer"} 📌`])) : null;
   return { date, weekday: wd, template, route: reel.route, reel, image, carousel, generatedAt: now.toISOString(), schedule };
 }
 
@@ -307,6 +474,11 @@ function insightFor(reel) {
     const [eco, std, lux] = n;
     if (eco && std && lux) return `Standard finish adds ${money(std.final - eco.final, reel.receiveCurrency)} over economy. Luxury adds ${money(lux.final - std.final, reel.receiveCurrency)} more. Every line is on the receipt.`;
   }
+  if (reel.template === "material") {
+    const cheap = n[0], dear = n[n.length - 1];
+    const where = (x) => x.label.split(" · ")[0];
+    if (cheap && dear && cheap.usd && dear.usd && usdStr(cheap.usd) !== usdStr(dear.usd)) return `About ${usdStr(cheap.usd)} in ${where(cheap)}, about ${usdStr(dear.usd)} in ${where(dear)}. Price your whole house before you send the money.`;
+  }
   if (reel.template === "tip") {
     const gap = n[n.length - 1];
     if (gap) return `On ${reel.from} to ${reel.to} today, the gap between the best and the lowest service is ${gap.value}. Check before you send.`;
@@ -314,15 +486,12 @@ function insightFor(reel) {
   const best = byLabel(/^Best:/);
   return best ? `${nameOf(best.label)} pays the most today: ${best.value}. Rates move, so check before every transfer.` : "Rates move every day. Check before every transfer.";
 }
-function buildCarousel(reel) {
+// captionFor(platform) lays out the carousel caption the same way as the Reel's, with the swipe and
+// save line straight after the text.
+function buildCarousel(reel, captionFor) {
   if (!reel || !reel.numbers || !reel.numbers.length) return null;
   const captions = {};
-  for (const k of ["instagram", "facebook"]) {
-    const c = reel.captions[k] || "";
-    const at = c.lastIndexOf("\n\n#");
-    const add = "Swipe for the full numbers 👉 Save this for your next transfer 📌";
-    captions[k] = at >= 0 ? `${c.slice(0, at)}\n\n${add}${c.slice(at)}` : `${c}\n\n${add}`;
-  }
+  for (const k of ["instagram", "facebook"]) captions[k] = captionFor(k);
   return { insight: insightFor(reel), captions };
 }
 

@@ -133,6 +133,52 @@ ranking. Without ffmpeg it validates the stills and the manifest and says so.
 
 ## Weekly summary
 
+`.github/workflows/social-weekly.yml` (Mondays 07:00 UTC) runs `scripts/social-weekly.mjs`:
+
+- Fetches per-post metrics for posts from the last 28 days (Instagram: views, reach, likes, comments,
+  saves, shares; Facebook Reels: plays, reach, reactions, comments, shares; Facebook photos: views,
+  reach, reactions, comments, shares) and stores them in `data/social/performance.json`. Every call is
+  non-fatal; refused metrics or permissions are listed in the report.
+- Ranks by content type (transfers / building / other), template, route and platform, lists the top 3
+  posts with links and one "what to do more of" line. If `data/social/trends.json` exists, a
+  "Trending in your niche" section is added.
+- Writes `data/social/weights.json` (28 days, bounded 0.5–2.0, 1.0 until a bucket has 3 posts).
+  `scripts/social-weights.mjs` exports `pickTemplate(date, templates, weights)`: the plain rotation
+  when there are no weights, otherwise a date-seeded weighted pick that never repeats yesterday's
+  template and keeps building content at 25% or more of picks (15% only when 28 days of data clearly
+  show it underperforming).
+- Sends a Buttondown draft with a preview to `SOCIAL_REPORT_EMAIL` as before; if Buttondown is not set
+  up or fails, the text goes to the owner through Resend/webhook (`scripts/providers/notify.mjs`).
+
+Token permissions for metrics: `read_insights` (Facebook post/video insights), `pages_read_engagement`
+(reactions, comments, permalinks), `instagram_manage_insights` (Instagram insights). Without them the
+report still runs and lists what was missing.
+
+## Comment replies
+
+`.github/workflows/social-comments.yml` (daily 05:00 UTC) runs `scripts/social-comments.mjs`, which
+reads the last 3 days of comments on our Facebook and Instagram posts and uploads
+`social/comments.json` (only public fields: name/username, text, time, permalink) to the public R2
+bucket. `/admin/comments` (behind the Rate Desk sign-in) lists unanswered comments with an AI reply
+draft (Workers AI, cached 7 days in KV) and Copy, Open comment, Regenerate and Mark done buttons.
+Replies are never posted automatically. Needs `pages_read_engagement` / `pages_read_user_content`
+(Facebook) and `instagram_manage_comments` (Instagram) on the token.
+
 `.github/workflows/social-weekly.yml` (Mondays 07:00 UTC) reads the log, fetches plays/reach where
 the Graph API allows, flags templates under half the average for two weeks, lists the last 14 days'
 artifacts and emails it through Buttondown (or prints it if the key is absent).
+
+## TikTok and YouTube Shorts from the Worker (`/admin/social`)
+
+The Worker posts the day's Reel itself, so no GitHub or Worker secrets are needed. The owner opens
+`https://sendfair.africa/admin/social/` (Rate Desk sign-in), saves the TikTok and Google app
+credentials, presses **Connect**, and the page holds step-by-step setup instructions.
+
+- Cron `*/20 17-21 * * *` (UTC) reads `<socialMediaBase>/social/<Nairobi date>/manifest.json`; when it
+  exists, it streams `reel.mp4` straight into TikTok (Direct Post, `FILE_UPLOAD`, one chunk) and
+  YouTube (resumable upload, `#Shorts` title from `manifest.captions.youtube`).
+- Credentials, tokens, OAuth state and results live in `SENDFAIR_KV` (`social:*`, `posted:<platform>:<date>`).
+  A day is claimed (`in-progress`) before uploading; failed runs retry up to 3 times a day; an
+  interrupted upload is not retried automatically (use **Post today's Reel now**).
+- Keep `schedule.tiktok` false for the GitHub TikTok path while the Worker posts to TikTok, or TikTok gets the Reel twice.
+- Code: `functions/social/`; test: `node scripts/test-social-connect.mjs`.

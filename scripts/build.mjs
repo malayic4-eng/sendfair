@@ -2147,7 +2147,7 @@ write("data/history.json", JSON.stringify(history));
 const wiseFeed = path.join(ROOT, "data/wise-feed.json");
 if (fs.existsSync(wiseFeed) && !DEMO) fs.copyFileSync(wiseFeed, path.join(OUT, "data/wise-feed.json"));
 if (demoReports) write("data/reports-demo.json", JSON.stringify(demoReports));
-write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, preferAutoAfterHours: config.preferAutoAfterHours, handLockHours: config.handLockHours, regionalAverageCost: config.regionalAverageCost, ga4MeasurementId: config.ga4MeasurementId || "", quoteCheckEnabled: QC_ON, quoteCheckAssets: { siteCss: V.css, qccss: V.qccss, app: V.app, report: V.qcreport, fonts: V.fonts } }));
+write("data/site.json", JSON.stringify({ siteName: config.siteName, siteUrl: site, priorityRoutes: config.priorityRoutes || [], defaultAmounts: config.defaultAmounts, staleAfterHours: staleH, hideAfterHours: hideH, preferAutoAfterHours: config.preferAutoAfterHours, handLockHours: config.handLockHours, regionalAverageCost: config.regionalAverageCost, ga4MeasurementId: config.ga4MeasurementId || "", socialMediaBase: config.socialMediaBase || "", quoteCheckEnabled: QC_ON, quoteCheckAssets: { siteCss: V.css, qccss: V.qccss, app: V.app, report: V.qcreport, fonts: V.fonts } }));
 write("data/quote-check/config.json", JSON.stringify({ ...QC, enabled: QC_ON }, null, 2));
 write("data/quote-check/synonyms.json", JSON.stringify(QC_SYNONYMS, null, 2));
 if (fs.existsSync(path.join(ROOT, "data/quote-check/fixtures"))) copyDir(path.join(ROOT, "data/quote-check/fixtures"), path.join(OUT, "data/quote-check/fixtures"));
