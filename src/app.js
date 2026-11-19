@@ -691,9 +691,6 @@
     var from = $("sf-from").value, coverage = S.coverage[k] && S.coverage[k].length ? S.coverage[k] : Object.keys(S.providers).filter(function (id) { var p = S.providers[id]; return !p.sendsFrom || p.sendsFrom.indexOf(from) > -1; });
     var ranked = {};
     rows.forEach(function (x) { ranked[x.p.id] = 1; });
-    var gulfExtras = { uae: ["luluexchange", "alansari", "alfardan", "moneygram", "wise", "remitly"], oman: ["worldremit", "westernunion", "moneygram", "luluexchange", "omanexchange", "ria"] };
-    var extra = gulfExtras[from] || [];
-    extra.forEach(function (id) { if (coverage.indexOf(id) < 0) coverage = coverage.concat([id]); });
     ["lemfi", "nala", "mukuru"].forEach(function (id) {
       var p = S.providers[id];
       if (p && (!p.sendsFrom || p.sendsFrom.indexOf(from) > -1) && coverage.indexOf(id) < 0) coverage = coverage.concat([id]);
@@ -800,7 +797,7 @@
       if (!s || !p) return;
       var q = s.textContent;
       if (/cheapest way/i.test(q) && !c.rows.length) {
-        p.textContent = "No service publishes an online price for this route yet. Compare the services listed above in their apps or at a branch, using the mid-market figure as a guide. There is no ranking on this page until an online quote is checked.";
+        p.textContent = "We have no online price checked for this route yet. Compare the services listed above in their apps or at a branch, using the mid-market figure as a guide. There is no ranking on this page until an online quote is checked.";
       } else if (/cheapest way/i.test(q) && top) {
         p.textContent = "For " + amt + ", " + top.p.name + " delivers the most after fees and the exchange-rate margin. The order can change with the amount: check the table of common amounts on this page. The ranking updates when you change the figure above.";
       }

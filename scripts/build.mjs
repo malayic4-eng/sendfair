@@ -1758,7 +1758,7 @@ function corridorGrid(prefix) {
       const top = c.rows.find((x) => !x.stale), lead = R.leaders(c.rows);
       return `<li><a href="${link(prefix, corridorPath(s, r))}"><span class="b-country">${esc(r.name)}</span>${top
         ? `<span class="b-amt num">${R.moneyHtml(top.gets, r.currency)}</span><span class="b-prov">${lead.length > 1 ? `${lead.length}-way tie: ${esc(lead.map((x) => x.p.name).join(", "))}` : `with ${esc(top.p.name)}`}</span>`
-        : `<span class="b-amt b-wait">${c.anyQuotes ? "Being rechecked" : "Prices in apps only"}</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
+        : `<span class="b-amt b-wait">${c.anyQuotes ? "Being rechecked" : "No online price yet"}</span><span class="b-prov">${s.currency} to ${r.currency}</span>`}</a></li>`;
     }).join("");
     return `<div class="board-col"><h3>From ${esc(s.short)}</h3><p class="board-sub">Best result for <span class="num">${esc(R.money(amount, s.currency, 0))}</span></p><ul>${rows}</ul></div>`;
   };
@@ -2307,7 +2307,7 @@ ${faqBlock(faqs)}
         body = tool({ ctx, heading: `Send ${esc(amtSym)} to ${esc(r.name)}: who delivers the most today`, sub: ctx.anyQuotes ? `Quotes for ${esc(amtSym)} from ${esc(s.short)} to ${esc(r.name)} are being rechecked.` : `No service publishes an online price for ${esc(amtSym)} from ${esc(s.short)} to ${esc(r.name)} yet.` }) + `
 <section class="block"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
-<p>${ctx.anyQuotes ? "The last check is older than three days, so it is hidden until we recheck it." : `The services on this route show their rates only in their apps or at their branches. There is no ranking to use until an online quote for ${esc(amtSym)} is published.`}</p>
+<p>${ctx.anyQuotes ? "The last check is older than three days, so it is hidden until we recheck it." : `We have no online price checked for this route yet. Compare the services below in their apps or at a branch. There is no ranking until an online quote for ${esc(amtSym)} is published.`}</p>
 <p><a href="${link(prefix, routeRel)}">See the ${esc(s.label)} to ${esc(r.name)} route page</a></p>
 </div></div></section>`;
       }
@@ -2869,7 +2869,7 @@ const trust = {
 <h1>How we rank</h1>
 <h2>What we collect</h2>
 <ul><li>The exchange rate each provider quotes on each route, and the amount we checked it for.</li><li>The transfer fee: a fixed amount, a percentage, or both.</li><li>The ways the money can be received (mobile money, bank, cash pickup). Where a provider's rate differs by payout method, we record each one separately.</li><li>The typical delivery time and when we checked.</li></ul>
-<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are checked automatically through the day from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. We look for new data every 30 minutes, but a provider's figure only changes when Wise has collected a new one, so some rows are a few hours old. Those rows are marked "(auto)" and each one shows how old it is. ${handCheckedRoutes === 0 ? "No routes are checked by hand at the moment: every price comes from Wise's comparison data or from WorldRemit's own website." : `Other services are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data.`} Automatic rates far from the mid-market rate are held back as likely errors.</p>
+<p>Quotes come from two sources. For Wise, Remitly, Western Union, WorldRemit, MoneyGram and some others, rates and fees are checked automatically through the day from Wise's comparison data, which collects each provider's advertised rate and fee from their websites. We look for new data every hour, but a provider's figure only changes when Wise has collected a new one, so some rows are a few hours old. Those rows are marked "(auto)" and each one shows how old it is. ${handCheckedRoutes === 0 ? "No routes are checked by hand at the moment: every price comes from Wise's comparison data or from WorldRemit's own website." : `Other services are checked by hand from the provider's public calculator or app, busy routes every day and quieter ones at least every two days. A hand check made in the last 30 hours always takes priority over automatic data.`} Automatic rates far from the mid-market rate are held back as likely errors.</p>
 <h2>How the amount received is calculated</h2>
 <p>You enter the total you plan to pay. We take off the provider's fee and convert the rest at the provider's rate. Where the fee is a percentage, it is worked out on the amount sent.</p>
 <p>Total cost is the gap between that and converting your full amount at the mid-market rate with no fee.</p>
