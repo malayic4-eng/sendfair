@@ -13,6 +13,7 @@ import { TRAVEL_IDS, sponsorsFor, flightTarget, esimTarget } from "../src/partne
 import { historySummary } from "./rate-summary.mjs";
 import { applyOverrides, sharedCurrencies } from "./feed-lib.mjs";
 import { loadQuestions, questionPage, questionsIndex, relatedQuestions } from "./questions.mjs";
+import { minifyJs, MINIFIED_JS } from "./minify-assets.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -1818,7 +1819,11 @@ function copyDir(src, dst) {
 // ---------- asset versions ----------
 // Each page asks for style.css?v=<hash> etc., so browsers fetch new files as soon as they change.
 import crypto from "node:crypto";
-const ver = (f) => crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, "src", f))).digest("hex").slice(0, 10);
+// The hash is taken from the file as shipped (minified), so a ?v= always names the exact bytes served.
+const ASSET_FILES = ["style.css", "app.js", "rank.js", "fonts.css", "build-cost.js", "quote-check.css", "quote-check.js", "quote-check-report.js"];
+const shippedAsset = (f) => { const src = fs.readFileSync(path.join(ROOT, "src", f), "utf8"); return f.endsWith(".css") ? minifyCss(src) : MINIFIED_JS.has(f) ? minifyJs(src, f) : src; };
+const ASSET_TEXT = Object.fromEntries(ASSET_FILES.map((f) => [f, shippedAsset(f)]));
+const ver = (f) => crypto.createHash("sha256").update(ASSET_TEXT[f]).digest("hex").slice(0, 10);
 const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css"), build: ver("build-cost.js"), qccss: ver("quote-check.css"), qcjs: ver("quote-check.js"), qcreport: ver("quote-check-report.js") };
 const sitemapAlts = {};
 
@@ -2070,13 +2075,10 @@ function amountsTable(ctx) {
 // ---------- build ----------
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(path.join(OUT, "assets"), { recursive: true });
-for (const f of ["style.css", "app.js", "rank.js", "fonts.css", "build-cost.js", "quote-check.css", "quote-check.js", "quote-check-report.js"]) fs.copyFileSync(path.join(ROOT, "src", f), path.join(OUT, "assets", f));
+// CSS and the browser scripts are written minified (see ASSET_TEXT and scripts/minify-assets.mjs).
+for (const f of ASSET_FILES) fs.writeFileSync(path.join(OUT, "assets", f), ASSET_TEXT[f]);
 function minifyCss(s) {
   return s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{}:;,])\s*/g, "$1").replace(/;}/g, "}").trim();
-}
-for (const f of ["style.css", "fonts.css", "quote-check.css"]) {
-  const file = path.join(OUT, "assets", f);
-  fs.writeFileSync(file, minifyCss(fs.readFileSync(file, "utf8")));
 }
 copyDir(path.join(ROOT, "src/fonts"), path.join(OUT, "assets/fonts"));
 copyDir(path.join(ROOT, "src/og"), path.join(OUT, "og"));

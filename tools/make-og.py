@@ -33,8 +33,7 @@ h1{color:#111853;font:760 96px/1 B,sans-serif;letter-spacing:-.03em;max-width:10
 FACES = {"b": font("bricolage-grotesque-latin-opsz-normal.woff2"), "f": font("figtree-latin-wght-normal.woff2")}
 
 async def main():
-    jobs = [("home", "Money transfers to Africa, compared", "Send more home.", "Ranked by what your family actually receives, after the fee and the exchange-rate markup."),
-            ("gulf", "Exchange houses, banks, wallets and apps", "From the Gulf to Africa", "Every way of sending compared by how much actually arrives.")]
+    jobs = [("home", "Money transfers to Africa, compared", "Send more home.", "Ranked by what your family actually receives, after the fee and the exchange-rate markup.")]
     for s in corr["senders"]:
         for r in corr["receivers"]:
             jobs.append((f"{s['id']}-to-{r['id']}", f"{s['currency']} to {r['currency']}", f"{s['label']} to {r['name']}", "Today's transfer services ranked by how much actually arrives."))

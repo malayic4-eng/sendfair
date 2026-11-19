@@ -1,0 +1,47 @@
+name: PR check
+
+# Builds the site and runs every test on pull requests and on pushes to branches other than main,
+# so a branch gets a reliable pass/fail in GitHub regardless of Cloudflare's preview builds.
+# Everything here runs offline with no secrets (checked with networking switched off).
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build the site (fails on any data-file problem)
+        run: node scripts/build.mjs
+      - name: Quote Check tests
+        run: npm test
+      - name: Script tests (scripts/test-*.mjs)
+        # test-reel renders the Reel stills offline (MP4 checks are skipped without ffmpeg).
+        run: |
+          failed=""
+          for f in scripts/test-*.mjs; do
+            echo "::group::$f"
+            if node "$f"; then echo "passed: $f"; else failed="$failed $f"; fi
+            echo "::endgroup::"
+          done
+          if [ -n "$failed" ]; then echo "::error::Failed:$failed"; exit 1; fi
+      - name: SEO audit (fails on high/critical issues; the report is not committed here)
+        run: node scripts/seo-audit.mjs

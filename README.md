@@ -1,10 +1,17 @@
 # SendFair
 
-Money transfer comparison for the African diaspora: 5 sending countries/regions (US, UK, Canada, Australia, Europe) × 17 receiving countries (Nigeria, Ghana, Kenya, Uganda, Zambia, Zimbabwe, Egypt, Morocco, Senegal, Côte d'Ivoire, Mali, Cameroon, Ethiopia, South Africa, Tanzania, DR Congo, Rwanda) = 85 route pages. Services are ranked by how much the family actually receives, and every quote is refreshed automatically from Wise's comparison data.
+Money transfer comparison for the African diaspora: 5 sending countries/regions (US, UK, Canada, Australia, Europe) × 17 receiving countries (Nigeria, Ghana, Kenya, Uganda, Zambia, Zimbabwe, Egypt, Morocco, Senegal, Côte d'Ivoire, Mali, Cameroon, Ethiopia, South Africa, Tanzania, DR Congo, Rwanda) = 85 routes. Services are ranked by how much the family actually receives. Quotes come from Wise's comparison feed, the WorldRemit scraper and (once connected) official partner feeds, refreshed every hour, plus the quotes you check by hand in the Rate Desk.
 
-The Gulf guide at `/send-money-from-the-gulf/` compares the ways of sending from the Gulf (exchange houses, bank remittance services, mobile wallets, apps, cash networks) using the quotes you enter on Gulf routes.
+What the site offers (the homepage "Everything SendFair does" tiles):
 
-Hosting is free (Cloudflare Pages). The only fixed running cost is the domain, about $10–15 a year. Quote Check adds per-order payment and AI extraction costs, described in its section below.
+- **Send money:** compare transfers on every route, today's exchange rates (`/rates/`), and the monthly Remittance Cost Index (`/reports/`).
+- **Build a house:** the house cost calculator (`/cost-to-build/`) and Quote Check, the paid builder-quote review (`/quote-check/`, off until switched on).
+- **Stay updated:** rate alerts (email and the WhatsApp rate bot) and the flying-home pages (`/flying-home/`).
+- Also: a short AI helper that answers from the site's own data, the embeddable rate widget (`/embed/widget`), question pages (`/questions/`) and French route pages (`/fr/`).
+
+Transfer services in `data/providers.json` (26): Wise, WorldRemit, Remitly, Sendwave, LemFi, Taptap Send, Afriex, NALA, Africhange, Mukuru, Western Union, MoneyGram, Ria Money Transfer, Instarem, XE Money Transfer, Skrill, Boss Money (US only), Xoom (PayPal), TransferGo, Paysend, Small World, Moneytrans, Mama Money, ACE Money Transfer, Sigue and OFX. Each one's `sendsFrom` lists which of the 5 sending regions it serves.
+
+Hosting is free (Cloudflare Workers with static assets). The only fixed running cost is the domain, about $10–15 a year. Quote Check adds per-order payment and AI extraction costs, described in its section below.
 
 ---
 
@@ -13,16 +20,17 @@ Hosting is free (Cloudflare Pages). The only fixed running cost is the domain, a
 | Path | What it is |
 |---|---|
 | `config.json` | Site name, domain, email, daily routes, and switches for ads, alerts, click tracking and delivery reports |
-| `data/providers.json` | The 35 transfer services. **Paste affiliate links here** once approved. `sendsFrom` = countries each one sends from; `type` = app, exchange, bank, wallet or network (used on the Gulf guide) |
-| `data/quotes.json` | Daily quotes. Written by the Rate Desk, don't edit by hand |
-| `data/midmarket.json` | Market reference rates, updated automatically |
+| `data/providers.json` | The 26 transfer services. **Paste affiliate links here** once approved. `sendsFrom` = sending regions each one serves; `type` = app, bank, wallet or network |
+| `data/quotes.json` | Today's quotes. Written by the Rate Desk and the hourly data workflow, don't edit by hand |
+| `data/midmarket.json` | Market reference rates, updated automatically every hour |
+| `data/worldremit-quotes.json`, `data/wise-feed.json`, `data/history.json` | WorldRemit scrape, Wise comparison feed and the daily rate history, all written by the hourly data workflow |
 | `data/corridors.json` | Countries, currencies and ways to receive |
 | `src/` | Styles, fonts, the ranking engine (`rank.js`), page script, Rate Desk (`admin.html`), share images (`og/`) |
 | `config/quote-check.json`, `data/quote-check/`, `src/quote-check/`, `functions/quote-check/` | The paid Quote Check service: fee and thresholds, editable synonyms, sample fixtures, matching, extraction, payments, report and admin. See the Quote Check section below. |
-| `functions/`, `src/worker.js`, `wrangler.jsonc` | Small server functions for delivery reports, click counting and click stats, and Cloudflare's deploy settings |
-| `scripts/` | Site build, rate fetchers |
+| `functions/`, `src/worker.js`, `wrangler.jsonc` | Small server functions for delivery reports, click counting and click stats, the AI helper, alerts and Quote Check, and Cloudflare's deploy settings |
+| `scripts/` | Site build (`build.mjs`, which also minifies the browser scripts via `minify-assets.mjs`), rate fetchers, social posting, and tests (`test-*.mjs`) |
 | `tools/make-og.py` | Regenerates share images if you ever add countries |
-| `.github/workflows/` | Automatic reference-rate updates |
+| `.github/workflows/` | Automatic jobs: hourly data update, PR check, daily Reel, SEO audit, IndexNow, price review, monthly report (see "Automatic jobs" below) |
 
 ---
 
@@ -36,15 +44,20 @@ Check `sendfair.co`, `sendfair.africa` or `getsendfair.com` at Namecheap or Clou
 2. **New repository** → name it `sendfair` → create.
 3. Click **uploading an existing file** and drag in everything from this folder, including the hidden `.github` folder and `.nvmrc` (on Mac press Cmd+Shift+. in Finder to see hidden files). Commit.
 4. **Settings → Actions → General → Workflow permissions** → **Read and write permissions** → Save.
-5. **Actions → Update reference rates → Run workflow** once.
+5. **Actions → Update rates → Run workflow** once.
 
 ### 3. Publish with Cloudflare (Workers)
 1. Free account at dash.cloudflare.com.
-2. **Workers & Pages → Create application → Import a repository** → pick `sendfair` → **Deploy**. All settings (build step, pages folder, storage) come from `wrangler.jsonc`, so leave the build fields as they are.
-3. You get a free `sendfair.<your-name>.workers.dev` address.
-4. Your domain: open the `sendfair` Worker → **Settings → Domains & Routes → Add → Custom domain**.
+2. **Workers & Pages → Create application → Import a repository** → pick `sendfair` → **Deploy**. The storage, assets folder and cron settings come from `wrangler.jsonc`.
+3. Open the `sendfair` Worker → **Settings → Build** and set:
+   - **Build command:** `npm run build`. `npx wrangler deploy` runs the build in `wrangler.jsonc` itself, but the **Preview command** used for branches other than `main` (`npx wrangler preview`) does not, so without a build command those builds fail with "assets.directory … does not exist" because `dist/` was never made.
+   - **Build watch paths → Exclude:** `data/social/*` and `data/seo-audit.json`. The social workflows and the SEO audit commit logs there that the site does not use, so those commits should not start a build. (Their commit messages also carry `[skip ci]`.)
+4. You get a free `sendfair.<your-name>.workers.dev` address.
+5. Your domain: open the `sendfair` Worker → **Settings → Domains & Routes → Add → Custom domain**.
 
-Every change in the repository (including each Rate Desk publish) rebuilds the site. If a data file ever has a mistake, the build stops with a plain list of what to fix, and the previous version stays live.
+Every other change in the repository (including each Rate Desk publish and each hourly data commit) rebuilds the site. If a data file ever has a mistake, the build stops with a plain list of what to fix, and the previous version stays live.
+
+Pull requests and pushes to branches other than `main` also run **PR check** in GitHub Actions (`.github/workflows/pr-check.yml`): `npm ci`, the build, `npm test`, every `scripts/test-*.mjs` and the SEO audit, all offline. Its tick or cross is the reliable signal for a branch.
 
 ### 4. Token for the Rate Desk
 1. GitHub → photo → **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**.
@@ -60,9 +73,9 @@ Cloudflare dashboard → **Zero Trust → Access → Applications → Add an app
 
 1. Open `https://yourdomain/admin/`. The coloured chips show progress: green done, yellow partly done, **bold** = daily routes.
 2. Pick a route. Yesterday's numbers are filled in, with how long ago each was checked.
-3. For each provider, open its calculator for the **reference amount** shown (£250, $300, C$400, A$450; AED/SAR/QAR 1,000; KWD/BHD/OMR 100) and type:
+3. For each provider, open its calculator for the **reference amount** shown (£250, $300, €300, C$400, A$450) and type:
    - **They get**: the amount the provider says arrives. The rate is worked out for you. (Or type the rate directly.)
-   - **Fixed fee** and/or **% fee** in the sending currency. On UAE, Saudi, Bahrain and Oman routes, type the fee **including VAT** (the Rate Desk reminds you).
+   - **Fixed fee** and/or **% fee** in the sending currency.
    - **Receive by**: tick at least one.
    - **Variant**: only if the provider gives a different rate for, say, mobile money vs bank. Use **+ variant** for a second row.
 4. Any row you edit is ticked **Checked today**. Untouched rows keep their old time, so the site honestly shows "Not rechecked today" for them.
@@ -118,12 +131,29 @@ To see click counts in the Rate Desk: open the `sendfair` Worker → **Settings 
 
 Reports: visitors pick a service and how long it took. After 3 reports in two months, the route shows "Usually arrives: ..." for that service. One report per visitor per service per day; IP addresses are never stored.
 
-Clicks: "Go to" buttons pass through `/go/...`, which counts the click and forwards to your affiliate link.
+Clicks: "Go to" buttons pass through `/go/...`, which counts the click and forwards to your affiliate link. Each click is stored as its own key (`c:<day>:<route>:<service>:<random>`, kept 400 days), so clicks that land at the same moment are all counted; `/api/stats` counts those keys and adds the older per-day totals (`clicks:<day>:<route>:<service>`).
 
 To switch either off, set `reportsEnabled` or `trackClicks` to `false` in `config.json`.
 
 ### Wise comparison feed (automatic)
-If you get a Wise API token (Wise account → Settings → API tokens), add it in GitHub → **Settings → Secrets and variables → Actions → New repository secret** named `WISE_API_TOKEN`. Every 30 minutes the workflow fetches Wise's collected quotes for many providers and publishes them automatically, marked "(auto)" on the site. If the first run shows errors in the Actions log, send them to me.
+If you get a Wise API token (Wise account → Settings → API tokens), add it in GitHub → **Settings → Secrets and variables → Actions → New repository secret** named `WISE_API_TOKEN`. Every hour the "Update rates" workflow fetches Wise's collected quotes for many providers and publishes them automatically, marked "(auto)" on the site. If the first run shows errors in the Actions log, send them to me.
+
+### Automatic jobs (GitHub Actions)
+
+Every commit to `main` starts a Cloudflare build, so the data jobs are combined to make at most one commit an hour.
+
+| Workflow | When | Commits |
+|---|---|---|
+| **Update rates** (`update-midmarket.yml`) | Hourly at :17 | One commit, "Update rates and quotes (automatic)", only if something changed. Steps: WorldRemit scrape (Playwright) → mid-market rates → Wise feed → mid-market correction from Wise → publish the Wise feed → record history → official partner feeds → commit → data freshness check (when `scripts/check-data-fresh.mjs` exists). Each source step may fail without stopping the others; the run turns red and names the failed sources. |
+| **Daily Reel** (`social-reels.yml`) | Daily 14:00 UTC | `data/social/log.json`, `[skip ci]` |
+| **Weekly social summary** (`social-weekly.yml`) | Mondays | `data/social/log.json`, `[skip ci]` |
+| **SEO audit** (`seo-audit.yml`) | Daily | `data/seo-audit.json`, `[skip ci]` |
+| **PR check** (`pr-check.yml`) | Pull requests, pushes to other branches | Nothing |
+| IndexNow, house price review, monthly report, stale-page check | Daily / monthly | Nothing |
+| Partner feeds, legacy social posting, launch posts, token check | Manual only | Partner feeds commit quotes when run by hand without dry run; the social queue commit carries `[skip ci]` |
+| Extra providers (`extra-providers.yml`) | Manual, or a push that changes its script (hourly schedule paused) | `data/extra-quotes.json` |
+
+The AI helper (`/api/ask`) only answers requests whose `Origin` (or `Referer`) is `https://sendfair.africa` or the Worker's own address, and allows 20 questions per IP address per hour.
 
 ### Analytics
 Cloudflare → **Web Analytics** → add site → copy the token into `cfAnalyticsToken`. It uses no cookies.

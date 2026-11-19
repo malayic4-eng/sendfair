@@ -1,9 +1,8 @@
 name: Partner feeds
 
+# The hourly run now happens inside "Update rates" (update-midmarket.yml), so all data lands in one
+# commit (one Cloudflare build) per hour. This workflow is for manual dry runs and one-off live runs.
 on:
-  schedule:
-    # Hourly. Adapters drop rows older than 24 hours, so a missed run is safe.
-    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -45,7 +44,7 @@ jobs:
           MUKURU_FEED_KEY: ${{ secrets.MUKURU_FEED_KEY }}
         run: node scripts/fetch-provider-quotes.mjs --only=partner --dry-run
       - name: Run partner feeds
-        if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
+        if: ${{ !inputs.dry_run }}
         env:
           LEMFI_FEED_URL: ${{ secrets.LEMFI_FEED_URL }}
           LEMFI_FEED_KEY: ${{ secrets.LEMFI_FEED_KEY }}
@@ -65,7 +64,7 @@ jobs:
           OWNER_ALERT_WEBHOOK: ${{ secrets.OWNER_ALERT_WEBHOOK }}
         run: node scripts/fetch-provider-quotes.mjs --only=partner
       - name: Commit if changed
-        if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
+        if: ${{ !inputs.dry_run }}
         run: |
           git config user.name "sendfair-bot"
           git config user.email "actions@users.noreply.github.com"
