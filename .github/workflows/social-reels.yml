@@ -2,8 +2,9 @@ name: Daily Reel
 
 on:
   schedule:
-    # 17:00 Africa/Nairobi (14:00 UTC): UK lunchtime, US East Coast morning.
-    - cron: "0 14 * * *"
+    # 20:30 Africa/Nairobi (17:30 UTC): evening in East Africa, 17:30 in the UK, 12:30 on the US
+    # East Coast (an hour later in the summer). GitHub can start scheduled runs late; that's fine.
+    - cron: "30 17 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -60,6 +61,10 @@ jobs:
           npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/reel.mp4" --file "data/social/reels/$D/reel.mp4" --content-type video/mp4 --remote
           npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/cover.png" --file "data/social/reels/$D/cover.png" --content-type image/png --remote
           npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/image.png" --file "data/social/reels/$D/image.png" --content-type image/png --remote
+          # The manifest (final captions per platform: instagram, facebook, tiktok, youtube) next to
+          # reel.mp4 and the cover, so the Worker can post the same Reel to TikTok and YouTube Shorts
+          # from <R2_PUBLIC_BASE>/social/<date>/manifest.json.
+          npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/manifest.json" --file "data/social/reels/$D/manifest.json" --content-type application/json --remote
           # Carousel days: each slide is a public image for Instagram's carousel.
           # Instagram accepts JPEG only, so the .jpg slides are uploaded.
           for f in data/social/reels/$D/carousel-*.jpg; do
