@@ -494,15 +494,12 @@
     }
   }
   function consentCopy() {
-    var line = "SendFair uses Google Translate if you pick a language, and Impact so a provider can credit a signup.";
-    var extra = [];
+    var extra = ["Google Translate", "Impact (credits signups)"];
     if (cfg.ga4) extra.push("Google Analytics");
-    if (cfg.gtm) extra.push("Google Tag Manager");
-    if (cfg.clarity) extra.push("Microsoft Clarity");
+    if (cfg.gtm) extra.push("Tag Manager");
+    if (cfg.clarity) extra.push("Clarity");
     if (cfg.adsenseClient) extra.push("Google ads");
-    if (extra.length) line += " If you accept, it also loads " + extra.join(", ") + ".";
-    line += " You can compare rates without the optional tools.";
-    return line;
+    return "Optional tools: " + extra.join(", ") + ". Rates work without them.";
   }
   function setupConsentBar() {
     if (document.getElementById("sf-consent") || consentChoice()) {
@@ -734,7 +731,7 @@
     var mb = $("sf-mode");
     if (mb) {
       mb.innerHTML = (get ? "Get" : "Pay") + ' <span class="mode-cur">' + (get ? c.r.currency : c.s.currency) + '</span><span class="mode-ic" aria-hidden="true">⇄</span>';
-      mb.setAttribute("aria-label", (get ? "Amount they receive, in " + c.r.currency : "Amount you pay, in " + c.s.currency) + ". Switch to " + (get ? "the amount you pay" : "the amount they need"));
+      mb.setAttribute("aria-label", (get ? "Get " + c.r.currency : "Pay " + c.s.currency) + ": switch to " + (get ? "the amount you pay" : "the amount they need"));
       var lab = $("sf-amount-label"); if (lab) lab.textContent = get ? "They need to receive" : "You pay in total";
       $("sf-amount").closest(".amount-wrap").classList.toggle("is-get", get);
     }
