@@ -21,7 +21,12 @@ const DRY = process.env.DRY_RUN === "1" || process.argv.includes("--dry-run");
 const version = process.env.FB_GRAPH_VERSION || "v22.0";
 const pageId = process.env.FB_PAGE_ID;
 const token = process.env.FB_PAGE_TOKEN;
-const reelUrl = process.env.REEL_URL || "";
+// Instagram's API accepts a library song name but doesn't attach the music, so Instagram also gets
+// the version with the music bed when it was rendered and uploaded (reel-music.mp4 next to reel.mp4).
+const reelUrl = (() => {
+  const u = process.env.REEL_URL || "";
+  return u && fs.existsSync(`${dir}/reel-music.mp4`) ? u.replace(/reel\.mp4$/, "reel-music.mp4") : u;
+})();
 const coverUrl = process.env.COVER_URL || "";
 const imageUrl = process.env.IMAGE_URL || "";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
