@@ -100,16 +100,16 @@ If you add, change or delete any of these, update this section and the matching 
 ## Open to-do list (as of 20 Nov 2026)
 
 - Build data: next, verify the top 40–50 Nairobi items with dated quotes; add a second basin source.
-- Search Console: "Request indexing" for `/`, `/send-money-to/`, uk-to-nigeria, us-to-nigeria, uk-to-kenya, us-to-kenya, uk-to-ghana, `/cost-to-build/`.
-- Owner's own steps: Instagram bio link, TikTok website link (app), WhatsApp Channel description, all set to `sendfair.africa/follow`.
+- Search Console (checked 20 Nov 2026): all 8 main pages are indexed. The ~245 "Crawled – currently not indexed" are long-tail amount pages (/send-money/<route>/<amount>/) and minor-route compare pages; leave them unless they start getting impressions.
+- Owner's own steps: Instagram bio link, TikTok website link (app), WhatsApp Channel description, all set to `sendfair.africa/follow`. Claude can't do these: Instagram is signed out in the browser pane and the other two are phone-app only. Note: the Facebook login in the browser pane opens Meta Business Suite for an unrelated page "Onlineshop.com"; don't edit it.
 - Check the first YouTube Short and, if private, guide him through the YouTube API audit. Channel set up 20 Nov 2026: description, link to /follow, profile picture, banner, watermark, contact email hello@sendfair.africa. Owner set country of residence and keywords himself.
-- TikTok developer app + audit.
+- TikTok developer app + audit. Blocked on the owner signing up / logging in at developers.tiktok.com (Claude can't create accounts or type passwords); after that Claude can fill in the app form.
 - Affiliate programmes with transfer providers; AdSense slots are empty.
 - Verify the top 40–50 Nairobi build items with dated quotes, then pilot Quote Check with a small group. Quote Check must only judge lines with a like-for-like benchmark; otherwise say "no benchmark".
 - Later: cost-by-house-size pages per country, real-build cost survey, decide depth for non-priority countries.
 
 ## History (merged PRs)
 
-#11 audit fixes (data accuracy, slimmer homepage, `/send-money-to/`, noindex near-duplicates, hourly data job, PR checks) · #12 `/follow` page · #13 follow line in posts/reels · #14 daily Facebook reel · #15 engagement automation (posting time, first comments, series, weekly weights, comment drafts, TikTok/YouTube posting) · #16 fix "Forbidden (bad origin)" on `/admin/social` (Referrer-Policy same-origin) · #17 this handbook · #18 schedule list and scheduled-task prompts · #19 YouTube (@sendfair) added to footer, /follow page and site structured data (`config.youtubeUrl`).
+#11 audit fixes (data accuracy, slimmer homepage, `/send-money-to/`, noindex near-duplicates, hourly data job, PR checks) · #12 `/follow` page · #13 follow line in posts/reels · #14 daily Facebook reel · #15 engagement automation (posting time, first comments, series, weekly weights, comment drafts, TikTok/YouTube posting) · #16 fix "Forbidden (bad origin)" on `/admin/social` (Referrer-Policy same-origin) · #17 this handbook · #18 schedule list and scheduled-task prompts · #19 YouTube (@sendfair) added to footer, /follow page and site structured data (`config.youtubeUrl`) · #20 /follow title · #21 brand assets · #25 build cost accuracy (Kenyan sources, all-in tags, price dates, ranges).
 
 Keep this file up to date when something important changes.
