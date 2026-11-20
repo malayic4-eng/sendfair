@@ -485,11 +485,11 @@ function resultsHtml(ctx) {
   return routeHasPromo(ctx.key) ? html : html.replace(" (turn on first-transfer offers above if you are new)", "");
 }
 
-function tool({ heading, sub, ctx, after = "" }) {
+function tool({ heading, sub, ctx, after = "", strip = "" }) {
   const baseQuick = STEP_AMOUNTS[ctx.s.currency] || [];
   const quickList = baseQuick.indexOf(ctx.amount) > -1 ? baseQuick : [...baseQuick, ctx.amount].sort((a, b) => a - b);
   return `<section class="hero"><div class="wrap hero-grid">
-<div class="hero-copy"><h1>${heading}</h1><p class="lede">${sub}</p></div>
+<div class="hero-copy"><h1>${heading}</h1><p class="lede">${sub}</p>${strip}</div>
 <div class="hero-side">${phone(ctx)}<div class="picks" id="sf-picks" aria-label="Best service by way of receiving">${R.picks(ctx)}</div></div>
 </div></section>
 <section class="sheet"><div class="wrap">
@@ -894,6 +894,17 @@ function peopleAlsoAsk({ prefix, country = null, sender = null, topic = "send", 
   return `<h2>People also ask</h2><ul class="route-links">${list.map((q) => `<li><a href="${link(prefix, `questions/${q.slug}/`)}">${esc(q.question)}</a></li>`).join("")}</ul>`;
 }
 
+// Four big doors under the homepage headline, so every service shows above the fold.
+function serviceStrip(prefix) {
+  const doors = [
+    ["send", link(prefix, "") + "#corridors", "Send money", "Compare what arrives"],
+    ["build", link(prefix, "cost-to-build/"), "Build a house", `Cost in ${Object.keys(buildCosts.countries).length} countries`],
+    ["check", link(prefix, "quote-check/"), "Check a quote", QC_ON ? "Is your builder fair?" : "Opening soon"],
+    ["fly", link(prefix, "flying-home/"), "Fly home", "Flights, pickup, car, eSIM"]
+  ];
+  return `<nav class="svc-strip" aria-label="SendFair services">${doors.map(([id, href, name, text]) => `<a class="svc-door svc-${id}" href="${href}"><strong>${name}</strong><span>${esc(text)}</span></a>`).join("")}</nav>`;
+}
+
 function servicesHub(prefix) {
   const groups = serviceGroups(prefix);
   return `<section class="block services-hub" aria-labelledby="services-hub-h"><div class="wrap">
@@ -979,7 +990,7 @@ function regionPage({ cid, c, rel, house, city, factor }) {
   if (city) trail.push([cityName, `cost-to-build/${cid}/${rel.split("/")[2]}/`]);
   if (house) trail.push([`${houseName} house`, rel]);
   const h1 = house ? `Cost to build a ${houseName} house in ${where} (${monthYear})` : `Cost to build a house in ${where} (${monthYear})`;
-  const title = house ? `Cost to build a ${houseName} house in ${where} · SendFair` : `Cost to build a house in ${where} · SendFair`;
+  const title = house ? fitTitle([`Cost to build a ${houseName} house in ${where} (${new Date(NOW).getUTCFullYear()})`, `${houseName} house cost in ${where} (${new Date(NOW).getUTCFullYear()})`, `Cost to build a ${houseName} house in ${where}`], 50) + " · SendFair" : fitTitle([`Cost to build a house in ${where} (${new Date(NOW).getUTCFullYear()})`, `Cost to build a house in ${where}`], 50) + " · SendFair";
   const description = `${house ? houseName + " house" : "House"} in ${where}: economy ${plain(R.money(eco.total, c.currency))}, standard ${plain(R.money(std.total, c.currency))}, luxury ${plain(R.money(lux.total, c.currency))}. Itemised receipt and material prices checked ${buildCosts.updated}.`;
   const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
@@ -1412,8 +1423,11 @@ function sponsorBox(cid, prefix, lang) {
 
 // Short pointer from transfer pages to the flying-home page for that country.
 function flyNote(r, prefix) {
-  if (!hasFlyPage(r)) return "";
-  return `<p class="fly-note">Flying home to ${esc(r.name)}? <a href="${link(prefix, flyPath(r))}">Compare flights, get a travel eSIM and plan the money you'll need on arrival</a>.</p>`;
+  const more = [];
+  if (buildCosts.countries[r.id]) more.push(`<a href="${link(prefix, `cost-to-build/${r.id}/`)}">Building in ${esc(r.name)}? Price the house</a>`);
+  if (hasFlyPage(r)) more.push(`<a href="${link(prefix, flyPath(r))}">Flying home? Flights, airport pickup, car hire and eSIM</a>`);
+  more.push(`<a href="${link(prefix, "") + "#alerts"}">Free morning rate alert</a>`);
+  return `<p class="fly-note also-note"><strong>Also on SendFair:</strong> ${more.join(" · ")}</p>`;
 }
 
 const FLY_TIPS = [
@@ -1607,7 +1621,7 @@ ${faqBlock(faqs)}
 </div></div></section>`;
   write("cost-to-build/index.html", page({
     prefix: "../", canonical: "cost-to-build/", buildPage: true, rank: false, og: "home",
-    title: `House cost calculator · ${config.siteName}`,
+    title: `House building cost calculator for Africa (${new Date(NOW).getUTCFullYear()}) · ${config.siteName}`,
     description: "Estimate a house in Nigeria, Kenya, Ghana and 14 other African countries. Switch roof sheets, windows, doors, tiles, ceiling and paint. No land or contractor's fee.",
     jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"]]), appLd("SendFair house calculator", `${site}/cost-to-build/`, "Estimate the materials, trade days, finish, plot works and permit for a simple house.")],
     body: bodyFor(null, "../")
@@ -1621,7 +1635,7 @@ ${faqBlock(faqs)}
       : [];
     write(rel + "index.html", page({
       prefix: "../../", canonical: rel, buildPage: true, rank: false, og: "home", alternates: alts,
-      title: `Cost to build a house in ${c.name} · ${config.siteName}`,
+      title: fitTitle([`Cost to build a house in ${c.name} (${new Date(NOW).getUTCFullYear()}): calculator`, `Cost to build a house in ${c.name} (${new Date(NOW).getUTCFullYear()})`], 50) + ` · ${config.siteName}`,
       description: `What a house costs to build in ${c.name}, with a choice of roof sheets, windows, doors, tiles, ceiling and paint. No land or contractor's fee. Checked ${buildCosts.updated}.`,
       jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], [c.name, rel]]), appLd(`House calculator for ${c.name}`, `${site}/${rel}`, `Estimate a simple house in ${c.name}, with that country's prices and permit fee.`)],
       body: bodyFor(id, "../../")
@@ -1760,7 +1774,7 @@ function writeMaterialPrices() {
   const rel = "cost-to-build/material-prices/";
   write(rel + "index.html", page({
     prefix: "../../", canonical: rel, buildPage: false, rank: false, og: "home",
-    title: `Construction material prices · ${config.siteName}`,
+    title: `Building material prices in Africa (${new Date(NOW).getUTCFullYear()}) · ${config.siteName}`,
     description: `Cement, steel, blocks, sand and a mason's day in each country SendFair prices, with the source and the date. Checked ${buildCosts.updated}.`,
     jsonld: [crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], ["Material prices", rel]])],
     body: `<section class="block page"><div class="wrap"><article class="prose wide">
@@ -2175,7 +2189,7 @@ const R0 = corridors.receivers.find((r) => r.id === "kenya") || corridors.receiv
 const quotedRoutes = Object.keys(quotesFile.quotes || {}).filter((k) => (quotesFile.quotes[k] || []).length).length;
 const quotedProviders = new Set(Object.values(quotesFile.quotes || {}).flat().map((q) => q.provider).filter((id) => providers[id])).size;
 const homeProof = quotedProviders > 1
-  ? `${quotedProviders} services on ${quotedRoutes} routes, updated through the day.`
+  ? `Live prices from ${quotedProviders} services across ${quotedRoutes} routes, updated through the day.`
   : "Commissions never change the order.";
 const yourRoutesHtml = `<section class="block your-routes" id="sf-your-routes" hidden><div class="wrap"><h2>Your routes</h2><div id="sf-your-routes-list"></div><p class="savings" id="sf-savings" hidden></p></div></section>`;
 const homeCtx = routeContext(S0, R0, "", config.defaultAmounts[S0.currency]);
@@ -2183,17 +2197,19 @@ const homeFaqs = [
   ["What does SendFair do?", "Two things. It compares money transfer services to Africa by the amount that arrives, after the fee and the exchange-rate markup. It also estimates what it costs to build a simple house in the country you send to, so a lump-sum quote can be checked against materials and trade days."],
   ["Does SendFair send the money or build the house?", "No. We do not send, hold or exchange money, and we do not build houses. The ranking sends you to the provider to complete the transfer. The house figure is a receipt check, not a contractor's quote."],
   ["How much does it cost to build a house back home?", "Open the house calculator, pick the country and the size, then choose the type of roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not included, and every line shows its quantity and its source."],
-  ["Do commissions change which service ranks first?", "No. The transfer ranking is sorted only by how much your family receives."]
+  ["Do commissions change which service ranks first?", "No. The transfer ranking is sorted only by how much your family receives."],
+  ["Can SendFair help me plan the trip home?", "Yes. The Flying home pages compare flights from the UK, the US, Canada, Europe and Australia to 17 African countries, with airport pickup, car hire, travel eSIMs and December booking tips."]
 ];
 write("index.html", page({
   prefix: "", canonical: "", bodyOnly: PREVIEW, og: "home",
-  title: PREVIEW ? config.siteName : `Compare transfers to Africa and house-build costs | ${config.siteName}`,
-  description: `Compare money transfers to ${corridors.receivers.length} African countries by what arrives, price a house back home, and get a free morning rate alert. Independent, from Nairobi.`,
+  title: PREVIEW ? config.siteName : `Send money to Africa, build a house & fly home | ${config.siteName}`,
+  description: `Compare money transfers to ${corridors.receivers.length} African countries by what arrives, price a house back home, check a builder's quote, plan the flight home and get free rate alerts.`,
   jsonld: [{ "@context": "https://schema.org", "@type": "WebSite", name: config.siteName, url: site + "/", description: "Free tools for the African diaspora: compare money transfers to Africa by what arrives, estimate the cost to build a house back home, check a builder's quote, get daily rate alerts and plan the trip home." },
     { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site + "/", logo: `${site}/icon-512.png`, email: config.contactEmail,
       ...(socialProfiles.length ? { sameAs: socialProfiles.map((s) => s.url) } : {}),
       ...(config.legalName || config.businessName ? { legalName: config.legalName || config.businessName } : {}), ...(config.founderName ? { founder: { "@type": "Person", name: config.founderName } } : {}), areaServed: [...corridors.senders, ...corridors.receivers].map((x) => x.iso2) },
     faqLd(homeFaqs),
+    { "@context": "https://schema.org", "@type": "OfferCatalog", name: "SendFair services", itemListElement: serviceGroups("").flatMap((g) => g.items).map((it) => ({ "@type": "Offer", price: 0, priceCurrency: "USD", itemOffered: { "@type": "Service", name: it.name, description: it.text, url: new URL(it.href.replace(/^\.?\/?/, ""), site + "/").toString(), provider: { "@type": "Organization", name: config.siteName } } })) },
     appLd("SendFair transfer and house-build comparison", site + "/", "Compare money transfers to Africa by the amount that arrives, and estimate the cost to build a house back home."),
     howToLd("How the SendFair ranking works", "How a transfer is checked, calculated and ranked.", [
       { name: "We check each provider", text: "We record the rate and fee each service quotes on every route, how the money can be received, and when we checked." },
@@ -2203,7 +2219,8 @@ write("index.html", page({
   body: yourRoutesHtml + tool({
     ctx: homeCtx,
     heading: "Send money home. Build a house back home.",
-    sub: `Free tools for the diaspora: compare money transfers to Africa by what your family actually receives, price a house back home, check a builder's quote${QC_ON ? "," : " (opening soon)"} and get a morning rate alert for your route. ${homeProof}`
+    sub: `Free tools for the diaspora: compare transfers by what your family actually receives, price a house, check a builder's quote${QC_ON ? "" : " (opening soon)"} and plan the trip home. ${homeProof}`,
+    strip: serviceStrip("")
   }) + whereSending("") + servicesHub("") + buildTeaser("") + quoteCheckCard("", null) + guideTeaser("") + `
 <section class="block steps-block"><div class="wrap">
 <div class="section-head"><h2>How the ranking works</h2></div>
@@ -2793,7 +2810,7 @@ ${faqBlock(faqs)}
 <p><a class="btn" href="${link(prefix, corridorPath(s, r))}">Compare all services for ${esc(s.label)} to ${esc(r.name)}</a></p>
 </div></div></section>`;
   write(rel + "index.html", page({ prefix, canonical: rel, og: slug(s, r), noindex: !pairHasData,
-    title: `${s.currency} to ${r.currency} today: rate, 30-day history and best service | ${config.siteName}`,
+    title: `${s.currency} to ${r.currency} rate today & best service | ${config.siteName}`,
     description: `${s.currency} to ${r.currency} today: 1 ${s.currency} = ${R.rateStr(ctx.mid)} ${r.currency}, the 30-day range and the best service for your amount. Checked ${dateLong}.`,
     jsonld: [faqLd(faqs), crumbs(trail), rateLd, dsLd],
     alternates: hasFrRatePage(s, r) ? [{ lang: "en", href: `${site}/${rel}` }, { lang: "fr", href: `${site}/${frRateRel(s, r)}` }, { lang: "x-default", href: `${site}/${rel}` }] : [],
