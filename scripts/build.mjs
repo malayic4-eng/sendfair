@@ -1558,8 +1558,8 @@ ${qr ? `<figure class="follow-qr"><img src="sendfair-follow-qr.svg" width="180" 
 </div></div></section>`;
   const trail = [[config.siteName, ""], ["Follow us", "follow/"]];
   write("follow/index.html", page({ prefix: "../", canonical: "follow/", rank: false,
-    title: "Follow SendFair on WhatsApp, TikTok, Instagram and Facebook",
-    description: "One link to every SendFair account: daily rates to send money home to Africa on WhatsApp, TikTok, Instagram and Facebook.",
+    title: "Follow SendFair on WhatsApp, TikTok, YouTube, Instagram and Facebook",
+    description: "One link to every SendFair account: daily rates to send money home to Africa on WhatsApp, TikTok, YouTube, Instagram and Facebook.",
     jsonld: [crumbs(trail), { "@context": "https://schema.org", "@type": "Organization", name: config.siteName, url: site, sameAs: accounts.map((a) => a.url) }],
     body }));
   urls.push("follow/");
