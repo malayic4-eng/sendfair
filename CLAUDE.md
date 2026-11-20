@@ -52,12 +52,13 @@ Rules:
 - Every price needs a source, URL, unit, location and date. Show ranges, and label each line verified / guide / estimate.
 - Don't publish generic structural (foundation/steel/concrete) quantities as advice. Point to drawings and an engineer, and a soil test first.
 
-Known problems (found Nov 2026, not yet fixed):
-1. Kenya `wc`, `tank`, `painter`, `spark`, `plumber`, `carpenter` use `"guideFrom": "ghana"`, i.e. Ghana prices converted to KES. Replace with Kenyan sources or label clearly.
-2. `gutter` and `formwork` are Integrum all-in rates, mixed with retail materials + separate labour elsewhere.
-3. File date `updated: 2026-11-16`, but most sources are Aug–Oct 2026. Show the oldest source date.
-4. Sand and ballast are single points converted from 18-tonne lorries to m³; there are no range options.
-5. Sanitaryware comes from one low-end retailer list.
+Known problems found Nov 2026, fixed 20 Nov 2026 (PR "Build cost accuracy"):
+1. Kenya `wc`, `tank`, `carpenter` now have Kenyan sources (Shabbiri Hardware, CTM, KeNHA Price Reference Guide May 2026). `plumber`, `spark`, `painter` use KeNHA's Nairobi artisan day rates and are marked `guide: true` because KeNHA publishes no trade-specific rate. No Kenya line borrows from Ghana any more.
+2. `gutter` and `formwork` carry `"allIn": true`; the receipt shows an "All-in rate" tag and the source says no separate labour is added.
+3. Countries can set `pricesDated` (Kenya: "August to November 2026"); the sources panel shows it before the list review date.
+4. Sand and ballast have low/typical/high options and state the assumed lorry volume.
+5. Shower and sink have a second retailer's options. Basin still comes from one list.
+Quote Check fixture for Kenya now matches 17 lines (the water tank has a Kenyan price).
 
 Not priced at all yet: land/legal, site studies, professional fees, most of excavation/foundations as activities, waterproofing, drainage beyond the septic tank, most external works, appliances/solar/security, testing and handover.
 
@@ -98,7 +99,7 @@ If you add, change or delete any of these, update this section and the matching 
 
 ## Open to-do list (as of 20 Nov 2026)
 
-- Build-trust fixes 1–5 above (first).
+- Build data: next, verify the top 40–50 Nairobi items with dated quotes; add a second basin source.
 - Search Console: "Request indexing" for `/`, `/send-money-to/`, uk-to-nigeria, us-to-nigeria, uk-to-kenya, us-to-kenya, uk-to-ghana, `/cost-to-build/`.
 - Owner's own steps: Instagram bio link, TikTok website link (app), WhatsApp Channel description, all set to `sendfair.africa/follow`.
 - Check the first YouTube Short and, if private, guide him through the YouTube API audit. Channel set up 20 Nov 2026: description, link to /follow, profile picture, banner, watermark, contact email hello@sendfair.africa. Owner set country of residence and keywords himself.

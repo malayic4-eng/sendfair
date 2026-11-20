@@ -871,7 +871,7 @@
    "currency": "KES",
    "city": "Nairobi",
    "roof": "sheet",
-   "note": "Cement, steel, blocks, sand, ballast, roofing, trusses, windows, internal doors, tiles, paint and pipe are Nairobi retail ranges. The external door is the bottom of a wide published range. Wiring, ceiling boards, the ceiling frame and several trade day rates are guides. Kitchen cupboards are a guide built from published per-metre rates. The septic tank, wardrobes, boundary wall and gate use the middle or the ends of a published range, and the plot size is the usual Kenyan plot for that number of bedrooms. Each line with a menu lets you switch to another point in the published range. Quantities follow published planning takeoffs for a simple Nairobi bungalow: about 4 to 6 bags of cement per square metre of floor, 2.5 to 4 tonnes of steel on a 120 m² house, plus the finish and the plot works. A published all-in band is shown separately because it includes a builder's overhead and does not itemise this wall.",
+   "note": "Cement, steel, blocks, sand, ballast, roofing, trusses, windows, internal doors, tiles, paint and pipe are Nairobi retail ranges. The external door is the bottom of a wide published range. Wiring, ceiling boards, the ceiling frame and the plumber, electrician and painter day rates are guides. Carpenter, mason and labourer rates come from published Kenyan rates. Gutters and slab formwork are all-in contractor rates and carry their own labour. Kitchen cupboards are a guide built from published per-metre rates. The septic tank, wardrobes, boundary wall and gate use the middle or the ends of a published range, and the plot size is the usual Kenyan plot for that number of bedrooms. Each line with a menu lets you switch to another point in the published range. Quantities follow published planning takeoffs for a simple Nairobi bungalow: about 4 to 6 bags of cement per square metre of floor, 2.5 to 4 tonnes of steel on a 120 m² house, plus the finish and the plot works. A published all-in band is shown separately because it includes a builder's overhead and does not itemise this wall.",
    "items": {
     "cement": {
      "price": 780,
@@ -955,8 +955,32 @@
     },
     "sand": {
      "price": 3910,
-     "source": "River sand, middle of KES 38,000–48,000 for an 18-tonne lorry, Nairobi, August 2026, taken as 11 m³.",
-     "url": "https://suimas.co.ke/shop/house-construction/"
+     "source": "River sand, middle of KES 38,000–48,000 for an 18-tonne lorry, Nairobi, August 2026, taken as 11 m³. The 11 m³ is an assumed lorry volume: ask the supplier for the volume in cubic metres.",
+     "url": "https://suimas.co.ke/shop/house-construction/",
+     "options": [
+      {
+       "id": "low",
+       "name": "River sand, lower",
+       "price": 3455,
+       "source": "Bottom of KES 38,000–48,000 for an 18-tonne lorry, Nairobi, August 2026, divided by 11 m³ (assumed lorry volume; damp sand varies).",
+       "url": "https://suimas.co.ke/shop/house-construction/"
+      },
+      {
+       "id": "mid",
+       "name": "River sand, typical",
+       "price": 3910,
+       "default": true,
+       "source": "River sand, middle of KES 38,000–48,000 for an 18-tonne lorry, Nairobi, August 2026, taken as 11 m³. The 11 m³ is an assumed lorry volume: ask the supplier for the volume in cubic metres.",
+       "url": "https://suimas.co.ke/shop/house-construction/"
+      },
+      {
+       "id": "high",
+       "name": "River sand, upper",
+       "price": 4364,
+       "source": "Top of KES 38,000–48,000 for an 18-tonne lorry, Nairobi, August 2026, divided by 11 m³ (assumed lorry volume).",
+       "url": "https://suimas.co.ke/shop/house-construction/"
+      }
+     ]
     },
     "mason": {
      "price": 1600,
@@ -1047,8 +1071,32 @@
     },
     "ballast": {
      "price": 2250,
-     "source": "Ballast, middle of KES 22,000–32,000 for an 18-tonne lorry, Nairobi, August 2026, taken as 12 m³.",
-     "url": "https://suimas.co.ke/shop/house-construction/"
+     "source": "Ballast, middle of KES 22,000–32,000 for an 18-tonne lorry, Nairobi, August 2026, taken as 12 m³. The 12 m³ is an assumed lorry volume: ask the supplier for the volume in cubic metres.",
+     "url": "https://suimas.co.ke/shop/house-construction/",
+     "options": [
+      {
+       "id": "low",
+       "name": "Ballast, lower",
+       "price": 1833,
+       "source": "Bottom of KES 22,000–32,000 for an 18-tonne lorry, Nairobi, August 2026, divided by 12 m³ (assumed lorry volume).",
+       "url": "https://suimas.co.ke/shop/house-construction/"
+      },
+      {
+       "id": "mid",
+       "name": "Ballast, typical",
+       "price": 2250,
+       "default": true,
+       "source": "Ballast, middle of KES 22,000–32,000 for an 18-tonne lorry, Nairobi, August 2026, taken as 12 m³. The 12 m³ is an assumed lorry volume: ask the supplier for the volume in cubic metres.",
+       "url": "https://suimas.co.ke/shop/house-construction/"
+      },
+      {
+       "id": "high",
+       "name": "Ballast, upper",
+       "price": 2667,
+       "source": "Top of KES 22,000–32,000 for an 18-tonne lorry, Nairobi, August 2026, divided by 12 m³ (assumed lorry volume).",
+       "url": "https://suimas.co.ke/shop/house-construction/"
+      }
+     ]
     },
     "timber": {
      "price": 2500,
@@ -1293,22 +1341,174 @@
      ]
     },
     "wc": {
-     "guideFrom": "ghana"
+     "price": 12000,
+     "source": "Close-coupled toilet set (pan, cistern and seat), KES 12,000, Shabbiri Hardware, Ongata Rongai, online list viewed 20 Nov 2026. The WC connector and flexi hose may be extra.",
+     "url": "https://shabbirihardware.com/white-close-couple",
+     "options": [
+      {
+       "id": "wc-low",
+       "name": "Basic close-coupled set",
+       "price": 7500,
+       "source": "Half set close-coupled toilet, KES 7,500, Shabbiri Hardware, viewed 20 Nov 2026.",
+       "url": "https://shabbirihardware.com/half-set-white"
+      },
+      {
+       "id": "wc-mid",
+       "name": "Standard close-coupled set",
+       "price": 12000,
+       "default": true,
+       "source": "Close-coupled toilet set (Synnova), KES 12,000, Shabbiri Hardware, viewed 20 Nov 2026.",
+       "url": "https://shabbirihardware.com/white-close-couple"
+      },
+      {
+       "id": "wc-high",
+       "name": "Branded dual-flush suite",
+       "price": 17415,
+       "source": "Chicago dual top-flush toilet suite with seat and mechanism, KES 17,415, CTM Kenya, viewed 20 Nov 2026.",
+       "url": "https://ctm.co.ke/chicago-white-dual-top-flush-toilet-suite-9220-product.html"
+      }
+     ]
     },
     "tank": {
-     "guideFrom": "ghana"
+     "price": 8000,
+     "source": "1,000 litre water tank (Jumbo), KES 8,000, Shabbiri Hardware, viewed 20 Nov 2026. Stand, fittings and delivery are extra.",
+     "url": "https://shabbirihardware.com/1000ltr-jumbo-water-tank",
+     "options": [
+      {
+       "id": "tank-mid",
+       "name": "1,000 litre tank, standard",
+       "price": 8000,
+       "default": true,
+       "source": "1,000 litre Jumbo water tank, KES 8,000, Shabbiri Hardware, viewed 20 Nov 2026.",
+       "url": "https://shabbirihardware.com/1000ltr-jumbo-water-tank"
+      },
+      {
+       "id": "tank-high",
+       "name": "1,000 litre tank, premium brand",
+       "price": 12735,
+       "source": "Vee Tank 1,000 litres, KES 12,735, Shabbiri Hardware, viewed 20 Nov 2026.",
+       "url": "https://shabbirihardware.com/vee-tank-1000-litres-water-tank-kenya"
+      }
+     ]
     },
     "painter": {
-     "guideFrom": "ghana"
+     "price": 1950,
+     "guide": true,
+     "source": "Guide: KeNHA publishes no separate painter rate, so this uses its artisan day rates, KES 1,700–2,200 (Grades II–I), Nairobi Region, Price Reference Guide, May 2026. Middle used.",
+     "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf",
+     "options": [
+      {
+       "id": "low",
+       "name": "Artisan Grade II",
+       "price": 1700,
+       "source": "Artisan Grade II, KES 1,700 a day, Nairobi Region, KeNHA, May 2026, used as a guide for a painter.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      },
+      {
+       "id": "mid",
+       "name": "Typical artisan day rate",
+       "price": 1950,
+       "default": true,
+       "source": "Middle of KES 1,700–2,200 a day for an artisan, Nairobi Region, KeNHA, May 2026, used as a guide for a painter.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      },
+      {
+       "id": "high",
+       "name": "Artisan Grade I",
+       "price": 2200,
+       "source": "Artisan Grade I, KES 2,200 a day, Nairobi Region, KeNHA, May 2026, used as a guide for a painter.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      }
+     ]
     },
     "spark": {
-     "guideFrom": "ghana"
+     "price": 1950,
+     "guide": true,
+     "source": "Guide: KeNHA publishes no separate electrician rate, so this uses its artisan day rates, KES 1,700–2,200 (Grades II–I), Nairobi Region, Price Reference Guide, May 2026. Middle used.",
+     "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf",
+     "options": [
+      {
+       "id": "low",
+       "name": "Artisan Grade II",
+       "price": 1700,
+       "source": "Artisan Grade II, KES 1,700 a day, Nairobi Region, KeNHA, May 2026, used as a guide for a electrician.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      },
+      {
+       "id": "mid",
+       "name": "Typical artisan day rate",
+       "price": 1950,
+       "default": true,
+       "source": "Middle of KES 1,700–2,200 a day for an artisan, Nairobi Region, KeNHA, May 2026, used as a guide for a electrician.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      },
+      {
+       "id": "high",
+       "name": "Artisan Grade I",
+       "price": 2200,
+       "source": "Artisan Grade I, KES 2,200 a day, Nairobi Region, KeNHA, May 2026, used as a guide for a electrician.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      }
+     ]
     },
     "plumber": {
-     "guideFrom": "ghana"
+     "price": 1950,
+     "guide": true,
+     "source": "Guide: KeNHA publishes no separate plumber rate, so this uses its artisan day rates, KES 1,700–2,200 (Grades II–I), Nairobi Region, Price Reference Guide, May 2026. Middle used.",
+     "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf",
+     "options": [
+      {
+       "id": "low",
+       "name": "Artisan Grade II",
+       "price": 1700,
+       "source": "Artisan Grade II, KES 1,700 a day, Nairobi Region, KeNHA, May 2026, used as a guide for a plumber.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      },
+      {
+       "id": "mid",
+       "name": "Typical artisan day rate",
+       "price": 1950,
+       "default": true,
+       "source": "Middle of KES 1,700–2,200 a day for an artisan, Nairobi Region, KeNHA, May 2026, used as a guide for a plumber.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      },
+      {
+       "id": "high",
+       "name": "Artisan Grade I",
+       "price": 2200,
+       "source": "Artisan Grade I, KES 2,200 a day, Nairobi Region, KeNHA, May 2026, used as a guide for a plumber.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      }
+     ]
     },
     "carpenter": {
-     "guideFrom": "ghana"
+     "price": 1350,
+     "source": "Carpenter day rate, middle of KES 900 (Grade II) to KES 1,800 (Grade I), Nairobi Region, KeNHA Price Reference Guide, May 2026.",
+     "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf",
+     "options": [
+      {
+       "id": "low",
+       "name": "Carpenter Grade II",
+       "price": 900,
+       "source": "Carpenter Grade II, KES 900 a day, Nairobi Region, KeNHA Price Reference Guide, May 2026.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      },
+      {
+       "id": "mid",
+       "name": "Typical day rate",
+       "price": 1350,
+       "default": true,
+       "source": "Middle of KES 900–1,800 a day for a carpenter (Grades II and I), Nairobi Region, KeNHA Price Reference Guide, May 2026.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      },
+      {
+       "id": "high",
+       "name": "Carpenter Grade I",
+       "price": 1800,
+       "source": "Carpenter Grade I, KES 1,800 a day, Nairobi Region, KeNHA Price Reference Guide, May 2026.",
+       "url": "https://kenha.co.ke/wp-content/uploads/2026/06/Price-Reference-Guide-May-2026-v1.pdf"
+      }
+     ]
     },
     "ceilingFrame": {
      "price": 325,
@@ -1318,13 +1518,15 @@
     },
     "gutter": {
      "price": 1060,
-     "source": "140mm PVC half-round gutter, KES 1,060 a metre, the 2026 Nairobi and Central all-in rate in the Integrum construction costs handbook. Downpipes are allowed at the same rate. Brackets are inside that all-in figure.",
-     "url": "https://integrum.co.ke/2026-construction-costs-handbook-kenya-nairobi-central/"
+     "source": "140mm PVC half-round gutter, KES 1,060 a metre, the 2026 Nairobi and Central all-in rate in the Integrum construction costs handbook. Downpipes are allowed at the same rate. Brackets are inside that all-in figure. This is an all-in contractor rate: labour, equipment and margin are inside it, so no separate labour is added for this line.",
+     "url": "https://integrum.co.ke/2026-construction-costs-handbook-kenya-nairobi-central/",
+     "allIn": true
     },
     "formwork": {
      "price": 2560,
-     "source": "Slab soffit formwork, KES 2,560 per m² for a single use, Integrum 2026 Nairobi handbook, including erection, striking and cleaning down. A deck reused three or more times is listed there at KES 1,600.",
-     "url": "https://integrum.co.ke/2026-construction-costs-handbook-kenya-nairobi-central/"
+     "source": "Slab soffit formwork, KES 2,560 per m² for a single use, Integrum 2026 Nairobi handbook, including erection, striking and cleaning down. A deck reused three or more times is listed there at KES 1,600. This is an all-in contractor rate: labour, equipment and margin are inside it, so no separate labour is added for this line.",
+     "url": "https://integrum.co.ke/2026-construction-costs-handbook-kenya-nairobi-central/",
+     "allIn": true
     },
     "basin": {
      "price": 2180,
@@ -1367,6 +1569,20 @@
        "price": 6500,
        "source": "Taps mixer, KES 6,500, on the same Buy More Mall list.",
        "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+      },
+      {
+       "id": "instant-4t",
+       "name": "Instant shower, 4 temperatures",
+       "price": 3100,
+       "source": "Enerbras Enershower 4T instant shower, KES 3,100, Shabbiri Hardware, viewed 20 Nov 2026.",
+       "url": "https://shabbirihardware.com/enershower-4t"
+      },
+      {
+       "id": "instant-premium",
+       "name": "Instant shower, premium",
+       "price": 5250,
+       "source": "Lorenzetti Relax Ultra 4,600 W instant shower, KES 5,250, Shabbiri Hardware, viewed 20 Nov 2026.",
+       "url": "https://shabbirihardware.com/instant-shower-relax-ultra"
       }
      ]
     },
@@ -1389,6 +1605,20 @@
        "price": 1800,
        "source": "Larger single-bowl sink, KES 1,800, on the same list.",
        "url": "https://www.buymoremall.co.ke/blog/bathroom-and-kitchen-plumbing-fittings-price-kenya"
+      },
+      {
+       "id": "bowl-hd",
+       "name": "Heavy-duty steel bowl",
+       "price": 2000,
+       "source": "Stainless steel kitchen sink bowl, KES 2,000, Shabbiri Hardware, viewed 20 Nov 2026.",
+       "url": "https://shabbirihardware.com/kitchen-sink-bowl-only"
+      },
+      {
+       "id": "modern",
+       "name": "Modern single sink",
+       "price": 9999,
+       "source": "Kitchen sink single modern (HM6045), KES 9,999, Shabbiri Hardware, viewed 20 Nov 2026.",
+       "url": "https://shabbirihardware.com/stylish-single-bowl-ks"
       }
      ]
     },
@@ -1583,7 +1813,8 @@
     "source": "Heirstone, Nine cities, one square metre (2026): contractors add about 15% for overheads and profit on a small job in Nairobi.",
     "url": "https://www.heirstoneconsulting.com/pages/report-africa-construction-costs"
    },
-   "why": "Heirstone's 2026 city note: duty and VAT add 57 to 59% to imported cement, and a small-job contractor margin in Nairobi is about 15%. KenyaHub's KES 36,000 to 42,500 a square metre includes a builder. This receipt does not."
+   "why": "Heirstone's 2026 city note: duty and VAT add 57 to 59% to imported cement, and a small-job contractor margin in Nairobi is about 15%. KenyaHub's KES 36,000 to 42,500 a square metre includes a builder. This receipt does not.",
+   "pricesDated": "August to November 2026"
   },
   "uganda": {
    "name": "Uganda",

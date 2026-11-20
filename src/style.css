@@ -384,6 +384,7 @@ section.page { padding-block: 64px 88px; }
 .build-tag { font-size: .68rem; font-weight: 700; border-radius: 999px; padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
 .build-tag.is-quoted { background: var(--leaf-soft); color: var(--leaf); }
 .build-tag.is-guide { background: var(--marigold-soft); color: var(--marigold-ink); }
+.build-tag.is-allin { background: #e6e9fb; color: #1f2a7a; }
 .build-send { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; }
 .build-ask { background: var(--marigold-soft); color: var(--ink); border-radius: 12px; padding: 10px 14px; font-size: .92rem; }
 .build-src { font-size: .88rem; color: var(--muted); }
