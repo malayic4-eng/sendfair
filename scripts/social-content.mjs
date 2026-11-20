@@ -99,28 +99,45 @@ const REEL_SENDERS = {
   ethiopia: ["us", "canada"], cameroon: ["europe", "us"], tanzania: ["uk", "us"], ivorycoast: ["europe", "us"],
   zambia: ["uk", "us"], egypt: ["us", "europe"], rwanda: ["europe", "uk"], mali: ["europe", "us"], drc: ["europe", "canada"]
 };
-// Daily country rotation, weighted towards the biggest diaspora audiences (Kenya, Nigeria, Ghana first,
-// then Uganda and Zimbabwe); every other country still comes round once per cycle. Smooth weighted
-// round-robin, so the same country never runs two days in a row.
-const AUDIENCE_WEIGHT = { kenya: 3, nigeria: 3, ghana: 3, uganda: 2, zimbabwe: 2 };
-export const REEL_ROTATION = (() => {
-  const w = Object.fromEntries(REEL_ORDER.map((c) => [c, AUDIENCE_WEIGHT[c] || 1]));
-  const total = Object.values(w).reduce((a, b) => a + b, 0), cur = Object.fromEntries(REEL_ORDER.map((c) => [c, 0])), out = [];
-  for (let i = 0; i < total; i++) {
-    for (const c of REEL_ORDER) cur[c] += w[c];
-    const best = REEL_ORDER.reduce((a, b) => (cur[b] > cur[a] ? b : a));
-    cur[best] -= total; out.push(best);
+// Daily country rotation: no country repeats until all 17 have had a Reel. The order comes from
+// what was actually posted (data/social/log.json), so a skipped day, a re-run or a template that
+// can't use a country never breaks the cycle. Kenya, Nigeria and Ghana lead each new cycle.
+let PLAN_DATE = "";
+const CORE_COUNTRIES = new Set(["kenya", "nigeria", "ghana", "uganda", "zimbabwe"]); // material reels lead with two of these
+function countryOfRoute(route) {
+  const parts = String(route || "").split("-");
+  if (parts[1] === "material") return null; // material reels compare four countries; they don't use a turn
+  const cid = parts[1] === "country" || !parts[1] ? parts[0] : parts[1];
+  return REEL_ORDER.includes(cid) ? cid : null;
+}
+function rotationState() {
+  let log = { attempts: [] };
+  try { log = read("data/social/log.json"); } catch {}
+  const byDate = new Map();
+  for (const a of log.attempts || []) {
+    if (a.status !== "posted" || !["reel", "carousel", "image"].includes(a.type) || !a.date) continue;
+    if (PLAN_DATE && a.date >= PLAN_DATE) continue;
+    const cid = countryOfRoute(a.route);
+    if (cid && !byDate.has(a.date)) byDate.set(a.date, cid);
   }
-  return out;
-})();
+  const done = new Set();
+  let cycles = 0;
+  for (const d of [...byDate.keys()].sort()) {
+    done.add(byDate.get(d));
+    if (REEL_ORDER.every((c) => done.has(c))) { done.clear(); cycles++; }
+  }
+  // Countries still due this cycle first (in REEL_ORDER), then the rest as a fallback.
+  const order = [...REEL_ORDER.filter((c) => !done.has(c)), ...REEL_ORDER.filter((c) => done.has(c))];
+  return { order, cycles, done: [...done] };
+}
+export const REEL_ROTATION = REEL_ORDER;
 function reelRoute(index, needRows = 3) {
-  const n = REEL_ROTATION.length, cycle = Math.floor(index / n);
-  for (let k = 0; k < n; k++) {
-    const cid = REEL_ROTATION[(index + k) % n];
+  const { order, cycles } = rotationState();
+  for (const cid of order) {
     const prefs = REEL_SENDERS[cid] || ["uk"];
-    const turn = cycle % prefs.length;
-    const order = [...new Set([...prefs.slice(turn), ...prefs.slice(0, turn), ...corridors.senders.map((x) => x.id)])];
-    for (const sid of order) {
+    const turn = cycles % prefs.length;
+    const senders = [...new Set([...prefs.slice(turn), ...prefs.slice(0, turn), ...corridors.senders.map((x) => x.id)])];
+    for (const sid of senders) {
       const route = `${sid}-${cid}`;
       const p = routeParts(route);
       if (!p) continue;
@@ -133,7 +150,7 @@ function reelRoute(index, needRows = 3) {
 // House reels follow the same country order: the main city where we have city factors, else the country.
 const HOUSE_MAIN_CITY = { kenya: ["nairobi", "Nairobi"], nigeria: ["lagos", "Lagos"], ghana: ["accra", "Accra"], uganda: ["kampala", "Kampala"] };
 function houseCity(index) {
-  const cid = REEL_ROTATION[index % REEL_ROTATION.length];
+  const cid = rotationState().order[0];
   const r = corridors.receivers.find((x) => x.id === cid);
   const c = HOUSE_MAIN_CITY[cid];
   return c ? { cid, city: c[0], label: c[1], country: r.name } : { cid, city: "country", label: r.name, country: r.name };
@@ -174,7 +191,7 @@ export function materialPrices(visit) {
   // Each time the template comes round for this material it moves on: two of the biggest-audience
   // countries that list their own price (Kenya, Nigeria, Ghana, Uganda, Zimbabwe) plus two others.
   const round = Math.floor(visit / MATERIALS.length);
-  const core = listed.filter((x) => AUDIENCE_WEIGHT[x.cid]), rest = listed.filter((x) => !AUDIENCE_WEIGHT[x.cid]);
+  const core = listed.filter((x) => CORE_COUNTRIES.has(x.cid)), rest = listed.filter((x) => !CORE_COUNTRIES.has(x.cid));
   const take = (arr, n, start) => Array.from({ length: Math.min(n, arr.length) }, (_, i) => arr[(start + i) % arr.length]);
   const nCore = Math.min(2, core.length);
   let pick = [...take(core, nCore, round * 2), ...take(rest, 4 - nCore, round * 2)];
@@ -417,6 +434,7 @@ function ytTitle(series, hook) {
 export function buildPlan(now = new Date(), forceTemplate = null) {
   const date = nairobiDate(now);
   const index = dayIndex(date);
+  PLAN_DATE = date;
   const templates = schedule.templates || ["route"];
   let template = forceTemplate || pickTemplate(date, templates, weights);
   if (template === "rate-move" && !buildReel("rate-move", date, index)) { if (forceTemplate) return null; template = "route"; }
