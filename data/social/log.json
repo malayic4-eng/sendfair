@@ -426,6 +426,72 @@
    "type": "reel",
    "status": "dry-run",
    "idem": "970d2d81a495acdb"
+  },
+  {
+   "at": "2026-11-20T17:47:33.107Z",
+   "date": "2026-11-20",
+   "template": "rate-move",
+   "route": "uk-kenya",
+   "platform": "instagram",
+   "type": "reel",
+   "status": "posted",
+   "postId": "18135317113839973",
+   "idem": "b957ab8e54794de0",
+   "trial": false,
+   "link": "https://sendfair.africa/send-money/uk-to-kenya/?ref=ig",
+   "audioId": "2040091553197368",
+   "audio": "Everything Everywhere (Instrumental) — bbox"
+  },
+  {
+   "at": "2026-11-20T17:48:14.871Z",
+   "date": "2026-11-20",
+   "template": "rate-move",
+   "route": "uk-kenya",
+   "platform": "instagram",
+   "type": "comment",
+   "status": "failed",
+   "on": "18135317113839973",
+   "onType": "reel",
+   "idem": "a8aa63c4925f5b31",
+   "error": "{\"message\":\"(#10) Application does not have permission for this action\",\"code\":10,\"type\":\"OAuthException\",\"fbtrace_id\":\"AkqrSsyd7ylCelZzijyjZjq\"}"
+  },
+  {
+   "at": "2026-11-20T17:48:43.695Z",
+   "date": "2026-11-20",
+   "template": "rate-move",
+   "route": "uk-kenya",
+   "platform": "facebook",
+   "type": "reel",
+   "status": "posted",
+   "postId": "1169850649315732",
+   "idem": "af26d9c947763455",
+   "link": "https://sendfair.africa/send-money/uk-to-kenya/?ref=fb"
+  },
+  {
+   "at": "2026-11-20T17:49:24.840Z",
+   "date": "2026-11-20",
+   "template": "rate-move",
+   "route": "uk-kenya",
+   "platform": "facebook",
+   "type": "comment",
+   "status": "failed",
+   "on": "1169850649315732",
+   "onType": "reel",
+   "idem": "dafc6b95198b2078",
+   "error": "{\"message\":\"(#200) The permission(s) pages_read_user_content,pages_manage_engagement are not available. It could because either they are deprecated or need to be approved by App Review.\",\"type\":\"OAuthException\",\"code\":200,\"fbtrace_id\":\"AqIVP1H2M7KHTBWt9jBClxR\"}"
+  },
+  {
+   "at": "2026-11-20T17:49:24.841Z",
+   "date": "2026-11-20",
+   "template": "rate-move",
+   "route": "uk-kenya",
+   "platform": "tiktok",
+   "type": "reel",
+   "status": "manual",
+   "postId": "",
+   "idem": "d37dda9d8f684b6f",
+   "error": "",
+   "note": "TikTok flag off or no token; files saved in data/social/tiktok/"
   }
  ]
 }
