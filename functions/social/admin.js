@@ -105,7 +105,7 @@ export async function handleSocialAdmin(request, env, url, opts) {
     return back(url);
   }
   // action === "post": manual run. Waits for the upload so the result shows when the page reloads.
-  const r = await postPlatform(env, p, { manual: true, base: opts.base, fetchImpl: opts.fetchImpl, now: opts.now, sleep: opts.sleep });
+  const r = await postPlatform(env, p, { manual: true, base: opts.base, fetchImpl: opts.fetchImpl, now: opts.now, sleep: opts.sleep, tiktokAudited: opts.tiktokAudited });
   await setNote(kv, p, `Post now: ${r.message}`, r.status !== "failed");
   return back(url);
 }

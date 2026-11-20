@@ -39,7 +39,7 @@ async function fetchVideo(base, date, fetchImpl) {
 const runes = (s, n) => Array.from(String(s || "")).slice(0, n).join("");
 
 async function postTikTok(env, ctx) {
-  const { token, manifest, base, date, fetchImpl, sleep } = ctx;
+  const { token, manifest, base, date, fetchImpl, sleep, tiktokAudited } = ctx;
   const kv = env.SENDFAIR_KV;
   const api = async (path, body) => {
     const res = await fetchImpl(TT + path, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=UTF-8" }, body: JSON.stringify(body) });
@@ -57,9 +57,13 @@ async function postTikTok(env, ctx) {
 
   const creator = await api("/v2/post/publish/creator_info/query/", {});
   const options = Array.isArray(creator.privacy_level_options) ? creator.privacy_level_options : [];
-  const privacy = options.includes("PUBLIC_TO_EVERYONE") ? "PUBLIC_TO_EVERYONE" : options[0];
+  // Until TikTok audits the app, it only accepts SELF_ONLY ("only me") posts, even though
+  // creator_info still lists PUBLIC_TO_EVERYONE. config.tiktokAudited switches to public posting.
+  const privacy = tiktokAudited
+    ? (options.includes("PUBLIC_TO_EVERYONE") ? "PUBLIC_TO_EVERYONE" : options[0])
+    : (options.includes("SELF_ONLY") ? "SELF_ONLY" : options[options.length - 1]);
   if (!privacy) throw new Error("TikTok did not offer any privacy option for this account.");
-  const audited = privacy === "PUBLIC_TO_EVERYONE";
+  const audited = !!tiktokAudited;
   await putJSON(kv, "social:info:tiktok", { privacy, options, audited, username: creator.creator_username || "", at: Date.now() });
   if (creator.creator_nickname || creator.creator_username) {
     const tok = await getTokens(kv, "tiktok");
@@ -145,7 +149,7 @@ async function postYouTube(env, ctx) {
 
 // Runs one platform for today's Nairobi date. Returns {status, message}; status is one of
 // posted | failed | skipped. Never throws.
-export async function postPlatform(env, p, { manual = false, base, now = Date.now(), fetchImpl = fetch, sleep = sleepDefault } = {}) {
+export async function postPlatform(env, p, { manual = false, base, now = Date.now(), fetchImpl = fetch, sleep = sleepDefault, tiktokAudited = false } = {}) {
   const kv = env.SENDFAIR_KV;
   if (!kv) return { status: "skipped", message: "Storage (SENDFAIR_KV) is not connected." };
   if (!PLATFORMS.includes(p)) return { status: "skipped", message: "Unknown platform." };
@@ -188,7 +192,7 @@ export async function postPlatform(env, p, { manual = false, base, now = Date.no
   // Claim the day before any upload starts, so a parallel run can't post twice.
   await putPosted(kv, p, date, { status: "in-progress", attempts, startedAt: now, manual });
   try {
-    const out = await (p === "tiktok" ? postTikTok : postYouTube)(env, { token, manifest, base, date, fetchImpl, sleep });
+    const out = await (p === "tiktok" ? postTikTok : postYouTube)(env, { token, manifest, base, date, fetchImpl, sleep, tiktokAudited });
     await putPosted(kv, p, date, { status: "posted", attempts, manual, postedAt: Date.now(), ...out });
     return { status: "posted", message: `Posted to ${LABEL[p]}${out.note ? ". " + out.note : "."}` };
   } catch (e) {
