@@ -107,6 +107,6 @@ If you add, change or delete any of these, update this section and the matching 
 
 ## History (merged PRs)
 
-#11 audit fixes (data accuracy, slimmer homepage, `/send-money-to/`, noindex near-duplicates, hourly data job, PR checks) · #12 `/follow` page · #13 follow line in posts/reels · #14 daily Facebook reel · #15 engagement automation (posting time, first comments, series, weekly weights, comment drafts, TikTok/YouTube posting) · #16 fix "Forbidden (bad origin)" on `/admin/social` (Referrer-Policy same-origin) · #17 this handbook · #18 schedule list and scheduled-task prompts.
+#11 audit fixes (data accuracy, slimmer homepage, `/send-money-to/`, noindex near-duplicates, hourly data job, PR checks) · #12 `/follow` page · #13 follow line in posts/reels · #14 daily Facebook reel · #15 engagement automation (posting time, first comments, series, weekly weights, comment drafts, TikTok/YouTube posting) · #16 fix "Forbidden (bad origin)" on `/admin/social` (Referrer-Policy same-origin) · #17 this handbook · #18 schedule list and scheduled-task prompts · #19 YouTube (@sendfair) added to footer, /follow page and site structured data (`config.youtubeUrl`).
 
 Keep this file up to date when something important changes.

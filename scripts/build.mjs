@@ -306,10 +306,12 @@ const wallet = `<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="tru
 const fbIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M13.5 21v-7.1h2.4l.4-2.9h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V4.9c-.3 0-1.1-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.6V11H8.4v2.9h2.4V21h2.7z"/></svg>`;
 const igIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>`;
 const ttIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M16.6 3h-3.1v12.3a2.7 2.7 0 1 1-2.7-2.7c.3 0 .5 0 .8.1V9.5a5.9 5.9 0 1 0 5 5.8V9.1a7.4 7.4 0 0 0 4.3 1.4V7.4a4.3 4.3 0 0 1-4.3-4.4z"/></svg>`;
+const ytIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4a2.5 2.5 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3L10 15z"/></svg>`;
 const socialProfiles = [
   config.facebookUrl ? { name: "Facebook", url: config.facebookUrl, icon: fbIcon } : null,
   config.instagramUrl ? { name: "Instagram", url: config.instagramUrl, icon: igIcon } : null,
-  config.tiktokUrl ? { name: "TikTok", url: config.tiktokUrl, icon: ttIcon } : null
+  config.tiktokUrl ? { name: "TikTok", url: config.tiktokUrl, icon: ttIcon } : null,
+  config.youtubeUrl ? { name: "YouTube", url: config.youtubeUrl, icon: ytIcon } : null
 ].filter(Boolean);
 const waIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.6a8.5 8.5 0 0 1-12.6 7.5L3 21l1.9-5.4A8.5 8.5 0 1 1 21 11.6z"/><path d="M8.6 8.9c.2-.5.5-.5.8-.5h.5c.2 0 .4 0 .5.4l.6 1.5c.1.2 0 .4-.1.6l-.4.5c-.1.1-.2.3 0 .6.5.9 1.3 1.6 2.2 2.1.3.2.5.1.6 0l.5-.5c.2-.2.3-.2.6-.1l1.5.7c.3.2.4.3.4.5v.5c0 .4-.2.7-.6.9-.5.3-1.1.4-1.7.2-1.9-.5-3.7-2.1-4.8-4.1-.4-.7-.6-1.4-.4-2 .1-.3.2-.5.3-.8z" fill="currentColor" stroke="none"/></svg>`;
 const footerSocials = [...socialProfiles, ...(config.whatsappChannelUrl ? [{ name: "WhatsApp", url: config.whatsappChannelUrl, icon: waIcon }] : [])];
@@ -1526,6 +1528,7 @@ function writeFollowPage() {
   const accounts = [
     config.whatsappChannelUrl ? { id: "whatsapp", name: "WhatsApp Channel", note: "Today's best rates, every day", url: config.whatsappChannelUrl, icon: waIcon } : null,
     config.tiktokUrl ? { id: "tiktok", name: "TikTok", note: "@sendfair", url: config.tiktokUrl, icon: ttIcon } : null,
+    config.youtubeUrl ? { id: "youtube", name: "YouTube", note: "@sendfair · daily Shorts", url: config.youtubeUrl, icon: ytIcon } : null,
     config.instagramUrl ? { id: "instagram", name: "Instagram", note: "@sendfair", url: config.instagramUrl, icon: igIcon } : null,
     config.facebookUrl ? { id: "facebook", name: "Facebook", note: "SendFair page", url: config.facebookUrl, icon: fbIcon } : null
   ].filter(Boolean);
