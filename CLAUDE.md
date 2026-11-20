@@ -1,0 +1,77 @@
+# SendFair – project handbook for Claude
+
+Read this first. It records how SendFair works, what has been decided, and what is still open, so any Claude session (from any account) can pick up the work.
+
+## Owner and how to work with him
+
+- Owner: Dr. Caleb Simiyu Malayi ("Wagwan"), Nairobi (EAT, UTC+3). Legal entity: Continental Flow Ltd. Contact on site: hello@sendfair.africa.
+- He is not technical. Explain in plain words, give numbered click-by-click steps, and say which browser tab or page.
+- Never ask him to paste passwords, API keys, tokens or client secrets into chat. He types those into the page himself.
+- He accepts terms of service, consent screens and security settings (Cloudflare Access, Google Cloud ToS) himself. Claude does not.
+- Work on a branch, open a PR via the REST API (`gh api repos/malayic4-eng/sendfair/pulls ...`; GraphQL `gh pr create` is blocked), and merge when he has asked for the change.
+
+## What SendFair is
+
+https://sendfair.africa. Two halves:
+1. **Send money home**: compares money transfer providers (total cost incl. FX margin) from the UK, US, Canada etc. to African countries. Priority routes in `config.json` → `priorityRoutes`.
+2. **Build a house back home**: `/cost-to-build/` calculator, `/material-prices/`, `/same-house/`, guides such as `/when-a-quote-looks-wrong/`, and **Quote Check** (paid quote analysis, NOT open yet).
+
+Also: `/send-money-to/`, country pages, `/follow/` (one link to all socials, with QR).
+
+## Tech
+
+- Static build: `npm run build` → `scripts/build.mjs` writes `dist/`. Tests: `npm test`.
+- Cloudflare Worker: `src/worker.js` + `functions/`. Config `wrangler.jsonc`. Bindings: `SENDFAIR_KV`, `AI`, `QUOTE_CHECK_FILES` (R2).
+- Deploys: Cloudflare Workers Builds from GitHub. Production `npx wrangler deploy`; previews `npx wrangler preview`. Build command for both is `npm run build` (previews failed before this was set).
+- Public R2 media: `config.socialMediaBase`; daily reel at `social/<date>/reel.mp4` + `manifest.json`.
+- Rates data: Wise Comparison API feed (`scripts/fetch-wise-feed.mjs`, `apply-wise-feed.mjs`), hourly via `.github/workflows/update-midmarket.yml`.
+- Admin: `/admin` (Rate Desk) behind Cloudflare Access app "SendFair Rate Desk" plus an admin cookie. `/admin/social` (TikTok/YouTube connect), `/admin/comments` (comment reply drafts), `/admin/quote-checks/`.
+- GitHub secrets cannot be set from Claude sessions (API blocked through the proxy), so platform tokens live in KV via the admin pages.
+
+## Social automation
+
+- Workflows: `social-reels.yml` (17:30 UTC daily), `social-posts.yml`, `post-facebook.yml`, `social-weekly.yml` (Mondays: performance + `data/social/weights.json`), `social-comments.yml` (05:00 UTC drafts), `social-token-check.yml`.
+- Content: `scripts/social-content.mjs`. Templates in `data/social/schedule.json`: route, house, best-vs-average, material, tip, rate-move. Template picked by `pickTemplate` using weekly weights, with a building-content floor of ~25%.
+- **Decision:** do NOT build content only around money transfers. House building and other services get strong engagement. Keep a mix.
+- Audience weights for reels: Kenya 3, Nigeria 3, Ghana 3, Uganda 2, Zimbabwe 2.
+- Every post/reel ends with "Follow us everywhere: sendfair.africa/follow".
+- Facebook: Reel daily; site link goes in the first comment. Instagram: "link in bio" plus a question as first comment. Best single result so far: a Facebook Reel with ~8.2k views.
+- **YouTube Shorts:** connected (Nov 2026) on channel "SendFair" @sendfair via Google Cloud project `sendfair`, OAuth client "SendFair Worker". The Worker cron (`*/20 17-21 * * *` UTC) posts the daily reel once. The project is unverified, so uploads may be **private** until YouTube's API audit is passed. Check the "Last 7 days" table on `/admin/social`.
+- **TikTok:** not set up. Needs an app at developers.tiktok.com (Login Kit + Content Posting API, redirect `https://sendfair.africa/admin/social/callback/tiktok`), credentials saved on `/admin/social`, then TikTok audit. Posts are private until audited.
+- Weekly trends: a scheduled task "SendFair weekly social trends" (Mondays) writes `data/social/trends.json` via vidIQ (building ≥3 items, transfers 2, other 1).
+- Possible missing Meta permissions for comments/insights: pages_manage_engagement, instagram_manage_comments, read_insights, instagram_manage_insights.
+
+## Build cost data: rules and known problems
+
+Data: `data/build-costs.json` (17 countries; Kenya = Nairobi). Logic: `src/build-cost.js`. Master research register (owner's spreadsheet, Nov 2026): 327 items in 20 categories, ~116 with a captured price (mainly Integrum 2026 Nairobi/Central handbook, FixIt, Fatali, Muhindi, NCA fee schedule).
+
+Rules:
+- Never put an all-in work rate (materials + labour + plant + overhead, e.g. Integrum) and a retail material price in the same total without saying so. Don't compare them.
+- Every price needs a source, URL, unit, location and date. Show ranges, and label each line verified / guide / estimate.
+- Don't publish generic structural (foundation/steel/concrete) quantities as advice. Point to drawings and an engineer, and a soil test first.
+
+Known problems (found Nov 2026, not yet fixed):
+1. Kenya `wc`, `tank`, `painter`, `spark`, `plumber`, `carpenter` use `"guideFrom": "ghana"`, i.e. Ghana prices converted to KES. Replace with Kenyan sources or label clearly.
+2. `gutter` and `formwork` are Integrum all-in rates, mixed with retail materials + separate labour elsewhere.
+3. File date `updated: 2026-11-16`, but most sources are Aug–Oct 2026. Show the oldest source date.
+4. Sand and ballast are single points converted from 18-tonne lorries to m³; there are no range options.
+5. Sanitaryware comes from one low-end retailer list.
+
+Not priced at all yet: land/legal, site studies, professional fees, most of excavation/foundations as activities, waterproofing, drainage beyond the septic tank, most external works, appliances/solar/security, testing and handover.
+
+## Open to-do list (as of 20 Nov 2026)
+
+- Build-trust fixes 1–5 above (first).
+- Search Console: "Request indexing" for `/`, `/send-money-to/`, uk-to-nigeria, us-to-nigeria, uk-to-kenya, us-to-kenya, uk-to-ghana, `/cost-to-build/`.
+- Owner's own steps: Instagram bio link, TikTok website link (app), WhatsApp Channel description, all set to `sendfair.africa/follow`.
+- Check the first YouTube Short and, if private, guide him through the YouTube API audit. Set the channel logo, banner and description.
+- TikTok developer app + audit.
+- Affiliate programmes with transfer providers; AdSense slots are empty.
+- Verify the top 40–50 Nairobi build items with dated quotes, then pilot Quote Check with a small group. Quote Check must only judge lines with a like-for-like benchmark; otherwise say "no benchmark".
+- Later: cost-by-house-size pages per country, real-build cost survey, decide depth for non-priority countries.
+
+## History (merged PRs)
+
+#11 audit fixes (data accuracy, slimmer homepage, `/send-money-to/`, noindex near-duplicates, hourly data job, PR checks) · #12 `/follow` page · #13 follow line in posts/reels · #14 daily Facebook reel · #15 engagement automation (posting time, first comments, series, weekly weights, comment drafts, TikTok/YouTube posting) · #16 fix "Forbidden (bad origin)" on `/admin/social` (Referrer-Policy same-origin).
+
+Keep this file up to date when something important changes.
