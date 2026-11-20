@@ -65,7 +65,9 @@ check(/sponsor-box/.test(read("cost-to-build/kenya/index.html")), "sponsor box o
 check(/sponsor-box/.test(read("cost-to-build/kenya/3-bedroom/index.html")), "sponsor box on a size page");
 check(/flying-home\/kenya\//.test(read("send-money/uk-to-kenya/index.html")), "route page links to flying home");
 check(/go\/flights\?o=LON&amp;d=NBO&amp;r=fly-kenya/.test(read("flying-home/kenya/index.html")), "flying-home page has flight links");
-check(/Some flight and eSIM links on the flying-home pages are affiliate links/.test(read("disclosure/index.html")), "disclosure says travel links are affiliate links");
+check(/links on the flying-home pages are affiliate links/.test(read("disclosure/index.html")), "disclosure says travel links are affiliate links");
+check(/go\/kiwitaxi\?r=fly-kenya/.test(read("flying-home/kenya/index.html")), "flying-home page has airport pickup links");
+check(!/go\/klook\?r=fly-ghana/.test(read("flying-home/ghana/index.html")) && /go\/klook\?r=fly-kenya/.test(read("flying-home/kenya/index.html")), "activities only where listed");
 check(/advertise\//.test(read("sitemap.xml")) && /flying-home\/kenya\//.test(read("sitemap.xml")), "new pages in the sitemap");
 
 if (issues.length) { console.error("partner test failed:\n  " + issues.join("\n  ")); process.exit(1); }

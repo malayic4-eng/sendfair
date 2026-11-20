@@ -43,3 +43,13 @@ export function sponsorTarget(partners, id, now = Date.now()) {
   const sp = ((partners && partners.sponsors) || []).find((x) => x.id === id);
   return sponsorLive(sp, now) ? sp.url : null;
 }
+
+// More trip-home partners (transfers, car hire, other eSIMs, flight-delay claims, activities).
+export function extrasFor(partners, countryId) {
+  return (((partners && partners.travel) || {}).extras || []).filter((x) => x && x.id && x.url && (!x.countries || x.countries.includes(countryId)));
+}
+
+export function extraTarget(partners, id, countryId) {
+  const x = extrasFor(partners, countryId).find((e) => e.id === id);
+  return x ? wrap(x.wrap, x.url) : null;
+}
