@@ -43,3 +43,6 @@ out("youtube-banner-2560x1440.png", banner, 2560);
 
 // 4. Video watermark, 150x150 (YouTube shows it small, bottom right).
 out("youtube-watermark-150.png", logoSvg, 150);
+
+// 5. App icon (TikTok developer app, app stores): full-bleed indigo square, 1024 px.
+out("app-icon-1024.png", `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${INDIGO}"/><g transform="translate(32 32) scale(1.3) translate(-32 -32)">${mark(1)}</g></svg>`, 1024);
