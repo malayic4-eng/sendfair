@@ -67,7 +67,8 @@ async function resolveIgId(pt) {
 async function fbReel(pt, description) {
   const start = await fetch(`https://graph.facebook.com/${version}/${pageId}/video_reels`, { method: "POST", body: new URLSearchParams({ upload_phase: "start", access_token: pt }) }).then((r) => r.json());
   if (!start.video_id || !start.upload_url) throw new Error(JSON.stringify(start.error || start));
-  const buf = fs.readFileSync(`${dir}/reel.mp4`);
+  // Facebook gets the version with music when there is one (it can't add library music via the API).
+  const buf = fs.readFileSync(fs.existsSync(`${dir}/reel-music.mp4`) ? `${dir}/reel-music.mp4` : `${dir}/reel.mp4`);
   const up = await fetch(start.upload_url, { method: "POST", headers: { Authorization: `OAuth ${pt}`, offset: "0", file_size: String(buf.length), "Content-Type": "application/octet-stream" }, body: buf });
   if (!up.ok) throw new Error("upload " + up.status + " " + (await up.text()).slice(0, 200));
   const fin = await fetch(`https://graph.facebook.com/${version}/${pageId}/video_reels`, { method: "POST", body: new URLSearchParams({ upload_phase: "finish", video_id: start.video_id, video_state: "PUBLISHED", description, access_token: pt }) }).then((r) => r.json());
@@ -274,7 +275,7 @@ async function firstComments(platform, pt) {
 }
 
 async function tiktok() {
-  const file = `${dir}/reel.mp4`;
+  const file = fs.existsSync(`${dir}/reel-music.mp4`) ? `${dir}/reel-music.mp4` : `${dir}/reel.mp4`;
   if (!schedule.tiktok || !process.env.TIKTOK_ACCESS_TOKEN) return { status: "manual", note: "TikTok flag off or no token; files saved in data/social/tiktok/" };
   if (!fs.existsSync(file)) return { status: "skipped", note: "no MP4" };
   const size = fs.statSync(file).size;

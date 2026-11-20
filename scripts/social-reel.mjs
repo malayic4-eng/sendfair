@@ -123,6 +123,18 @@ async function main() {
       execFileSync("ffmpeg", ["-y", "-f", "concat", "-safe", "0", "-i", "concat.txt", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-vf", "fps=30,format=yuv420p", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", "reel.mp4"], { cwd: OUT, stdio: "ignore" });
       mp4 = "reel.mp4";
       console.log(`Reel: ${OUT}/reel.mp4 (${(fs.statSync(path.join(OUT, mp4)).size / 1048576).toFixed(1)} MB, ${total.toFixed(1)}s)`);
+      // reel-music.mp4: the same video with a royalty-free music bed (assets/music/*.mp3, one per day
+      // in turn). Facebook, YouTube and TikTok can't add library music through their APIs, so they get
+      // this file; Instagram keeps the silent reel.mp4 and adds a library song itself.
+      const musicDir = path.join(process.cwd(), "assets/music");
+      const tracks = fs.existsSync(musicDir) ? fs.readdirSync(musicDir).filter((f) => /\.(mp3|m4a)$/i.test(f)).sort() : [];
+      if (tracks.length) {
+        const day = Math.floor(Date.parse(plan.date + "T00:00:00Z") / 86400000);
+        const track = path.join(musicDir, tracks[day % tracks.length]);
+        const fadeOut = Math.max(0, total - 1.2).toFixed(2);
+        execFileSync("ffmpeg", ["-y", "-i", "reel.mp4", "-stream_loop", "-1", "-i", track, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", `volume=0.8,afade=t=in:d=0.4,afade=t=out:st=${fadeOut}:d=1.2`, "-c:a", "aac", "-b:a", "160k", "-t", total.toFixed(2), "-movflags", "+faststart", "reel-music.mp4"], { cwd: OUT, stdio: "ignore" });
+        console.log(`Reel with music: ${OUT}/reel-music.mp4 (${path.basename(track)})`);
+      }
     } catch (e) { console.error("ffmpeg failed:", e.message); }
   } else {
     console.log("ffmpeg not found: wrote the stills and manifest only.");
