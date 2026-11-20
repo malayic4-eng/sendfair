@@ -59,6 +59,41 @@ Known problems (found Nov 2026, not yet fixed):
 
 Not priced at all yet: land/legal, site studies, professional fees, most of excavation/foundations as activities, waterproofing, drainage beyond the septic tank, most external works, appliances/solar/security, testing and handover.
 
+## Everything that runs on a schedule
+
+Times are UTC unless marked Nairobi (Nairobi = UTC+3).
+
+**Claude scheduled tasks** (tied to the Claude account that created them; they do NOT move with the repo). The full prompts are in `docs/scheduled-tasks/` so they can be recreated word for word on another account:
+| Task | When | What | Prompt |
+|---|---|---|---|
+| SendFair daily rate check | 09:37 and 19:37 Nairobi daily (evening = backup) | Reads provider rates in the owner's built-in browser, updates `data/quotes.json`, `mid-overrides.json`, Monday Trustpilot ratings, history; pushes; sends a WhatsApp-ready summary. Needs the owner's computer + Claude desktop app on. | `docs/scheduled-tasks/daily-rate-check.md` |
+| SendFair weekly social trends | Mondays 09:13 Nairobi | vidIQ scan of trending Shorts/Reels/TikToks (≥3 building, 2 transfers, 1 other), writes `data/social/trends.json`. | `docs/scheduled-tasks/weekly-social-trends.md` |
+
+**GitHub Actions** (in `.github/workflows/`, move with the repo):
+| Workflow | When | 
+|---|---|
+| update-midmarket.yml | hourly at :17 (Wise feed / mid rates) |
+| extra-providers.yml | hourly at :30 |
+| seo-audit.yml | daily 03:15 |
+| price-review.yml | daily 04:30 |
+| social-comments.yml | daily 05:00 (comment reply drafts) |
+| indexnow.yml | daily 05:41 |
+| social-reels.yml | daily 17:30 (makes and posts the daily Reel) |
+| social-weekly.yml | Mondays 07:00 (performance report + weights) |
+| monthly-report.yml | 1st of month 06:00 |
+| freshness.yml | 1st of month 09:00 |
+| social-posts, post-facebook, post-launch, social-token-check, partner-feeds | manual only (Run workflow button) |
+| pr-check.yml | on every pull request |
+
+**Cloudflare Worker crons** (`wrangler.jsonc`, handled in `src/worker.js` `scheduled`):
+| Cron | What |
+|---|---|
+| 08:30 and 18:30 daily | rate alerts and confirmation emails |
+| 03:00 daily | Quote Check purge of old uploads and reports |
+| every 20 min 17:00–21:59 | post today's Reel to YouTube Shorts / TikTok once (`functions/social/post.js`) |
+
+If you add, change or delete any of these, update this section and the matching file in `docs/scheduled-tasks/`.
+
 ## Open to-do list (as of 20 Nov 2026)
 
 - Build-trust fixes 1–5 above (first).
@@ -72,6 +107,6 @@ Not priced at all yet: land/legal, site studies, professional fees, most of exca
 
 ## History (merged PRs)
 
-#11 audit fixes (data accuracy, slimmer homepage, `/send-money-to/`, noindex near-duplicates, hourly data job, PR checks) · #12 `/follow` page · #13 follow line in posts/reels · #14 daily Facebook reel · #15 engagement automation (posting time, first comments, series, weekly weights, comment drafts, TikTok/YouTube posting) · #16 fix "Forbidden (bad origin)" on `/admin/social` (Referrer-Policy same-origin).
+#11 audit fixes (data accuracy, slimmer homepage, `/send-money-to/`, noindex near-duplicates, hourly data job, PR checks) · #12 `/follow` page · #13 follow line in posts/reels · #14 daily Facebook reel · #15 engagement automation (posting time, first comments, series, weekly weights, comment drafts, TikTok/YouTube posting) · #16 fix "Forbidden (bad origin)" on `/admin/social` (Referrer-Policy same-origin) · #17 this handbook · #18 schedule list and scheduled-task prompts.
 
 Keep this file up to date when something important changes.
