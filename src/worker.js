@@ -33,7 +33,7 @@ import { handleSocialAdmin, callbackBounce } from "../functions/social/admin.js"
 import { runSocialCron, SOCIAL_CRON } from "../functions/social/post.js";
 
 // Automatic Reel posting to TikTok and YouTube Shorts (see /admin/social).
-const SOCIAL_OPTS = { base: (config.socialMediaBase || "").replace(/\/+$/, ""), site: config.siteUrl };
+const SOCIAL_OPTS = { base: (config.socialMediaBase || "").replace(/\/+$/, ""), site: config.siteUrl, tiktokAudited: !!config.tiktokAudited };
 
 // Each service's own icon, as published on its website, fetched once by this Worker (via Google's
 // favicon service) and cached at Cloudflare. Visitors' browsers only ever talk to sendfair.africa.

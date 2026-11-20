@@ -203,11 +203,11 @@ test("token refresh: TikTok rotates refresh token; Google keeps the old one; fai
   assert.match(J(e.SENDFAIR_KV, "social:tok:youtube").error, /invalid_grant|revoked/);
 });
 
-test("TikTok posting: public when allowed, single chunk upload, status poll, recorded", async () => {
+test("TikTok posting: public once audited, single chunk upload, status poll, recorded", async () => {
   const e = env();
   await connect(e, "tiktok");
   const f = stub([...mediaRoutes(), ...tiktokRoutes()]);
-  const r = await postPlatform(e, "tiktok", { base: BASE, now: NOW, fetchImpl: f, sleep: async () => {} });
+  const r = await postPlatform(e, "tiktok", { base: BASE, now: NOW, fetchImpl: f, sleep: async () => {}, tiktokAudited: true });
   assert.equal(r.status, "posted", r.message);
   const init = JSON.parse(f.calls.find((c) => c.url.includes("/video/init/")).init.body);
   assert.equal(init.post_info.privacy_level, "PUBLIC_TO_EVERYONE");
@@ -228,6 +228,15 @@ test("TikTok posting: public when allowed, single chunk upload, status poll, rec
   // Even the manual button won't double post.
   const r3 = await postPlatform(e, "tiktok", { manual: true, base: BASE, now: NOW, fetchImpl: f2, sleep: async () => {} });
   assert.equal(r3.status, "skipped"); assert.equal(f2.calls.length, 0);
+});
+
+test("TikTok unaudited app: posts SELF_ONLY even when creator_info lists PUBLIC_TO_EVERYONE", async () => {
+  const e = env();
+  await connect(e, "tiktok");
+  const f = stub([...mediaRoutes(), ...tiktokRoutes()]);
+  const r = await postPlatform(e, "tiktok", { base: BASE, now: NOW, fetchImpl: f, sleep: async () => {} });
+  assert.equal(r.status, "posted", r.message);
+  assert.equal(JSON.parse(f.calls.find((c) => c.url.includes("/video/init/")).init.body).post_info.privacy_level, "SELF_ONLY");
 });
 
 test("TikTok unaudited app: falls back to SELF_ONLY and says so on the page", async () => {
