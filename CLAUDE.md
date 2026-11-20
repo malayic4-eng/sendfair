@@ -101,7 +101,7 @@ If you add, change or delete any of these, update this section and the matching 
 - Build-trust fixes 1–5 above (first).
 - Search Console: "Request indexing" for `/`, `/send-money-to/`, uk-to-nigeria, us-to-nigeria, uk-to-kenya, us-to-kenya, uk-to-ghana, `/cost-to-build/`.
 - Owner's own steps: Instagram bio link, TikTok website link (app), WhatsApp Channel description, all set to `sendfair.africa/follow`.
-- Check the first YouTube Short and, if private, guide him through the YouTube API audit. Channel set up 20 Nov 2026: description, link to /follow, profile picture, banner, watermark, contact email hello@sendfair.africa. Still for the owner: country of residence and keywords (Studio → Settings → Channel).
+- Check the first YouTube Short and, if private, guide him through the YouTube API audit. Channel set up 20 Nov 2026: description, link to /follow, profile picture, banner, watermark, contact email hello@sendfair.africa. Owner set country of residence and keywords himself.
 - TikTok developer app + audit.
 - Affiliate programmes with transfer providers; AdSense slots are empty.
 - Verify the top 40–50 Nairobi build items with dated quotes, then pilot Quote Check with a small group. Quote Check must only judge lines with a like-for-like benchmark; otherwise say "no benchmark".
