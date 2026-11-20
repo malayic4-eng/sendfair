@@ -1,6 +1,17 @@
 {
- "note": "Royalty-free music beds for the Reel versions posted to Facebook, YouTube and TikTok (reel-music.mp4). Generated with vidIQ (royalty-free, original). The social-reels workflow downloads them into assets/music at run time; one track per day in turn.",
+ "note": "Royalty-free music beds for reel-music.mp4 (posted to Instagram, Facebook, YouTube and TikTok). Each Reel gets music in the style of its country: a track whose 'countries' list holds the Reel's country is used first; otherwise the 'default' track. All tracks are original and made with vidIQ's music generator (25 credits each), never real artists' songs, so no platform mutes or strikes them. The social-reels workflow downloads them into assets/music at run time. 'styles' is the plan for which style each country gets; tick a country off by adding a track with it in 'countries'.",
+ "styles": {
+  "kenya": "Gengetone / Benga (Kenyan)",
+  "tanzania": "Bongo Flava (East African)", "uganda": "Bongo Flava (East African)", "rwanda": "Bongo Flava (East African)",
+  "nigeria": "Afrobeats (Nigerian)",
+  "ghana": "Highlife / Azonto (Ghanaian)",
+  "southafrica": "Amapiano (South African)", "zimbabwe": "Amapiano / Sungura", "zambia": "Amapiano / Zed beats",
+  "ivorycoast": "Coupé-décalé (West African francophone)", "senegal": "Mbalax", "mali": "Mande guitar / kora",
+  "cameroon": "Makossa", "drc": "Congolese rumba / Soukous",
+  "ethiopia": "Ethio-jazz",
+  "morocco": "Gnawa / Maghreb", "egypt": "Egyptian / Arabic pop"
+ },
  "tracks": [
-  { "file": "afrobeats-01.mp3", "made": "2026-11-20", "by": "vidIQ music generator", "prompt": "Upbeat modern Afrobeats instrumental, 108 BPM, 30 s", "url": "https://ai-music-tracks.s3.us-east-1.amazonaws.com/f589587e-8b1f-4d30-9a71-46e517b8a295/9f7d09b9-99ce-49f4-8bb6-13d7bac9d9e1.mp3" }
+  { "file": "afrobeats-01.mp3", "countries": ["nigeria"], "default": true, "made": "2026-11-20", "by": "vidIQ music generator", "prompt": "Upbeat modern Afrobeats instrumental, 108 BPM, 30 s", "url": "https://ai-music-tracks.s3.us-east-1.amazonaws.com/f589587e-8b1f-4d30-9a71-46e517b8a295/9f7d09b9-99ce-49f4-8bb6-13d7bac9d9e1.mp3" }
  ]
 }
