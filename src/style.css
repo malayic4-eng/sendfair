@@ -86,7 +86,7 @@ h2 { font-size: clamp(1.6rem, 3.2vw, 2.25rem); font-weight: 700; line-height: 1.
 h3 { font-size: 1.15rem; font-weight: 680; line-height: 1.25; letter-spacing: -0.005em; }
 p { margin: 0; }
 .num { font-variant-numeric: tabular-nums lining-nums; }
-.cur { font-size: .58em; font-weight: 600; letter-spacing: .02em; margin-right: .3em; opacity: .75; vertical-align: .32em; }
+.cur { font-size: .58em; font-weight: 600; letter-spacing: .02em; margin-right: .3em; vertical-align: .32em; }
 .email { font-weight: 600; user-select: all; overflow-wrap: anywhere; }
 
 .wrap {
@@ -829,3 +829,6 @@ details p { margin-top: 10px; color: var(--muted); }
 .svc-door::before { content: ""; display: block; width: 28px; height: 4px; border-radius: 4px; margin-bottom: 4px; background: var(--brand, #1f7a4d); }
 .svc-build::before { background: #c46a1b; } .svc-check::before { background: #6b4fbf; } .svc-fly::before { background: #1f6fbf; }
 @media (max-width: 720px) { .svc-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.quick button { min-height: 26px; min-width: 32px; }
+.notif { border-style: dashed !important; }

@@ -374,7 +374,7 @@
       '<div class="prov"><div class="prov-name notranslate">' + badge(x.p) + '<span>' + esc(x.p.name) + "</span>" + (x.q.variant ? '<span class="variant"' + (variantHint(x.q.variant) ? ' title="' + esc(variantHint(x.q.variant)) + '"' : "") + ">" + esc(x.q.variant) + "</span>" : "") +
       (top ? '<span class="chip best">' + (x.tied ? "Joint best" : c.target ? "Cheapest" : "Most money home") + "</span>" : "") + mark +
       (x.p.rating ? '<a class="tp" href="' + esc(x.p.rating.url) + '" target="_blank" rel="noopener" title="Trustpilot: ' + x.p.rating.score + " out of 5 from " + fixed(x.p.rating.reviews, 0) + ' reviews"><span aria-hidden="true">★</span> ' + x.p.rating.score + "</a>" : (x.p.ratingUrl ? '<a class="tp" href="' + esc(x.p.ratingUrl) + '" target="_blank" rel="noopener" title="Trustpilot reviews">Trustpilot</a>' : "")) +
-      '<button type="button" class="more-btn" aria-expanded="' + open + '" aria-controls="' + pid + '"><span class="more-txt">Details</span><span aria-hidden="true" class="chev">▾</span></button>' + "</div>" +
+      '<button type="button" class="more-btn" aria-expanded="' + open + '" aria-controls="' + pid + '" aria-label="Details: ' + esc(x.p.name) + '"><span class="more-txt">Details</span><span aria-hidden="true" class="chev">▾</span></button>' + "</div>" +
       '<div class="prov-sub num">' + bits.join('<span class="dot">' + DOT + "</span>") + "</div></div>" +
       (c.target
         ? '<div class="gets notranslate"><span class="gets-value num">' + moneyHtml(x.pay, c.s.currency) + "</span>" +
@@ -462,7 +462,7 @@
         }
         return renderRow(x, i, c, n);
       }).join("");
-      html += '<div class="results" role="list"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>' + (c.target ? "You pay" : "They get") + '</span><span></span></div>' + rows + "</div>";
+      html += '<div class="results"><div class="results-head" aria-hidden="true"><span></span><span>Service</span><span>' + (c.target ? "You pay" : "They get") + '</span><span></span></div>' + rows + "</div>";
       html += amountNote(c);
       if (warn) html += '<p class="refwarn">' + esc(warn) + "</p>";
       if (c.rows.some(function (x) { return isAuto(x.q); })) html += '<p class="note">"(auto)" rows are refreshed automatically from Wise\'s comparison data or the provider\'s own website. Payout options on those rows may be incomplete.</p>';

@@ -155,3 +155,9 @@
   .qc-table thead th { background: #eee !important; color: #000 !important; }
   .qc-card, .qc-alert, .qc-disclaimer { break-inside: avoid; }
 }
+
+.qc-wait-box { display: grid; gap: 8px; margin-top: 12px; max-width: 520px; }
+.qc-wait-box p { margin: 0; }
+.qc-wait { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.qc-wait .label { position: absolute; left: -9999px; }
+.qc-wait input[type=email] { flex: 1 1 220px; min-height: 44px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line-strong, #ccd); font: inherit; }

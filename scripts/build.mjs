@@ -357,7 +357,7 @@ function head({ title, description, canonical, prefix, jsonld = [], noindex = fa
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Figtree:wght@300..900&display=swap">`
     : `<link rel="preload" href="${prefix}assets/fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${prefix}assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="${prefix}assets/fonts.css?v=${V.fonts}">`;
+<style>${FONTS_INLINE.replace(/url\("fonts\//g, `url("${prefix}assets/fonts/`)}</style>`;
   if (hasOg && !fs.existsSync(path.join(ROOT, "src/og", og + ".png"))) og = "home";
   const ogImg = hasOg ? `<meta property="og:image" content="${site}/og/${og}.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">` : `<meta name="twitter:card" content="summary">`;
   description = clip(description, 158);
@@ -497,7 +497,7 @@ function tool({ heading, sub, ctx, after = "", strip = "" }) {
   <div class="controls">
     <div class="field"><label for="sf-from">Sending from</label><select id="sf-from">${corridors.senders.map((s) => `<option value="${s.id}"${s.id === ctx.s.id ? " selected" : ""}>${esc(s.label)} (${s.currency})</option>`).join("")}</select></div>
     <div class="field"><label for="sf-to">Sending to</label><select id="sf-to">${corridors.receivers.map((r) => `<option value="${r.id}"${r.id === ctx.r.id ? " selected" : ""}>${esc(r.name)} (${r.currency})</option>`).join("")}</select></div>
-    <div class="field amount-field"><label for="sf-amount" id="sf-amount-label">You pay in total</label><div class="amount-wrap"><button type="button" id="sf-mode" class="mode-btn" title="Switch between the amount you pay and the amount they need">Pay <span class="mode-cur">${ctx.s.currency}</span><span class="mode-ic" aria-hidden="true">⇄</span></button><span id="sf-cur" hidden>${ctx.s.currency}</span><input id="sf-amount" type="number" inputmode="decimal" min="1" step="any" value="${ctx.amount}"><span class="quick" id="sf-quick" role="group" aria-label="Common amounts">${quickList.map((a) => `<button type="button" data-amt="${a}" aria-pressed="${a === ctx.amount}">${a >= 1000 ? a / 1000 + "k" : a}</button>`).join("")}</span></div></div>
+    <div class="field amount-field"><label for="sf-amount" id="sf-amount-label">You pay in total</label><div class="amount-wrap"><button type="button" id="sf-mode" class="mode-btn" aria-label="Pay ${ctx.s.currency}: switch to the amount they need" title="Switch between the amount you pay and the amount they need">Pay <span class="mode-cur">${ctx.s.currency}</span><span class="mode-ic" aria-hidden="true">⇄</span></button><span id="sf-cur" hidden>${ctx.s.currency}</span><input id="sf-amount" type="number" inputmode="decimal" min="1" step="any" value="${ctx.amount}"><span class="quick" id="sf-quick" role="group" aria-label="Common amounts">${quickList.map((a) => `<button type="button" data-amt="${a}" aria-pressed="${a === ctx.amount}">${a >= 1000 ? a / 1000 + "k" : a}</button>`).join("")}</span></div></div>
     <div class="filters-row"><div class="field payout-field"><span class="label" id="sf-payout-label">They receive by</span><div class="payout-tabs" role="group" aria-labelledby="sf-payout-label">
       <button type="button" data-payout="all" aria-pressed="true">Any</button><button type="button" data-payout="mobile" aria-pressed="false">Mobile<span class="lg"> money</span></button><button type="button" data-payout="bank" aria-pressed="false">Bank</button><button type="button" data-payout="cash" aria-pressed="false">Cash</button>
     </div></div></div>
@@ -508,7 +508,7 @@ function tool({ heading, sub, ctx, after = "", strip = "" }) {
 </div>
 <ul class="trustbar" aria-label="Why you can trust these rankings">
   <li><strong>Independent.</strong> Run from Nairobi; no provider owns us.</li>
-  <li><strong>Checked automatically</strong> through the day, mostly from Wise's comparison data${handCheckedRoutes === 0 ? "" : `, and ${handCheckedRoutes} routes checked by hand`}; each row shows how old it is.</li>
+  <li><strong>Checked automatically</strong> through the day, mostly from Wise's public comparison data (the order is still set only by what arrives)${handCheckedRoutes === 0 ? "" : `, and ${handCheckedRoutes} routes checked by hand`}; each row shows how old it is.</li>
   <li><strong>Standard rates only.</strong> No paid placements; commissions never change the order.</li>
   <li><strong>Ratings shown</strong> from Trustpilot, so you see what customers say.</li>
 </ul>
@@ -665,6 +665,13 @@ function quoteCheckClientConfig() {
   };
 }
 
+// While Quote Check is closed: one waiting-list box (Buttondown, tagged quote-check) instead of a dead button.
+function qcWaitlist() {
+  const nl = config.newsletterFormAction || "";
+  const form = nl ? `<form class="qc-wait" action="${esc(nl)}" method="post" target="_blank">${nl.includes("embed-subscribe") ? `<input type="hidden" name="embed" value="1">` : ""}<input type="hidden" name="tag" value="quote-check"><label class="label" for="sf-qc-wait">Email</label><input id="sf-qc-wait" name="email" type="email" required autocomplete="email" placeholder="you@example.com"><button type="submit" class="qc-btn">Tell me when it opens</button></form>` : "";
+  return `<div class="qc-wait-box"><p><strong>Opening soon.</strong> We are verifying the local prices first. Leave your email and we'll tell you the day it opens (one email; confirm your address first).</p>${form}<p><a class="qc-btn qc-btn-ghost" href="#sample">See a sample report</a></p></div>`;
+}
+
 function quoteCheckHero(countryId) {
   const c = countryId ? buildCosts.countries[countryId] : null;
   const where = c ? ` in ${esc(c.name)}` : "";
@@ -674,7 +681,7 @@ function quoteCheckHero(countryId) {
 <p class="qc-kicker">SendFair Quote Check${c ? " · " + esc(c.name) : ""}</p>
 <h1>Is your builder's quote${where} fair?</h1>
 <p class="qc-lede">We check it line by line against today's local prices — cement, blocks, roofing, tiles, labour days and the permit — and show you where it sits. You see the quote total and how many lines we can match before you pay.</p>
-<div class="qc-hero-actions"><a class="qc-btn" href="#check">Check my quote</a><a class="qc-btn qc-btn-ghost" href="#sample">See a sample report</a></div>
+${QC_ON ? `<div class="qc-hero-actions"><a class="qc-btn" href="#check">Check my quote</a><a class="qc-btn qc-btn-ghost" href="#sample">See a sample report</a></div>` : qcWaitlist()}
 </div>
 <div class="qc-hero-card">
 <p class="qc-kicker">One-off fee</p>
@@ -941,7 +948,7 @@ function buildTeaser(prefix) {
   const cards = picks.map((id) => {
     const est = BC.estimate(buildCosts, id, 110, 1, rates);
     if (!est) return "";
-    return `<a class="build-card" href="${link(prefix, `cost-to-build/${id}/`)}"><span class="k">3-bedroom bungalow · ${esc(est.country.name)}</span><strong class="num">${esc(plain(R.money(est.total, est.currency)))}</strong><span class="s">Walls, roof, finishes, services, a septic tank and a boundary wall. Land and the contractor's fee are not included.</span></a>`;
+    return `<a class="build-card" href="${link(prefix, `cost-to-build/${id}/`)}"><span class="k">3-bedroom bungalow, about 110 m² · ${esc(est.country.name)}</span><strong class="num">${esc(plain(R.money(est.total, est.currency)))}</strong><span class="s">Walls, roof, finishes, services, a septic tank and a boundary wall, in local currency. Land and the contractor's fee are not included.</span></a>`;
   }).join("");
   return `<section class="block" id="build-home"><div class="wrap">
 <div class="section-head"><h2>Build a house back home</h2><p class="lede">Building is one of the main reasons people send money — and a round sum is where quotes get inflated. Price the walls, roof, finishes, trade days and the building permit before you send a lump sum. Pick the country, then switch the roof sheet, windows, doors, tiles, ceiling and paint. Land and the contractor's fee are not in the figure. Prices checked ${esc(buildCosts.updated)}.</p></div>
@@ -1903,6 +1910,8 @@ const ASSET_FILES = ["style.css", "app.js", "rank.js", "fonts.css", "build-cost.
 const shippedAsset = (f) => { const src = fs.readFileSync(path.join(ROOT, "src", f), "utf8"); return f.endsWith(".css") ? minifyCss(src) : MINIFIED_JS.has(f) ? minifyJs(src, f) : src; };
 const ASSET_TEXT = Object.fromEntries(ASSET_FILES.map((f) => [f, shippedAsset(f)]));
 const ver = (f) => crypto.createHash("sha256").update(ASSET_TEXT[f]).digest("hex").slice(0, 10);
+// fonts.css is tiny: inline it so it doesn't block the first paint (the file stays for /admin).
+const FONTS_INLINE = fs.readFileSync(path.join(ROOT, "src/fonts.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s*\n\s*/g, "");
 const V = { css: ver("style.css"), app: ver("app.js"), rank: ver("rank.js"), fonts: ver("fonts.css"), build: ver("build-cost.js"), qccss: ver("quote-check.css"), qcjs: ver("quote-check.js"), qcreport: ver("quote-check-report.js") };
 const sitemapAlts = {};
 
@@ -2048,13 +2057,13 @@ function histChart(ctx) {
   const all = ctx.hist.filter((h) => h.mid || h.best);
   if (!all.length) return `<p class="note">History starts with the next rate check.</p>`;
   const windows = [7, 30, 90];
-  const tabs = windows.map((d, i) => `<button type="button" class="hr-tab${i === 1 ? " is-on" : ""}" data-days="${d}">${d} days</button>`).join("");
+  const tabs = windows.map((d, i) => `<button type="button" class="hr-tab${i === 1 ? " is-on" : ""}" data-days="${d}" aria-pressed="${i === 1}">${d} days</button>`).join("");
   const panels = windows.map((d, i) => `<div class="hr-panel" data-days="${d}"${i === 1 ? "" : " hidden"}>${histSvg(ctx, d)}</div>`).join("");
   return `<div class="hist-range" data-hr>
-<div class="hr-tabs" role="tablist" aria-label="Rate history range">${tabs}</div>
+<div class="hr-tabs" role="group" aria-label="Rate history range">${tabs}</div>
 ${panels}
 </div>
-<script>(function(){var r=document.querySelector('[data-hr]');if(!r)return;var t=r.querySelectorAll('.hr-tab'),p=r.querySelectorAll('.hr-panel');function s(d){for(var i=0;i<t.length;i++){t[i].classList.toggle('is-on',t[i].getAttribute('data-days')===d);p[i].hidden=p[i].getAttribute('data-days')!==d;}}for(var j=0;j<t.length;j++)t[j].addEventListener('click',function(){s(this.getAttribute('data-days'));});})();</script>`;
+<script>(function(){var r=document.querySelector('[data-hr]');if(!r)return;var t=r.querySelectorAll('.hr-tab'),p=r.querySelectorAll('.hr-panel');function s(d){for(var i=0;i<t.length;i++){t[i].classList.toggle('is-on',t[i].getAttribute('data-days')===d);t[i].setAttribute('aria-pressed',String(t[i].getAttribute('data-days')===d));p[i].hidden=p[i].getAttribute('data-days')!==d;}}for(var j=0;j<t.length;j++)t[j].addEventListener('click',function(){s(this.getAttribute('data-days'));});})();</script>`;
 }
 
 // Rate alert sign-up for one route.
@@ -2189,7 +2198,7 @@ const R0 = corridors.receivers.find((r) => r.id === "kenya") || corridors.receiv
 const quotedRoutes = Object.keys(quotesFile.quotes || {}).filter((k) => (quotesFile.quotes[k] || []).length).length;
 const quotedProviders = new Set(Object.values(quotesFile.quotes || {}).flat().map((q) => q.provider).filter((id) => providers[id])).size;
 const homeProof = quotedProviders > 1
-  ? `Live prices from ${quotedProviders} services across ${quotedRoutes} routes, updated through the day.`
+  ? `Live prices from ${quotedProviders} services on ${quotedRoutes} of our ${corridors.senders.length * corridors.receivers.length} routes, updated through the day.`
   : "Commissions never change the order.";
 const yourRoutesHtml = `<section class="block your-routes" id="sf-your-routes" hidden><div class="wrap"><h2>Your routes</h2><div id="sf-your-routes-list"></div><p class="savings" id="sf-savings" hidden></p></div></section>`;
 const homeCtx = routeContext(S0, R0, "", config.defaultAmounts[S0.currency]);
