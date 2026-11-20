@@ -44,6 +44,13 @@ jobs:
         run: node scripts/social-content.mjs
       - name: Download background photos (Unsplash)
         run: node scripts/fetch-reel-photos.mjs
+      - name: Download music beds
+        continue-on-error: true
+        run: |
+          mkdir -p assets/music
+          node -e 'for (const t of require("./data/social/music.json").tracks) console.log(t.file + " " + t.url)' | while read f u; do
+            curl -sSfL --retry 2 -o "assets/music/$f" "$u" && echo "music: $f" || echo "music: could not download $f"
+          done
       - name: Render the Reel, cover, image and captions
         run: node scripts/social-reel.mjs
       - name: Read the date
@@ -59,6 +66,7 @@ jobs:
         run: |
           D="${{ steps.date.outputs.date }}"
           npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/reel.mp4" --file "data/social/reels/$D/reel.mp4" --content-type video/mp4 --remote
+          if [ -f "data/social/reels/$D/reel-music.mp4" ]; then npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/reel-music.mp4" --file "data/social/reels/$D/reel-music.mp4" --content-type video/mp4 --remote; fi
           npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/cover.png" --file "data/social/reels/$D/cover.png" --content-type image/png --remote
           npx --yes wrangler@4 r2 object put "$R2_BUCKET/social/$D/image.png" --file "data/social/reels/$D/image.png" --content-type image/png --remote
           # The manifest (final captions per platform: instagram, facebook, tiktok, youtube) next to

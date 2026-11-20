@@ -28,7 +28,9 @@ async function readJson(res) {
 }
 
 async function fetchVideo(base, date, fetchImpl) {
-  const res = await fetchImpl(`${base}/social/${date}/reel.mp4`);
+  // Prefer the version with a music bed (YouTube and TikTok can't add library music via the API).
+  let res = await fetchImpl(`${base}/social/${date}/reel-music.mp4`);
+  if (!res.ok) res = await fetchImpl(`${base}/social/${date}/reel.mp4`);
   if (!res.ok) throw new Error(`The Reel video for ${date} could not be downloaded (${res.status}).`);
   const size = Number(res.headers.get("content-length") || 0);
   if (!size) throw new Error("The Reel video has no size (Content-Length missing).");
