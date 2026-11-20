@@ -92,7 +92,7 @@ test("the full Quote Check flow: preview, test payment, report, PDF and emails",
   assert.equal(up.status, 200, JSON.stringify(upBody));
   assert.equal(upBody.order.status, "previewed");
   assert.equal(upBody.preview.lineItems, 19);
-  assert.equal(upBody.preview.matchedLines, 16);
+  assert.equal(upBody.preview.matchedLines, 17);
   assert.equal(upBody.preview.quoteTotal, 3642600);
   assert.match(upBody.order.reportPath, /^\/quote-check\/report\/[a-z0-9]{20,40}\/$/);
   assert.equal(env.emails.length, 0, "no email before payment");

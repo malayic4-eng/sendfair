@@ -35,7 +35,8 @@
           }
           out.push({
             id: o.id, name: o.name, price: price, source: source,
-            url: o.url || (item && item.url) || "", quoted: quoted, isDefault: !!o["default"]
+            url: o.url || (item && item.url) || "", quoted: quoted, isDefault: !!o["default"],
+            allIn: !!(o.allIn != null ? o.allIn : item && item.allIn)
           });
         }
         return out;
@@ -59,7 +60,8 @@
     var c = data.countries[id];
     return {
       price: chosen.price, quoted: chosen.quoted, source: chosen.source, url: chosen.url,
-      currency: c.currency, origin: c.name, optionId: chosen.id, optionName: chosen.name, choices: choices
+      currency: c.currency, origin: c.name, optionId: chosen.id, optionName: chosen.name, choices: choices,
+      allIn: !!chosen.allIn
     };
   }
   function bedrooms(m2) {
@@ -287,7 +289,7 @@
       lines.push({
         key: key, label: label, group: group, qty: qty, qtyLabel: text,
         unitPrice: price, unitName: unitName, cost: qty * price,
-        quoted: quoted, source: source, url: unit.url,
+        quoted: quoted, source: source, url: unit.url, allIn: unit.allIn,
         choice: unit.optionId, choiceName: unit.optionName, choices: choices
       });
     }
@@ -577,6 +579,7 @@
         var head = "";
         if (l.group && l.group !== lastGroup) { lastGroup = l.group; head = '<div class="build-group">' + esc(shownGroup(l.group)) + "</div>"; }
         var tag = l.slab ? "" : l.cost > 0 ? (l.quoted ? '<span class="build-tag is-quoted">' + (lang === "fr" ? "Prix affiché" : "Listed price") + "</span>" : '<span class="build-tag is-guide">' + (lang === "fr" ? "Guide" : "Guide") + "</span>") : '<span class="build-tag">' + (lang === "fr" ? "Sans prix" : "No price") + "</span>";
+        if (l.allIn && l.cost > 0) tag += '<span class="build-tag is-allin" title="' + esc(lang === "fr" ? "Tarif tout compris d'un entrepreneur : matériaux, main-d'œuvre, matériel et marge. Pas de main-d'œuvre à ajouter pour cette ligne." : "A contractor's all-in rate: materials, labour, equipment and margin. Don't add separate labour for this line.") + '">' + (lang === "fr" ? "Tout compris" : "All-in rate") + "</span>";
         var cost = l.slab ? (lang === "fr" ? "Compris au-dessus" : "Included above") : l.cost > 0 ? money(l.cost, est.currency) : "–";
         var pickHtml = "";
         if (l.choices) {
@@ -703,7 +706,7 @@
         '<div class="share"><a href="https://wa.me/?text=' + encodeURIComponent(orderMessage) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Envoyer la liste sur WhatsApp" : "Send the order list on WhatsApp") + '</a> <a href="https://wa.me/?text=' + encodeURIComponent(share) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Partager le total" : "Share the total") + '</a> <button type="button" id="sf-build-copy">' + (lang === "fr" ? "Copier le lien" : "Copy the link") + "</button></div>" +
         '<details class="build-src"><summary>' + (lang === "fr" ? "D'où viennent les prix" : "Where the prices come from") + "</summary><ul>" + est.lines.filter(function (l) { return l.source; }).map(function (l) {
           return "<li><strong>" + esc(shownLabel(l)) + ".</strong> " + esc(l.source) + (l.url ? ' <a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + (lang === "fr" ? "Source" : "Source") + "</a>" : "") + "</li>";
-        }).join("") + "</ul><p>" + (lang === "fr" ? "Contrôlé le " : "Checked ") + esc(data.updated) + (lang === "fr" ? ". Prochain contrôle le " : ". Next refresh ") + esc(data.nextReview) + ".</p></details>" + '<details class="build-src" id="sf-material-calc"><summary>' + (lang === "fr" ? "Calculateurs de matériaux" : "Material calculators") + '</summary><div class="mat-calc"><label>Concrete — floor area <input type="number" data-mat="conc-area" placeholder="m²" inputmode="decimal"> × thickness <input type="number" data-mat="conc-thick" value="0.15" step="0.01" inputmode="decimal"> m → <strong data-mat-out="conc">…</strong></label><label>Tile — floor area <input type="number" data-mat="tile-area" placeholder="m²" inputmode="decimal"> (10% waste) → <strong data-mat-out="tile">…</strong></label><label>Paint — wall area <input type="number" data-mat="paint-area" placeholder="m²" inputmode="decimal"> (2 coats) → <strong data-mat-out="paint">…</strong></label></div></details>' +
+        }).join("") + "</ul><p>" + (est.country.pricesDated ? esc((lang === "fr" ? "Prix relevés : " : "Prices dated ") + est.country.pricesDated + ". ") : "") + (lang === "fr" ? "Liste revue le " : "List reviewed ") + esc(data.updated) + (lang === "fr" ? ". Prochain contrôle le " : ". Next refresh ") + esc(data.nextReview) + ".</p></details>" + '<details class="build-src" id="sf-material-calc"><summary>' + (lang === "fr" ? "Calculateurs de matériaux" : "Material calculators") + '</summary><div class="mat-calc"><label>Concrete — floor area <input type="number" data-mat="conc-area" placeholder="m²" inputmode="decimal"> × thickness <input type="number" data-mat="conc-thick" value="0.15" step="0.01" inputmode="decimal"> m → <strong data-mat-out="conc">…</strong></label><label>Tile — floor area <input type="number" data-mat="tile-area" placeholder="m²" inputmode="decimal"> (10% waste) → <strong data-mat-out="tile">…</strong></label><label>Paint — wall area <input type="number" data-mat="paint-area" placeholder="m²" inputmode="decimal"> (2 coats) → <strong data-mat-out="paint">…</strong></label></div></details>' +
         '<article class="build-sheet"><h2>SendFair receipt</h2><p>' + esc(houseName) + " · " + esc(shape) + " · " + Math.round(area) + " m² · " + esc(placeName) + " · " + esc(est.country.city) + " · " + esc(data.updated) + "</p><p><strong>" + esc(money(est.total, est.currency)) + "</strong></p><p>" + esc(orderBits.join(" · ")) + esc(slabNote) + "</p>" +
         (est.band ? "<p>" + esc(money(est.band.low, est.currency)) + " – " + esc(money(est.band.high, est.currency)) + ". " + esc(est.band.source) + "</p>" : "") +
         '<table><thead><tr><th>Item</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr></thead><tbody>' + sheetRows + "</tbody></table>" +
