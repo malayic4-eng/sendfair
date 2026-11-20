@@ -31,7 +31,12 @@ const COMMENT_RETRY_MS = process.env.COMMENT_RETRY_MS != null ? Number(process.e
 // Safety net for an old manifest: never send a URL in Facebook or Instagram post text.
 const URL_RE = /https?:\/\/\S+/g;
 const noLinks = (text, platform) => String(text || "").replace(URL_RE, platform === "facebook" ? "link in the first comment 👇" : "link in bio 🔗");
-const fbText = (t) => noLinks(t, "facebook");
+// The first comment needs pages_manage_engagement, which the Meta app doesn't have yet, so by
+// default the Facebook link goes in the caption itself. Set schedule.fbLinkInComment to true once
+// that permission is approved to move it back to the first comment.
+const fbText = (t) => schedule.fbLinkInComment === true
+  ? noLinks(t, "facebook")
+  : String(t || "").replace("link in the first comment 👇", links.facebook || "https://sendfair.africa/").replace(/Compare your own amount: (https?:\/\/\S+)/, "Compare your own amount 👉 $1");
 const igText = (t) => noLinks(t, "instagram");
 
 const idem = (platform) => createHash("sha256").update(`${platform}|${plan.route}|${plan.date}|${plan.template}`).digest("hex").slice(0, 16);
