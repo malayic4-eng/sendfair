@@ -816,3 +816,8 @@ details p { margin-top: 10px; color: var(--muted); }
 .follow-qr { margin: 0; display: grid; justify-items: center; gap: 8px; }
 .follow-qr img { width: 180px; height: 180px; border-radius: 12px; border: 1px solid var(--line-strong); }
 .follow-qr figcaption { font-size: .9rem; color: var(--muted); }
+.trip-extras { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 8px 0 16px; }
+.trip-group h3 { font-size: 1rem; margin: 0 0 6px; }
+.trip-card { display: grid; gap: 3px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; min-height: 44px; }
+.trip-card:hover { border-color: var(--line-strong); }
+.trip-card span { font-size: .9rem; color: var(--muted, #555); }

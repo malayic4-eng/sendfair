@@ -9,7 +9,7 @@ import { createRequire } from "node:module";
 import { buildReports, reportSummary } from "./report-data.mjs";
 import { FR, t, moneyFr, dateFr, assertFrKeys, frGrammar, capFirst } from "./i18n.mjs";
 import { mergeConfig as mergeQuoteCheckConfig, priceFor as quoteCheckPrice } from "../src/quote-check/config.mjs";
-import { TRAVEL_IDS, sponsorsFor, flightTarget, esimTarget } from "../src/partner-links.mjs";
+import { TRAVEL_IDS, sponsorsFor, flightTarget, esimTarget, extrasFor, extraTarget } from "../src/partner-links.mjs";
 import { historySummary } from "./rate-summary.mjs";
 import { applyOverrides, sharedCurrencies } from "./feed-lib.mjs";
 import { loadQuestions, questionPage, questionsIndex, relatedQuestions } from "./questions.mjs";
@@ -65,6 +65,7 @@ if (!buildCosts.countries || !Object.keys(buildCosts.countries).length) fail(["d
     for (const c of sp.countries || []) if (!buildCosts.countries[c]) p.push(`${at}: unknown country "${c}" (use the ids in data/build-costs.json)`);
     if ((sp.blurb || "").length > 220) p.push(`${at}: keep the blurb under 220 characters`);
   }
+  for (const x of ((partners.travel || {}).extras || [])) { if (!/^[a-z0-9-]+$/.test(x.id || "") || !/^https:\/\//.test(x.url || "") || (x.wrap && (!/^https:\/\//.test(x.wrap) || !x.wrap.includes("{url}")))) p.push(`data/partners.json travel.extras "${x.id}" needs an id (a-z, 0-9, -), an https url and a wrap with {url}`); }
   for (const k of ["flightsWrap", "esimWrap"]) { const w = (partners.travel || {})[k]; if (w && (!/^https:\/\//.test(w) || !w.includes("{url}"))) p.push(`data/partners.json travel.${k} must start with https:// and contain {url}`); }
   if (p.length) fail(p);
 }
@@ -880,7 +881,7 @@ function serviceGroups(prefix) {
     ] },
     { title: "Stay updated", items: [
       { id: "alerts", href: link(prefix, "") + "#alerts", name: "Rate alerts", text: "One short message each morning with the best service for your route." },
-      { id: "flying-home", href: link(prefix, "flying-home/"), name: "Flying home", text: "Flights, eSIMs and money tips for the trip back home." }
+      { id: "flying-home", href: link(prefix, "flying-home/"), name: "Flying home", text: "Flights, airport pickup, car hire, eSIMs and money tips for the trip back home." }
     ] }
   ];
 }
@@ -1372,6 +1373,16 @@ const esimHref = (prefix, r) => TRACK_PARTNERS ? `${prefix}go/esim?r=fly-${r.id}
 const flightsTracked = !!(partners.travel || {}).flightsWrap;
 const esimTracked = !!(partners.travel || {}).esimWrap;
 const relFor = (tracked) => tracked ? "sponsored nofollow noopener" : "nofollow noopener";
+const extraHref = (prefix, r, x) => TRACK_PARTNERS ? `${prefix}go/${x.id}?r=fly-${r.id}` : extraTarget(partners, x.id, r.id);
+const EXTRA_KINDS = [["transfer", "Airport pickup"], ["car", "Car hire"], ["esim", "Other travel eSIMs"], ["flights", "Another flight search"], ["claim", "Flight delayed or cancelled?"], ["activity", "Things to do while you're home"]];
+function extrasBlock(r, prefix) {
+  const xs = extrasFor(partners, r.id);
+  if (!xs.length) return "";
+  const groups = EXTRA_KINDS.map(([k, label]) => [label, xs.filter((x) => x.kind === k)]).filter(([, l]) => l.length);
+  return `<h2>Plan the rest of the trip</h2>
+<p>Booked the flight? These cover the airport run, a car, data and what to do if the flight goes wrong.</p>
+<div class="trip-extras">${groups.map(([label, l]) => `<div class="trip-group"><h3>${esc(label)}</h3>${l.map((x) => `<a class="trip-card" href="${esc(extraHref(prefix, r, x))}" target="_blank" rel="${x.wrap ? "sponsored nofollow noopener" : "nofollow noopener"}"><strong>${esc(x.name)}</strong><span>${esc(x.blurb)}</span></a>`).join("")}</div>`).join("")}</div>`;
+}
 const hasFlyPage = (r) => ((partners.airports || {})[r.id] || []).length > 0;
 const flyPath = (r) => `flying-home/${r.id}/`;
 
@@ -1423,7 +1434,7 @@ function writeFlyingHome() {
   if (!rs.length) return;
   const senders = corridors.senders.filter((s) => ((partners.origins || {})[s.id] || []).length);
   const travelDisclosure = (flightsTracked || esimTracked)
-    ? `Some flight and eSIM links are affiliate links: if you book, we may earn a commission at no extra cost to you. It never changes the advice on this page.`
+    ? `Some flight, eSIM, airport pickup, car hire, claim and activity links are affiliate links: if you book, we may earn a commission at no extra cost to you. It never changes the advice on this page.`
     : `Flight and eSIM links open the search sites directly. SendFair earns nothing from them.`;
   for (const r of rs) {
     const rel = flyPath(r), prefix = "../../";
@@ -1444,7 +1455,7 @@ function writeFlyingHome() {
     const body = `<section class="block page"><div class="wrap"><div class="prose wide">
 ${crumbNav(prefix, trail)}
 <h1>Flying home to ${esc(r.name)}</h1>
-<p class="lede">Compare flights into ${esc(portNames)}, get mobile data for when you land, and send the money you'll need ahead of you at a fair rate. Planning for December? Read the booking tips first.</p>
+<p class="lede">Compare flights into ${esc(portNames)}, book the airport pickup or a car, get mobile data for when you land, and send the money you'll need ahead of you at a fair rate. Planning for December? Read the booking tips first.</p>
 <h2>Search flights to ${esc(r.name)}</h2>
 <p>Pick your nearest city. Each button opens a flight search for that route, where you choose your dates and compare airlines.</p>
 ${fromBlocks}
@@ -1453,6 +1464,7 @@ ${fromBlocks}
 <h2>When you land</h2>
 <ul class="tips">${ARRIVE_TIPS.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
 <p><a class="btn" href="${esc(esimHref(prefix, r))}" target="_blank" rel="${relFor(esimTracked)}">Get a travel eSIM for ${esc(r.name)}</a></p>
+${extrasBlock(r, prefix)}
 <h2>Send money ahead to ${esc(r.name)}</h2>
 <p>Compare what arrives${nets.length ? ` by ${esc(joinList(nets))}, bank or cash pickup` : ""} before you travel:</p>
 <ul class="route-links">${corridors.senders.filter((s) => s.region !== "gulf").map((s) => `<li><a href="${link(prefix, corridorPath(s, r))}">${esc(s.label)} to ${esc(r.name)}</a></li>`).join("")}</ul>
@@ -2942,7 +2954,7 @@ const trust = {
 <p>SendFair is free to use. We earn money in two ways:</p>
 <ul><li><strong>Referral commissions.</strong> ${hasAffiliate ? 'Some "Go to" buttons are affiliate links. If you open an account and make your first transfer, the provider may pay us a fee. You pay the same either way.' : 'We intend to earn a referral commission from some providers when you sign up through us. Those affiliate links are being added as each provider approves us, and you never pay more.'}</li>${hasAds ? `<li><strong>Advertising.</strong> Some pages show ads served by Google. Ads are labelled as ads, are never placed inside the ranking, and advertisers cannot choose or influence where a service ranks.</li>` : `<li><strong>Advertising.</strong> We don't show ads at the moment. If we ever do, they will be labelled, kept out of the ranking, and this page will say so.</li>`}</ul>
 <p>Neither affects the ranking. Results are sorted only by how much your recipient receives. Providers that pay us nothing appear and rank on the same terms.</p>
-<ul><li><strong>Sponsored listings.</strong> Builders, suppliers, SACCOs and banks can pay for a listing under the house calculator for a country. Each one is labelled Sponsored, sits outside the receipt and never changes a price, a quantity or the total. Sponsors never appear in the transfer rankings. See <a href="${link("../", "advertise/")}">advertise on SendFair</a>.</li><li><strong>Travel links.</strong> ${(partners.travel || {}).flightsWrap || (partners.travel || {}).esimWrap ? "Some flight and eSIM links on the flying-home pages are affiliate links. If you book, we may earn a commission at no extra cost to you." : "The flight and eSIM links on the flying-home pages open the search sites directly and earn us nothing at the moment. If that changes, the links will be marked and this page will say so."}</li></ul>
+<ul><li><strong>Sponsored listings.</strong> Builders, suppliers, SACCOs and banks can pay for a listing under the house calculator for a country. Each one is labelled Sponsored, sits outside the receipt and never changes a price, a quantity or the total. Sponsors never appear in the transfer rankings. See <a href="${link("../", "advertise/")}">advertise on SendFair</a>.</li><li><strong>Travel links.</strong> ${(partners.travel || {}).flightsWrap || (partners.travel || {}).esimWrap ? "Flight, eSIM, airport pickup, car hire, flight-delay claim and activity links on the flying-home pages are affiliate links (through Travelpayouts). If you book, we may earn a commission at no extra cost to you." : "The flight and eSIM links on the flying-home pages open the search sites directly and earn us nothing at the moment. If that changes, the links will be marked and this page will say so."}</li></ul>
 <p>The receipt itself is not paid for by a supplier or a contractor. Choosing a roof sheet, a door or a tile does not earn us a fee.</p>`],
   "privacy/": ["Privacy policy", "How SendFair handles personal data: the little it collects, mostly an email if you set a rate alert, your rights, and how to contact us.", `
 <h1>Privacy policy</h1>

@@ -3,7 +3,7 @@
 // Non-transfer partners (flights, eSIMs, house-calculator sponsors) come from data/partners.json:
 //   /go/flights?o=LON&d=NBO&r=fly-kenya   /go/esim?r=fly-kenya   /go/<sponsor-id>?r=build-kenya
 import { siteData, CLICK_PREFIX } from "../_lib.js";
-import { TRAVEL_IDS, flightTarget, esimTarget, sponsorTarget } from "../../src/partner-links.mjs";
+import { TRAVEL_IDS, flightTarget, esimTarget, sponsorTarget, extrasFor, extraTarget } from "../../src/partner-links.mjs";
 
 async function partnerRedirect(context, id, route) {
   const home = new URL("/", context.request.url).toString();
@@ -15,7 +15,8 @@ async function partnerRedirect(context, id, route) {
     receivers = (await cr.json()).receivers || [];
   } catch { return null; }
   const isSponsor = (partners.sponsors || []).some((x) => x.id === id);
-  if (!TRAVEL_IDS.includes(id) && !isSponsor) return null;
+  const isExtra = (((partners.travel || {}).extras) || []).some((x) => x.id === id);
+  if (!TRAVEL_IDS.includes(id) && !isSponsor && !isExtra) return null;
   const q = new URL(context.request.url).searchParams;
   const m = /^(fly|build)-([a-z]+)$/.exec(route);
   const receiver = m && receivers.find((r) => r.id === m[2]);
@@ -25,6 +26,9 @@ async function partnerRedirect(context, id, route) {
     safeRoute = route;
   } else if (id === "esim" && m && m[1] === "fly" && receiver) {
     target = esimTarget(partners, { countryName: receiver.name, route });
+    safeRoute = route;
+  } else if (isExtra && m && m[1] === "fly" && receiver) {
+    target = extraTarget(partners, id, receiver.id);
     safeRoute = route;
   } else if (isSponsor) {
     target = sponsorTarget(partners, id);
