@@ -492,6 +492,45 @@
    "idem": "d37dda9d8f684b6f",
    "error": "",
    "note": "TikTok flag off or no token; files saved in data/social/tiktok/"
+  },
+  {
+   "at": "2026-11-20T18:29:32.099Z",
+   "date": "2026-11-20",
+   "template": "rate-move",
+   "route": "uk-kenya",
+   "platform": "instagram",
+   "type": "comment",
+   "status": "failed",
+   "on": "18135317113839973",
+   "onType": "reel",
+   "idem": "a8aa63c4925f5b31",
+   "error": "{\"message\":\"(#10) Application does not have permission for this action\",\"code\":10,\"type\":\"OAuthException\",\"fbtrace_id\":\"AxABa_w-n9JmP_fIN_1cAiC\"}"
+  },
+  {
+   "at": "2026-11-20T18:30:12.818Z",
+   "date": "2026-11-20",
+   "template": "rate-move",
+   "route": "uk-kenya",
+   "platform": "facebook",
+   "type": "comment",
+   "status": "failed",
+   "on": "1169850649315732",
+   "onType": "reel",
+   "idem": "dafc6b95198b2078",
+   "error": "{\"message\":\"(#200) The permission(s) pages_read_user_content,pages_manage_engagement are not available. It could because either they are deprecated or need to be approved by App Review.\",\"type\":\"OAuthException\",\"code\":200,\"fbtrace_id\":\"AWQN7-skB0ad5Cd5ys-VZg6\"}"
+  },
+  {
+   "at": "2026-11-20T18:30:12.818Z",
+   "date": "2026-11-20",
+   "template": "rate-move",
+   "route": "uk-kenya",
+   "platform": "tiktok",
+   "type": "reel",
+   "status": "manual",
+   "postId": "",
+   "idem": "d37dda9d8f684b6f",
+   "error": "",
+   "note": "TikTok flag off or no token; files saved in data/social/tiktok/"
   }
  ]
 }
