@@ -134,7 +134,7 @@ async function main() {
   if (hasFfmpeg) {
     try {
       // A silent AAC track is included on purpose: Instagram needs an audio stream to mix library music into.
-      execFileSync("ffmpeg", ["-y", "-f", "concat", "-safe", "0", "-i", "concat.txt", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-vf", "fps=30,format=yuv420p", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", "reel.mp4"], { cwd: OUT, stdio: "ignore" });
+      execFileSync("ffmpeg", ["-y", "-f", "concat", "-safe", "0", "-i", "concat.txt", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-vf", `fps=30,scale=w='trunc(${W}*(1+0.03*t/${Math.max(6, Math.ceil(total || 12))})/2)*2':h=-2:eval=frame:flags=bicubic,crop=${W}:${H},format=yuv420p`, "-c:v", "libx264", "-preset", "veryfast", "-crf", "17", "-maxrate", "8M", "-bufsize", "16M", "-profile:v", "high", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", "reel.mp4"], { cwd: OUT, stdio: "ignore" });
       mp4 = "reel.mp4";
       console.log(`Reel: ${OUT}/reel.mp4 (${(fs.statSync(path.join(OUT, mp4)).size / 1048576).toFixed(1)} MB, ${total.toFixed(1)}s)`);
       // reel-music.mp4: the same video with a royalty-free music bed in the style of the reel's country
