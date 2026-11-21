@@ -22,10 +22,10 @@ async function partnerRedirect(context, id, route) {
   const receiver = m && receivers.find((r) => r.id === m[2]);
   let target = null, safeRoute = "unknown";
   if (id === "flights" && m && m[1] === "fly" && receiver) {
-    target = flightTarget(partners, { origin: q.get("o") || "", dest: q.get("d") || "", receiver: receiver.id, route, depart: q.get("dep") || undefined, ret: q.has("ret") ? q.get("ret") : undefined, adults: q.get("pax") || "1" });
+    target = flightTarget(partners, { origin: q.get("o") || "", dest: q.get("d") || "", receiver: receiver.id, route, depart: q.get("dep") || undefined, ret: q.has("ret") ? q.get("ret") : undefined, adults: q.get("pax") || "1", via: q.get("via") === "kiwi" ? "kiwi" : undefined });
     safeRoute = route;
   } else if (id === "esim" && m && m[1] === "fly" && receiver) {
-    target = esimTarget(partners, { countryName: receiver.name, route });
+    target = esimTarget(partners, { countryName: receiver.name, route, receiver: receiver.id });
     safeRoute = route;
   } else if (isExtra && m && m[1] === "fly" && receiver) {
     target = extraTarget(partners, id, receiver.id);

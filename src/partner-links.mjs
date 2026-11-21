@@ -42,8 +42,9 @@ export function tripDates({ depart, ret, now = Date.now() } = {}) {
 }
 const ddmm = (iso) => iso ? iso.slice(8, 10) + iso.slice(5, 7) : "";
 
-export function flightTarget(partners, { origin, dest, receiver, route, depart, ret, adults, now }) {
-  const t = (partners && partners.travel) || {};
+export function flightTarget(partners, { origin, dest, receiver, route, depart, ret, adults, now, via }) {
+  const t0 = (partners && partners.travel) || {};
+  const t = via === "kiwi" && t0.kiwiUrl ? { ...t0, flightsUrl: t0.kiwiUrl, flightsWrap: t0.kiwiWrap } : t0;
   const o = Object.values(partners.origins || {}).flat().find(([code]) => code === origin);
   const d = ((partners.airports || {})[receiver] || []).find(([code]) => code === dest);
   if (!o || !d || !t.flightsUrl) return null;
@@ -56,10 +57,11 @@ export function flightTarget(partners, { origin, dest, receiver, route, depart, 
   return wrap(t.flightsWrap, url);
 }
 
-export function esimTarget(partners, { countryName, route }) {
+export function esimTarget(partners, { countryName, route, receiver }) {
   const t = (partners && partners.travel) || {};
-  if (!t.esimUrl) return null;
-  return wrap(t.esimWrap, fill(t.esimUrl, { country: encodeURIComponent(countryName || ""), route: encodeURIComponent(route || "") }));
+  const own = receiver && (t.esimCountryUrls || {})[receiver];
+  if (!own && !t.esimUrl) return null;
+  return wrap(t.esimWrap, own || fill(t.esimUrl, { country: encodeURIComponent(countryName || ""), route: encodeURIComponent(route || "") }));
 }
 
 export function sponsorTarget(partners, id, now = Date.now()) {
@@ -74,5 +76,5 @@ export function extrasFor(partners, countryId) {
 
 export function extraTarget(partners, id, countryId) {
   const x = extrasFor(partners, countryId).find((e) => e.id === id);
-  return x ? wrap(x.wrap, x.url) : null;
+  return x ? wrap(x.wrap, (x.countryUrls || {})[countryId] || x.url) : null;
 }

@@ -52,7 +52,9 @@ const base = "https://sendfair.africa/go/";
 }
 check(await go(base + "flights?o=LON&d=LOS&r=fly-kenya") === "https://sendfair.africa/", "flight to an airport outside the country must go home");
 check(await go(base + "flights?o=XXX&d=NBO&r=fly-kenya") === "https://sendfair.africa/", "unknown origin must go home");
-check(await go(base + "esim?r=fly-kenya") === "https://tp.media/r?campaign_id=541&marker=807652&p=8310&trs=602820&u=" + encodeURIComponent(partners.travel.esimUrl), "esim link (tracked Airalo)");
+check(await go(base + "esim?r=fly-kenya") === "https://tp.media/r?campaign_id=541&marker=807652&p=8310&trs=602820&u=" + encodeURIComponent("https://www.airalo.com/kenya-esim"), "esim link opens Airalo's Kenya page (tracked)");
+check(/search%2F|kiwi\.com%2Fdeep%3Ffrom%3DLON%26to%3DNBO%26departure%3D\d{4}-\d{2}-\d{2}/.test(await go(base + "flights?o=LON&d=NBO&r=fly-kenya&via=kiwi")) && /kiwi\.com/.test(decodeURIComponent(await go(base + "flights?o=LON&d=NBO&r=fly-kenya&via=kiwi"))), "Kiwi.com dated search via=kiwi");
+check(decodeURIComponent(await go(base + "kiwitaxi?r=fly-kenya")).includes("kiwitaxi.com/en/kenya"), "Kiwitaxi opens the Kenya page");
 check(await go(base + "live-builder?r=build-kenya") === "https://example.com/live", "live sponsor forwards");
 check(await go(base + "old-builder?r=build-kenya") === "https://sendfair.africa/cost-to-build/kenya/", "expired sponsor goes back to the calculator");
 check(await go(base + "nobody?r=build-kenya") === "https://sendfair.africa/", "unknown id goes home");

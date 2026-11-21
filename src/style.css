@@ -848,3 +848,6 @@ details p { margin-top: 10px; color: var(--muted); }
 .wa-strip { margin: 16px 0; }
 .wa-strip a, .wa-share { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 16px; border-radius: 999px; background: #11703b; color: #fff; font-weight: 700; text-decoration: none; }
 .wa-strip a:hover, .wa-share:hover { background: #0c5a2f; }
+.fly-form .btn-alt { background: transparent; color: var(--on-indigo); border: 2px solid var(--on-indigo-muted); }
+.fare-bar { display: inline-block; height: 10px; border-radius: 6px; background: var(--marigold); vertical-align: middle; }
+.fare-table tr.top th, .fare-table tr.top td { font-weight: 800; }

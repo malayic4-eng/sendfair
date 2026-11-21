@@ -140,6 +140,8 @@ for (const p of providersFile.providers) if (ratingsFile.ratings[p.id]) p.rating
 const providers = Object.fromEntries(providersFile.providers.map((x) => [x.id, x]));
 // Daily history (data/history.json), written by scripts/record-history.mjs after each rate check.
 const history = readOptional("data/history.json", { days: {} });
+// Monthly flight prices (scripts/fetch-fares.mjs, needs the Travelpayouts token); empty until then.
+const fares = readOptional("data/fares.json", { pairs: {} });
 // How often each service delivered the most on a route, from the daily history (last 30 days).
 const winsFor = (k) => {
   const days = Object.keys(history.days || {}).sort().slice(-30).map((d) => (history.days[d] || {})[k]).filter((e) => e && (e.by || []).length);
@@ -1397,7 +1399,7 @@ const sponsorHref = (prefix, sp, cid) => TRACK_PARTNERS ? `${prefix}go/${encodeU
 const flightHref = (prefix, r, o, d) => TRACK_PARTNERS
   ? `${prefix}go/flights?o=${o}&d=${d}&r=fly-${r.id}`
   : flightTarget(partners, { origin: o, dest: d, receiver: r.id, route: `fly-${r.id}`, now: NOW });
-const esimHref = (prefix, r) => TRACK_PARTNERS ? `${prefix}go/esim?r=fly-${r.id}` : esimTarget(partners, { countryName: r.name, route: `fly-${r.id}` });
+const esimHref = (prefix, r) => TRACK_PARTNERS ? `${prefix}go/esim?r=fly-${r.id}` : esimTarget(partners, { countryName: r.name, route: `fly-${r.id}`, receiver: r.id });
 const flightsTracked = !!(partners.travel || {}).flightsWrap;
 const esimTracked = !!(partners.travel || {}).esimWrap;
 const relFor = (tracked) => tracked ? "sponsored nofollow noopener" : "nofollow noopener";
@@ -1473,7 +1475,8 @@ function flightForm(prefix, r, senders, ports) {
 <label>Coming back<input type="date" name="ret" value="${dflt.ret}" min="${new Date(NOW).toISOString().slice(0, 10)}"></label>
 <label>Adults<select name="pax">${[1, 2, 3, 4, 5, 6].map((n) => `<option${n === 1 ? " selected" : ""}>${n}</option>`).join("")}</select></label>
 <button type="submit" class="btn">Search flights</button>
-<p class="fly-form-note">Opens Aviasales with live fares for your dates. Clear "Coming back" for a one-way ticket. You book and pay on the airline or agent's site.</p>
+<button type="submit" class="btn btn-alt" name="via" value="kiwi">Also try Kiwi.com</button>
+<p class="fly-form-note">Opens Aviasales (or Kiwi.com) with live fares for your dates; comparing both often finds a cheaper combination. Clear "Coming back" for a one-way ticket. You book and pay on the airline or agent's site.</p>
 </form>`;
 }
 
@@ -1650,6 +1653,9 @@ ${crumbNav(prefix, [[config.siteName, ""], ["Christmas", rel]])}
 <div class="table-wrap"><table class="rates-table"><caption>Best service today on the busiest routes</caption><thead><tr><th scope="col">Route</th><th scope="col">Best today</th><th scope="col" class="num">You send</th><th scope="col" class="num">Arrives</th></tr></thead><tbody>${rows.map(({ s, r, top }) => `<tr><th scope="row"><a href="${link(prefix, corridorPath(s, r))}">${esc(capFirst(s.short))} to ${esc(r.name)}</a></th><td>${esc(top.p.name)}</td><td class="num">${esc(plain(R.money(config.defaultAmounts[s.currency], s.currency, 0)))}</td><td class="num top">${esc(plain(R.money(top.gets, r.currency)))}</td></tr>`).join("")}</tbody></table></div>
 <p><a class="btn" href="${link(prefix, "")}#corridors">Compare your own route</a> <a class="btn btn-ghost" href="${link(prefix, "")}#alerts">Free rate alert</a></p>
 ${waChannel()}
+<h2>Flying home for Christmas?</h2>
+<p>Compare flights with your dates, then book the airport pickup and a travel eSIM before you go.</p>
+<ul class="route-links">${corridors.receivers.filter(hasFlyPage).slice(0, 12).map((r) => `<li><a href="${link(prefix, flyPath(r))}">Flights home to ${esc(r.name)}</a></li>`).join("")}</ul>
 <h2>Your December checklist</h2>
 <ol>
 <li>Compare on the day, by what arrives, not by the fee.</li>
@@ -1752,9 +1758,55 @@ function writeWhatsappWeekly() {
     const best = Object.entries(wins).sort((x, y) => y[1] - x[1])[0];
     lines.push(`• ${capFirst(s.short)} → ${r.name}: today ${top.p.name}, ${plain(R.money(config.defaultAmounts[s.currency], s.currency, 0))} = ${plain(R.money(top.gets, r.currency))}${best ? `; this week ${(providers[best[0]] || { name: best[0] }).name} led on ${best[1]} of ${days.length} days` : ""}`);
   }
-  const text = `💸 SendFair weekly rate check (${dateLong})\n\nWho gives the most this week:\n${lines.join("\n")}\n\nCompare your own amount: ${site}\nBuilding back home? ${site}/cost-to-build/\nFollow us everywhere: ${site.replace("https://", "")}/follow`;
+  const text = `💸 SendFair weekly rate check (${dateLong})\n\nWho gives the most this week:\n${lines.join("\n")}\n\nCompare your own amount: ${site}\nFlying home for December? Flights, airport pickup and eSIMs: ${site}/flying-home/\nBuilding back home? ${site}/cost-to-build/\nFollow us everywhere: ${site.replace("https://", "")}/follow`;
   write("admin/whatsapp/index.html", page({ prefix: "../../", canonical: "admin/whatsapp/", noindex: true, rank: false, title: `WhatsApp weekly summary · ${config.siteName}`, description: "Ready-to-paste weekly summary.",
     body: `<section class="block page"><div class="wrap"><div class="prose wide"><h1>WhatsApp weekly summary</h1><p>Rebuilt with every rate update. Tap Copy, then paste into the SendFair channel and your groups.</p><textarea id="wa-text" rows="16" style="width:100%;font:inherit;padding:12px;border-radius:12px">${esc(text)}</textarea><p><button class="btn" type="button" onclick="var t=document.getElementById('wa-text');t.select();navigator.clipboard&&navigator.clipboard.writeText(t.value);this.textContent='Copied'">Copy</button> <a class="btn btn-ghost" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">Open in WhatsApp</a></p></div></div></section>` }));
+}
+
+// "London to Nairobi flight prices by month": only for routes with at least 4 priced months.
+const citySlug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+function farePagesFor(rid) {
+  return Object.values(fares.pairs || {}).filter((p) => p.receiver === rid && (p.months || []).length >= 4).map((p) => {
+    const oName = (Object.values(partners.origins || {}).flat().find(([c]) => c === p.origin) || [p.origin, p.origin])[1];
+    const dName = ((partners.airports || {})[rid] || []).find(([c]) => c === p.dest) || [p.dest, p.dest];
+    return { ...p, oName, dName: dName[1], rel: `flying-home/${rid}/${citySlug(oName)}-to-${citySlug(dName[1])}-flight-prices/` };
+  });
+}
+function writeFarePages() {
+  for (const r of corridors.receivers) {
+    if (!hasFlyPage(r)) continue;
+    for (const f of farePagesFor(r.id)) {
+      const prefix = "../../../";
+      const ms = f.months;
+      const min = ms.reduce((a, b) => (b.price < a.price ? b : a));
+      const max = Math.max(...ms.map((m) => m.price));
+      const mName = (m) => new Date(m + "-01T00:00:00Z").toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+      const dec = ms.find((m) => m.month.endsWith("-12"));
+      const money = (n) => plain(R.money(n, f.currency, 0));
+      const answer = `The cheapest month found to fly ${f.oName} to ${f.dName} is ${mName(min.month)}, from about ${money(min.price)} return.${dec ? ` December starts from about ${money(dec.price)}.` : ""}`;
+      const faqs = [
+        [`When is the cheapest time to fly from ${f.oName} to ${f.dName}?`, answer + " These are the lowest fares travellers found recently; book early for December."],
+        [`Are these live prices?`, `No. They are the lowest return fares travellers found on Aviasales in the last few days, by month of departure. Search with your dates for live prices.`],
+        [`How do I get the price shown?`, `Search with flexible dates in that month. Prices change daily and seats at the lowest fare sell out first.`]
+      ];
+      const trail = [[config.siteName, ""], ["Flying home", "flying-home/"], [r.name, flyPath(r)], [`${f.oName} to ${f.dName}`, f.rel]];
+      const body = `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>${esc(f.oName)} to ${esc(f.dName)} flight prices by month</h1>
+<p class="lede"><strong>${esc(answer)}</strong> Lowest return fares travellers found in the last few days, updated weekly (${esc(new Date(fares.updatedAt || NOW).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }))}). Live fares differ.</p>
+<div class="table-wrap"><table class="rates-table fare-table"><caption>Lowest return fare found, by month of departure (${esc(f.currency)})</caption><thead><tr><th scope="col">Month</th><th scope="col" class="num">From</th><th scope="col">Compared with the dearest month</th></tr></thead><tbody>${ms.map((m) => `<tr${m === min ? ' class="top"' : ""}><th scope="row">${esc(mName(m.month))}</th><td class="num">${esc(money(m.price))}</td><td><span class="fare-bar" style="width:${Math.max(6, Math.round(m.price / max * 100))}%"></span></td></tr>`).join("")}</tbody></table></div>
+<h2>Search your dates</h2>
+${flightForm(prefix, r, corridors.senders.filter((s) => ((partners.origins || {})[s.id] || []).length), partners.airports[r.id]).replace(`<option value="${f.origin}">`, `<option value="${f.origin}" selected>`).replace(`<option value="${f.dest}">`, `<option value="${f.dest}" selected>`)}
+<p><a href="${link(prefix, flyPath(r))}">Airport pickup, car hire and eSIMs for ${esc(r.name)}</a> · <a href="${link(prefix, hubPath(r))}">Send money to ${esc(r.name)} ahead of your trip</a></p>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</article></div></section>`;
+      write(f.rel + "index.html", page({ prefix, canonical: f.rel, og: "home", rank: false,
+        title: fitTitle([`${f.oName} to ${f.dName} flight prices by month`, `${f.oName}–${f.dName} flights: cheapest month`], 58) + ` · ${config.siteName}`,
+        description: answer.slice(0, 158), jsonld: [faqLd(faqs), crumbs(trail)], body }));
+      urls.push(f.rel);
+    }
+  }
 }
 
 function writeFlyingHome() {
@@ -1788,6 +1840,7 @@ ${crumbNav(prefix, trail)}
 ${flightForm(prefix, r, senders, ports)}
 <p>Or open a quick search from your nearest city (leaving in 3 weeks, back 2 weeks later; you can change the dates on the next page).</p>
 ${fromBlocks}
+${farePagesFor(r.id).length ? `<h2>Cheapest month to fly</h2><ul class="route-links">${farePagesFor(r.id).map((f) => `<li><a href="${link(prefix, f.rel)}">${esc(f.oName)} to ${esc(f.dName)}: prices by month</a></li>`).join("")}</ul>` : ""}
 <h2>Booking tips for the December rush</h2>
 <ul class="tips">${FLY_TIPS.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
 <h2>When you land</h2>
@@ -3616,6 +3669,7 @@ fs.writeFileSync(path.join(OUT, "admin/quote-checks/index.html"), fs.readFileSyn
 // SEO and hosting files
 writeBuildPages();
 writeFlyingHome();
+writeFarePages();
 writeWalletPages();
 writeLandGuides();
 writeChristmasHub();
