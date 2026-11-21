@@ -126,6 +126,20 @@
   }
 
   function trackerOn() { return !!(cfg.ga4 || cfg.gtm || cfg.clarity); }
+  // Every outbound partner click (/go/<id>) as one GA4 event, "partner_click", so it can be marked a
+  // key event: which partner, which kind (transfer, flights, esim, trip extra, sponsor), which route
+  // or country, and which kind of page sent it.
+  function goEvent(href, extra) {
+    try {
+      var u = new URL(href, location.href), id = (u.pathname.split("/go/")[1] || "").split("/")[0], r = u.searchParams.get("r") || "";
+      var kind = id === "flights" ? "flights" : id === "esim" ? "esim" : /^fly-/.test(r) ? "trip_extra" : /^build-/.test(r) ? "sponsor" : "transfer";
+      var page = location.pathname.split("/").filter(Boolean)[0] || "home";
+      var p = { partner: id, partner_kind: kind, route: r, page_type: page };
+      if (u.searchParams.get("o")) p.flight = u.searchParams.get("o") + "-" + (u.searchParams.get("d") || "");
+      if (extra) Object.keys(extra).forEach(function (k) { p[k] = extra[k]; });
+      sfEvent("partner_click", p);
+    } catch (err) {}
+  }
   function sfEvent(name, params) {
     if (!allowOptional() || !trackerOn()) return;
     window.dataLayer = window.dataLayer || [];
@@ -390,8 +404,8 @@
       if (fol) sfEvent("follow_click", { platform: fol.getAttribute("data-follow") });
       var shareA = e.target.closest && e.target.closest(".share a");
       if (shareA) sfEvent("share", { method: (shareA.textContent || "").trim() });
-      var go = e.target.closest && e.target.closest('a[href*="/go/"]');
-      if (go) { sfEvent("cta", { link: go.getAttribute("href") }); maybeRecordSend(go); }
+      var go = e.target.closest && e.target.closest('a[href*="go/"]');
+      if (go && /\/go\//.test(go.href)) { sfEvent("cta", { link: go.getAttribute("href") }); goEvent(go.href); maybeRecordSend(go); }
       var shareBtn = e.target.closest && e.target.closest("#sf-share-result");
       if (shareBtn) { e.preventDefault(); shareResult(shareBtn); return; }
       var saveBtn = e.target.closest && e.target.closest("#sf-save-route");
@@ -400,6 +414,11 @@
     document.addEventListener("submit", function (e) {
       var f = e.target;
       if (f && (f.id === "sf-alert-form" || f.id === "sf-exit-form" || (f.classList && f.classList.contains("news-form")))) sfEvent("newsletter", {});
+      if (f && f.classList && f.classList.contains("fly-form")) {
+        var fd = new FormData(f);
+        goEvent(location.origin + "/go/flights?r=" + encodeURIComponent(fd.get("r") || "") + "&o=" + encodeURIComponent(fd.get("o") || "") + "&d=" + encodeURIComponent(fd.get("d") || ""), { search: "form", adults: String(fd.get("pax") || "1"), one_way: fd.get("ret") ? "no" : "yes" });
+      }
+      if (f && f.classList && f.classList.contains("qc-wait")) sfEvent("quote_check_waitlist", {});
     });
     var form = document.getElementById("sf-search");
     if (form) {

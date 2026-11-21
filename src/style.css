@@ -840,3 +840,8 @@ details p { margin-top: 10px; color: var(--muted); }
 .fly-form .btn { min-height: 48px; background: var(--marigold); color: var(--marigold-ink); border: 0; font-weight: 800; }
 .fly-form .btn:hover { filter: brightness(1.05); }
 .fly-form-note { grid-column: 1 / -1; margin: 0; font-size: .85rem; color: var(--on-indigo-muted); }
+.sp-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 16px; margin: 8px 0 8px; border-radius: 16px; background: var(--paper); border: 1px solid var(--line); }
+.sp-form label { display: grid; gap: 4px; font-size: .85rem; font-weight: 700; color: var(--muted); min-width: 0; }
+.sp-form select, .sp-form input, .sp-in { width: 100%; min-width: 0; box-sizing: border-box; min-height: 44px; padding: 6px 10px; border: 1.5px solid var(--line-strong); border-radius: 10px; font: 650 1rem var(--font-body); color: var(--ink); background: var(--surface); }
+.sp-table .sp-in { width: 4.2em; min-height: 36px; padding: 4px 6px; text-align: right; }
+@media print { .site-header, .site-footer, .sp-form, #sf-consent, .btn, .faq, nav.crumbs { display: none !important; } .sp-in { border: 0; } }
