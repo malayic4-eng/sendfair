@@ -7,7 +7,8 @@
   "sponsors: paid listings on the house-calculator pages. Each needs id (lowercase, no spaces), name, category, blurb, url (https), countries (ids from data/build-costs.json), starts and ends (YYYY-MM-DD). Optional: phone, badge. A sponsor shows only between starts and ends, always labelled Sponsored, and never changes the receipt.",
   "origins: departure cities per sending region. airports: arrival airports per receiving country. Codes are IATA city or airport codes.",
   "travel.extras: more trip-home partners (Travelpayouts). Each: id (lowercase), name, kind (one of flights, transfer, car, esim, claim, activity), blurb, url (https), wrap (tracked link with {url}), optional countries (receiver ids; omit = all). Shown on the flying-home pages and sent through /go/<id>?r=fly-<country>.",
-  "travel.flightsUrl is an Aviasales search path: {from}{dep}{to}{ret}{adults}, dep/ret as DDMM. Without dates Aviasales cannot search, so flightTarget always fills them (default: leave in 3 weeks, back 2 weeks later)."
+  "travel.flightsUrl is an Aviasales search path: {from}{dep}{to}{ret}{adults}, dep/ret as DDMM. Without dates Aviasales cannot search, so flightTarget always fills them (default: leave in 3 weeks, back 2 weeks later).",
+  "travel.esimCountryUrls: Airalo country page per receiver (airalo.com/<country>-esim); falls back to esimUrl. travel.kiwiUrl/kiwiWrap: Kiwi.com dated search used by /go/flights?via=kiwi. extras[].countryUrls: country page per receiver, else url."
  ],
  "travel": {
   "flightsUrl": "https://www.aviasales.com/search/{from}{dep}{to}{ret}{adults}",
@@ -29,7 +30,10 @@
     "kind": "transfer",
     "blurb": "Pre-booked airport taxi at a fixed price, with a driver waiting with your name.",
     "url": "https://kiwitaxi.com/",
-    "wrap": "https://tp.media/r?campaign_id=1&marker=807652&p=647&trs=602820&u={url}"
+    "wrap": "https://tp.media/r?campaign_id=1&marker=807652&p=647&trs=602820&u={url}",
+    "countryUrls": {
+     "kenya": "https://kiwitaxi.com/en/kenya"
+    }
    },
    {
     "id": "gettransfer",
@@ -38,6 +42,14 @@
     "blurb": "Compare offers from local drivers for the airport run or a long trip upcountry.",
     "url": "https://gettransfer.com/",
     "wrap": "https://tp.media/r?campaign_id=147&marker=807652&p=4439&trs=602820&u={url}"
+   },
+   {
+    "id": "intui",
+    "name": "intui.travel",
+    "kind": "transfer",
+    "blurb": "Book an airport transfer or a car with a driver in advance, at a fixed price.",
+    "url": "https://intui.travel/",
+    "wrap": "https://tp.media/r?campaign_id=22&marker=807652&p=657&trs=602820&u={url}"
    },
    {
     "id": "economybookings",
@@ -93,8 +105,35 @@
      "morocco",
      "egypt"
     ]
+   },
+   {
+    "id": "compensair",
+    "name": "Compensair",
+    "kind": "claim",
+    "blurb": "Second option for flight-delay and cancellation claims, no win no fee.",
+    "url": "https://www.compensair.com/",
+    "wrap": "https://tp.media/r?campaign_id=86&marker=807652&p=4129&trs=602820&u={url}"
    }
-  ]
+  ],
+  "esimCountryUrls": {
+   "kenya": "https://www.airalo.com/kenya-esim",
+   "nigeria": "https://www.airalo.com/nigeria-esim",
+   "ghana": "https://www.airalo.com/ghana-esim",
+   "uganda": "https://www.airalo.com/uganda-esim",
+   "tanzania": "https://www.airalo.com/tanzania-esim",
+   "rwanda": "https://www.airalo.com/rwanda-esim",
+   "zambia": "https://www.airalo.com/zambia-esim",
+   "zimbabwe": "https://www.airalo.com/zimbabwe-esim",
+   "southafrica": "https://www.airalo.com/south-africa-esim",
+   "egypt": "https://www.airalo.com/egypt-esim",
+   "morocco": "https://www.airalo.com/morocco-esim",
+   "senegal": "https://www.airalo.com/senegal-esim",
+   "ethiopia": "https://www.airalo.com/ethiopia-esim",
+   "cameroon": "https://www.airalo.com/cameroon-esim",
+   "mali": "https://www.airalo.com/mali-esim"
+  },
+  "kiwiUrl": "https://www.kiwi.com/deep?from={from}&to={to}&departure={depart}&return={return}",
+  "kiwiWrap": "https://tp.media/r?campaign_id=111&marker=807652&p=4136&trs=602820&u={url}"
  },
  "origins": {
   "uk": [
