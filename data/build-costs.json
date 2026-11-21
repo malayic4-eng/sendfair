@@ -892,35 +892,63 @@
        "default": true,
        "source": "50kg general-purpose bag, top of the Bamburi Fundi range KES 750–780, Nairobi retail checked 28 Oct 2026.",
        "url": "https://fixit-construction.com/prices"
+      },
+      {
+       "id": "simba325",
+       "name": "Simba 32.5R",
+       "price": 735,
+       "source": "Simba 32.5R, KES 735 for a 50kg bag, Nairobi; Construction Kenya price list, stated accurate as of 1 January 2026, checked 21 Nov 2026.",
+       "url": "https://www.constructionkenya.com/3007/cement-price-kenya"
+      },
+      {
+       "id": "bluetriangle",
+       "name": "Blue Triangle 32.5",
+       "price": 755,
+       "source": "Blue Triangle 32.5, KES 755 for a 50kg bag, Nairobi; Construction Kenya price list, stated accurate as of 1 January 2026, checked 21 Nov 2026.",
+       "url": "https://www.constructionkenya.com/3007/cement-price-kenya"
+      },
+      {
+       "id": "tembo",
+       "name": "Bamburi Tembo",
+       "price": 800,
+       "source": "Bamburi Tembo, KES 800 for a 50kg bag, Nairobi; Construction Kenya price list, stated accurate as of 1 January 2026, checked 21 Nov 2026.",
+       "url": "https://www.constructionkenya.com/3007/cement-price-kenya"
+      },
+      {
+       "id": "nguvu",
+       "name": "Bamburi Nguvu",
+       "price": 855,
+       "source": "Bamburi Nguvu, KES 855 for a 50kg bag, Nairobi; Construction Kenya price list, stated accurate as of 1 January 2026, checked 21 Nov 2026.",
+       "url": "https://www.constructionkenya.com/3007/cement-price-kenya"
       }
      ]
     },
     "steel": {
-     "price": 126.8,
-     "source": "12mm bar, 12m, middle of KES 1,240–1,450 (about 10.65kg), Nairobi, 2026.",
-     "url": "https://fixit-construction.com/prices",
+     "price": 112.68,
+     "source": "12mm bar, 12m, typical KES 1,200 (range KES 1,000–1,350, BeyondForest, updated June 2026), about 10.65 kg, checked 21 Nov 2026.",
+     "url": "https://www.beyondforest.org/post/steel-bar-prices-in-kenya",
      "options": [
       {
        "id": "bar12-low",
        "name": "12mm bar, lower",
-       "price": 116.43,
-       "source": "Bottom of KES 1,240–1,450 for a 12m length of 12mm, Nairobi, 2026, divided by 10.65kg.",
-       "url": "https://fixit-construction.com/prices"
+       "price": 93.9,
+       "source": "Bottom of KES 1,000–1,350 for a 12m 12mm bar (BeyondForest, June 2026), divided by 10.65 kg.",
+       "url": "https://www.beyondforest.org/post/steel-bar-prices-in-kenya"
       },
       {
        "id": "bar12",
        "name": "12mm bar, typical",
-       "price": 126.8,
+       "price": 112.68,
        "default": true,
-       "source": "12mm bar, 12m, middle of KES 1,240–1,450 (about 10.65kg), Nairobi, 2026.",
-       "url": "https://fixit-construction.com/prices"
+       "source": "Typical KES 1,200 for a 12m 12mm bar (BeyondForest, June 2026), divided by 10.65 kg. Checked 21 Nov 2026.",
+       "url": "https://www.beyondforest.org/post/steel-bar-prices-in-kenya"
       },
       {
        "id": "bar12-high",
        "name": "12mm bar, upper",
-       "price": 136.15,
-       "source": "Top of KES 1,240–1,450 for a 12m length of 12mm, Nairobi, 2026, divided by 10.65kg.",
-       "url": "https://fixit-construction.com/prices"
+       "price": 125.35,
+       "source": "KES 1,335 average Nairobi price for a 12m D12 bar (Construction Kenya), divided by 10.65 kg.",
+       "url": "https://www.constructionkenya.com/9613/steel-bar-prices-kenya/"
       }
      ]
     },
@@ -1100,7 +1128,7 @@
     },
     "timber": {
      "price": 2500,
-     "source": "Timber roof trusses, middle of KES 1,800–3,200 per m², Nairobi, August 2026.",
+     "source": "Timber roof trusses, middle of KES 1,800–3,200 per m², Nairobi, August 2026. Under review (21 Nov 2026): the basis of this per-m² rate is unclear, and a roofing supplier's guide puts a basic 3-bedroom roof, sheets and trusses together, at KES 280,000–420,000. Get a written truss quote.",
      "url": "https://suimas.co.ke/shop/house-construction/",
      "options": [
       {
@@ -1108,7 +1136,8 @@
        "name": "Lighter timber trusses",
        "price": 1800,
        "source": "Bottom of KES 1,800–3,200 per m² for timber roof trusses, Nairobi, August 2026.",
-       "url": "https://suimas.co.ke/shop/house-construction/"
+       "url": "https://suimas.co.ke/shop/house-construction/",
+       "guide": true
       },
       {
        "id": "truss",
@@ -1116,16 +1145,19 @@
        "price": 2500,
        "default": true,
        "source": "Timber roof trusses, middle of KES 1,800–3,200 per m², Nairobi, August 2026.",
-       "url": "https://suimas.co.ke/shop/house-construction/"
+       "url": "https://suimas.co.ke/shop/house-construction/",
+       "guide": true
       },
       {
        "id": "truss-high",
        "name": "Heavier timber trusses",
        "price": 3200,
        "source": "Top of KES 1,800–3,200 per m² for timber roof trusses, Nairobi, August 2026.",
-       "url": "https://suimas.co.ke/shop/house-construction/"
+       "url": "https://suimas.co.ke/shop/house-construction/",
+       "guide": true
       }
-     ]
+     ],
+     "guide": true
     },
     "window": {
      "price": 13250,
@@ -1632,7 +1664,8 @@
        "name": "Smaller concrete septic",
        "price": 80000,
        "source": "Bottom of KES 80,000–200,000 for a standard concrete septic tank in Kenya, 2026.",
-       "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/"
+       "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/",
+       "allIn": true
       },
       {
        "id": "mid",
@@ -1640,16 +1673,19 @@
        "price": 140000,
        "default": true,
        "source": "Middle of KES 80,000–200,000 for a standard concrete septic tank in Kenya, 2026.",
-       "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/"
+       "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/",
+       "allIn": true
       },
       {
        "id": "large",
        "name": "Larger concrete septic",
        "price": 200000,
        "source": "Top of KES 80,000–200,000 for a standard concrete septic tank in Kenya, 2026.",
-       "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/"
+       "url": "https://amgprojects.co.ke/biodigester-vs-septic-tank-kenya/",
+       "allIn": true
       }
-     ]
+     ],
+     "allIn": true
     },
     "kitchen": {
      "price": 67550,
@@ -1663,7 +1699,8 @@
        "price": 57550,
        "guide": true,
        "source": "Guide. Basic lower cupboards, middle of KES 35,000–50,000 a metre with no worktop, plus wall cupboards, middle of KES 15,000–28,000, on 70% of the run. Aalis Studios, Nairobi, 2026.",
-       "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/"
+       "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/",
+       "allIn": true
       },
       {
        "id": "granite",
@@ -1672,7 +1709,8 @@
        "guide": true,
        "default": true,
        "source": "Guide. Granite-top lower cupboards, middle of KES 40,000–65,000 a metre, plus wall cupboards, middle of KES 15,000–28,000, on 70% of the run. Aalis Studios, Nairobi, 2026.",
-       "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/"
+       "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/",
+       "allIn": true
       },
       {
        "id": "premium",
@@ -1680,9 +1718,11 @@
        "price": 87550,
        "guide": true,
        "source": "Guide. Sintered-stone lower cupboards, middle of KES 55,000–90,000 a metre, plus wall cupboards, middle of KES 15,000–28,000, on 70% of the run. Aalis Studios, Nairobi, 2026.",
-       "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/"
+       "url": "https://aalisstudios.com/kitchen-interior-design-cost-in-nairobi/",
+       "allIn": true
       }
-     ]
+     ],
+     "allIn": true
     },
     "wardrobe": {
      "price": 25000,
@@ -1694,7 +1734,8 @@
        "name": "Melamine sliding, budget",
        "price": 18500,
        "source": "Middle of KES 15,000–22,000 a running metre for a budget melamine sliding wardrobe, Nairobi, 2026.",
-       "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/"
+       "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/",
+       "allIn": true
       },
       {
        "id": "typical",
@@ -1702,16 +1743,19 @@
        "price": 25000,
        "default": true,
        "source": "Middle of KES 15,000–35,000 a running metre for a fitted wardrobe, Nairobi, 2026.",
-       "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/"
+       "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/",
+       "allIn": true
       },
       {
        "id": "mid",
        "name": "Laminate with drawers",
        "price": 26000,
        "source": "Middle of KES 22,000–30,000 a running metre for laminate doors with drawers, Nairobi, 2026.",
-       "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/"
+       "url": "https://interiors.hauzisha.co.ke/fitted-wardrobes-kenya/",
+       "allIn": true
       }
-     ]
+     ],
+     "allIn": true
     },
     "boundary": {
      "price": 6000,
@@ -1723,14 +1767,16 @@
        "name": "Chain-link fence",
        "price": 1000,
        "source": "Middle of KES 700–1,300 a metre for chain link, Kenya, 2026.",
-       "url": "https://burhayadevelopers.co.ke/blogs/perimeter_walls.html"
+       "url": "https://burhayadevelopers.co.ke/blogs/perimeter_walls.html",
+       "allIn": true
       },
       {
        "id": "block",
        "name": "Stone or interlocking blocks",
        "price": 3750,
        "source": "Middle of KES 2,500–5,000 a metre for stone or interlocking blocks, including the foundation, Kenya, 2026.",
-       "url": "https://burhayadevelopers.co.ke/blogs/perimeter_walls.html"
+       "url": "https://burhayadevelopers.co.ke/blogs/perimeter_walls.html",
+       "allIn": true
       },
       {
        "id": "stone",
@@ -1738,9 +1784,11 @@
        "price": 6000,
        "default": true,
        "source": "Middle of KES 5,400–6,600 a metre for a machine-cut stone wall near Nairobi, September 2026.",
-       "url": "https://swiftpesa.co.ke/calculator/perimeter-wall-cost-calculator/"
+       "url": "https://swiftpesa.co.ke/calculator/perimeter-wall-cost-calculator/",
+       "allIn": true
       }
-     ]
+     ],
+     "allIn": true
     },
     "gate": {
      "price": 115000,
