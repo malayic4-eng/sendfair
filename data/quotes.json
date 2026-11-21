@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-11-21T13:19:06.671Z",
+ "updatedAt": "2026-11-21T13:31:21.112Z",
  "coverage": {
   "us-nigeria": [
    "wise",
@@ -308,6 +308,31 @@
    "mukuru",
    "westernunion",
    "moneygram"
+  ],
+  "uk-tanzania": [
+   "remitly"
+  ],
+  "uk-rwanda": [
+   "remitly"
+  ],
+  "uk-senegal": [
+   "remitly",
+   "sendwave"
+  ],
+  "uk-ethiopia": [
+   "remitly"
+  ],
+  "us-tanzania": [
+   "remitly"
+  ],
+  "us-rwanda": [
+   "remitly"
+  ],
+  "us-senegal": [
+   "remitly"
+  ],
+  "us-ethiopia": [
+   "remitly"
   ]
  },
  "quotes": {
@@ -433,21 +458,6 @@
     "source": "wise-feed"
    },
    {
-    "provider": "remitly",
-    "rate": 1410.91,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 300,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "sendwave",
     "rate": 1425.018,
     "feeFixed": 0,
@@ -459,6 +469,21 @@
     "note": "Standard rate; intro offers not included",
     "refAmount": 300,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 1415.36,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 300,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "us-ghana": [
@@ -575,21 +600,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 11.6052,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 300,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "sendwave",
     "rate": 11.77,
     "feeFixed": 0,
@@ -601,6 +611,21 @@
     "note": "Standard rate; intro offers not included",
     "refAmount": 300,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 11.6249,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 300,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "us-kenya": [
@@ -669,45 +694,6 @@
      {
       "amount": 1000,
       "rate": 129.09,
-      "fee": 0
-     }
-    ]
-   },
-   {
-    "provider": "remitly",
-    "rate": 128.16,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-21T12:45:09.378610Z",
-    "source": "wise-feed",
-    "country": "KE",
-    "tiers": [
-     {
-      "amount": 100,
-      "rate": 128.16,
-      "fee": 0
-     },
-     {
-      "amount": 300,
-      "rate": 128.16,
-      "fee": 0
-     },
-     {
-      "amount": 500,
-      "rate": 128.16,
-      "fee": 0
-     },
-     {
-      "amount": 1000,
-      "rate": 128.16,
       "fee": 0
      }
     ]
@@ -800,6 +786,21 @@
     "note": "Standard rate; intro offers not included",
     "refAmount": 300,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 128.16,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 300,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "us-uganda": [
@@ -836,45 +837,6 @@
       "amount": 1000,
       "rate": 4225.35,
       "fee": 22.11
-     }
-    ]
-   },
-   {
-    "provider": "remitly",
-    "rate": 4128.5,
-    "feeFixed": 2.99,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-21T12:45:25.382427Z",
-    "source": "wise-feed",
-    "country": "UG",
-    "tiers": [
-     {
-      "amount": 100,
-      "rate": 4128.5,
-      "fee": 2.99
-     },
-     {
-      "amount": 300,
-      "rate": 4128.5,
-      "fee": 2.99
-     },
-     {
-      "amount": 500,
-      "rate": 4128.5,
-      "fee": 2.99
-     },
-     {
-      "amount": 1000,
-      "rate": 4128.5,
-      "fee": 2.99
      }
     ]
    },
@@ -979,6 +941,21 @@
     "note": "Standard rate; intro offers not included",
     "refAmount": 300,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 4115.87,
+    "feeFixed": 2.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 300,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "uk-nigeria": [
@@ -1089,34 +1066,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 1878.18,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 250,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
-    "provider": "sendwave",
-    "rate": 1873.62,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Standard rate; intro offers not included",
-    "refAmount": 250,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "worldremit",
     "variant": "Bank Transfer",
     "rate": 1873.6203,
@@ -1129,6 +1078,34 @@
     "note": "From WorldRemit's calculator; standard rate, first-transfer offers not included",
     "refAmount": 1000,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 1870.75,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T12:55:00Z"
+   },
+   {
+    "provider": "sendwave",
+    "rate": 1866.599,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "bank"
+    ],
+    "speed": "",
+    "note": "Standard rate; intro offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T13:20:00Z"
    }
   ],
   "uk-ghana": [
@@ -1245,34 +1222,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 15.3697,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 250,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
-    "provider": "sendwave",
-    "rate": 15.493,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile"
-    ],
-    "speed": "",
-    "note": "Standard rate; intro offers not included",
-    "refAmount": 250,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "worldremit",
     "variant": "Bank Transfer",
     "rate": 15.4936,
@@ -1285,6 +1234,34 @@
     "note": "From WorldRemit's calculator; standard rate, first-transfer offers not included",
     "refAmount": 1000,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 15.4708,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T12:55:00Z"
+   },
+   {
+    "provider": "sendwave",
+    "rate": 15.47,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "Standard rate; intro offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T13:20:00Z"
    }
   ],
   "uk-kenya": [
@@ -1348,45 +1325,6 @@
      {
       "amount": 1000,
       "rate": 162.0809,
-      "fee": 0
-     }
-    ]
-   },
-   {
-    "provider": "remitly",
-    "rate": 167.22,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-21T12:40:14.908889Z",
-    "source": "wise-feed",
-    "country": "KE",
-    "tiers": [
-     {
-      "amount": 100,
-      "rate": 167.22,
-      "fee": 0
-     },
-     {
-      "amount": 250,
-      "rate": 167.22,
-      "fee": 0
-     },
-     {
-      "amount": 500,
-      "rate": 167.22,
-      "fee": 0
-     },
-     {
-      "amount": 1000,
-      "rate": 167.22,
       "fee": 0
      }
     ]
@@ -1504,20 +1442,6 @@
     ]
    },
    {
-    "provider": "sendwave",
-    "rate": 169.372,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank"
-    ],
-    "speed": "",
-    "note": "Standard rate; intro offers not included",
-    "refAmount": 250,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "worldremit",
     "variant": "Debit Card Deposit",
     "rate": 166.7895,
@@ -1530,6 +1454,35 @@
     "note": "From WorldRemit's calculator; standard rate, first-transfer offers not included",
     "refAmount": 1000,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 167.22,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T12:55:00Z"
+   },
+   {
+    "provider": "sendwave",
+    "rate": 168.955,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank"
+    ],
+    "speed": "",
+    "note": "Standard rate; intro offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T13:20:00Z"
    }
   ],
   "uk-uganda": [
@@ -1645,45 +1598,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 5319.51,
-    "feeFixed": 0.99,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 250,
-    "checkedAt": "2026-11-21T12:40:24.509458Z",
-    "source": "wise-feed",
-    "country": "UG",
-    "tiers": [
-     {
-      "amount": 100,
-      "rate": 5319.51,
-      "fee": 0.99
-     },
-     {
-      "amount": 250,
-      "rate": 5319.51,
-      "fee": 0.99
-     },
-     {
-      "amount": 500,
-      "rate": 5319.51,
-      "fee": 0.99
-     },
-     {
-      "amount": 1000,
-      "rate": 5319.51,
-      "fee": 0.99
-     }
-    ]
-   },
-   {
     "provider": "xoom",
     "rate": 5317.7872,
     "feeFixed": 2.99,
@@ -1721,8 +1635,23 @@
     ]
    },
    {
+    "provider": "remitly",
+    "rate": 5319.51,
+    "feeFixed": 0.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T12:55:00Z"
+   },
+   {
     "provider": "sendwave",
-    "rate": 5435.307,
+    "rate": 5463.229,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -1732,7 +1661,7 @@
     "speed": "",
     "note": "Standard rate; intro offers not included",
     "refAmount": 250,
-    "checkedAt": "2026-11-19T10:23:17Z"
+    "checkedAt": "2026-11-21T13:20:00Z"
    }
   ],
   "canada-nigeria": [
@@ -1880,21 +1809,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 991.42,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 400,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "sendwave",
     "rate": 991.246,
     "feeFixed": 0,
@@ -1920,6 +1834,21 @@
     "note": "From WorldRemit's calculator; standard rate, first-transfer offers not included",
     "refAmount": 1000,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 992.13,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 400,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "canada-ghana": [
@@ -2036,21 +1965,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 8.1392,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 400,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "sendwave",
     "rate": 8.202,
     "feeFixed": 0,
@@ -2076,6 +1990,21 @@
     "note": "From WorldRemit's calculator; standard rate, first-transfer offers not included",
     "refAmount": 1000,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 8.1589,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 400,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "canada-kenya": [
@@ -2112,45 +2041,6 @@
      {
       "amount": 2000,
       "rate": 89.8989,
-      "fee": 0
-     }
-    ]
-   },
-   {
-    "provider": "remitly",
-    "rate": 89.43,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-21T12:40:56.364317Z",
-    "source": "wise-feed",
-    "country": "KE",
-    "tiers": [
-     {
-      "amount": 200,
-      "rate": 89.43,
-      "fee": 0
-     },
-     {
-      "amount": 400,
-      "rate": 89.43,
-      "fee": 0
-     },
-     {
-      "amount": 1000,
-      "rate": 89.43,
-      "fee": 0
-     },
-     {
-      "amount": 2000,
-      "rate": 89.43,
       "fee": 0
      }
     ]
@@ -2284,6 +2174,21 @@
     "note": "From WorldRemit's calculator; standard rate, first-transfer offers not included",
     "refAmount": 1000,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 89.43,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 400,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "canada-uganda": [
@@ -2399,45 +2304,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 2895.04,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 400,
-    "checkedAt": "2026-11-21T12:41:06.213770Z",
-    "source": "wise-feed",
-    "country": "UG",
-    "tiers": [
-     {
-      "amount": 200,
-      "rate": 2895.04,
-      "fee": 0
-     },
-     {
-      "amount": 400,
-      "rate": 2895.04,
-      "fee": 0
-     },
-     {
-      "amount": 1000,
-      "rate": 2895.04,
-      "fee": 0
-     },
-     {
-      "amount": 2000,
-      "rate": 2895.04,
-      "fee": 0
-     }
-    ]
-   },
-   {
     "provider": "xoom",
     "rate": 2811.0493,
     "feeFixed": 4.99,
@@ -2487,6 +2353,21 @@
     "note": "Standard rate; intro offers not included",
     "refAmount": 400,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 2895.04,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 400,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "australia-nigeria": [
@@ -2603,7 +2484,7 @@
    },
    {
     "provider": "remitly",
-    "rate": 937.8,
+    "rate": 927.44,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
@@ -2614,7 +2495,7 @@
     "speed": "",
     "note": "Standard rate; new-customer offers not included",
     "refAmount": 450,
-    "checkedAt": "2026-11-19T10:23:17Z"
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "australia-ghana": [
@@ -2731,21 +2612,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 7.8219,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 450,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "worldremit",
     "variant": "Bank Transfer",
     "rate": 7.8916,
@@ -2758,6 +2624,21 @@
     "note": "From WorldRemit's calculator; standard rate, first-transfer offers not included",
     "refAmount": 1000,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 7.8002,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 450,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "australia-kenya": [
@@ -2885,33 +2766,9 @@
      "cash"
     ],
     "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "note": "Standard rate; new-customer offers not included",
     "refAmount": 450,
-    "checkedAt": "2026-11-21T12:40:34.890859Z",
-    "source": "wise-feed",
-    "country": "KE",
-    "tiers": [
-     {
-      "amount": 200,
-      "rate": 85.57,
-      "fee": 0
-     },
-     {
-      "amount": 450,
-      "rate": 85.57,
-      "fee": 0
-     },
-     {
-      "amount": 1000,
-      "rate": 85.57,
-      "fee": 0
-     },
-     {
-      "amount": 2000,
-      "rate": 85.57,
-      "fee": 0
-     }
-    ]
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "australia-uganda": [
@@ -2989,45 +2846,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 2739.37,
-    "feeFixed": 1.99,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 450,
-    "checkedAt": "2026-11-21T12:40:42.051754Z",
-    "source": "wise-feed",
-    "country": "UG",
-    "tiers": [
-     {
-      "amount": 200,
-      "rate": 2737.97,
-      "fee": 1.99
-     },
-     {
-      "amount": 450,
-      "rate": 2739.37,
-      "fee": 1.99
-     },
-     {
-      "amount": 1000,
-      "rate": 2739.37,
-      "fee": 1.99
-     },
-     {
-      "amount": 2000,
-      "rate": 2740.76,
-      "fee": 1.99
-     }
-    ]
-   },
-   {
     "provider": "westernunion",
     "rate": 2706.6523642,
     "feeFixed": 0.99,
@@ -3064,6 +2882,21 @@
       "fee": 0.99
      }
     ]
+   },
+   {
+    "provider": "remitly",
+    "rate": 2740.76,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 450,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "uk-zambia": [
@@ -3104,21 +2937,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 28.1,
-    "feeFixed": 1.99,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 250,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "westernunion",
     "rate": 28.7699,
     "feeFixed": 2.99,
@@ -3133,8 +2951,23 @@
     "checkedAt": "2026-11-19T10:23:17Z"
    },
    {
+    "provider": "remitly",
+    "rate": 27.52,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T12:55:00Z"
+   },
+   {
     "provider": "sendwave",
-    "rate": 26.601,
+    "rate": 26.553,
     "feeFixed": 0.99,
     "feePct": 0,
     "payout": [
@@ -3143,7 +2976,7 @@
     "speed": "",
     "note": "Standard rate; intro offers not included",
     "refAmount": 250,
-    "checkedAt": "2026-11-19T10:23:17Z"
+    "checkedAt": "2026-11-21T13:20:00Z"
    }
   ],
   "canada-zambia": [
@@ -3184,21 +3017,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 14.73,
-    "feeFixed": 6.99,
-    "feePct": 0,
-    "payout": [
-     "mobile",
-     "bank",
-     "cash"
-    ],
-    "speed": "",
-    "note": "Standard rate; new-customer offers not included",
-    "refAmount": 400,
-    "checkedAt": "2026-11-19T10:23:17Z"
-   },
-   {
     "provider": "westernunion",
     "rate": 14.7547,
     "feeFixed": 0,
@@ -3224,6 +3042,21 @@
     "note": "Standard rate; intro offers not included",
     "refAmount": 400,
     "checkedAt": "2026-11-19T10:23:17Z"
+   },
+   {
+    "provider": "remitly",
+    "rate": 14.47,
+    "feeFixed": 4.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 400,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "australia-zambia": [
@@ -3265,7 +3098,7 @@
    },
    {
     "provider": "remitly",
-    "rate": 13.57,
+    "rate": 13.36,
     "feeFixed": 2.99,
     "feePct": 0,
     "payout": [
@@ -3276,7 +3109,7 @@
     "speed": "",
     "note": "Standard rate; new-customer offers not included",
     "refAmount": 450,
-    "checkedAt": "2026-11-19T10:23:17Z"
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "us-zambia": [
@@ -3347,7 +3180,7 @@
   "uk-zimbabwe": [
    {
     "provider": "sendwave",
-    "rate": 1.301,
+    "rate": 1.295,
     "feeFixed": 1.99,
     "feePct": 0,
     "payout": [
@@ -3356,7 +3189,7 @@
     "speed": "",
     "note": "Standard rate; intro offers not included",
     "refAmount": 250,
-    "checkedAt": "2026-11-19T10:23:17Z"
+    "checkedAt": "2026-11-21T13:20:00Z"
    }
   ],
   "canada-zimbabwe": [],
@@ -3831,6 +3664,21 @@
       "fee": 0.99
      }
     ]
+   },
+   {
+    "provider": "remitly",
+    "rate": 161.16,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 300,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "us-southafrica": [
@@ -4082,43 +3930,6 @@
     ]
    },
    {
-    "provider": "remitly",
-    "rate": 2572.93,
-    "feeFixed": 0,
-    "feePct": 0,
-    "payout": [
-     "bank"
-    ],
-    "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
-    "refAmount": 300,
-    "checkedAt": "2026-11-21T12:45:24.826108Z",
-    "source": "wise-feed",
-    "country": "TZ",
-    "tiers": [
-     {
-      "amount": 100,
-      "rate": 2572.93,
-      "fee": 0
-     },
-     {
-      "amount": 300,
-      "rate": 2572.93,
-      "fee": 0
-     },
-     {
-      "amount": 500,
-      "rate": 2572.93,
-      "fee": 0
-     },
-     {
-      "amount": 1000,
-      "rate": 2572.93,
-      "fee": 0
-     }
-    ]
-   },
-   {
     "provider": "westernunion",
     "rate": 2596.2701,
     "feeFixed": 0.99,
@@ -4191,6 +4002,21 @@
       "fee": 4.99
      }
     ]
+   },
+   {
+    "provider": "remitly",
+    "rate": 2572.96,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 300,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "us-rwanda": [
@@ -4303,6 +4129,21 @@
       "fee": 2.99
      }
     ]
+   },
+   {
+    "provider": "remitly",
+    "rate": 1445.13,
+    "feeFixed": 2.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 300,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "uk-egypt": [
@@ -4702,6 +4543,36 @@
       "fee": 1.99
      }
     ]
+   },
+   {
+    "provider": "remitly",
+    "rate": 768.98,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T12:55:00Z",
+    "country": "SN"
+   },
+   {
+    "provider": "sendwave",
+    "rate": 767.092,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile"
+    ],
+    "speed": "",
+    "note": "Standard rate; intro offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T13:20:00Z",
+    "country": "SN"
    }
   ],
   "uk-ivorycoast": [],
@@ -4816,6 +4687,21 @@
       "fee": 1.99
      }
     ]
+   },
+   {
+    "provider": "remitly",
+    "rate": 208.28,
+    "feeFixed": 1.99,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "uk-southafrica": [
@@ -5142,40 +5028,18 @@
    },
    {
     "provider": "remitly",
-    "rate": 3405.27,
+    "rate": 3405.3,
     "feeFixed": 0,
     "feePct": 0,
     "payout": [
-     "bank"
+     "mobile",
+     "bank",
+     "cash"
     ],
     "speed": "",
-    "note": "Updated automatically from Wise's comparison data; confirm on the provider's site",
+    "note": "Standard rate; new-customer offers not included",
     "refAmount": 250,
-    "checkedAt": "2026-11-21T12:40:23.655529Z",
-    "source": "wise-feed",
-    "country": "TZ",
-    "tiers": [
-     {
-      "amount": 100,
-      "rate": 3405.27,
-      "fee": 0
-     },
-     {
-      "amount": 250,
-      "rate": 3405.27,
-      "fee": 0
-     },
-     {
-      "amount": 500,
-      "rate": 3405.27,
-      "fee": 0
-     },
-     {
-      "amount": 1000,
-      "rate": 3405.27,
-      "fee": 0
-     }
-    ]
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "uk-drc": [],
@@ -5289,6 +5153,21 @@
       "fee": 2.99
      }
     ]
+   },
+   {
+    "provider": "remitly",
+    "rate": 1890.03,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 250,
+    "checkedAt": "2026-11-21T12:55:00Z"
    }
   ],
   "canada-egypt": [
@@ -8932,7 +8811,24 @@
     ]
    }
   ],
-  "us-senegal": [],
+  "us-senegal": [
+   {
+    "provider": "remitly",
+    "rate": 588.41,
+    "feeFixed": 0,
+    "feePct": 0,
+    "payout": [
+     "mobile",
+     "bank",
+     "cash"
+    ],
+    "speed": "",
+    "note": "Standard rate; new-customer offers not included",
+    "refAmount": 300,
+    "checkedAt": "2026-11-21T12:55:00Z",
+    "country": "SN"
+   }
+  ],
   "us-ivorycoast": [],
   "us-mali": [],
   "us-zimbabwe": [
