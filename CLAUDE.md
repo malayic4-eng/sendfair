@@ -26,7 +26,7 @@ Brand images: `brand/` (HD logo PNG/SVG, YouTube profile, banner, watermark), re
 - Cloudflare Worker: `src/worker.js` + `functions/`. Config `wrangler.jsonc`. Bindings: `SENDFAIR_KV`, `AI`, `QUOTE_CHECK_FILES` (R2).
 - Deploys: Cloudflare Workers Builds from GitHub. Production `npx wrangler deploy`; previews `npx wrangler preview`. Build command for both is `npm run build` (previews failed before this was set).
 - Public R2 media: `config.socialMediaBase`; daily reel at `social/<date>/reel.mp4` + `manifest.json`.
-- Rates data: Wise Comparison API feed (`scripts/fetch-wise-feed.mjs`, `apply-wise-feed.mjs`), hourly via `.github/workflows/update-midmarket.yml`.
+- Rates data: Wise Comparison API feed (`scripts/fetch-wise-feed.mjs`, `apply-wise-feed.mjs`), hourly via `.github/workflows/update-midmarket.yml`. The feed doesn't say how money is paid out, so `data/payout-methods.json` (learned by `learnPayoutMethods` from hand checks, per provider and receiving country, only grows) fills feed quotes' payout; this is what unlocks wallet pages. The daily rate check (21 Nov prompt) also reads Remitly/Sendwave/Wise for Tanzania, Rwanda, Senegal, Côte d'Ivoire, Cameroon, Ethiopia (UK and US) and records delivery times.
 - Admin: `/admin` (Rate Desk) behind Cloudflare Access app "SendFair Rate Desk" plus an admin cookie. `/admin/social` (TikTok/YouTube connect), `/admin/comments` (comment reply drafts), `/admin/quote-checks/`.
 - GitHub secrets cannot be set from Claude sessions (API blocked through the proxy), so platform tokens live in KV via the admin pages.
 

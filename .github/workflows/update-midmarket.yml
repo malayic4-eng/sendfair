@@ -110,7 +110,7 @@ jobs:
         run: |
           git config user.name "sendfair-bot"
           git config user.email "actions@users.noreply.github.com"
-          for f in data/midmarket.json data/mid-overrides.json data/wise-feed.json data/quotes.json data/history.json \
+          for f in data/midmarket.json data/mid-overrides.json data/wise-feed.json data/quotes.json data/history.json data/payout-methods.json \
                    data/worldremit-quotes.json data/adapters/state.json data/adapters/log.jsonl data/adapters/alerts.jsonl; do
             [ -f "$f" ] && git add "$f"
           done

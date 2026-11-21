@@ -365,3 +365,13 @@ await check("without tiers or country options, evaluate/payFor/rank give the sam
 
 console.log(`data accuracy: ${n} checks, ${failed} failure(s)`);
 if (failed) process.exit(1);
+
+// Payout methods learned from hand checks fill feed quotes on other routes to the same country.
+{
+  const { learnPayoutMethods, applyWiseFeed: apply } = await import("./feed-lib.mjs");
+  const qf = { quotes: { "uk-ghana": [{ provider: "sendwave", rate: 15, payout: ["mobile"], checkedAt: new Date().toISOString(), note: "hand" }], "us-ghana": [{ provider: "sendwave", rate: 1, payout: ["bank"], source: "wise-feed", checkedAt: "2020-01-01T00:00:00Z" }] } };
+  const m = learnPayoutMethods(qf, {});
+  if (JSON.stringify(m.sendwave.ghana) !== '["mobile"]') { console.error("learnPayoutMethods failed"); process.exit(1); }
+  if (learnPayoutMethods(qf, m).sendwave.ghana.length !== 1) { console.error("learnPayoutMethods duplicated"); process.exit(1); }
+  console.log("payout methods: learned from hand checks, no duplicates");
+}
