@@ -108,6 +108,7 @@ If you add, change or delete any of these, update this section and the matching 
 - TikTok: owner adds @sendfair as sandbox target user, saves sandbox keys on /admin/social, connects, posts a test, records a demo video; then Claude fills Production and the owner submits for review.
 - Affiliate programmes with transfer providers (0 of 26 have `affiliateUrl`); AdSense slots are empty. Website audit (20 Nov 2026) is a Claude doc: https://claude.ai/artifact/GtttXHxF8EmB4pME2Z5eXE
 - Travelpayouts: joined 25 programs (account ID 807652, source 602820). Not yet joined (owner must accept terms): Booking.com, Trip.com, Agoda, DiscoverCars, VisitorsCoverage, GetYourGuide, Viator. Payout method not set yet (owner).
+- Flights (21 Nov 2026): Aviasales links had no dates (`?params=LONNBO1`), so visitors landed on an empty search and couldn't book. Now `travel.flightsUrl` is `/search/{from}{dep}{to}{ret}{adults}` (DDMM), `tripDates()` in `src/partner-links.mjs` fills defaults (in 3 weeks, back 2 weeks later), and each flying-home page has a search form (from, to, dates, adults) posting to `/go/flights?o&d&dep&ret&pax&r`.
 - Verify the top 40–50 Nairobi build items with dated quotes, then pilot Quote Check with a small group. Quote Check must only judge lines with a like-for-like benchmark; otherwise say "no benchmark".
 - Later: cost-by-house-size pages per country, real-build cost survey, decide depth for non-priority countries.
 

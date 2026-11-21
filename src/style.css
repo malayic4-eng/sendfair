@@ -832,3 +832,9 @@ details p { margin-top: 10px; color: var(--muted); }
 
 .quick button { min-height: 26px; min-width: 32px; }
 .notif { border-style: dashed !important; }
+
+.fly-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: end; padding: 16px; margin: 10px 0 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.fly-form label { display: grid; gap: 4px; font-size: .85rem; font-weight: 600; color: var(--muted); }
+.fly-form select, .fly-form input { min-height: 44px; padding: 8px 10px; border: 1px solid var(--line-strong, #ccd); border-radius: 10px; font: inherit; color: var(--ink); background: #fff; }
+.fly-form .btn { min-height: 44px; }
+.fly-form-note { grid-column: 1 / -1; margin: 0; font-size: .82rem; color: var(--muted); }

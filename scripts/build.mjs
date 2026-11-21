@@ -9,7 +9,7 @@ import { createRequire } from "node:module";
 import { buildReports, reportSummary } from "./report-data.mjs";
 import { FR, t, moneyFr, dateFr, assertFrKeys, frGrammar, capFirst } from "./i18n.mjs";
 import { mergeConfig as mergeQuoteCheckConfig, priceFor as quoteCheckPrice } from "../src/quote-check/config.mjs";
-import { TRAVEL_IDS, sponsorsFor, flightTarget, esimTarget, extrasFor, extraTarget } from "../src/partner-links.mjs";
+import { TRAVEL_IDS, sponsorsFor, flightTarget, esimTarget, extrasFor, extraTarget, tripDates } from "../src/partner-links.mjs";
 import { historySummary } from "./rate-summary.mjs";
 import { applyOverrides, sharedCurrencies } from "./feed-lib.mjs";
 import { loadQuestions, questionPage, questionsIndex, relatedQuestions } from "./questions.mjs";
@@ -1386,7 +1386,7 @@ const TRACK_PARTNERS = !!config.trackClicks && !DEMO;
 const sponsorHref = (prefix, sp, cid) => TRACK_PARTNERS ? `${prefix}go/${encodeURIComponent(sp.id)}?r=build-${cid}` : sp.url;
 const flightHref = (prefix, r, o, d) => TRACK_PARTNERS
   ? `${prefix}go/flights?o=${o}&d=${d}&r=fly-${r.id}`
-  : flightTarget(partners, { origin: o, dest: d, receiver: r.id, route: `fly-${r.id}` });
+  : flightTarget(partners, { origin: o, dest: d, receiver: r.id, route: `fly-${r.id}`, now: NOW });
 const esimHref = (prefix, r) => TRACK_PARTNERS ? `${prefix}go/esim?r=fly-${r.id}` : esimTarget(partners, { countryName: r.name, route: `fly-${r.id}` });
 const flightsTracked = !!(partners.travel || {}).flightsWrap;
 const esimTracked = !!(partners.travel || {}).esimWrap;
@@ -1450,6 +1450,23 @@ const ARRIVE_TIPS = [
   "If you're visiting a building site, take the itemised house receipt with you and compare it with the bags, blocks and days actually on site."
 ];
 
+// A real search box: from, to, dates and travellers, sent through /go/flights so the click is counted
+// and Aviasales opens with live fares for those dates.
+function flightForm(prefix, r, senders, ports) {
+  const dflt = tripDates({ now: NOW });
+  const opts = senders.map((s) => `<optgroup label="${esc(s.short)}">${partners.origins[s.id].map(([c, n]) => `<option value="${c}">${esc(n)}</option>`).join("")}</optgroup>`).join("");
+  return `<form class="fly-form" action="${prefix}go/flights" method="get" target="_blank">
+<input type="hidden" name="r" value="fly-${r.id}">
+<label>From<select name="o" required>${opts}</select></label>
+<label>To<select name="d" required>${ports.map(([c, n]) => `<option value="${c}">${esc(n)} (${c})</option>`).join("")}</select></label>
+<label>Leaving<input type="date" name="dep" value="${dflt.depart}" min="${new Date(NOW).toISOString().slice(0, 10)}" required></label>
+<label>Coming back<input type="date" name="ret" value="${dflt.ret}" min="${new Date(NOW).toISOString().slice(0, 10)}"></label>
+<label>Adults<select name="pax">${[1, 2, 3, 4, 5, 6].map((n) => `<option${n === 1 ? " selected" : ""}>${n}</option>`).join("")}</select></label>
+<button type="submit" class="btn">Search flights</button>
+<p class="fly-form-note">Opens Aviasales with live fares for your dates. Clear "Coming back" for a one-way ticket. You book and pay on the airline or agent's site.</p>
+</form>`;
+}
+
 function writeFlyingHome() {
   const rs = corridors.receivers.filter(hasFlyPage);
   if (!rs.length) return;
@@ -1478,7 +1495,8 @@ ${crumbNav(prefix, trail)}
 <h1>Flying home to ${esc(r.name)}</h1>
 <p class="lede">Compare flights into ${esc(portNames)}, book the airport pickup or a car, get mobile data for when you land, and send the money you'll need ahead of you at a fair rate. Planning for December? Read the booking tips first.</p>
 <h2>Search flights to ${esc(r.name)}</h2>
-<p>Pick your nearest city. Each button opens a flight search for that route, where you choose your dates and compare airlines.</p>
+${flightForm(prefix, r, senders, ports)}
+<p>Or open a quick search from your nearest city (leaving in 3 weeks, back 2 weeks later; you can change the dates on the next page).</p>
 ${fromBlocks}
 <h2>Booking tips for the December rush</h2>
 <ul class="tips">${FLY_TIPS.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
@@ -3303,7 +3321,7 @@ write("_headers", `/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://utt.impactcdn.com https://emrldco.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://buttondown.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://translate.googleapis.com https://utt.impactcdn.com https://*.impact.com https://emrldco.com; frame-src https://*.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com https://challenges.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self' https://buttondown.com; object-src 'none'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://utt.impactcdn.com https://emrldco.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://buttondown.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://translate.googleapis.com https://utt.impactcdn.com https://*.impact.com https://emrldco.com; frame-src https://*.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com https://challenges.cloudflare.com; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self' https://buttondown.com https://tp.media https://www.aviasales.com; object-src 'none'
 /data/*
   Cache-Control: public, max-age=300
 /assets/fonts/*
