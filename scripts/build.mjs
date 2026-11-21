@@ -1612,6 +1612,7 @@ ${crumbNav(prefix, trail)}
 <ol class="steps">${g.steps.map(([h, t]) => `<li><strong>${esc(h)}.</strong> ${esc(t)}</li>`).join("")}</ol>
 <h2>Paying from abroad</h2>
 <p>Pay the lawyer's client account or in stages tied to each step, not a lump sum to an agent. Keep every receipt and the transfer reference. ${r ? `<a href="${link(prefix, hubPath(r))}">Compare what arrives in ${esc(g.name)} today</a> before each payment.` : ""}</p>
+<p><a href="${link(prefix, "downloads/building-from-abroad-checklist/")}">Free checklist: building back home from abroad</a></p>
 <h2>After the land: the house</h2>
 <p><a class="btn" href="${link(prefix, `cost-to-build/${id}/`)}">Price a house in ${esc(g.name)}</a> <a class="btn btn-ghost" href="${link(prefix, "cost-to-build/stage-payments/")}">Plan payments to your builder</a></p>
 ${waChannel()}
@@ -1809,6 +1810,41 @@ ${faqBlock(faqs)}
   }
 }
 
+// Free download: "Building back home from abroad" checklist, offered for an email (Buttondown tag
+// "checklist"). The printable page itself is noindex; the offer page is indexed.
+const CHECKLIST = [
+  ["Before you buy land", ["Do an official search yourself (not one the seller hands you)", "Have a licensed surveyor confirm the beacons and that the plot isn't on a road reserve or public land", "Use your own lawyer, and pay through them or in stages tied to the transfer", "The land is yours only when the transfer is registered in your name"]],
+  ["Before the first brick", ["Get architectural drawings and a bill of quantities", "Do a soil test before the foundation is designed", "Get the building permit and plan approval from the county or state", "Get at least 3 written quotes and check them line by line against local prices", "Sign a contract that lists the stages, the amount for each, and what 'done' means"]],
+  ["Paying from abroad", ["Pay in stages against work done and seen, never far ahead", "Pay the contractor's business account or a lawyer's client account, not cash to agents", "Compare transfer services on the day you send: the best one changes often", "Send a few days before a stage is due; set a rate alert", "Keep every receipt, invoice and transfer reference in one folder"]],
+  ["While it's being built", ["Ask for dated photos or a video call at the end of each stage", "Have someone you trust visit the site, ideally an engineer or clerk of works at key stages", "Check that the bags, blocks, steel and days on site match what you paid for", "Keep a simple log: date, stage, amount paid, evidence received"]],
+  ["Finishing and handover", ["Walk through with a list of defects (snag list) before the last payment", "Hold back a small retention until the defects are fixed", "Get the final certificates (occupation certificate where required) and all warranties", "Update your insurance and keep the drawings and receipts safe"]]
+];
+function writeChecklist() {
+  const rel = "downloads/building-from-abroad-checklist/", prefix = "../../";
+  const nl = config.newsletterFormAction || "";
+  const listHtml = CHECKLIST.map(([h, items]) => `<h2>${esc(h)}</h2><ul class="check-list">${items.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`).join("\n");
+  // Printable checklist (noindex)
+  write(rel + "print/index.html", page({ prefix: "../../../", canonical: rel + "print/", noindex: true, rank: false, og: "home",
+    title: `Building back home from abroad: the checklist · ${config.siteName}`, description: "Printable checklist.",
+    body: `<section class="block page"><div class="wrap"><article class="prose wide checklist-print"><h1>Building back home from abroad: the checklist</h1><p class="lede">From buying land to the handover. Tick each box before you pay for the next stage. From ${esc(config.siteName)} (sendfair.africa), free to share.</p>${listHtml}<p><button class="btn" type="button" onclick="window.print()">Print or save as PDF</button></p><p class="note">General guidance, not legal or engineering advice. Use a qualified lawyer, surveyor and engineer in the country where you build.</p></article></div></section>` }));
+  const form = nl ? `<form class="qc-wait lead-form" id="cl-form" action="${esc(nl)}" method="post" target="_blank">${nl.includes("embed-subscribe") ? `<input type="hidden" name="embed" value="1">` : ""}<input type="hidden" name="tag" value="checklist"><label class="label" for="cl-email">Email</label><input id="cl-email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"><button type="submit" class="btn">Send me the checklist</button></form>
+<p id="cl-done" hidden><a class="btn" href="${link(prefix, rel + "print/")}">Open the checklist</a> Check your inbox to confirm your email for occasional building-cost updates.</p>
+<script>(function(){var f=document.getElementById("cl-form"),d=document.getElementById("cl-done");if(f&&d)f.addEventListener("submit",function(){setTimeout(function(){d.hidden=false;f.hidden=true},300)});})();</script>` : `<p><a class="btn" href="${link(prefix, rel + "print/")}">Open the checklist</a></p>`;
+  write(rel + "index.html", page({ prefix, canonical: rel, rank: false, og: "home",
+    title: `Free checklist: building a house back home from abroad · ${config.siteName}`,
+    description: "A free, printable checklist for building a house in Africa while living abroad: land, drawings, permits, quotes, stage payments, site checks and handover.",
+    jsonld: [crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], ["Free checklist", rel]])],
+    body: `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, [[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], ["Free checklist", rel]])}
+<h1>Building back home from abroad: the free checklist</h1>
+<p class="lede">${CHECKLIST.reduce((a, [, i]) => a + i.length, 0)} checks in 5 stages, from buying land to the handover, so you never pay for work you haven't seen. Printable, one page per stage.</p>
+<ul>${CHECKLIST.map(([h, items]) => `<li><strong>${esc(h)}</strong>: ${items.length} checks</li>`).join("")}</ul>
+${form}
+<p>Also free: <a href="${link(prefix, "cost-to-build/")}">house cost calculator</a> · <a href="${link(prefix, "cost-to-build/stage-payments/")}">stage payment planner</a> · <a href="${link(prefix, "guides/buying-land/")}">buying land safely</a></p>
+</article></div></section>` }));
+  urls.push(rel);
+}
+
 function writeFlyingHome() {
   const rs = corridors.receivers.filter(hasFlyPage);
   if (!rs.length) return;
@@ -1981,7 +2017,7 @@ ${id ? sponsorBox(id, prefix) : ""}
 ${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(id) ? `<p><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">Lire cette page en français</a></p>` : ""}
 ${id ? `<h2>By size</h2><ul class="route-links">${[2, 3, 4].map((n) => `<li><a href="${link(prefix, `cost-to-build/${id}/${n}-bedroom/`)}">${n}-bedroom house</a></li>`).join("")}</ul>` : ""}
 ${id && MATERIAL_PAGE_COUNTRIES.includes(id) ? `<h2>Material prices in ${esc(buildCosts.countries[id].name)}</h2><ul class="route-links">${MATERIAL_PAGES.filter((m) => BC.priceOf(buildCosts, id, m.key, midmarket.rates || {})).map((m) => `<li><a href="${link(prefix, `cost-to-build/${id}/${m.slug}/`)}">${esc(capFirst(m.name))}</a></li>`).join("")}</ul>` : ""}
-<p><a href="${link(prefix, "cost-to-build/stage-payments/")}">Plan payments to your builder, stage by stage</a>${id && LAND_GUIDES[id] ? ` · <a href="${link(prefix, `guides/buying-land/${id}/`)}">Buying land in ${esc(LAND_GUIDES[id].name)} safely</a>` : ""}</p>
+<p><a href="${link(prefix, "downloads/building-from-abroad-checklist/")}"><strong>Free checklist: building back home from abroad</strong></a> · <a href="${link(prefix, "cost-to-build/stage-payments/")}">Plan payments to your builder, stage by stage</a>${id && LAND_GUIDES[id] ? ` · <a href="${link(prefix, `guides/buying-land/${id}/`)}">Buying land in ${esc(LAND_GUIDES[id].name)} safely</a>` : ""}</p>
 ${id ? (() => { const rc = regionalFactors.countries[id]; const filled = rc ? Object.entries(rc.cities || {}).filter(([, city]) => city.factor > 0) : []; return filled.length ? `<h2>By city</h2><ul class="route-links">${filled.map(([slug, city]) => `<li><a href="${link(prefix, `cost-to-build/${id}/${slug}/`)}">${esc(city.name)}</a></li>`).join("")}</ul>` : ""; })() : ""}
 ${id ? peopleAlsoAsk({ prefix, country: id, topic: "build" }) : ""}
 <h2 id="countries">${id ? "Other countries" : "All countries"}</h2>
@@ -2273,6 +2309,7 @@ ${crumbNav(prefix, [[config.siteName, ""], ["Cost to build a house", "cost-to-bu
 <p class="note" id="sp-warn" role="status"></p>
 <p><button type="button" class="btn btn-ghost" id="sp-print">Print or save as PDF</button> <a class="btn btn-ghost" href="${link(prefix, "")}#alerts">Get a rate alert before each payment</a></p>
 <p class="note">"About" uses today's mid-market rate; the amount you send will be a little more after the service's margin. The split is a planning guide, not a rule: your contract's payment schedule comes first. Pay against work done and seen, never far ahead.</p>
+<p><a href="${link(prefix, "downloads/building-from-abroad-checklist/")}">Get the free building-from-abroad checklist</a></p>
 <h2>Before the first payment</h2>
 <ul>
 <li>Get drawings and a bill of quantities, and a soil test before the foundation.</li>
@@ -3676,6 +3713,7 @@ writeChristmasHub();
 writeSchoolFees();
 writeCommunities();
 writeWhatsappWeekly();
+writeChecklist();
 writeAdvertisePage();
 writeFollowPage();
 writeEmbedPage();
@@ -3914,6 +3952,39 @@ writeHtmlSitemap();
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.map((u) => { const lm = lastmodFor(u); const alts = sitemapAlts[u]; return `  <url><loc>${site}/${u}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ""}${alts ? alts.map((a) => `<xhtml:link rel="alternate" hreflang="${a.lang}" href="${a.href}"/>`).join("") : ""}</url>`; }).join("\n")}\n</urlset>\n`);
 // AI answer engines may read the site so SendFair can be cited in their answers; model-training crawlers are
 // blocked separately by Cloudflare's managed robots.txt, which Cloudflare puts above these lines.
+// llms.txt: a plain summary for AI assistants (ChatGPT, Perplexity, Claude, Google AI) of what
+// SendFair is, how it ranks, today's headline figures and where the main pages are.
+{
+  const lines = (config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const s = senderById[a], r = receiverById[b]; if (!s || !r) return null; const top = routeContext(s, r, "", config.defaultAmounts[s.currency]).rows.filter((x) => !x.stale)[0]; return top ? `- ${capFirst(s.short)} to ${r.name}: ${top.p.name} gives the most today; ${plain(R.money(config.defaultAmounts[s.currency], s.currency, 0))} arrives as ${plain(R.money(top.gets, r.currency))} (${site}/${corridorPath(s, r)})` : null; }).filter(Boolean);
+  const ke = BC.estimate(buildCosts, "kenya", 110, 1, midmarket.rates || {});
+  const txt = `# ${config.siteName}
+
+> SendFair (sendfair.africa) is an independent, free comparison site for Africans abroad. It compares money transfer services to ${corridors.receivers.length} African countries by the amount that actually arrives after fees and the exchange-rate margin, prices what it costs to build a house back home, and helps plan the trip home. Run by Continental Flow Ltd, Nairobi. No service can pay for a better ranking.
+
+## How the ranking works
+- Services are ranked only by the amount the recipient gets for the same amount sent, after the fee and the exchange-rate margin.
+- Prices are checked through the day from providers' own pages and Wise's public comparison data; old quotes are flagged after ${staleH} hours and hidden after ${hideH}.
+- Methodology: ${site}/methodology/ · How SendFair makes money: ${site}/disclosure/
+
+## Today's best service on the busiest routes (checked ${dateLong})
+${lines.join("\n")}
+
+## Building a house back home
+- House cost calculator for ${Object.keys(buildCosts.countries).length} countries: ${site}/cost-to-build/
+${ke ? `- A simple 3-bedroom bungalow (110 m²) in Nairobi costs about ${plain(R.money(ke.total, ke.currency))} to build on SendFair's itemised receipt (materials, labour and permit; no land or contractor's fee), prices checked ${buildCosts.updated}: ${site}/cost-to-build/kenya/` : ""}
+- Material prices with sources (cement, steel, sand, blocks) for Kenya, Nigeria and Ghana: ${site}/cost-to-build/kenya/price-of-cement/
+- Paying a builder in stages from abroad: ${site}/cost-to-build/stage-payments/
+- Buying land safely from abroad (Kenya, Nigeria, Ghana): ${site}/guides/buying-land/
+
+## Other pages
+- All routes: ${site}/send-money-to/
+- Monthly best-way-to-send guides: ${site}/guides/best-way-to-send-money/
+- Flying home (flights, airport pickup, eSIM): ${site}/flying-home/
+- Remittance Cost Index (monthly, CC BY 4.0): ${site}/reports/
+- Contact: ${config.contactEmail || "hello@sendfair.africa"}
+`;
+  write("llms.txt", txt);
+}
 write("robots.txt", `User-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nAllow: /\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nDisallow: /quote-check/report/\nDisallow: /quote-check/pay/\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /go/\nDisallow: /api/\nDisallow: /quote-check/report/\nDisallow: /quote-check/pay/\nSitemap: ${site}/sitemap.xml\n`);
 // Installable app: the manifest and a small service worker that keeps the last pages viewed for offline use.
 write("manifest.webmanifest", JSON.stringify({

@@ -851,3 +851,7 @@ details p { margin-top: 10px; color: var(--muted); }
 .fly-form .btn-alt { background: transparent; color: var(--on-indigo); border: 2px solid var(--on-indigo-muted); }
 .fare-bar { display: inline-block; height: 10px; border-radius: 6px; background: var(--marigold); vertical-align: middle; }
 .fare-table tr.top th, .fare-table tr.top td { font-weight: 800; }
+.check-list { list-style: none; padding-left: 0; }
+.check-list li { position: relative; padding: 6px 0 6px 34px; border-bottom: 1px solid var(--line); }
+.check-list li::before { content: ""; position: absolute; left: 4px; top: 9px; width: 18px; height: 18px; border: 2px solid var(--ink); border-radius: 4px; }
+@media print { .checklist-print h2 { break-before: auto; } .checklist-print .btn { display: none; } }
