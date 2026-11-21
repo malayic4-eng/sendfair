@@ -170,7 +170,24 @@ export function freshnessProblems({ feed, now = Date.now(), maxAgeH = 6 }) {
 // - On a shared-currency route only rows marked with the route's country are published.
 // - A rate more than 12% below, or more than 3% above, the mid-market rate is held back as a likely error.
 // - Tiers (prices at several amounts) are stored on the quote as q.tiers.
-export function applyWiseFeed({ feed, quotesFile, config, corridors, provList, mid, now = Date.now(), handKeepH = 30, feedMaxH = 24 }) {
+// Payout methods each provider offers in each receiving country, learned from hand checks (which read
+// the provider's own page) and kept in data/payout-methods.json so the knowledge outlives the quote.
+// Payout depends on the receiving country, not the sender, so a hand check from one sender teaches the
+// others. Only grows from hand checks; never guessed.
+export function learnPayoutMethods(quotesFile, known = {}) {
+  const out = JSON.parse(JSON.stringify(known || {}));
+  for (const [route, list] of Object.entries((quotesFile && quotesFile.quotes) || {})) {
+    const receiver = route.split("-").slice(1).join("-");
+    for (const q of list || []) {
+      if (!q || isFeedQuote(q) || !Array.isArray(q.payout) || !q.payout.length) continue;
+      const cur = ((out[q.provider] = out[q.provider] || {})[receiver] = out[q.provider][receiver] || []);
+      for (const m of q.payout) if (["mobile", "bank", "cash"].includes(m) && !cur.includes(m)) cur.push(m);
+    }
+  }
+  return out;
+}
+
+export function applyWiseFeed({ feed, quotesFile, config, corridors, provList, mid, now = Date.now(), handKeepH = 30, feedMaxH = 24, payoutMethods = null }) {
   const providers = new Set(provList.map((p) => p.id));
   const sendsFrom = Object.fromEntries(provList.map((p) => [p.id, p.sendsFrom || []]));
   const cur = Object.fromEntries([...corridors.senders, ...corridors.receivers].map((x) => [x.id, x.currency]));
@@ -195,7 +212,10 @@ export function applyWiseFeed({ feed, quotesFile, config, corridors, provList, m
       const tiers = ((feed.tiers || {})[route] || {})[id];
       const hasTiers = Array.isArray(tiers) && tiers.length > 1;
       if (mine.some((q) => isFeedQuote(q) && q.checkedAt === f.collected && (!hasTiers || q.tiers))) continue; // nothing new
-      const payout = [...new Set(mine.flatMap((q) => q.payout || []))];
+      const handPay = [...new Set(mine.filter((q) => !isFeedQuote(q)).flatMap((q) => q.payout || []))];
+      const known = ((payoutMethods || {})[id] || {})[route.split("-").slice(1).join("-")] || [];
+      const prevPay = [...new Set(mine.flatMap((q) => q.payout || []))];
+      const payout = handPay.length ? handPay : known.length ? [...known] : prevPay;
       const q = {
         provider: id, rate: +f.rate, feeFixed: +(f.fee || 0), feePct: 0,
         payout: payout.length ? payout : ["bank"], speed: f.speed || "",

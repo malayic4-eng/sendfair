@@ -1,0 +1,66 @@
+{
+ "note": "Payout methods per provider and receiving country, learned from hand checks of the provider's own page (scripts/feed-lib.mjs learnPayoutMethods). Used for feed quotes, which don't say how money is paid out.",
+ "providers": {
+  "remitly": {
+   "nigeria": [
+    "mobile",
+    "bank",
+    "cash"
+   ],
+   "ghana": [
+    "mobile",
+    "bank",
+    "cash"
+   ],
+   "zambia": [
+    "mobile",
+    "bank",
+    "cash"
+   ]
+  },
+  "sendwave": {
+   "nigeria": [
+    "bank"
+   ],
+   "ghana": [
+    "mobile"
+   ],
+   "kenya": [
+    "mobile",
+    "bank"
+   ],
+   "uganda": [
+    "mobile",
+    "bank"
+   ],
+   "zambia": [
+    "mobile"
+   ],
+   "zimbabwe": [
+    "mobile"
+   ]
+  },
+  "westernunion": {
+   "uganda": [
+    "cash",
+    "bank"
+   ],
+   "zambia": [
+    "cash",
+    "bank"
+   ]
+  },
+  "worldremit": {
+   "nigeria": [
+    "bank"
+   ],
+   "ghana": [
+    "bank"
+   ],
+   "kenya": [
+    "bank",
+    "mobile"
+   ]
+  }
+ }
+}
