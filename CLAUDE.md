@@ -71,7 +71,7 @@ Times are UTC unless marked Nairobi (Nairobi = UTC+3).
 **Claude scheduled tasks** (tied to the Claude account that created them; they do NOT move with the repo). The full prompts are in `docs/scheduled-tasks/` so they can be recreated word for word on another account:
 | Task | When | What | Prompt |
 |---|---|---|---|
-| SendFair daily rate check | 09:37 and 19:37 Nairobi daily (evening = backup) | Reads provider rates in the owner's built-in browser, updates `data/quotes.json`, `mid-overrides.json`, Monday Trustpilot ratings, history; pushes; sends a WhatsApp-ready summary. Needs the owner's computer + Claude desktop app on. | `docs/scheduled-tasks/daily-rate-check.md` |
+| SendFair daily rate check (**paused 21 Nov 2026: "device_absent", needs the owner's computer + Claude desktop app online**) | 09:37 and 19:37 Nairobi daily (evening = backup) | Reads provider rates in the owner's built-in browser, updates `data/quotes.json`, `mid-overrides.json`, Monday Trustpilot ratings, history; pushes; sends a WhatsApp-ready summary. Needs the owner's computer + Claude desktop app on. | `docs/scheduled-tasks/daily-rate-check.md` |
 | SendFair weekly social trends | Mondays 09:13 Nairobi | vidIQ scan of trending Shorts/Reels/TikToks (≥3 building, 2 transfers, 1 other), writes `data/social/trends.json`. | `docs/scheduled-tasks/weekly-social-trends.md` |
 
 **GitHub Actions** (in `.github/workflows/`, move with the repo):
@@ -109,6 +109,7 @@ If you add, change or delete any of these, update this section and the matching 
 - Affiliate programmes with transfer providers (0 of 26 have `affiliateUrl`); AdSense slots are empty. Website audit (20 Nov 2026) is a Claude doc: https://claude.ai/artifact/GtttXHxF8EmB4pME2Z5eXE
 - Travelpayouts: joined 25 programs (account ID 807652, source 602820). Not yet joined (owner must accept terms): Booking.com, Trip.com, Agoda, DiscoverCars, VisitorsCoverage, GetYourGuide, Viator. Payout method not set yet (owner).
 - Flights (21 Nov 2026): Aviasales links had no dates (`?params=LONNBO1`), so visitors landed on an empty search and couldn't book. Now `travel.flightsUrl` is `/search/{from}{dep}{to}{ret}{adults}` (DDMM), `tripDates()` in `src/partner-links.mjs` fills defaults (in 3 weeks, back 2 weeks later), and each flying-home page has a search form (from, to, dates, adults) posting to `/go/flights?o&d&dep&ret&pax&r`.
+- Build price verification list: `docs/build-price-verification.md` (top 15 lines = 86% of the Kenya estimate). 21 Nov 2026: steel updated (KES 1,200 per Y12 bar), cement brand options added, boundary/septic/kitchen/wardrobe tagged all-in, roof timber marked guide and under review (likely 2–3× too high vs a KES 280k–420k whole-roof guide). Quote Check pilot plan: `docs/quote-check-pilot.md` (free, by hand, 10–20 quotes, success criteria before opening paid).
 - Verify the top 40–50 Nairobi build items with dated quotes, then pilot Quote Check with a small group. Quote Check must only judge lines with a like-for-like benchmark; otherwise say "no benchmark".
 - Later: cost-by-house-size pages per country, real-build cost survey, decide depth for non-priority countries.
 
