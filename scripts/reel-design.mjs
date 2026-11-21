@@ -158,13 +158,13 @@ export function ctaFrame(ctx, k = 1) {
     t(M, 1180, 92, "#fff", esc(c.top), { bold: true }) + t(M, 1290, 92, ctx.pal.accent, esc(c.accent), { bold: true }) +
     t(M, 1380, 40, "#fff", esc(c.sub), { opacity: 0.9 }) +
     `<g transform="translate(${M},1450)"><rect width="${pw}" height="128" rx="64" fill="#ffffff"/>${t(pw / 2, 84, 56, darken(ctx.pal.top), "sendfair.africa", { bold: true, anchor: "middle" })}</g>` +
-    t(M, 1660, 30, "#fff", "Free · independent · 17 African countries", { opacity: 0.8 }) + footer(ctx));
+    t(M, 1660, 34, "#fff", ctx.building ? "Share with someone building back home" : "Share with someone who sends money home", { bold: true, opacity: 0.95 }) + footer(ctx));
 }
 export function endFrame(ctx) {
   const bg = background(ctx.pal, null);
   return svg(bg.defs, bg.body + `<g transform="translate(${W / 2 - 110},660)"><rect width="220" height="220" rx="60" fill="#fff"/>${t(110, 146, 110, ctx.pal.bottom, "SF", { bold: true, anchor: "middle" })}</g>` +
     t(W / 2, 1020, 76, "#fff", "SendFair", { bold: true, anchor: "middle" }) + t(W / 2, 1100, 44, ctx.pal.accent, "sendfair.africa", { bold: true, anchor: "middle" }) +
-    t(W / 2, 1200, 38, "#fff", "Follow us everywhere", { anchor: "middle", opacity: 0.9 }) +
+    t(W / 2, 1200, 38, "#fff", "Follow for a daily rate and build-cost check", { anchor: "middle", opacity: 0.9 }) +
     `<g transform="translate(${W / 2 - 330},1240)"><rect width="660" height="104" rx="52" fill="#ffffff"/>${t(330, 70, 46, darken(ctx.pal.top), "sendfair.africa/follow", { bold: true, anchor: "middle" })}</g>` + footer(ctx));
 }
 
