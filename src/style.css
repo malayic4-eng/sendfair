@@ -845,3 +845,6 @@ details p { margin-top: 10px; color: var(--muted); }
 .sp-form select, .sp-form input, .sp-in { width: 100%; min-width: 0; box-sizing: border-box; min-height: 44px; padding: 6px 10px; border: 1.5px solid var(--line-strong); border-radius: 10px; font: 650 1rem var(--font-body); color: var(--ink); background: var(--surface); }
 .sp-table .sp-in { width: 4.2em; min-height: 36px; padding: 4px 6px; text-align: right; }
 @media print { .site-header, .site-footer, .sp-form, #sf-consent, .btn, .faq, nav.crumbs { display: none !important; } .sp-in { border: 0; } }
+.wa-strip { margin: 16px 0; }
+.wa-strip a, .wa-share { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 16px; border-radius: 999px; background: #11703b; color: #fff; font-weight: 700; text-decoration: none; }
+.wa-strip a:hover, .wa-share:hover { background: #0c5a2f; }
