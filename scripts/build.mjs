@@ -893,8 +893,18 @@ function serviceGroups(prefix) {
   ];
 }
 
+// Only link question pages that will actually be written (a question with no data today is skipped).
+const QUESTION_HAS_DATA = new Map();
+const questionHasData = (q) => {
+  if (!QUESTION_HAS_DATA.has(q.slug)) {
+    let ok = false;
+    try { ok = !!questionPage(q, { config, corridors, buildCosts, midmarket, quotes: quotesFile, providers, feed: wiseFeedData.routes, now: NOW, site, questions }); } catch { ok = false; }
+    QUESTION_HAS_DATA.set(q.slug, ok);
+  }
+  return QUESTION_HAS_DATA.get(q.slug);
+};
 function peopleAlsoAsk({ prefix, country = null, sender = null, topic = "send", limit = 4 }) {
-  const live = questions.filter((q) => q.status === "live" && q.topic === topic);
+  const live = questions.filter((q) => q.status === "live" && q.topic === topic && questionHasData(q));
   if (!live.length) return "";
   const list = relatedQuestions(live, { slug: "__people__", country, sender, topic }, limit);
   if (!list.length) return "";
@@ -1637,6 +1647,8 @@ ${id ? sponsorBox(id, prefix) : ""}
 <p class="build-links"><a href="${link(prefix, "cost-to-build/material-prices/")}">Material prices</a> <a href="${link(prefix, "cost-to-build/same-house/")}">The same 3-bedroom bungalow in every country</a> <a href="${link(prefix, "cost-to-build/what-this-receipt-is/")}">What this receipt prices</a></p>
 ${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(id) ? `<p><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">Lire cette page en français</a></p>` : ""}
 ${id ? `<h2>By size</h2><ul class="route-links">${[2, 3, 4].map((n) => `<li><a href="${link(prefix, `cost-to-build/${id}/${n}-bedroom/`)}">${n}-bedroom house</a></li>`).join("")}</ul>` : ""}
+${id && MATERIAL_PAGE_COUNTRIES.includes(id) ? `<h2>Material prices in ${esc(buildCosts.countries[id].name)}</h2><ul class="route-links">${MATERIAL_PAGES.filter((m) => BC.priceOf(buildCosts, id, m.key, midmarket.rates || {})).map((m) => `<li><a href="${link(prefix, `cost-to-build/${id}/${m.slug}/`)}">${esc(capFirst(m.name))}</a></li>`).join("")}</ul>` : ""}
+<p><a href="${link(prefix, "cost-to-build/stage-payments/")}">Plan payments to your builder, stage by stage</a></p>
 ${id ? (() => { const rc = regionalFactors.countries[id]; const filled = rc ? Object.entries(rc.cities || {}).filter(([, city]) => city.factor > 0) : []; return filled.length ? `<h2>By city</h2><ul class="route-links">${filled.map(([slug, city]) => `<li><a href="${link(prefix, `cost-to-build/${id}/${slug}/`)}">${esc(city.name)}</a></li>`).join("")}</ul>` : ""; })() : ""}
 ${id ? peopleAlsoAsk({ prefix, country: id, topic: "build" }) : ""}
 <h2 id="countries">${id ? "Other countries" : "All countries"}</h2>
@@ -1668,6 +1680,8 @@ ${faqBlock(faqs)}
     urls.push(rel);
   }
   writeMaterialPrices();
+  writeMaterialPricePages();
+  writeStagePlanner();
   writeSameHouse();
   writeReceiptPage();
   writeFrenchHouses();
@@ -1809,6 +1823,171 @@ function writeMaterialPrices() {
 ${rows}
 <p><a href="${link("../../", "cost-to-build/")}">Open the house calculator</a> to see these prices turned into bags, bars and days.</p>
 </article></div></section>`
+  }));
+  urls.push(rel);
+}
+
+// One page per material per country for the exact searches people type ("price of cement in
+// Kenya", "price of a lorry of sand in Nairobi"). Same prices and sources as the calculator. No
+// structural quantities (handbook rule): the calculator gives a planning take-off, an engineer the rest.
+const MATERIAL_PAGES = [
+  { key: "cement", slug: "price-of-cement", name: "cement", h: "a 50kg bag of cement", unit: "per 50kg bag", q: (c) => `How much is a bag of cement in ${c}?` },
+  { key: "steel", slug: "price-of-steel-bars", name: "steel bars", h: "steel reinforcement bar", unit: "per kg", bar: true, q: (c) => `How much is a 12mm steel bar in ${c}?` },
+  { key: "blocks", slug: "price-of-blocks", name: "building blocks", h: "a building block", unit: "each", q: (c) => `How much is a building block in ${c}?` },
+  { key: "sand", slug: "price-of-sand", name: "sand", h: "building sand", unit: "per m³", q: (c) => `How much is a lorry of sand in ${c}?` },
+  { key: "ballast", slug: "price-of-ballast", name: "ballast", h: "ballast (aggregate)", unit: "per m³", q: (c) => `How much is a lorry of ballast in ${c}?` },
+  { key: "roof", slug: "price-of-roofing-sheets", name: "roofing sheets", h: "roofing sheets", unit: "per m² of cover", q: (c) => `How much are roofing sheets in ${c}?` },
+  { key: "tiles", slug: "price-of-tiles", name: "floor tiles", h: "ceramic floor tiles", unit: "per m²", q: (c) => `How much do floor tiles cost in ${c}?` },
+  { key: "mason", slug: "mason-day-rate", name: "a mason", h: "a mason's day", unit: "per day", q: (c) => `How much does a mason charge per day in ${c}?` }
+];
+const MATERIAL_PAGE_COUNTRIES = ["kenya", "nigeria", "ghana"];
+function writeMaterialPricePages() {
+  const rates = midmarket.rates || {};
+  const year = new Date(NOW).getUTCFullYear();
+  const conv = (n, from, to) => rates[from] && rates[to] ? n / rates[from] * rates[to] : null;
+  for (const id of MATERIAL_PAGE_COUNTRIES) {
+    const c = buildCosts.countries[id];
+    if (!c) continue;
+    const prefix = "../../../";
+    const avail = MATERIAL_PAGES.filter((m) => BC.priceOf(buildCosts, id, m.key, rates));
+    for (const m of avail) {
+      const rel = `cost-to-build/${id}/${m.slug}/`;
+      const priced = BC.priceOf(buildCosts, id, m.key, rates);
+      const choices = BC.choicesFor(buildCosts, id, m.key, rates);
+      const prices = choices.map((o) => o.price).filter((n, i, a) => a.indexOf(n) === i);
+      const lo = Math.min(...prices), hi = Math.max(...prices);
+      const money = (n) => moneyPlain(n, c.currency);
+      const abroad = ["GBP", "USD", "EUR"].map((cur) => { const v = conv(priced.price, c.currency, cur); return v ? plain(R.money(v, cur)) : null; }).filter(Boolean);
+      const barLine = m.bar && buildCosts.barKg ? ` A 12m length of 12mm bar (about ${buildCosts.barKg} kg) works out at about ${money(priced.price * buildCosts.barKg)}.` : "";
+      const label = priced.guide || !priced.quoted ? "guide" : "listed price";
+      const lorryM = /([A-Z]{3} [\d,]+\s*[–-]\s*[\d,]+) for an? ([\w-]+ lorry)/.exec(priced.source || "");
+      const lorryLine = lorryM ? ` A full ${lorryM[2]} was listed at ${lorryM[1].replace(/\s*[–-]\s*/, "–")}.` : "";
+      const answer = `${capFirst(m.h)} costs about ${money(priced.price)} ${m.unit} in ${c.city}${prices.length > 1 ? `, with listed options from ${money(lo)} to ${money(hi)}` : ""}.${barLine}${lorryLine}`;
+      const optionRows = (choices.length ? choices : [{ name: m.name, price: priced.price, source: priced.source, url: priced.url }]).map((o) => `<tr><td>${esc(o.name || capFirst(m.name))}</td><td class="num">${money(o.price)}</td><td>${esc(o.source || priced.source)}${o.url ? ` <a href="${esc(o.url)}" rel="nofollow noopener" target="_blank">source</a>` : ""}</td></tr>`).join("");
+      const others = MATERIAL_PAGE_COUNTRIES.filter((x) => x !== id && buildCosts.countries[x] && BC.priceOf(buildCosts, x, m.key, rates));
+      const siblings = avail.filter((x) => x !== m);
+      const faqs = [
+        [(/lorry/.test(m.q(c.name)) && !lorryM) ? `How much is ${m.name} per cubic metre in ${c.name}?` : m.q(c.name), answer + ` Checked ${buildCosts.updated}; prices are ${c.pricesDated ? `dated ${c.pricesDated}` : "from published lists"}.`],
+        [`What is that in pounds or dollars?`, abroad.length ? `At today's mid-market rate, ${money(priced.price)} is about ${abroad.join(", ")}. Your transfer service's rate will be a little lower; compare it on SendFair before you send.` : `Use the SendFair rate pages for today's rate.`],
+        [`How much ${m.name} does a house need?`, `It depends on the drawings, the soil and the engineer's design. SendFair's house calculator gives a planning take-off for a simple house, but for foundations, slabs and columns use your engineer's bill of quantities.`],
+        [`Why do prices differ between shops?`, `Brand, grade, transport to site and the quantity you buy all move the price. Ask for a written quote that names the brand and the delivery charge, and compare it with the range here.`]
+      ];
+      const trail = [[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], [c.name, `cost-to-build/${id}/`], [capFirst(m.name), rel]];
+      const body = `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>Price of ${esc(m.name)} in ${esc(c.name)} (${year})</h1>
+<p class="lede"><strong>${answer}</strong> ${abroad.length ? `That is about ${esc(abroad.join(" / "))} at today's mid-market rate.` : ""} Checked ${esc(buildCosts.updated)}${c.pricesDated ? `, prices dated ${esc(c.pricesDated)}` : ""}. This is a ${label}, not a quote.</p>
+<div class="table-wrap"><table class="rates-table price-sheet"><caption>${esc(capFirst(m.name))} in ${esc(c.city)}, ${esc(m.unit)}</caption><thead><tr><th>Option</th><th class="num">Price (${esc(c.currency)})</th><th>Source and date</th></tr></thead><tbody>${optionRows}</tbody></table></div>
+<p>Prices include no delivery to site unless the source says so. Ask for a written quote that names the brand and the delivery charge.</p>
+<h2>Plan the whole build</h2>
+<p><a class="btn" href="${link(prefix, `cost-to-build/${id}/`)}">Price a whole house in ${esc(c.name)}</a> <a class="btn btn-ghost" href="${link(prefix, "cost-to-build/stage-payments/")}">Plan payments to your builder</a></p>
+<p>Sending money for materials? <a href="${link(prefix, hubPath(receiverById[id] || { id }))}">Compare what arrives in ${esc(c.name)} today</a>.</p>
+<h2>Other prices in ${esc(c.name)}</h2>
+<ul class="route-links">${siblings.map((x) => `<li><a href="${link(prefix, `cost-to-build/${id}/${x.slug}/`)}">${esc(capFirst(x.name))}</a></li>`).join("")}</ul>
+${others.length ? `<h2>${esc(capFirst(m.name))} in other countries</h2><ul class="route-links">${others.map((x) => `<li><a href="${link(prefix, `cost-to-build/${x}/${m.slug}/`)}">${esc(buildCosts.countries[x].name)}</a></li>`).join("")}</ul>` : ""}
+<h2>Questions</h2>
+${faqs.map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join("\n")}
+</article></div></section>`;
+      write(rel + "index.html", page({
+        prefix, canonical: rel, buildPage: false, rank: false, og: "home",
+        title: fitTitle([`Price of ${m.name} in ${c.name} (${year})`, `${capFirst(m.name)} price in ${c.name} (${year})`], 52) + ` · ${config.siteName}`,
+        description: `${answer} Sources and dates for every price, checked ${buildCosts.updated}.`.slice(0, 160),
+        jsonld: [faqLd(faqs), crumbs(trail)],
+        body
+      }));
+      urls.push(rel);
+    }
+  }
+}
+
+// "Pay your builder in stages": split a build budget into stages, see when each payment is due, what
+// it is in the currency you earn, and open the comparison for exactly that amount. Planning split only:
+// the contract's payment schedule comes first.
+const BUILD_STAGES = [
+  ["Site, setting out and foundation", 15, 1],
+  ["Walls up to the ring beam", 25, 2],
+  ["Roof", 15, 1],
+  ["Plaster, floors, ceilings, doors and windows", 30, 2],
+  ["Plumbing, wiring, septic tank and boundary", 15, 1]
+];
+function writeStagePlanner() {
+  const rates = midmarket.rates || {};
+  const rel = "cost-to-build/stage-payments/", prefix = "../../";
+  const countries = Object.keys(buildCosts.countries).map((id) => {
+    const est = BC.estimate(buildCosts, id, 110, 1, rates);
+    return est ? { id, name: buildCosts.countries[id].name, cur: est.currency, est: Math.round(est.total / 1000) * 1000 } : null;
+  }).filter(Boolean);
+  const senders = corridors.senders.map((x) => ({ id: x.id, name: capFirst(x.short), cur: x.currency }));
+  const data = { countries, senders, rates, stages: BUILD_STAGES, root: prefix, routes: Object.fromEntries(corridors.senders.flatMap((x) => corridors.receivers.map((r) => [`${x.id}-${r.id}`, corridorPath(x, r)]))) };
+  const faqs = [
+    ["How should I pay a builder when I'm abroad?", "In stages, against work you can see: photos, a video call or a trusted person on site. Agree the stages and amounts in the contract, and never pay far ahead of the work."],
+    ["What percentage is each stage?", "It varies with the design and the contract. This planner starts from a common split (foundation 15%, walls 25%, roof 15%, finishes 30%, services 15%) that you can change. Your contract's schedule comes first."],
+    ["When should I send each payment?", "A few days before the stage is due, so the money has arrived. Set a rate alert and send when the rate is good, not on the day the builder asks."],
+    ["Is the budget here a quote?", "No. It starts from SendFair's estimate for a simple 3-bedroom bungalow (110 m²) without land or a contractor's fee. Type your own budget or your builder's quote total."]
+  ];
+  const body = `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, [[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], ["Pay your builder in stages", rel]])}
+<h1>Pay your builder in stages</h1>
+<p class="lede">Split your build budget into stages, see when each payment is due and what it is in the currency you earn, then compare the best service for exactly that amount. Free; nothing is sent anywhere.</p>
+<form class="sp-form" id="sp-form" onsubmit="return false">
+<label>Building in<select id="sp-country"></select></label>
+<label>Sending from<select id="sp-sender"></select></label>
+<label><span>Budget (<span id="sp-cur">KES</span>)</span><input id="sp-budget" type="number" min="0" step="1000" inputmode="numeric"></label>
+<label>First payment<input id="sp-start" type="month"></label>
+</form>
+<p class="note" id="sp-estnote"></p>
+<div class="table-wrap"><table class="rates-table sp-table"><thead><tr><th scope="col">Stage</th><th scope="col" class="num">Share</th><th scope="col" class="num">Months</th><th scope="col" class="num">Amount</th><th scope="col">Send by</th><th scope="col" class="num">About</th><th scope="col"></th></tr></thead><tbody id="sp-rows"></tbody><tfoot><tr><th scope="row">Total</th><td class="num" id="sp-pct"></td><td></td><td class="num" id="sp-total"></td><td></td><td class="num" id="sp-total-abroad"></td><td></td></tr></tfoot></table></div>
+<p class="note" id="sp-warn" role="status"></p>
+<p><button type="button" class="btn btn-ghost" id="sp-print">Print or save as PDF</button> <a class="btn btn-ghost" href="${link(prefix, "")}#alerts">Get a rate alert before each payment</a></p>
+<p class="note">"About" uses today's mid-market rate; the amount you send will be a little more after the service's margin. The split is a planning guide, not a rule: your contract's payment schedule comes first. Pay against work done and seen, never far ahead.</p>
+<h2>Before the first payment</h2>
+<ul>
+<li>Get drawings and a bill of quantities, and a soil test before the foundation.</li>
+<li>Put the stages, amounts and what "done" means for each stage in the contract.</li>
+<li>Ask for photos or a video call at the end of each stage; have someone you trust visit.</li>
+<li>Check the builder's quote line by line against <a href="${link(prefix, "cost-to-build/")}">local prices</a>.</li>
+</ul>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</article></div></section>
+<script>window.SF_SP=${JSON.stringify(data).replace(/</g, "\\u003c")};</script>
+<script>
+(function(){var D=window.SF_SP,$=function(i){return document.getElementById(i)},st={};
+function load(){try{st=JSON.parse(localStorage.getItem("sf-stages")||"{}")}catch(e){st={}}}
+function save(){try{localStorage.setItem("sf-stages",JSON.stringify(st))}catch(e){}}
+function fmt(n,c){return c+" "+Math.round(n).toLocaleString("en")}
+function country(){return D.countries.filter(function(c){return c.id===$("sp-country").value})[0]}
+function sender(){return D.senders.filter(function(s){return s.id===$("sp-sender").value})[0]}
+function conv(n,from,to){var r=D.rates;return r[from]&&r[to]?n/r[from]*r[to]:null}
+load();
+$("sp-country").innerHTML=D.countries.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>'}).join("");
+$("sp-sender").innerHTML=D.senders.map(function(s){return '<option value="'+s.id+'">'+s.name+'</option>'}).join("");
+$("sp-country").value=st.country||"kenya";$("sp-sender").value=st.sender||"uk";
+var now=new Date(),ym=now.getFullYear()+"-"+String(now.getMonth()+2>12?1:now.getMonth()+2).padStart(2,"0");
+if(now.getMonth()===11)ym=(now.getFullYear()+1)+"-01";
+$("sp-start").value=st.start||ym;
+var stages=(st.stages&&st.stages.length===D.stages.length)?st.stages:D.stages.map(function(x){return{pct:x[1],months:x[2]}});
+function setBudget(force){var c=country();if(force||!(st.budget>0)||st.country!==c.id){$("sp-budget").value=c.est}else $("sp-budget").value=st.budget;$("sp-cur").textContent=c.cur;$("sp-estnote").textContent="Starting budget: SendFair's estimate for a simple 3-bedroom bungalow (110 m²) in "+c.name+", "+fmt(c.est,c.cur)+", no land or contractor's fee. Type your own budget or your builder's quote total."}
+function render(){var c=country(),s=sender(),b=parseFloat($("sp-budget").value)||0,start=($("sp-start").value||ym).split("-"),y=+start[0],m=+start[1]-1,tp=0,ta=0,rows="";
+stages.forEach(function(x,i){var amt=b*x.pct/100,ab=conv(amt,c.cur,s.cur),d=new Date(Date.UTC(y,m,1)),when=d.toLocaleDateString("en-GB",{month:"short",year:"numeric",timeZone:"UTC"});tp+=x.pct;ta+=ab||0;
+var route=D.routes[s.id+"-"+c.id],href=route&&ab?D.root+route+"?amount="+Math.ceil(ab*1.02/10)*10:"";
+rows+='<tr><th scope="row">'+D.stages[i][0]+'</th><td class="num"><input aria-label="Share for '+D.stages[i][0]+'" class="sp-in" data-i="'+i+'" data-k="pct" type="number" min="0" max="100" value="'+x.pct+'">%</td><td class="num"><input aria-label="Months for '+D.stages[i][0]+'" class="sp-in" data-i="'+i+'" data-k="months" type="number" min="0" max="24" value="'+x.months+'"></td><td class="num">'+fmt(amt,c.cur)+'</td><td>'+when+'</td><td class="num">'+(ab?fmt(ab,s.cur):"–")+'</td><td>'+(href?'<a class="go" '+'hr'+'ef="'+href+'">Compare</a>':"")+'</td></tr>';
+m+=Math.max(0,+x.months||0)});
+$("sp-rows").innerHTML=rows;$("sp-pct").textContent=tp+"%";$("sp-total").textContent=fmt(b*tp/100,c.cur);$("sp-total-abroad").textContent=ta?fmt(ta,s.cur):"–";
+$("sp-warn").textContent=tp===100?"":"The shares add up to "+tp+"%, not 100%.";
+st={country:c.id,sender:s.id,budget:b,start:$("sp-start").value,stages:stages};save()}
+$("sp-rows").addEventListener("input",function(e){var t=e.target;if(!t.classList.contains("sp-in"))return;stages[+t.getAttribute("data-i")][t.getAttribute("data-k")]=Math.max(0,parseFloat(t.value)||0);clearTimeout(window.__spT);window.__spT=setTimeout(function(){var f=document.activeElement&&document.activeElement.getAttribute("data-i")+document.activeElement.getAttribute("data-k");render();if(f){var el=document.querySelector('.sp-in[data-i="'+f.charAt(0)+'"][data-k="'+f.slice(1)+'"]');if(el){el.focus();var v=el.value;el.value="";el.value=v}}},500)});
+$("sp-country").addEventListener("change",function(){setBudget(true);render()});
+["sp-sender","sp-budget","sp-start"].forEach(function(id){$(id).addEventListener("input",render)});
+$("sp-print").addEventListener("click",function(){window.print()});
+setBudget(false);render()})();
+</script>`;
+  write(rel + "index.html", page({
+    prefix, canonical: rel, buildPage: false, rank: false, og: "home",
+    title: `Pay your builder in stages: payment planner · ${config.siteName}`,
+    description: "Split a house budget in Africa into stages, see when each payment is due and what it is in pounds, dollars or euros, then compare the best transfer for that amount.",
+    jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Cost to build a house", "cost-to-build/"], ["Pay your builder in stages", rel]]), appLd("Builder payment planner", `${site}/${rel}`, "Plan stage payments for a house build in Africa and compare transfer costs for each payment.")],
+    body
   }));
   urls.push(rel);
 }
@@ -2330,6 +2509,7 @@ ${s.currency !== r.currency ? `<p class="note"><a href="${link(prefix, `rates/${
 ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
 ${houseNote(r, prefix)}
 ${flyNote(r, prefix)}
+${(config.priorityRoutes || []).includes(`${s.id}-${r.id}`) && monthlyGuideOk(s, r) ? `<p class="fly-note"><a href="${link(prefix, `guides/best-way-to-send-money/${s.id}-to-${r.id}/`)}">This month's guide: the best way to send money from ${esc(s.short)} to ${esc(r.name)}</a></p>` : ""}
 <h2 id="tips">Good to know before you send</h2>
 <ul class="tips">${tipsFor(s, r).map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
 ${s.region === "gulf" ? `<p class="note"><a href="${link(prefix, GULF_GUIDE)}">Exchange house, bank, wallet or app? How the ways of sending from the Gulf compare</a></p>` : ""}
@@ -2846,9 +3026,98 @@ ${faqBlock(faqs)}
 }
 
 writeRatesIndex();
+writeMonthlyGuides();
+
+// Monthly "best way to send" guides for the busiest routes. Stable URL, month in the title, rebuilt
+// with every data update from today's ranking and this month's daily history (data/history.json).
+function monthlyGuideOk(s, r) { return routeContext(s, r, "", config.defaultAmounts[s.currency]).rows.filter((x) => !x.stale).length >= 2; }
+function writeMonthlyGuides() {
+  const monthName = new Date(NOW).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+  const monthKey = new Date(NOW).toISOString().slice(0, 7);
+  const made = [];
+  for (const key of config.priorityRoutes || []) {
+    const [sid, rid] = key.split("-");
+    const s = senderById[sid], r = receiverById[rid];
+    if (!s || !r) continue;
+    const rel = `guides/best-way-to-send-money/${s.id}-to-${r.id}/`, prefix = "../../../";
+    const amount = config.defaultAmounts[s.currency];
+    const ctx = routeContext(s, r, prefix, amount);
+    const fresh = ctx.rows.filter((x) => !x.stale);
+    if (!monthlyGuideOk(s, r)) continue;
+    const top = fresh[0], last = fresh[fresh.length - 1];
+    const days = Object.entries(history.days || {}).filter(([d, v]) => d.startsWith(monthKey) && v[key] && v[key].best).sort(([a], [b]) => a.localeCompare(b));
+    const wins = {};
+    for (const [, v] of days) for (const id of v[key].by || []) wins[id] = (wins[id] || 0) + 1;
+    const winList = Object.entries(wins).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id, n]) => `${(providers[id] || { name: id }).name} (${n} of ${days.length} days)`);
+    const mids = days.map(([, v]) => v[key].mid).filter((x) => x > 0);
+    const lo = mids.length ? Math.min(...mids) : null, hi = mids.length ? Math.max(...mids) : null;
+    const move = mids.length > 1 ? (mids[mids.length - 1] - mids[0]) / mids[0] * 100 : null;
+    const amt = plain(R.money(amount, s.currency, 0));
+    const gap = top.gets - last.gets;
+    const answer = `Right now ${top.p.name} gives the most: ${amt} arrives as ${plain(R.money(top.gets, r.currency))} after fees and the exchange-rate margin. The lowest of the ${fresh.length} services we checked gives ${plain(R.money(last.gets, r.currency))}, so choosing well is worth about ${plain(R.money(gap, r.currency))} on this transfer.`;
+    const monthLine = days.length >= 3
+      ? `So far in ${monthName} (${days.length} days recorded), the best service most often was ${joinList(winList)}. The mid-market rate ranged from ${R.rateStr(lo)} to ${R.rateStr(hi)} ${r.currency} per ${s.currency}${move != null ? `, ${move >= 0 ? "up" : "down"} ${Math.abs(move).toFixed(1)}% since the start of the month` : ""}.`
+      : `We have only just started recording ${monthName}; the month's summary fills in as the days pass.`;
+    const faqs = [
+      [`What is the best way to send money from ${s.short} to ${r.name} in ${monthName}?`, answer],
+      [`Which service was best most often this month?`, days.length >= 3 ? `${joinList(winList)}. The best service changes from day to day, so compare on the day you send.` : `Not enough days recorded yet this month.`],
+      [`Is the cheapest fee the best deal?`, `Not always. A service with no fee can still give less if its exchange rate is lower. SendFair ranks by the amount that actually arrives in ${r.name}.`],
+      [`How do I get told when the rate is good?`, `Set a free rate alert on SendFair for ${s.currency} to ${r.currency}. You get one email in the morning, or one when your target rate is reached.`]
+    ];
+    const trail = [[config.siteName, ""], ["Guides", "guides/"], [`${capFirst(s.short)} to ${r.name}`, rel]];
+    const rowsHtml = fresh.slice(0, 6).map((x, i) => `<tr><th scope="row">${i + 1}. ${esc(x.p.name)}</th><td class="num${i === 0 ? " top" : ""}">${esc(plain(R.money(x.gets, r.currency)))}</td><td class="num">${x.ev.fee < 0.005 ? "No fee" : esc(plain(R.money(x.ev.fee, s.currency, 2)))}</td><td class="num">${esc(R.rateStr(x.ev.rate))}</td></tr>`).join("");
+    const body = `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>Best way to send money from ${esc(s.short)} to ${esc(r.name)} (${esc(monthName)})</h1>
+<p class="lede"><strong>${esc(answer)}</strong> Checked ${esc(dateLong)}.</p>
+<div class="table-wrap"><table class="rates-table"><caption>${esc(amt)} from ${esc(s.short)} to ${esc(r.name)}, best first</caption><thead><tr><th scope="col">Service</th><th scope="col" class="num">Arrives (${esc(r.currency)})</th><th scope="col" class="num">Fee</th><th scope="col" class="num">Rate</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>
+<p><a class="btn" href="${link(prefix, corridorPath(s, r))}">Compare your own amount</a> <a class="btn btn-ghost" href="${link(prefix, "")}#alerts">Get a free rate alert</a></p>
+<h2>${esc(monthName)} so far</h2>
+<p>${esc(monthLine)}</p>
+<h2>Five ways to get more to arrive</h2>
+<ol>
+<li>Compare on the day you send. The best service on this route changes often.</li>
+<li>Look at what arrives, not the fee. A "no fee" offer can hide a weaker exchange rate.</li>
+<li>Check first-transfer offers, but compare the second transfer too: that is the price you'll keep paying.</li>
+<li>Choose how it's paid out. Mobile money, bank deposit and cash pickup can be priced differently.</li>
+<li>Around public holidays, send a few days early: banks and agents can be slower.</li>
+</ol>
+<h2>Sending for a house or a trip?</h2>
+<p><a href="${link(prefix, `cost-to-build/${r.id}/`)}">Price a house in ${esc(r.name)}</a>${hasFlyPage(r) ? ` · <a href="${link(prefix, flyPath(r))}">Flights home to ${esc(r.name)}</a>` : ""} · <a href="${link(prefix, "cost-to-build/stage-payments/")}">Plan payments to your builder</a></p>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</article></div></section>`;
+    write(rel + "index.html", page({
+      prefix, canonical: rel, og: slug(s, r),
+      title: fitTitle([`Best way to send money from ${s.short} to ${r.name} (${monthName})`, `Send money from ${s.short} to ${r.name} (${monthName})`, `${capFirst(s.short)} to ${r.name}: best service (${monthName})`], 60) + ` | ${config.siteName}`,
+      description: `${answer}`.slice(0, 158),
+      jsonld: [faqLd(faqs), crumbs(trail)],
+      body
+    }));
+    urls.push(rel);
+    made.push([s, r, rel]);
+  }
+  if (made.length) {
+    const rel = "guides/best-way-to-send-money/";
+    write(rel + "index.html", page({
+      prefix: "../../", canonical: rel, rank: false, og: "home",
+      title: `Best way to send money to Africa (${monthName}) | ${config.siteName}`,
+      description: `Monthly guides for the busiest routes: which service gives the most this month, how the rate moved, and how to get more to arrive.`,
+      jsonld: [crumbs([[config.siteName, ""], ["Guides", "guides/"], ["Best way to send money", rel]])],
+      body: `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav("../../", [[config.siteName, ""], ["Guides", "guides/"], ["Best way to send money", rel]])}
+<h1>Best way to send money to Africa (${esc(monthName)})</h1>
+<p class="lede">One guide per busy route, rebuilt every time the rates are checked.</p>
+<ul class="route-links big">${made.map(([s, r, u]) => `<li><a href="${link("../../", u)}">${esc(capFirst(s.short))} to ${esc(r.name)}</a></li>`).join("")}</ul>
+</article></div></section>`
+    }));
+    urls.push(rel);
+  }
+}
 
 // Question pages from data/questions.json: only live entries with data at build time.
-const questionDeps = { config, corridors, buildCosts, midmarket, quotes: quotesFile, providers, feed: wiseFeedData.routes, now: NOW, site, questions };
+const questionsWithData = questions.filter((q) => q.status !== "live" || questionHasData(q));
+const questionDeps = { config, corridors, buildCosts, midmarket, quotes: quotesFile, providers, feed: wiseFeedData.routes, now: NOW, site, questions: questionsWithData };
 for (const q of questions) {
   if (q.status !== "live") continue;
   const data = questionPage(q, questionDeps);
@@ -2856,7 +3125,7 @@ for (const q of questions) {
   write(data.canonical + "index.html", page({ prefix: data.prefix, canonical: data.canonical, title: data.title, description: data.description, jsonld: data.jsonld, body: data.body }));
   urls.push(data.canonical);
 }
-const questionsIdx = questionsIndex(questions, questionDeps);
+const questionsIdx = questionsIndex(questionsWithData, questionDeps);
 write("questions/index.html", page({ prefix: "../", canonical: "questions/", title: questionsIdx.title, description: questionsIdx.description, jsonld: questionsIdx.jsonld, noindex: questionsIdx.noindex, body: questionsIdx.body }));
 if (questionsIdx.liveCount) urls.push("questions/");
 
@@ -3225,6 +3494,9 @@ function writeGuides() {
     ...guides.pillars.map((p) => ({ kind: "guide", slug: p.slug, title: p.title, description: p.description || "", url: `guides/${p.slug}/`, tags: [] })),
     ...Object.entries(buildCosts.countries || {}).map(([id, c]) => ({ kind: "house", slug: id, title: `Cost to build a house in ${c.name}`, description: `Receipt check for a simple house in ${c.name}.`, url: `cost-to-build/${id}/`, tags: [id] })),
     { kind: "house", slug: "material-prices", title: "Material prices", description: "Cement, steel, blocks, sand and a mason day.", url: "cost-to-build/material-prices/", tags: ["prices"] },
+    { kind: "house", slug: "stage-payments", title: "Pay your builder in stages", description: "Plan stage payments and compare the transfer for each one.", url: "cost-to-build/stage-payments/", tags: ["planner", "builder", "payments"] },
+    ...MATERIAL_PAGE_COUNTRIES.flatMap((id) => MATERIAL_PAGES.filter((m) => BC.priceOf(buildCosts, id, m.key, midmarket.rates || {})).map((m) => ({ kind: "house", slug: `${id}-${m.slug}`, title: `Price of ${m.name} in ${buildCosts.countries[id].name}`, description: `${capFirst(m.h)} in ${buildCosts.countries[id].city}, with sources.`, url: `cost-to-build/${id}/${m.slug}/`, tags: [id, "prices", m.key] }))),
+    ...(config.priorityRoutes || []).filter((k) => fs.existsSync(path.join(OUT, `guides/best-way-to-send-money/${k.replace("-", "-to-")}/index.html`))).map((k) => { const [a, b] = k.split("-"); return { kind: "guide", slug: `best-way-${k}`, title: `Best way to send money from ${senderById[a].short} to ${receiverById[b].name}`, description: "This month's best service and rate moves.", url: `guides/best-way-to-send-money/${a}-to-${b}/`, tags: [b, a] }; }),
     { kind: "house", slug: "same-house", title: "The same house in every country", description: "One floor area priced in each country.", url: "cost-to-build/same-house/", tags: ["prices"] },
     { kind: "house", slug: "calculator", title: "Cost to build a house", description: "The house calculator.", url: "cost-to-build/", tags: ["calculator"] },
     { kind: "house", slug: "what-this-receipt-is", title: "What this receipt prices", description: "A block-and-sheet house. Factory systems are a different product.", url: "cost-to-build/what-this-receipt-is/", tags: ["receipt"] },
