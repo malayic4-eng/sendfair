@@ -1477,6 +1477,286 @@ function flightForm(prefix, r, senders, ports) {
 </form>`;
 }
 
+// ---------- Content pack 2 (21 Nov 2026) ----------
+function waChannel() { return config.whatsappChannelUrl ? `<p class="wa-strip"><a href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Get today's best rate on WhatsApp: follow the SendFair channel</a></p>` : ""; }
+function waShare(text, url) { return `<a class="wa-share" href="https://wa.me/?text=${encodeURIComponent(text + " " + url)}" target="_blank" rel="noopener">Share on WhatsApp</a>`; }
+function walletSlug(w) { return w.toLowerCase().replace(/\([^)]*\)/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+function walletList(r) {
+  const wallets = networks(r).filter((w) => !/linked/i.test(w));
+  if (!wallets.length) return [];
+  const n = corridors.senders.reduce((a, s) => a + mobileRows(s, r).length, 0);
+  return n >= 2 ? wallets : [];
+}
+function walletLinks(r, prefix) {
+  const ws = walletList(r);
+  return ws.length ? `<p class="fly-note"><strong>Sending to a wallet?</strong> ${ws.map((w) => `<a href="${link(prefix, `send-money-to/${r.id}/${walletSlug(w)}/`)}">${esc(w)}</a>`).join(" · ")}</p>` : "";
+}
+function mobileRows(s, r) {
+  const k = `${s.id}-${r.id}`;
+  const list = quotes[k] || [];
+  if (!list.length) return [];
+  const mid = R.midRate(midmarket, s.currency, r.currency);
+  return R.rank({ list, providers, amount: config.defaultAmounts[s.currency], payout: "mobile", mid, now: NOW, staleH, hideH, feed: wiseFeedData.routes[k], feedTiers: (wiseFeedData.tiers || {})[k], country: r.iso2, sharedCurrency: SHARED_CUR.has(r.currency), refAmount: config.defaultAmounts[s.currency] }).filter((x) => !x.stale);
+}
+
+// "Send money to M-Pesa / MTN MoMo / OPay ..." : one page per wallet named for a country.
+function writeWalletPages() {
+  const made = [];
+  for (const r of corridors.receivers) {
+    const wallets = walletList(r);
+    if (!wallets.length) continue;
+    const bySender = corridors.senders.map((s) => ({ s, rows: mobileRows(s, r) })).filter((x) => x.rows.length).sort((a, b) => (b.s.id === "uk") - (a.s.id === "uk"));
+    if (!bySender.length || bySender.reduce((a, x) => a + x.rows.length, 0) < 2) continue;
+    for (const w of wallets) {
+      const ws = walletSlug(w);
+      const rel = `send-money-to/${r.id}/${ws}/`, prefix = "../../../";
+      const others = wallets.filter((x) => x !== w);
+      const first = bySender[0], top = first.rows[0];
+      const answer = `From ${first.s.short}, ${top.p.name} gives the most to mobile money in ${r.name} today: ${plain(R.money(config.defaultAmounts[first.s.currency], first.s.currency, 0))} arrives as ${plain(R.money(top.gets, r.currency))}.`;
+      const blocks = bySender.map(({ s, rows }) => `<h2>From ${esc(s.short)}</h2><div class="table-wrap"><table class="rates-table"><caption>${esc(plain(R.money(config.defaultAmounts[s.currency], s.currency, 0)))} to mobile money in ${esc(r.name)}</caption><thead><tr><th scope="col">Service</th><th scope="col" class="num">Arrives (${esc(r.currency)})</th><th scope="col" class="num">Fee</th></tr></thead><tbody>${rows.slice(0, 5).map((x, i) => `<tr><th scope="row">${i + 1}. ${esc(x.p.name)}</th><td class="num${i === 0 ? " top" : ""}">${esc(plain(R.money(x.gets, r.currency)))}</td><td class="num">${x.ev.fee < 0.005 ? "No fee" : esc(plain(R.money(x.ev.fee, s.currency, 2)))}</td></tr>`).join("")}</tbody></table></div><p><a class="btn btn-ghost" href="${link(prefix, corridorPath(s, r))}">Compare your amount from ${esc(s.short)}</a></p>`).join("\n");
+      const faqs = [
+        [`What is the cheapest way to send money to ${w} in ${r.name}?`, answer + " The best service changes, so compare on the day you send."],
+        [`Do all these services pay into ${w}?`, `They pay out to mobile money wallets in ${r.name}. Wallet choice can vary by service and country, so check that ${w} is offered when you add your recipient.`],
+        [`What do I need to send to ${w}?`, `The recipient's full name as registered on the wallet and their ${w} phone number with the country code. A name that doesn't match the wallet can delay or stop the payment.`],
+        [`Are there limits on mobile money?`, `Yes. Wallets have daily and balance limits set by the provider and regulator. For a large sum, such as a builder's payment, a bank deposit may be better.`]
+      ];
+      const trail = [[config.siteName, ""], ["Send money to", "send-money-to/"], [r.name, hubPath(r)], [w, rel]];
+      const url = `${site}/${rel}`;
+      const body = `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>Send money to ${esc(w)} in ${esc(r.name)}</h1>
+<p class="lede"><strong>${esc(answer)}</strong> Ranked by the amount that arrives in the wallet after fees and the exchange-rate margin. Checked ${esc(dateLong)}.</p>
+${blocks}
+<p>${waShare(`Cheapest way to send money to ${w} today:`, url)}</p>
+${waChannel()}
+<h2>Before you send</h2>
+<ul><li>Use the name exactly as it is registered on the ${esc(w)} account.</li><li>Enter the number with the country code, and double-check it: mobile money payments are hard to reverse.</li><li>For large amounts, check the wallet's limits or choose bank deposit.</li></ul>
+${others.length ? `<h2>Other wallets in ${esc(r.name)}</h2><ul class="route-links">${others.map((x) => `<li><a href="${link(prefix, `send-money-to/${r.id}/${walletSlug(x)}/`)}">${esc(x)}</a></li>`).join("")}</ul>` : ""}
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</article></div></section>`;
+      // The ranking is per country's mobile-money payout, not per wallet, so only the main wallet
+      // (listed first) is indexed; the others are useful pages for visitors but would be near-duplicates.
+      const primary = w === wallets[0];
+      write(rel + "index.html", page({ prefix, canonical: rel, og: "home", rank: false, noindex: !primary,
+        title: fitTitle([`Send money to ${w} in ${r.name}: cheapest today`, `Send money to ${w} ${r.name}: cheapest today`, `Send money to ${w}: best rate today`], 60) + ` | ${config.siteName}`,
+        description: `Send money to ${w} in ${r.name}: ${answer}`.slice(0, 158), jsonld: [faqLd(faqs), crumbs(trail)], body }));
+      if (primary) urls.push(rel);
+      made.push([r, w, rel]);
+    }
+  }
+}
+
+// Buying land safely from abroad. Facts checked 21 Nov 2026 against the sources listed on each page.
+const LAND_GUIDES = {
+  kenya: {
+    name: "Kenya", office: "the Ministry of Lands (Ardhisasa / eCitizen) or the county land registry",
+    title: "title deed", search: "an official search on Ardhisasa (or at the land registry) using the title number",
+    steps: [
+      ["Get a copy of the title deed and the seller's ID and KRA PIN", "The title number on the deed is what you search with. Check the seller's name matches the ID exactly."],
+      ["Do an official search yourself", "Search on Ardhisasa (ardhisasa.lands.go.ke) or at the land registry. The certificate of official search shows the registered owner and any charges, cautions or restrictions. Pay the fee shown at payment: guides quote KES 500 to 1,000. Don't rely on a search the seller gives you."],
+      ["Check the map and the ground", "Ask a licensed surveyor to compare the registry index map (RIM) or deed plan with the beacons on site, and to confirm the parcel isn't on a road reserve, riparian land or public land."],
+      ["Get the right consents", "Agricultural land needs Land Control Board consent. If the seller is married, ask for spousal consent. Family or inherited land needs the succession papers."],
+      ["Use an advocate and a written sale agreement", "Pay through the advocate or in stages tied to the transfer, never in cash to an agent. The advocate lodges the transfer at the registry."],
+      ["Pay stamp duty and register the transfer", "The Ministry's service charter lists stamp duty at 2% or 4% of the property value (rural or urban) and a registration fee. The land is yours only once the transfer is registered and a new search shows your name."]
+    ],
+    sources: [["Ministry of Lands service charter", "https://www.lands.go.ke/sites/default/files/2025-04/SDLPP%20English%20Service%20Charter.pdf"], ["KELIN: step-by-step guide to a valid title", "https://kelinkenya.org/wp-content/uploads/2024/09/Step-By-Step-Guide-on-How-to-Obtain-a-Valid-Title.pdf"], ["Ardhisasa", "https://ardhisasa.lands.go.ke/"]]
+  },
+  nigeria: {
+    name: "Nigeria", office: "the state Lands Registry where the land is", title: "Certificate of Occupancy (C of O) or a registered deed with Governor's Consent",
+    search: "a search at the state Lands Registry, and a survey search, through your lawyer and surveyor",
+    steps: [
+      ["Ask for the title documents and the survey plan", "Common titles are a Certificate of Occupancy, a registered Deed of Assignment with Governor's Consent, a gazette or excision, or a court judgment. Get copies of all of them and the survey plan."],
+      ["Search at the state Lands Registry", "Your lawyer searches the registry in the state where the land is to confirm the title is genuine and who holds it. Fees vary by state."],
+      ["Chart the survey plan", "A surveyor charts the plan at the Surveyor-General's office to check the land is not under government acquisition, a road setback or another person's plot."],
+      ["Check the seller's right to sell", "For family land, all the principal members must sign. For a company, ask for its CAC records and a board resolution. Visit the land and speak to neighbours."],
+      ["Sign a Deed of Assignment and apply for Governor's Consent", "Under Section 22 of the Land Use Act, transferring a statutory right of occupancy needs the Governor's Consent. Without it, the transfer is not valid."],
+      ["Stamp and register", "Pay stamp duty and register the deed at the Lands Registry, so your interest is on the record."]
+    ],
+    sources: [["Mondaq: buying property in Nigeria (Land Use Act s.22)", "https://www.mondaq.com/nigeria/real-estate/1794016/buying-property-in-nigeria-as-a-foreigner-legal-requirements-procedure-and-practical-guide"], ["Mondaq: due diligence before buying land in Lagos", "https://www.mondaq.com/nigeria/real-estate/1793414/complete-guide-to-buying-land-in-lagos-state-a-practical-faq-guide-for-first-time-buyers-investors-diaspora-buyers-and-families"], ["Vanguard: legal due diligence when buying property", "https://www.vanguardngr.com/2024/06/buying-property-in-nigeria-legal-due-diligence-considerations/"]]
+  },
+  ghana: {
+    name: "Ghana", office: "the Lands Commission", title: "land title certificate or a registered deed (indenture)",
+    search: "an official search at the Lands Commission with the site plan",
+    steps: [
+      ["Get the site plan and the seller's documents", "Ask for the indenture or land title certificate and a site plan. The Lands Commission needs the site plan (usually two copies) to run a search."],
+      ["Do an official search at the Lands Commission", "The search shows registered interests, earlier deeds and any state acquisition. Under the Land Act, 2020 (Act 1036) the Commission must answer within 14 days of the fee being paid."],
+      ["Find the true owner", "Much land in Ghana is family or stool land. Confirm who has authority to sell (the head of family or the chief with the elders), and check the Customary Land Secretariat where there is one."],
+      ["Visit and check the boundaries", "Walk the land with a licensed surveyor, check the pillars match the site plan, and ask neighbours about disputes or other buyers."],
+      ["Use a lawyer for the indenture", "The lawyer prepares the indenture, has it signed and stamped, and lodges it for registration. Pay in stages tied to these steps."],
+      ["Register the deed or title", "Registration under Act 1036 is compulsory. The land is secure only once your deed or title is registered at the Lands Commission."]
+    ],
+    sources: [["Lands Commission client service charter", "https://www.lc.gov.gh/storage/2023/12/CLIENT-SERVICE-CHARTER.pdf"], ["Graphic Online: Lands Commission urges buyers to search", "https://www.graphic.com.gh/news/general-news/lands-commission-may-block-registration-of-land-sales-by-unregistered-customary-owners.html"], ["Land Act, 2020 (Act 1036), FAOLEX", "https://faolex.fao.org/en/documents/LEX-FAOC208918/land-act-2020-gha-2020"]]
+  }
+};
+function writeLandGuides() {
+  const hubRel = "guides/buying-land/";
+  for (const [id, g] of Object.entries(LAND_GUIDES)) {
+    const rel = `${hubRel}${id}/`, prefix = "../../../";
+    const r = receiverById[id];
+    const faqs = [
+      [`How do I check land is genuine in ${g.name}?`, `Do ${g.search} before you pay anything, and have a licensed surveyor check the plot on the ground.`],
+      [`Can I buy land in ${g.name} while living abroad?`, `Yes, but use your own lawyer and surveyor, not the seller's, and pay in stages tied to the search, the signed agreement and the registered transfer. A relative can act for you with a written power of attorney.`],
+      [`What are the warning signs of land fraud?`, `Pressure to pay quickly, a price far below nearby plots, a seller who avoids an official search, cash payments to agents, and documents you can't verify at ${g.office}.`],
+      [`When is the land legally mine?`, `When the transfer is registered and a new official search shows your name. Paying the seller is not enough.`]
+    ];
+    const trail = [[config.siteName, ""], ["Guides", "guides/"], ["Buying land", hubRel], [g.name, rel]];
+    const body = `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, trail)}
+<h1>Buying land in ${esc(g.name)} from abroad: how to do it safely</h1>
+<p class="lede"><strong>Never pay before ${esc(g.search)}.</strong> Most land fraud against buyers abroad would have been caught by an official search, a surveyor on site and a lawyer who works for you. This is general information, not legal advice: use a qualified lawyer in ${esc(g.name)}. Checked ${esc(new Date(NOW).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }))}.</p>
+<h2>Six steps</h2>
+<ol class="steps">${g.steps.map(([h, t]) => `<li><strong>${esc(h)}.</strong> ${esc(t)}</li>`).join("")}</ol>
+<h2>Paying from abroad</h2>
+<p>Pay the lawyer's client account or in stages tied to each step, not a lump sum to an agent. Keep every receipt and the transfer reference. ${r ? `<a href="${link(prefix, hubPath(r))}">Compare what arrives in ${esc(g.name)} today</a> before each payment.` : ""}</p>
+<h2>After the land: the house</h2>
+<p><a class="btn" href="${link(prefix, `cost-to-build/${id}/`)}">Price a house in ${esc(g.name)}</a> <a class="btn btn-ghost" href="${link(prefix, "cost-to-build/stage-payments/")}">Plan payments to your builder</a></p>
+${waChannel()}
+<h2>Questions</h2>
+${faqBlock(faqs)}
+<h2>Sources</h2>
+<ul>${g.sources.map(([n, u]) => `<li><a href="${esc(u)}" rel="nofollow noopener" target="_blank">${esc(n)}</a></li>`).join("")}</ul>
+</article></div></section>`;
+    write(rel + "index.html", page({ prefix, canonical: rel, og: "home", rank: false,
+      title: fitTitle([`Buying land in ${g.name} from abroad: a safe guide`, `Buying land in ${g.name} safely`], 58) + ` · ${config.siteName}`,
+      description: `How to buy land in ${g.name} from abroad without being defrauded: official search, surveyor, consents, lawyer and registration, step by step.`,
+      jsonld: [faqLd(faqs), crumbs(trail), howToLd(`Buying land in ${g.name} safely`, `Steps to check and register land in ${g.name}.`, g.steps.map(([h, t]) => ({ name: h, text: t })))],
+      body }));
+    urls.push(rel);
+  }
+  write(hubRel + "index.html", page({ prefix: "../../", canonical: hubRel, og: "home", rank: false,
+    title: `Buying land back home safely: Kenya, Nigeria, Ghana · ${config.siteName}`,
+    description: "Step-by-step guides to checking and registering land in Kenya, Nigeria and Ghana when you live abroad.",
+    jsonld: [crumbs([[config.siteName, ""], ["Guides", "guides/"], ["Buying land", hubRel]])],
+    body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav("../../", [[config.siteName, ""], ["Guides", "guides/"], ["Buying land", hubRel]])}<h1>Buying land back home safely</h1><p class="lede">An official search, a surveyor on site and your own lawyer stop most land fraud. Pick the country.</p><ul class="route-links big">${Object.entries(LAND_GUIDES).map(([id, g]) => `<li><a href="${link("../../", `${hubRel}${id}/`)}">${esc(g.name)}</a></li>`).join("")}</ul></article></div></section>` }));
+  urls.push(hubRel);
+}
+
+// Seasonal: sending money home for Christmas. Built all year (title carries the year of the next
+// Christmas); the homepage and Reels can point to it in Nov-Dec.
+function writeChristmasHub() {
+  const d = new Date(NOW), y = d.getUTCMonth() === 0 && d.getUTCDate() <= 10 ? d.getUTCFullYear() - 1 : d.getUTCFullYear();
+  const rel = "send-money-home-for-christmas/", prefix = "../";
+  const rows = (config.priorityRoutes || []).map((k) => { const [a, b] = k.split("-"); const s = senderById[a], r = receiverById[b]; if (!s || !r) return null; const top = routeContext(s, r, prefix, config.defaultAmounts[s.currency]).rows.filter((x) => !x.stale)[0]; return top ? { s, r, top } : null; }).filter(Boolean);
+  const faqs = [
+    ["When should I send money for Christmas?", `Send by about 18 to 19 December ${y}. Banks and agents slow down around 25 and 26 December and 1 January, and some countries have other public holidays in December, such as Jamhuri Day (12 December) in Kenya.`],
+    ["Is it cheaper to send early?", "Not always: the rate moves daily. Set a free rate alert and send when the rate suits you, a few days before the money is needed."],
+    ["What's the fastest way for money to arrive?", "Mobile money is usually the fastest payout. Bank deposits can take longer around holidays."]
+  ];
+  const body = `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, [[config.siteName, ""], ["Christmas", rel]])}
+<h1>Sending money home for Christmas ${y}</h1>
+<p class="lede"><strong>Send by about 18 to 19 December</strong> so the money arrives before the holidays, and compare first: on the busiest routes the best service gives noticeably more than the worst. Rates checked ${esc(dateLong)}.</p>
+<div class="table-wrap"><table class="rates-table"><caption>Best service today on the busiest routes</caption><thead><tr><th scope="col">Route</th><th scope="col">Best today</th><th scope="col" class="num">You send</th><th scope="col" class="num">Arrives</th></tr></thead><tbody>${rows.map(({ s, r, top }) => `<tr><th scope="row"><a href="${link(prefix, corridorPath(s, r))}">${esc(capFirst(s.short))} to ${esc(r.name)}</a></th><td>${esc(top.p.name)}</td><td class="num">${esc(plain(R.money(config.defaultAmounts[s.currency], s.currency, 0)))}</td><td class="num top">${esc(plain(R.money(top.gets, r.currency)))}</td></tr>`).join("")}</tbody></table></div>
+<p><a class="btn" href="${link(prefix, "")}#corridors">Compare your own route</a> <a class="btn btn-ghost" href="${link(prefix, "")}#alerts">Free rate alert</a></p>
+${waChannel()}
+<h2>Your December checklist</h2>
+<ol>
+<li>Compare on the day, by what arrives, not by the fee.</li>
+<li>Send a few days before you need it; allow extra time for bank deposits.</li>
+<li>Check the recipient's name and number: mobile money payments are hard to reverse.</li>
+<li>Flying home too? <a href="${link(prefix, "flying-home/")}">Compare flights, airport pickup, car hire and eSIMs</a>.</li>
+<li>Building over the holidays? <a href="${link(prefix, "cost-to-build/stage-payments/")}">Plan the builder's payments</a> before you travel.</li>
+</ol>
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</article></div></section>`;
+  write(rel + "index.html", page({ prefix, canonical: rel, og: "home", rank: false,
+    title: `Sending money home for Christmas ${y}: best services · ${config.siteName}`,
+    description: `When to send money home for Christmas ${y}, and which service gives the most today on the busiest routes to Africa.`,
+    jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["Christmas", rel]])], body }));
+  urls.push(rel);
+}
+
+// Paying school fees from abroad: what the best service charges to land a fee amount.
+const SCHOOL_FEES = { kenya: [20000, 50000, 100000], nigeria: [150000, 400000, 1000000], ghana: [1500, 4000, 10000], uganda: [500000, 1500000, 3000000] };
+function writeSchoolFees() {
+  const hub = "school-fees/";
+  const made = [];
+  for (const [id, amts] of Object.entries(SCHOOL_FEES)) {
+    const r = receiverById[id];
+    if (!r) continue;
+    const rel = `${hub}${id}/`, prefix = "../../";
+    const lines = corridors.senders.map((s) => { const top = routeContext(s, r, prefix, config.defaultAmounts[s.currency]).rows.filter((x) => !x.stale)[0]; return top ? { s, top } : null; }).filter(Boolean).slice(0, 4);
+    if (!lines.length) continue;
+    const need = (top, amt) => amt / top.ev.rate + (top.ev.fee || 0);
+    const faqs = [
+      [`How do I pay school fees in ${r.name} from abroad?`, `Send to the school's bank account or official mobile-money business number, with the student's name and admission number as the reference, then send the receipt to the school. Don't pay into a personal account.`],
+      [`How much do I need to send to cover the fee?`, `Use the table: it shows roughly what to send with the service giving the most today, including its fee. Add a little in case the rate moves.`],
+      [`When should I send?`, `A week before the fee deadline, so a bank transfer has time to clear. Set a rate alert a few weeks ahead.`]
+    ];
+    const body = `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, [[config.siteName, ""], ["School fees", hub], [r.name, rel]])}
+<h1>Paying school fees in ${esc(r.name)} from abroad</h1>
+<p class="lede"><strong>Pay the school directly, to its bank account or official business number, with the student's admission number as the reference.</strong> The table shows about what to send to cover common fee amounts with the service giving the most today. Checked ${esc(dateLong)}.</p>
+<div class="table-wrap"><table class="rates-table"><caption>About what to send (best service today, fee included)</caption><thead><tr><th scope="col">Fee to cover</th>${lines.map(({ s }) => `<th scope="col" class="num">From ${esc(s.short)}</th>`).join("")}</tr></thead><tbody>${amts.map((a) => `<tr><th scope="row">${esc(plain(R.money(a, r.currency, 0)))}</th>${lines.map(({ s, top }) => `<td class="num">${esc(plain(R.money(need(top, a), s.currency, 0)))}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+<p class="note">Best service today: ${lines.map(({ s, top }) => `${esc(top.p.name)} from ${esc(s.short)}`).join("; ")}. Rates move; compare on the day you pay.</p>
+<p>${lines.map(({ s }) => `<a class="btn btn-ghost" href="${link(prefix, corridorPath(s, r))}">Compare from ${esc(s.short)}</a>`).join(" ")}</p>
+${waChannel()}
+<h2>Questions</h2>
+${faqBlock(faqs)}
+</article></div></section>`;
+    write(rel + "index.html", page({ prefix, canonical: rel, og: "home", rank: false,
+      title: fitTitle([`Paying school fees in ${r.name} from abroad`, `School fees ${r.name}: paying from abroad`], 58) + ` · ${config.siteName}`,
+      description: `How to pay school fees in ${r.name} from the UK, the US or Canada, and about how much to send to cover the fee with the best service today.`,
+      jsonld: [faqLd(faqs), crumbs([[config.siteName, ""], ["School fees", hub], [r.name, rel]])], body }));
+    urls.push(rel);
+    made.push(r);
+  }
+  if (made.length) {
+    write(hub + "index.html", page({ prefix: "../", canonical: hub, og: "home", rank: false,
+      title: `Paying school fees in Africa from abroad · ${config.siteName}`,
+      description: "How to pay school fees from abroad, and how much to send to cover the fee with the best service today.",
+      jsonld: [crumbs([[config.siteName, ""], ["School fees", hub]])],
+      body: `<section class="block page"><div class="wrap"><article class="prose wide">${crumbNav("../", [[config.siteName, ""], ["School fees", hub]])}<h1>Paying school fees from abroad</h1><ul class="route-links big">${made.map((r) => `<li><a href="${link("../", `${hub}${r.id}/`)}">${esc(r.name)}</a></li>`).join("")}</ul></article></div></section>` }));
+    urls.push(hub);
+  }
+}
+
+// Outreach: a page for diaspora associations, churches and blogs to add the free rate box.
+function writeCommunities() {
+  const rel = "for-communities/", prefix = "../";
+  const body = `<section class="block page"><div class="wrap"><article class="prose wide">
+${crumbNav(prefix, [[config.siteName, ""], ["For communities", rel]])}
+<h1>Free tools for diaspora associations, churches and blogs</h1>
+<p class="lede">Help your members send more home. Add SendFair's free rate box to your website, newsletter or WhatsApp group. No cost, no sign-up, and we never pay for or sell rankings.</p>
+<h2>What you can use</h2>
+<ul>
+<li><strong>The rate box</strong> for your website: today's best service for your route. <a href="${link(prefix, "embed/")}">Get the code</a>.</li>
+<li><strong>The WhatsApp channel</strong> for your group: one message a day with the best rates. ${config.whatsappChannelUrl ? `<a href="${esc(config.whatsappChannelUrl)}" target="_blank" rel="noopener">Follow it</a>.` : ""}</li>
+<li><strong>House cost calculator and builder payment planner</strong> for members building back home: <a href="${link(prefix, "cost-to-build/")}">cost to build</a>, <a href="${link(prefix, "cost-to-build/stage-payments/")}">stage payments</a>.</li>
+<li><strong>Land guides</strong>: <a href="${link(prefix, "guides/buying-land/")}">buying land back home safely</a>.</li>
+<li><strong>Monthly data</strong>: the <a href="${link(prefix, "reports/")}">SendFair Remittance Cost Index</a>, free to quote with credit.</li>
+</ul>
+<h2>Talk to us</h2>
+<p>Want a talk for your members, a co-branded page, or data for an article? Email <a href="mailto:${esc(config.contactEmail || "hello@sendfair.africa")}">${esc(config.contactEmail || "hello@sendfair.africa")}</a>.</p>
+</article></div></section>`;
+  write(rel + "index.html", page({ prefix, canonical: rel, og: "home", rank: false,
+    title: `Free tools for diaspora communities · ${config.siteName}`,
+    description: "Add SendFair's free rate box, WhatsApp channel and house tools to your association, church or blog. No cost, no paid rankings.",
+    jsonld: [crumbs([[config.siteName, ""], ["For communities", rel]])], body }));
+  urls.push(rel);
+}
+
+// Ready-to-paste WhatsApp summary for the channel and groups (admin only, behind Cloudflare Access).
+function writeWhatsappWeekly() {
+  const days = Object.keys(history.days || {}).sort().slice(-7);
+  const lines = [];
+  for (const key of config.priorityRoutes || []) {
+    const [a, b] = key.split("-"); const s = senderById[a], r = receiverById[b];
+    if (!s || !r) continue;
+    const top = routeContext(s, r, "", config.defaultAmounts[s.currency]).rows.filter((x) => !x.stale)[0];
+    if (!top) continue;
+    const wins = {};
+    for (const d of days) for (const id of ((history.days[d] || {})[key] || {}).by || []) wins[id] = (wins[id] || 0) + 1;
+    const best = Object.entries(wins).sort((x, y) => y[1] - x[1])[0];
+    lines.push(`• ${capFirst(s.short)} → ${r.name}: today ${top.p.name}, ${plain(R.money(config.defaultAmounts[s.currency], s.currency, 0))} = ${plain(R.money(top.gets, r.currency))}${best ? `; this week ${(providers[best[0]] || { name: best[0] }).name} led on ${best[1]} of ${days.length} days` : ""}`);
+  }
+  const text = `💸 SendFair weekly rate check (${dateLong})\n\nWho gives the most this week:\n${lines.join("\n")}\n\nCompare your own amount: ${site}\nBuilding back home? ${site}/cost-to-build/\nFollow us everywhere: ${site.replace("https://", "")}/follow`;
+  write("admin/whatsapp/index.html", page({ prefix: "../../", canonical: "admin/whatsapp/", noindex: true, rank: false, title: `WhatsApp weekly summary · ${config.siteName}`, description: "Ready-to-paste weekly summary.",
+    body: `<section class="block page"><div class="wrap"><div class="prose wide"><h1>WhatsApp weekly summary</h1><p>Rebuilt with every rate update. Tap Copy, then paste into the SendFair channel and your groups.</p><textarea id="wa-text" rows="16" style="width:100%;font:inherit;padding:12px;border-radius:12px">${esc(text)}</textarea><p><button class="btn" type="button" onclick="var t=document.getElementById('wa-text');t.select();navigator.clipboard&&navigator.clipboard.writeText(t.value);this.textContent='Copied'">Copy</button> <a class="btn btn-ghost" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">Open in WhatsApp</a></p></div></div></section>` }));
+}
+
 function writeFlyingHome() {
   const rs = corridors.receivers.filter(hasFlyPage);
   if (!rs.length) return;
@@ -1648,7 +1928,7 @@ ${id ? sponsorBox(id, prefix) : ""}
 ${id && ["senegal", "ivorycoast", "mali", "cameroon", "drc", "rwanda"].includes(id) ? `<p><a href="${link(prefix, `fr/cost-to-build/${id}/`)}">Lire cette page en français</a></p>` : ""}
 ${id ? `<h2>By size</h2><ul class="route-links">${[2, 3, 4].map((n) => `<li><a href="${link(prefix, `cost-to-build/${id}/${n}-bedroom/`)}">${n}-bedroom house</a></li>`).join("")}</ul>` : ""}
 ${id && MATERIAL_PAGE_COUNTRIES.includes(id) ? `<h2>Material prices in ${esc(buildCosts.countries[id].name)}</h2><ul class="route-links">${MATERIAL_PAGES.filter((m) => BC.priceOf(buildCosts, id, m.key, midmarket.rates || {})).map((m) => `<li><a href="${link(prefix, `cost-to-build/${id}/${m.slug}/`)}">${esc(capFirst(m.name))}</a></li>`).join("")}</ul>` : ""}
-<p><a href="${link(prefix, "cost-to-build/stage-payments/")}">Plan payments to your builder, stage by stage</a></p>
+<p><a href="${link(prefix, "cost-to-build/stage-payments/")}">Plan payments to your builder, stage by stage</a>${id && LAND_GUIDES[id] ? ` · <a href="${link(prefix, `guides/buying-land/${id}/`)}">Buying land in ${esc(LAND_GUIDES[id].name)} safely</a>` : ""}</p>
 ${id ? (() => { const rc = regionalFactors.countries[id]; const filled = rc ? Object.entries(rc.cities || {}).filter(([, city]) => city.factor > 0) : []; return filled.length ? `<h2>By city</h2><ul class="route-links">${filled.map(([slug, city]) => `<li><a href="${link(prefix, `cost-to-build/${id}/${slug}/`)}">${esc(city.name)}</a></li>`).join("")}</ul>` : ""; })() : ""}
 ${id ? peopleAlsoAsk({ prefix, country: id, topic: "build" }) : ""}
 <h2 id="countries">${id ? "Other countries" : "All countries"}</h2>
@@ -2507,6 +2787,7 @@ ${s.currency !== r.currency ? `<p class="note"><a href="${link(prefix, `rates/${
 <h2>Ways to receive money in ${esc(r.name)}</h2>
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
 ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
+${walletLinks(r, prefix)}
 ${houseNote(r, prefix)}
 ${flyNote(r, prefix)}
 ${(config.priorityRoutes || []).includes(`${s.id}-${r.id}`) && monthlyGuideOk(s, r) ? `<p class="fly-note"><a href="${link(prefix, `guides/best-way-to-send-money/${s.id}-to-${r.id}/`)}">This month's guide: the best way to send money from ${esc(s.short)} to ${esc(r.name)}</a></p>` : ""}
@@ -2667,6 +2948,7 @@ ${crumbNav(prefix, trail)}
 <h2>Ways to receive money in ${esc(r.name)}</h2>
 <ul class="payout-list">${Object.entries(r.payout).map(([k, v]) => `<li><span>${R.LABEL[k]}</span><span>${esc(v)}</span></li>`).join("")}</ul>
 ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
+${walletLinks(r, prefix)}
 ${houseNote(r, prefix)}
 ${flyNote(r, prefix)}
 <h2>Good to know before you send to ${esc(r.name)}</h2>
@@ -3334,6 +3616,12 @@ fs.writeFileSync(path.join(OUT, "admin/quote-checks/index.html"), fs.readFileSyn
 // SEO and hosting files
 writeBuildPages();
 writeFlyingHome();
+writeWalletPages();
+writeLandGuides();
+writeChristmasHub();
+writeSchoolFees();
+writeCommunities();
+writeWhatsappWeekly();
 writeAdvertisePage();
 writeFollowPage();
 writeEmbedPage();
@@ -3494,6 +3782,10 @@ function writeGuides() {
     ...guides.pillars.map((p) => ({ kind: "guide", slug: p.slug, title: p.title, description: p.description || "", url: `guides/${p.slug}/`, tags: [] })),
     ...Object.entries(buildCosts.countries || {}).map(([id, c]) => ({ kind: "house", slug: id, title: `Cost to build a house in ${c.name}`, description: `Receipt check for a simple house in ${c.name}.`, url: `cost-to-build/${id}/`, tags: [id] })),
     { kind: "house", slug: "material-prices", title: "Material prices", description: "Cement, steel, blocks, sand and a mason day.", url: "cost-to-build/material-prices/", tags: ["prices"] },
+    ...Object.entries(LAND_GUIDES).map(([id, g]) => ({ kind: "guide", slug: `buying-land-${id}`, title: `Buying land in ${g.name} safely`, description: "Official search, surveyor, consents, lawyer and registration.", url: `guides/buying-land/${id}/`, tags: [id, "land"] })),
+    ...Object.keys(SCHOOL_FEES).filter((id) => fs.existsSync(path.join(OUT, `school-fees/${id}/index.html`))).map((id) => ({ kind: "guide", slug: `school-fees-${id}`, title: `Paying school fees in ${receiverById[id].name} from abroad`, description: "How much to send to cover the fee.", url: `school-fees/${id}/`, tags: [id, "school fees"] })),
+    { kind: "guide", slug: "christmas", title: "Sending money home for Christmas", description: "When to send and the best service today.", url: "send-money-home-for-christmas/", tags: ["christmas", "december"] },
+    { kind: "guide", slug: "for-communities", title: "Free tools for diaspora communities", description: "Rate box, WhatsApp channel and house tools for associations and churches.", url: "for-communities/", tags: ["embed"] },
     { kind: "house", slug: "stage-payments", title: "Pay your builder in stages", description: "Plan stage payments and compare the transfer for each one.", url: "cost-to-build/stage-payments/", tags: ["planner", "builder", "payments"] },
     ...MATERIAL_PAGE_COUNTRIES.flatMap((id) => MATERIAL_PAGES.filter((m) => BC.priceOf(buildCosts, id, m.key, midmarket.rates || {})).map((m) => ({ kind: "house", slug: `${id}-${m.slug}`, title: `Price of ${m.name} in ${buildCosts.countries[id].name}`, description: `${capFirst(m.h)} in ${buildCosts.countries[id].city}, with sources.`, url: `cost-to-build/${id}/${m.slug}/`, tags: [id, "prices", m.key] }))),
     ...(config.priorityRoutes || []).filter((k) => fs.existsSync(path.join(OUT, `guides/best-way-to-send-money/${k.replace("-", "-to-")}/index.html`))).map((k) => { const [a, b] = k.split("-"); return { kind: "guide", slug: `best-way-${k}`, title: `Best way to send money from ${senderById[a].short} to ${receiverById[b].name}`, description: "This month's best service and rate moves.", url: `guides/best-way-to-send-money/${a}-to-${b}/`, tags: [b, a] }; }),
