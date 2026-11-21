@@ -22,13 +22,36 @@ const wrap = (w, url) => (w ? fill(w, { url: encodeURIComponent(url) }) : url);
 
 // Flight search from an origin city code to a destination airport code.
 // Returns null if either code is not one we list, so the redirect can't be pointed anywhere else.
-export function flightTarget(partners, { origin, dest, receiver, route }) {
+// Travel dates for a flight search. Aviasales needs them in the link (DDMM, no year): without a
+// date it cannot run the search. Bad, past or missing dates fall back to "in 3 weeks, back 2 weeks
+// later"; a bad return date becomes 2 weeks after departure; an empty return means one-way.
+const DAY = 86400000;
+const isoDay = (ms) => new Date(ms).toISOString().slice(0, 10);
+export function tripDates({ depart, ret, now = Date.now() } = {}) {
+  const today = Date.parse(isoDay(now));
+  const ok = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s || "") && !Number.isNaN(Date.parse(s));
+  let dep = ok(depart) ? Date.parse(depart) : NaN;
+  if (!(dep >= today && dep <= today + 330 * DAY)) dep = today + 21 * DAY;
+  let back;
+  if (ret === "") back = NaN; // one-way, asked for
+  else {
+    back = ok(ret) ? Date.parse(ret) : dep + 14 * DAY;
+    if (!(back > dep && back <= today + 360 * DAY)) back = dep + 14 * DAY;
+  }
+  return { depart: isoDay(dep), ret: Number.isNaN(back) ? "" : isoDay(back) };
+}
+const ddmm = (iso) => iso ? iso.slice(8, 10) + iso.slice(5, 7) : "";
+
+export function flightTarget(partners, { origin, dest, receiver, route, depart, ret, adults, now }) {
   const t = (partners && partners.travel) || {};
   const o = Object.values(partners.origins || {}).flat().find(([code]) => code === origin);
   const d = ((partners.airports || {})[receiver] || []).find(([code]) => code === dest);
   if (!o || !d || !t.flightsUrl) return null;
+  const dates = tripDates({ depart, ret, now });
+  const pax = Math.min(9, Math.max(1, parseInt(adults, 10) || 1));
   const url = fill(t.flightsUrl, {
-    from: o[0], to: d[0], fromCity: encodeURIComponent(o[1]), toCity: encodeURIComponent(d[1]), route: encodeURIComponent(route || "")
+    from: o[0], to: d[0], fromCity: encodeURIComponent(o[1]), toCity: encodeURIComponent(d[1]), route: encodeURIComponent(route || ""),
+    dep: ddmm(dates.depart), ret: ddmm(dates.ret), adults: String(pax), depart: dates.depart, return: dates.ret
   });
   return wrap(t.flightsWrap, url);
 }

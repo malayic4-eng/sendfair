@@ -6,10 +6,11 @@
   "travel.esimUrl / travel.esimWrap: the same for the eSIM button. {country} is the country name.",
   "sponsors: paid listings on the house-calculator pages. Each needs id (lowercase, no spaces), name, category, blurb, url (https), countries (ids from data/build-costs.json), starts and ends (YYYY-MM-DD). Optional: phone, badge. A sponsor shows only between starts and ends, always labelled Sponsored, and never changes the receipt.",
   "origins: departure cities per sending region. airports: arrival airports per receiving country. Codes are IATA city or airport codes.",
-  "travel.extras: more trip-home partners (Travelpayouts). Each: id (lowercase), name, kind (one of flights, transfer, car, esim, claim, activity), blurb, url (https), wrap (tracked link with {url}), optional countries (receiver ids; omit = all). Shown on the flying-home pages and sent through /go/<id>?r=fly-<country>."
+  "travel.extras: more trip-home partners (Travelpayouts). Each: id (lowercase), name, kind (one of flights, transfer, car, esim, claim, activity), blurb, url (https), wrap (tracked link with {url}), optional countries (receiver ids; omit = all). Shown on the flying-home pages and sent through /go/<id>?r=fly-<country>.",
+  "travel.flightsUrl is an Aviasales search path: {from}{dep}{to}{ret}{adults}, dep/ret as DDMM. Without dates Aviasales cannot search, so flightTarget always fills them (default: leave in 3 weeks, back 2 weeks later)."
  ],
  "travel": {
-  "flightsUrl": "https://www.aviasales.com/?params={from}{to}1",
+  "flightsUrl": "https://www.aviasales.com/search/{from}{dep}{to}{ret}{adults}",
   "flightsWrap": "https://tp.media/r?campaign_id=100&marker=807652&p=4114&trs=602820&u={url}",
   "esimUrl": "https://www.airalo.com/",
   "esimWrap": "https://tp.media/r?campaign_id=541&marker=807652&p=8310&trs=602820&u={url}",

@@ -43,7 +43,13 @@ const go = async (url) => (await onRequestGet(ctx(url))).headers.get("location")
 
 const base = "https://sendfair.africa/go/";
 // Travelpayouts tracked links (Aviasales program 100, Airalo program 541, marker 807652).
-check(await go(base + "flights?o=LON&d=NBO&r=fly-kenya") === "https://tp.media/r?campaign_id=100&marker=807652&p=4114&trs=602820&u=" + encodeURIComponent("https://www.aviasales.com/?params=LONNBO1"), "flight link London to Nairobi (tracked Aviasales)");
+{
+  // Dates relative to today so the check never goes stale.
+  const iso = (d) => new Date(Date.now() + d * 86400000).toISOString().slice(0, 10), dm = (s) => s.slice(8, 10) + s.slice(5, 7);
+  const dep = iso(30), ret = iso(45);
+  check(await go(base + `flights?o=LON&d=NBO&r=fly-kenya&dep=${dep}&ret=${ret}&pax=2`) === "https://tp.media/r?campaign_id=100&marker=807652&p=4114&trs=602820&u=" + encodeURIComponent(`https://www.aviasales.com/search/LON${dm(dep)}NBO${dm(ret)}2`), "flight link London to Nairobi with dates (tracked Aviasales)");
+  check(/search%2FLON\d{4}NBO\d{4}1$/.test(await go(base + "flights?o=LON&d=NBO&r=fly-kenya")), "old links without dates still open a dated search");
+}
 check(await go(base + "flights?o=LON&d=LOS&r=fly-kenya") === "https://sendfair.africa/", "flight to an airport outside the country must go home");
 check(await go(base + "flights?o=XXX&d=NBO&r=fly-kenya") === "https://sendfair.africa/", "unknown origin must go home");
 check(await go(base + "esim?r=fly-kenya") === "https://tp.media/r?campaign_id=541&marker=807652&p=8310&trs=602820&u=" + encodeURIComponent(partners.travel.esimUrl), "esim link (tracked Airalo)");
@@ -53,8 +59,8 @@ check(await go(base + "nobody?r=build-kenya") === "https://sendfair.africa/", "u
 check(/wise\.com/.test(await go(base + "wise?r=uk-kenya") || ""), "transfer providers still redirect");
 
 // Wrapped (affiliate) links encode the destination into {url}.
-const wrapped = flightTarget({ ...partners, travel: { ...partners.travel, flightsWrap: "https://tp.media/r?marker=1&u={url}" } }, { origin: "LON", dest: "NBO", receiver: "kenya" });
-check(wrapped === "https://tp.media/r?marker=1&u=" + encodeURIComponent("https://www.aviasales.com/?params=LONNBO1"), "flightsWrap encodes the destination");
+const wrapped = flightTarget({ ...partners, travel: { ...partners.travel, flightsWrap: "https://tp.media/r?marker=1&u={url}" } }, { origin: "LON", dest: "NBO", receiver: "kenya", depart: "2026-12-18", ret: "2027-01-05", now: Date.parse("2026-11-21") });
+check(wrapped === "https://tp.media/r?marker=1&u=" + encodeURIComponent("https://www.aviasales.com/search/LON1812NBO05011"), "flightsWrap encodes the destination");
 
 check(sponsorsFor(testPartners, "kenya").map((s) => s.id).join() === "live-builder", "only live sponsors show");
 check(!sponsorLive(testPartners.sponsors[1]), "expired sponsor is not live");
@@ -66,6 +72,9 @@ check(/sponsor-box/.test(read("cost-to-build/kenya/3-bedroom/index.html")), "spo
 check(/flying-home\/kenya\//.test(read("send-money/uk-to-kenya/index.html")), "route page links to flying home");
 check(/go\/flights\?o=LON&amp;d=NBO&amp;r=fly-kenya/.test(read("flying-home/kenya/index.html")), "flying-home page has flight links");
 check(/links on the flying-home pages are affiliate links/.test(read("disclosure/index.html")), "disclosure says travel links are affiliate links");
+check(/\/search\/LON\d{4}NBO\d{4}1$/.test(decodeURIComponent(flightTarget(partners, { origin: "LON", dest: "NBO", receiver: "kenya" }) || "")), "flight links carry travel dates (Aviasales can't search without them)");
+check(/\/search\/LON1812NBO05012$/.test(decodeURIComponent(flightTarget(partners, { origin: "LON", dest: "NBO", receiver: "kenya", depart: "2026-12-18", ret: "2027-01-05", adults: "2", now: Date.parse("2026-11-21") }) || "")), "chosen dates and travellers are used");
+check(/class="fly-form"[\s\S]*name="dep"[\s\S]*name="ret"/.test(read("flying-home/kenya/index.html")), "flying-home page has a date search form");
 check(/go\/kiwitaxi\?r=fly-kenya/.test(read("flying-home/kenya/index.html")), "flying-home page has airport pickup links");
 check(!/go\/klook\?r=fly-ghana/.test(read("flying-home/ghana/index.html")) && /go\/klook\?r=fly-kenya/.test(read("flying-home/kenya/index.html")), "activities only where listed");
 check(/advertise\//.test(read("sitemap.xml")) && /flying-home\/kenya\//.test(read("sitemap.xml")), "new pages in the sitemap");
